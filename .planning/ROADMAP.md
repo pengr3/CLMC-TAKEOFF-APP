@@ -31,7 +31,7 @@
   5. The app works on a 150% Windows display-scaled monitor without blurry rendering or offset pointer events
 **Plans**: 3 plans
 Plans:
-- [ ] 01-01-PLAN.md — Scaffold electron-vite project, Electron shell with IPC, UI chrome, Zustand store, Vitest
+- [x] 01-01-PLAN.md — Scaffold electron-vite project, Electron shell with IPC, UI chrome, Zustand store, Vitest
 - [ ] 01-02-PLAN.md — PDF.js rendering, Konva canvas viewport, page navigation
 - [ ] 01-03-PLAN.md — Zoom-to-cursor, pan, keyboard shortcuts, status bar wiring, visual verification
 **UI hint**: yes
