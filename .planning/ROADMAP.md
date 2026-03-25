@@ -29,7 +29,11 @@
   3. User can zoom in to 8x or more and pan freely — a test point placed on a plan feature stays on that exact feature regardless of zoom or pan applied afterward
   4. User can zoom out to fit-the-window and the full page is visible without distortion
   5. The app works on a 150% Windows display-scaled monitor without blurry rendering or offset pointer events
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 01-01-PLAN.md — Scaffold electron-vite project, Electron shell with IPC, UI chrome, Zustand store, Vitest
+- [ ] 01-02-PLAN.md — PDF.js rendering, Konva canvas viewport, page navigation
+- [ ] 01-03-PLAN.md — Zoom-to-cursor, pan, keyboard shortcuts, status bar wiring, visual verification
 **UI hint**: yes
 
 ### Phase 2: Scale Calibration
@@ -94,7 +98,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. PDF Viewer and Canvas Foundation | 0/0 | Not started | - |
+| 1. PDF Viewer and Canvas Foundation | 0/3 | Planned | - |
 | 2. Scale Calibration | 0/0 | Not started | - |
 | 3. Markup Tools and Editing | 0/0 | Not started | - |
 | 4. Project Persistence | 0/0 | Not started | - |
