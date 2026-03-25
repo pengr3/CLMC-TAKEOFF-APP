@@ -8,7 +8,8 @@ import {
 } from 'lucide-react'
 import { useViewerStore } from '../stores/viewerStore'
 import { usePdfDocument } from '../hooks/usePdfDocument'
-import { ZOOM_STEPS, MIN_ZOOM, MAX_ZOOM } from '../lib/constants'
+import { getCanvasControls } from './CanvasViewport'
+import { MIN_ZOOM, MAX_ZOOM } from '../lib/constants'
 
 function IconButton({
   icon: Icon,
@@ -68,34 +69,35 @@ function IconButton({
 export function Toolbar(): React.JSX.Element {
   const { totalPages, currentPage, nextPage, prevPage } = useViewerStore()
   const getViewport = useViewerStore((s) => s.getViewport)
-  const setZoom = useViewerStore((s) => s.setZoom)
   const { openPdfDialog } = usePdfDocument()
 
   const currentZoom = totalPages > 0 ? getViewport(currentPage).zoom : 1
   const zoomPct = Math.round(currentZoom * 100)
+  // Highlight zoom text when not at 100% (tolerance of 0.01 for float comparison)
+  const isZoomDefault = Math.abs(currentZoom - 1.0) < 0.01
 
   const handleOpenPdf = async (): Promise<void> => {
     await openPdfDialog()
   }
 
   const handleZoomIn = (): void => {
-    const currentIdx = ZOOM_STEPS.findIndex((s) => s >= currentZoom)
-    const nextIdx = Math.min(ZOOM_STEPS.length - 1, currentIdx + 1)
-    setZoom(currentPage, ZOOM_STEPS[nextIdx])
+    const controls = getCanvasControls()
+    if (controls) {
+      controls.zoomIn()
+    }
   }
 
   const handleZoomOut = (): void => {
-    const currentIdx = ZOOM_STEPS.findIndex((s) => s >= currentZoom)
-    const nextIdx = Math.max(0, currentIdx - 1)
-    setZoom(currentPage, ZOOM_STEPS[nextIdx])
+    const controls = getCanvasControls()
+    if (controls) {
+      controls.zoomOut()
+    }
   }
 
   const handleFit = (): void => {
-    // Use canvas viewport's fit-to-window if available, otherwise reset zoom
-    if ((window as any).__canvasFitToWindow) {
-      ;(window as any).__canvasFitToWindow()
-    } else {
-      setZoom(currentPage, 1)
+    const controls = getCanvasControls()
+    if (controls) {
+      controls.fitToWindow()
     }
   }
 
@@ -193,7 +195,7 @@ export function Toolbar(): React.JSX.Element {
             style={{
               fontSize: 13,
               fontWeight: 600,
-              color: zoomPct === 100 ? '#cccccc' : '#0078d4',
+              color: isZoomDefault ? '#cccccc' : '#0078d4',
               padding: '0 4px',
               minWidth: 40,
               textAlign: 'center'

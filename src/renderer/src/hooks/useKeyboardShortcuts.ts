@@ -1,0 +1,65 @@
+import { useEffect } from 'react'
+import { useViewerStore } from '../stores/viewerStore'
+
+interface KeyboardShortcutHandlers {
+  openPdf: () => void
+  zoomIn: () => void
+  zoomOut: () => void
+  fitToWindow: () => void
+}
+
+export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
+  const totalPages = useViewerStore((s) => s.totalPages)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      // Ctrl+O: Open PDF
+      if (e.ctrlKey && e.key === 'o') {
+        e.preventDefault()
+        handlers.openPdf()
+        return
+      }
+
+      // Only handle remaining shortcuts when a PDF is loaded
+      if (totalPages === 0) return
+
+      // Ctrl+=: Zoom in
+      if (e.ctrlKey && (e.key === '=' || e.key === '+')) {
+        e.preventDefault()
+        handlers.zoomIn()
+        return
+      }
+
+      // Ctrl+-: Zoom out
+      if (e.ctrlKey && e.key === '-') {
+        e.preventDefault()
+        handlers.zoomOut()
+        return
+      }
+
+      // Ctrl+0: Fit to window
+      if (e.ctrlKey && e.key === '0') {
+        e.preventDefault()
+        handlers.fitToWindow()
+        return
+      }
+
+      // ArrowLeft / PageUp: Previous page
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault()
+        useViewerStore.getState().prevPage()
+        return
+      }
+
+      // ArrowRight / PageDown: Next page
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+        e.preventDefault()
+        useViewerStore.getState().nextPage()
+        return
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handlers, totalPages])
+}

@@ -3,7 +3,21 @@ import { Stage, Layer, Image as KonvaImage } from 'react-konva'
 import Konva from 'konva'
 import { usePdfRenderer } from '../hooks/usePdfRenderer'
 import { useViewerStore } from '../stores/viewerStore'
+import { useViewportControls } from '../hooks/useViewportControls'
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
+import { usePdfDocument } from '../hooks/usePdfDocument'
 import { COLORS } from '../lib/constants'
+
+// Module-level ref for canvas control functions (consumed by Toolbar via getCanvasControls)
+let _canvasControls: {
+  zoomIn: () => void
+  zoomOut: () => void
+  fitToWindow: () => void
+} | null = null
+
+export function getCanvasControls() {
+  return _canvasControls
+}
 
 export function CanvasViewport() {
   const stageRef = useRef<Konva.Stage>(null)
@@ -14,6 +28,9 @@ export function CanvasViewport() {
   const currentPage = useViewerStore((s) => s.currentPage)
   const getViewport = useViewerStore((s) => s.getViewport)
   const setViewport = useViewerStore((s) => s.setViewport)
+
+  const { handleWheel, zoomIn, zoomOut, spaceHeld } = useViewportControls(stageRef)
+  const { openPdfDialog } = usePdfDocument()
 
   // Observe container resize
   useEffect(() => {
@@ -69,7 +86,7 @@ export function CanvasViewport() {
     setViewport(currentPage, { zoom: scale, panX: pos.x, panY: pos.y })
   }, [currentPage, setViewport])
 
-  // fitToWindow function for toolbar button
+  // fitToWindow function for toolbar button and keyboard shortcut
   const fitToWindow = useCallback(() => {
     const stage = stageRef.current
     if (!stage || !pageSize) return
@@ -81,10 +98,27 @@ export function CanvasViewport() {
     setViewport(currentPage, { zoom: fitScale, panX: centerX, panY: centerY })
   }, [currentPage, pageSize, containerSize, calculateFitScale, setViewport])
 
-  // Expose fitToWindow via a global (Plan 03 will wire zoom controls properly)
+  // Expose control functions via module-level ref
   useEffect(() => {
-    ;(window as any).__canvasFitToWindow = fitToWindow
-  }, [fitToWindow])
+    _canvasControls = { zoomIn, zoomOut, fitToWindow }
+    return () => {
+      _canvasControls = null
+    }
+  }, [zoomIn, zoomOut, fitToWindow])
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    openPdf: openPdfDialog,
+    zoomIn,
+    zoomOut,
+    fitToWindow
+  })
+
+  // Determine cursor based on interaction state
+  const getCursor = (): string => {
+    if (spaceHeld) return 'grab'
+    return 'default'
+  }
 
   if (!pageCanvas || !pageSize) return null
 
@@ -96,13 +130,14 @@ export function CanvasViewport() {
         height: '100%',
         background: COLORS.dominant,
         overflow: 'hidden',
-        cursor: 'default'
+        cursor: getCursor()
       }}
     >
       <Stage
         ref={stageRef}
         width={containerSize.width}
         height={containerSize.height}
+        onWheel={handleWheel}
         onDragEnd={handleDragEnd}
       >
         {/* Layer 0: PDF background */}

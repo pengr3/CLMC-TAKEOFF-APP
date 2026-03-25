@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { FileUp } from 'lucide-react'
-import { useViewerStore } from '../stores/viewerStore'
+import { usePdfDocument } from '../hooks/usePdfDocument'
 
 export function EmptyState(): React.JSX.Element {
   const [isDragOver, setIsDragOver] = useState(false)
-  const setFile = useViewerStore((s) => s.setFile)
+  const { loadPdf } = usePdfDocument()
 
   // Prevent default drag behavior at window level to stop Chromium navigation
   useEffect(() => {
@@ -29,13 +29,20 @@ export function EmptyState(): React.JSX.Element {
         const file = files[0]
         if (file.name.toLowerCase().endsWith('.pdf')) {
           const filePath = (file as File & { path?: string }).path ?? file.name
-          const name = file.name
-          // For now just set file info; actual PDF loading happens in Plan 02
-          setFile(filePath, name, 1)
+
+          // Read the file as ArrayBuffer and load via PDF.js
+          const reader = new FileReader()
+          reader.onload = (): void => {
+            const arrayBuffer = reader.result as ArrayBuffer
+            if (arrayBuffer) {
+              loadPdf(arrayBuffer, filePath)
+            }
+          }
+          reader.readAsArrayBuffer(file)
         }
       }
     },
-    [setFile]
+    [loadPdf]
   )
 
   return (
