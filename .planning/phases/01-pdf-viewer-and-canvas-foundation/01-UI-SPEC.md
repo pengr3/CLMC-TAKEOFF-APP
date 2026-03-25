@@ -61,6 +61,11 @@ Phase 1 uses a three-region layout. All dimensions are fixed, not responsive -- 
 
 **Title bar:** Use Electron's `titleBarStyle: 'hidden'` with a custom-drawn title bar div. The title bar is draggable (`-webkit-app-region: drag`). Window control buttons (minimize, maximize, close) are positioned at the top-right and are NOT draggable (`-webkit-app-region: no-drag`).
 
+### Visual Hierarchy
+
+- **When no PDF is loaded:** The 48px FileUp icon in the centered empty state card is the focal point. The toolbar and status bar are secondary, with the "Open PDF" accent button drawing the eye toward the primary action.
+- **When a PDF is loaded:** The canvas viewport is the focal point, occupying the vast majority of screen space. The toolbar and status bar recede into peripheral chrome.
+
 ---
 
 ## Spacing Scale
@@ -71,11 +76,13 @@ Declared values (must be multiples of 4):
 |-------|-------|-------|
 | xs | 4px | Icon-to-label gap within toolbar buttons |
 | sm | 8px | Toolbar button internal padding, status bar item gaps |
-| md | 12px | Toolbar section divider margins |
+| md | 16px | Toolbar section divider margins, status bar divider margins |
 | lg | 16px | Toolbar horizontal padding from window edges |
 | xl | 24px | Empty state content padding |
 | 2xl | 32px | Not used in Phase 1 |
 | 3xl | 48px | Not used in Phase 1 |
+
+Note: `md` and `lg` share the same pixel value (16px) in this phase. They are kept as separate semantic tokens -- `md` for internal spacing between sibling groups, `lg` for edge padding against container boundaries. Both resolve to 16px from the standard set.
 
 Exceptions: Toolbar button height is 28px (not a spacing token -- it is a component dimension derived from the 40px toolbar minus 6px vertical padding).
 
@@ -83,16 +90,20 @@ Exceptions: Toolbar button height is 28px (not a spacing token -- it is a compon
 
 ## Typography
 
+Two weights only: 400 (regular) and 600 (semibold). Body and label text share the same size (13px) and are differentiated by weight.
+
 | Role | Size | Weight | Line Height | Usage in Phase 1 |
 |------|------|--------|-------------|-------------------|
-| Body | 13px | 400 (regular) | 1.4 | Status bar text, tooltips |
-| Label | 12px | 500 (medium) | 1.3 | Toolbar button labels, page counter |
+| Body | 13px | 400 (regular) | 1.4 | Status bar text, tooltips, empty state body |
+| Label | 13px | 600 (semibold) | 1.4 | Toolbar button labels, page counter, zoom percentage |
 | Heading | 16px | 600 (semibold) | 1.2 | Empty state heading |
 | Display | Not used | - | - | - |
 
 **Font stack:** `'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`
 
 **Why 13px body, not 14 or 16:** Professional CAD/engineering tools use 12-13px for UI chrome to maximize canvas real estate. Bluebeam uses 12px, AutoCAD uses 13px. At 150% Windows DPI scaling, 13px CSS renders as ~20 physical pixels, which is readable. The canvas is the product, not the chrome.
+
+**Why unify body and label at 13px:** A 1px difference between 12px and 13px is visually indistinguishable, especially in a dark UI. Using a single size with weight differentiation (regular vs semibold) creates clearer hierarchy while reducing the type scale to its minimum effective size.
 
 ---
 
@@ -131,7 +142,7 @@ Accent reserved for: the "Open PDF" primary CTA button background, the active pa
 - Border-radius: 4px
 - Icon size: 16x16px (Lucide default)
 - Icon-to-label gap: 4px
-- Text: 12px medium `#cccccc`
+- Text: 13px semibold (600) `#cccccc`
 - Disabled state: opacity 0.4, cursor not-allowed
 - Cursor: pointer (enabled), not-allowed (disabled)
 
@@ -146,7 +157,7 @@ Accent reserved for: the "Open PDF" primary CTA button background, the active pa
 
 - Same dimensions as toolbar button (icon + label)
 - Background: `#0078d4` (default), `#1a86db` (hover), `#0067b8` (active)
-- Text: 12px medium `#ffffff`
+- Text: 13px semibold (600) `#ffffff`
 - Icon: `FileUp` from Lucide, 16x16px, `#ffffff`
 
 ### Page Navigation Cluster
@@ -156,7 +167,7 @@ Accent reserved for: the "Open PDF" primary CTA button background, the active pa
 ```
 
 - Previous/Next: icon-only toolbar buttons using `ChevronLeft` / `ChevronRight`
-- Page indicator: "Page {n} of {total}" in 12px medium `#cccccc`
+- Page indicator: "Page {n} of {total}" in 13px semibold (600) `#cccccc`
 - Previous disabled when page === 1; Next disabled when page === total
 - Cluster centered horizontally in toolbar
 
@@ -167,7 +178,7 @@ Accent reserved for: the "Open PDF" primary CTA button background, the active pa
 ```
 
 - Zoom In/Out: icon-only toolbar buttons using `ZoomIn` / `ZoomOut`
-- Zoom percentage: 12px medium, `#cccccc` at 100%, `#0078d4` at any other value
+- Zoom percentage: 13px semibold (600), `#cccccc` at 100%, `#0078d4` at any other value
 - Fit button: icon-only toolbar button using `Maximize` icon
 - Zoom step: 25% per click (25%, 50%, 75%, 100%, 125%, 150%, 200%, 300%, 400%, 800%)
 - Scroll wheel zoom: zoom toward cursor position, same step increments
@@ -180,10 +191,10 @@ Accent reserved for: the "Open PDF" primary CTA button background, the active pa
 - Background: `#252526`
 - Border-top: 1px solid `#3c3c3c`
 - Three sections separated by `#3c3c3c` vertical dividers (1px wide, 16px tall, vertically centered)
-- Left section: filename (truncated with ellipsis if > 40 chars), 13px regular `#cccccc`
-- Center section: "Page {n} of {total}", 13px regular `#cccccc`
-- Right section: "Zoom: {pct}%", 13px regular `#cccccc`
-- Horizontal padding: 16px from edges, 12px around dividers
+- Left section: filename (truncated with ellipsis if > 40 chars), 13px regular (400) `#cccccc`
+- Center section: "Page {n} of {total}", 13px regular (400) `#cccccc`
+- Right section: "Zoom: {pct}%", 13px regular (400) `#cccccc`
+- Horizontal padding: 16px from edges, 16px around dividers
 - When no PDF loaded: all sections show em-dash `--`
 
 ### Canvas Viewport
@@ -210,8 +221,8 @@ Centered vertically and horizontally in the canvas viewport area.
 ```
 
 - Icon: `FileUp` from Lucide, 48x48px, `#808080`
-- Heading: "Open a PDF floor plan to begin" -- 16px semibold `#cccccc`
-- Body: "Drag and drop a file here, or use the Open PDF button above." -- 13px regular `#808080`
+- Heading: "Open a PDF floor plan to begin" -- 16px semibold (600) `#cccccc`
+- Body: "Drag and drop a file here, or use the Open PDF button above." -- 13px regular (400) `#808080`
 - Gap between icon and heading: 16px
 - Gap between heading and body: 8px
 - The entire empty state area is a drop zone (drag-and-drop PDF files)
