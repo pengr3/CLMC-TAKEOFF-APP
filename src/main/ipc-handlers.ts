@@ -12,6 +12,6 @@ export function registerIpcHandlers(): void {
     if (result.canceled || result.filePaths.length === 0) return null
     const filePath = result.filePaths[0]
     const data = await readFile(filePath)
-    return { filePath, data: data.buffer }
+    return { filePath, data: new Uint8Array(data).buffer }
   })
 }
