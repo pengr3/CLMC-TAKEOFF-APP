@@ -1,3 +1,4 @@
+import './lib/uint8array-polyfill'
 import './app.css'
 import '@fontsource/inter/400.css'
 import '@fontsource/inter/600.css'
