@@ -7,6 +7,7 @@ import {
   Maximize
 } from 'lucide-react'
 import { useViewerStore } from '../stores/viewerStore'
+import { usePdfDocument } from '../hooks/usePdfDocument'
 import { ZOOM_STEPS, MIN_ZOOM, MAX_ZOOM } from '../lib/constants'
 
 function IconButton({
@@ -65,20 +66,16 @@ function IconButton({
 }
 
 export function Toolbar(): React.JSX.Element {
-  const { totalPages, currentPage, nextPage, prevPage, setFile } = useViewerStore()
+  const { totalPages, currentPage, nextPage, prevPage } = useViewerStore()
   const getViewport = useViewerStore((s) => s.getViewport)
   const setZoom = useViewerStore((s) => s.setZoom)
+  const { openPdfDialog } = usePdfDocument()
 
   const currentZoom = totalPages > 0 ? getViewport(currentPage).zoom : 1
   const zoomPct = Math.round(currentZoom * 100)
 
   const handleOpenPdf = async (): Promise<void> => {
-    const result = await window.api.openPdf()
-    if (result) {
-      const name = result.filePath.split(/[\\/]/).pop() ?? 'unknown.pdf'
-      // For now just set file info; actual PDF loading happens in Plan 02
-      setFile(result.filePath, name, 1)
-    }
+    await openPdfDialog()
   }
 
   const handleZoomIn = (): void => {
@@ -94,7 +91,12 @@ export function Toolbar(): React.JSX.Element {
   }
 
   const handleFit = (): void => {
-    setZoom(currentPage, 1)
+    // Use canvas viewport's fit-to-window if available, otherwise reset zoom
+    if ((window as any).__canvasFitToWindow) {
+      ;(window as any).__canvasFitToWindow()
+    } else {
+      setZoom(currentPage, 1)
+    }
   }
 
   return (
