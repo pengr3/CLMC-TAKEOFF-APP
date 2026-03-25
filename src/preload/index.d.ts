@@ -1,8 +1,11 @@
-import { ElectronAPI } from '@electron-toolkit/preload'
+interface ElectronAPI {
+  openPdf: () => Promise<{ filePath: string; data: ArrayBuffer } | null>
+}
 
 declare global {
   interface Window {
-    electron: ElectronAPI
-    api: unknown
+    api: ElectronAPI
   }
 }
+
+export {}
