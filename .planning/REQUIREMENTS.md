@@ -8,7 +8,7 @@
 ### PDF Viewer
 
 - [x] **PDF-01**: User can load a PDF floor plan file into the app via a file picker
-- [ ] **PDF-02**: User can navigate between pages of a multi-page PDF
+- [x] **PDF-02**: User can navigate between pages of a multi-page PDF
 - [ ] **PDF-03**: User can zoom in and out while all markups remain pinned to their exact positions on the plan
 - [ ] **PDF-04**: User can pan across the plan at any zoom level
 - [ ] **PDF-05**: User can navigate pages via a thumbnail strip sidebar
@@ -92,7 +92,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PDF-01 | Phase 1 | Complete |
-| PDF-02 | Phase 1 | Pending |
+| PDF-02 | Phase 1 | Complete |
 | PDF-03 | Phase 1 | Pending |
 | PDF-04 | Phase 1 | Pending |
 | PDF-05 | Phase 6 | Pending |
