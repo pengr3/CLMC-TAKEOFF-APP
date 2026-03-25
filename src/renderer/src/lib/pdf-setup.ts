@@ -1,10 +1,9 @@
 import * as pdfjsLib from 'pdfjs-dist'
+import workerSrc from 'pdfjs-dist/build/pdf.worker.mjs?url'
 
-// Worker file is copied to renderer output by vite-plugin-static-copy
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.mjs',
-  import.meta.url
-).toString()
+// ?url gives Vite's resolved URL for the worker — avoids CJS/ESM mismatch
+console.log('[PDF] workerSrc resolved to:', workerSrc)
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc
 
 export { pdfjsLib }
 export type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist'
