@@ -95,7 +95,7 @@
 | PDF-02 | Phase 1 | Pending |
 | PDF-03 | Phase 1 | Pending |
 | PDF-04 | Phase 1 | Pending |
-| PDF-05 | Phase 1 | Pending |
+| PDF-05 | Phase 6 | Pending |
 | PDF-06 | Phase 1 | Pending |
 | SCAL-01 | Phase 2 | Pending |
 | SCAL-02 | Phase 2 | Pending |
@@ -124,4 +124,4 @@
 
 ---
 *Requirements defined: 2026-03-25*
-*Last updated: 2026-03-25 after initial definition*
+*Last updated: 2026-03-25 after roadmap creation — PDF-05 reassigned from Phase 1 to Phase 6 (thumbnail strip is a polish feature; basic prev/next navigation via PDF-02 satisfies Phase 1)*
