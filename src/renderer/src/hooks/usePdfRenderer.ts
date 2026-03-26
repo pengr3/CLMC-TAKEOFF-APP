@@ -48,7 +48,6 @@ export function usePdfRenderer() {
         const dpr = window.devicePixelRatio || 1
 
         const canvas = document.createElement('canvas')
-        const context = canvas.getContext('2d')!
 
         // Physical pixel dimensions (for sharp HiDPI rendering)
         canvas.width = Math.floor(viewport.width * dpr)
@@ -57,8 +56,10 @@ export function usePdfRenderer() {
         const transform: [number, number, number, number, number, number] | undefined =
           dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : undefined
 
+        // pdfjs-dist 5.5.x: pass `canvas` directly (required); `canvasContext` is now
+        // the deprecated backwards-compat path. The library derives the 2D context itself.
         const renderTask = page.render({
-          canvasContext: context,
+          canvas,
           viewport,
           transform
         })

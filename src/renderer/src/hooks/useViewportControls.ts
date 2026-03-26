@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, RefObject } from 'react'
 import Konva from 'konva'
-import { ZOOM_STEPS, MIN_ZOOM, MAX_ZOOM } from '../lib/constants'
+import { ZOOM_STEPS } from '../lib/constants'
 import { useViewerStore } from '../stores/viewerStore'
 
 // Find the next zoom step in the given direction

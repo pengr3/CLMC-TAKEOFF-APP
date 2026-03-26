@@ -1,47 +1,147 @@
 import * as pdfjsLib from 'pdfjs-dist'
 import rawWorkerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url'
 
-// Make the URL absolute so it's importable from inside a blob worker
+// Make the URL absolute so it resolves correctly regardless of base path
 const workerUrl = new URL(rawWorkerUrl, import.meta.url).href
 
-// PDF.js 5.x calls Uint8Array.prototype.toHex / toBase64 / Uint8Array.fromBase64
-// (Chrome 129+ Web Platform APIs). Electron's Web Worker context may not have them
-// even on Chromium 134. We inject polyfills via a blob wrapper worker that runs
-// before the real pdf.worker.mjs is imported.
+// PDF.js 5.x calls Uint8Array.prototype.toHex and Uint8Array.fromBase64
+// (Web Platform APIs added in Chrome 129). These must be available inside
+// the worker thread — the worker runs in a separate JS global scope and
+// does not inherit prototype extensions from the renderer context.
+//
+// Strategy: create a blob: URL worker that (1) installs the polyfills into
+// the worker global, then (2) dynamically imports the real pdf.worker.mjs.
+// The CSP allows this via `worker-src 'self' blob:`.
 const polyfillScript = `
-if (!("toHex" in Uint8Array.prototype)) {
-  Object.defineProperty(Uint8Array.prototype, "toHex", {
-    value() { return Array.from(this, b => b.toString(16).padStart(2, "0")).join(""); },
-    writable: true, configurable: true
-  });
-}
-if (!("toBase64" in Uint8Array.prototype)) {
-  Object.defineProperty(Uint8Array.prototype, "toBase64", {
-    value() {
-      let s = "";
-      for (let i = 0; i < this.length; i++) s += String.fromCharCode(this[i]);
-      return btoa(s);
+// Map.prototype.getOrInsertComputed — TC39 upsert proposal, Chrome 136+
+// pdfjs-dist 5.5.x uses this extensively in both pdf.mjs and pdf.worker.mjs.
+// Electron 35 / Chromium 134 does not have it — polyfill required in both contexts.
+if (!('getOrInsertComputed' in Map.prototype)) {
+  Object.defineProperty(Map.prototype, 'getOrInsertComputed', {
+    value: function getOrInsertComputed(key, callbackFn) {
+      if (this.has(key)) return this.get(key);
+      const value = callbackFn(key);
+      this.set(key, value);
+      return value;
     },
-    writable: true, configurable: true
+    writable: true,
+    configurable: true
   });
 }
-if (!("fromBase64" in Uint8Array)) {
-  Object.defineProperty(Uint8Array, "fromBase64", {
-    value(b64) {
-      const s = atob(b64), a = new Uint8Array(s.length);
-      for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i);
-      return a;
+
+// Uint8Array.prototype.toHex — Chrome 129+ (Web Platform baseline)
+if (!('toHex' in Uint8Array.prototype)) {
+  Object.defineProperty(Uint8Array.prototype, 'toHex', {
+    value: function toHex() {
+      let hex = '';
+      for (let i = 0; i < this.length; i++) {
+        hex += this[i].toString(16).padStart(2, '0');
+      }
+      return hex;
     },
-    writable: true, configurable: true
+    writable: true,
+    configurable: true
   });
 }
-import "${workerUrl}";
+
+// Uint8Array.prototype.toBase64 — Chrome 129+
+if (!('toBase64' in Uint8Array.prototype)) {
+  Object.defineProperty(Uint8Array.prototype, 'toBase64', {
+    value: function toBase64() {
+      let binary = '';
+      for (let i = 0; i < this.length; i++) {
+        binary += String.fromCharCode(this[i]);
+      }
+      return btoa(binary);
+    },
+    writable: true,
+    configurable: true
+  });
+}
+
+// Uint8Array.fromBase64 — Chrome 129+ (static method)
+if (!('fromBase64' in Uint8Array)) {
+  Object.defineProperty(Uint8Array, 'fromBase64', {
+    value: function fromBase64(base64) {
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes;
+    },
+    writable: true,
+    configurable: true
+  });
+}
+
+// Now load the real PDF.js worker
+import(${JSON.stringify(workerUrl)});
 `
 
 const blob = new Blob([polyfillScript], { type: 'text/javascript' })
-pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(blob)
+const blobWorkerUrl = URL.createObjectURL(blob)
 
-console.log('[PDF] worker blob URL created, real worker:', workerUrl)
+// Also polyfill in the renderer context (for any pdfjs usage on the main thread)
+
+// Map.prototype.getOrInsertComputed — TC39 upsert proposal, Chrome 136+
+// pdf.mjs (renderer-side) calls this at render/operation time, so it must exist
+// in the renderer global before any page.render() / getPage() calls are made.
+if (!('getOrInsertComputed' in Map.prototype)) {
+  Object.defineProperty(Map.prototype, 'getOrInsertComputed', {
+    value(key: unknown, callbackFn: (key: unknown) => unknown) {
+      if ((this as Map<unknown, unknown>).has(key)) return (this as Map<unknown, unknown>).get(key)
+      const value = callbackFn(key)
+      ;(this as Map<unknown, unknown>).set(key, value)
+      return value
+    },
+    writable: true,
+    configurable: true
+  })
+}
+
+if (!('toHex' in Uint8Array.prototype)) {
+  Object.defineProperty(Uint8Array.prototype, 'toHex', {
+    value() {
+      return Array.from(this as Uint8Array, (b) => (b as number).toString(16).padStart(2, '0')).join('')
+    },
+    writable: true,
+    configurable: true
+  })
+}
+if (!('toBase64' in Uint8Array.prototype)) {
+  Object.defineProperty(Uint8Array.prototype, 'toBase64', {
+    value() {
+      let s = ''
+      for (let i = 0; i < (this as Uint8Array).length; i++) s += String.fromCharCode((this as Uint8Array)[i])
+      return btoa(s)
+    },
+    writable: true,
+    configurable: true
+  })
+}
+if (!('fromBase64' in Uint8Array)) {
+  Object.defineProperty(Uint8Array, 'fromBase64', {
+    value(b64: string) {
+      const s = atob(b64)
+      const a = new Uint8Array(s.length)
+      for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i)
+      return a
+    },
+    writable: true,
+    configurable: true
+  })
+}
+
+// Point PDF.js at the blob wrapper worker.
+// The wrapper installs Uint8Array polyfills in the worker's global scope
+// before importing the real pdf.worker.mjs — required because pdf.worker.mjs
+// v5.5.207 calls Uint8Array.prototype.toHex (line 59575) and Uint8Array.fromBase64
+// (line 46916), which are Chrome 129+ APIs that may not exist in the worker context.
+// The CSP allows blob: workers via `worker-src 'self' blob:`.
+pdfjsLib.GlobalWorkerOptions.workerSrc = blobWorkerUrl
+
+console.log('[PDF] workerSrc set to blob wrapper; real worker:', workerUrl)
 
 export { pdfjsLib }
 export type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist'
