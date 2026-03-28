@@ -1,9 +1,9 @@
 ---
-status: partial
+status: complete
 phase: 01-pdf-viewer-and-canvas-foundation
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md]
 started: 2026-03-25T06:15:00Z
-updated: 2026-03-26T00:00:00Z
+updated: 2026-03-28T00:00:00Z
 ---
 
 ## Current Test
@@ -34,27 +34,39 @@ result: pass
 
 ### 6. Title Bar Updates
 expected: After opening a PDF, the title bar updates to "{filename} — CLMC Takeoff". Before opening, it shows just "CLMC Takeoff".
-result: pending
+result: pass
 
 ### 7. Page Navigation
 expected: With a multi-page PDF open, clicking the Next arrow advances to page 2. The page counter updates to "Page 2 of N" in both toolbar and status bar. Clicking Prev returns to page 1.
-result: pending
+result: pass
 
 ### 8. Per-Page Viewport Preservation
 expected: On page 1, scroll to zoom in slightly (or pan). Navigate to page 2 (page 2 fits to window). Navigate back to page 1 — it returns to the same zoom and pan position you left it at.
-result: pending
+result: issue
+reported: "yes but it does not look snappy, it does not immediately switches pages. i need that snappyness you feel me?"
+severity: minor
 
 ### 9. Drag and Drop
 expected: Drag a .pdf file from Windows Explorer and drop it onto the empty state area — the PDF loads and renders, same as using the file dialog.
-result: pending
+result: pass
 
 ## Summary
 
 total: 9
-passed: 5
-issues: 0
-pending: 4
+passed: 8
+issues: 1
+pending: 0
 skipped: 0
 blocked: 0
 
 ## Gaps
+
+- truth: "Page switching feels instant and snappy — navigating between pages has no perceptible delay"
+  status: failed
+  reason: "User reported: yes but it does not look snappy, it does not immediately switches pages. i need that snappyness you feel me?"
+  severity: minor
+  test: 8
+  root_cause: ""
+  artifacts: []
+  missing: []
+  debug_session: ""
