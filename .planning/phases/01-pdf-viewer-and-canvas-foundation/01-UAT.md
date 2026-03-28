@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 01-pdf-viewer-and-canvas-foundation
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md]
 started: 2026-03-25T06:15:00Z
@@ -66,7 +66,14 @@ blocked: 0
   reason: "User reported: yes but it does not look snappy, it does not immediately switches pages. i need that snappyness you feel me?"
   severity: minor
   test: 8
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "usePdfRenderer.ts re-renders page from scratch on every switch (getPage + render at 2x scale = 40-250ms). No canvas cache, no pre-rendering of adjacent pages, and CanvasViewport blanks out while loading (return null guard)."
+  artifacts:
+    - path: "src/renderer/src/hooks/usePdfRenderer.ts"
+      issue: "Full PDF.js re-render pipeline on every page switch, no caching"
+    - path: "src/renderer/src/components/CanvasViewport.tsx"
+      issue: "Returns null while new page loads, causing visual flash"
+  missing:
+    - "Add rendered canvas cache (Map<number, HTMLCanvasElement>) to skip re-render for visited pages"
+    - "Pre-render adjacent pages (N+1, N-1) in background after current page loads"
+    - "Keep showing previous page canvas while new one renders instead of blanking"
   debug_session: ""
