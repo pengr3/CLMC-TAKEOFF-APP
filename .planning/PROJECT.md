@@ -12,7 +12,8 @@ Speed up quantity takeoff — let the estimator focus on reading the plan, not d
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Load a multi-page PDF floor plan and flip between pages — Validated in Phase 1: PDF Viewer & Canvas Foundation
+- [x] Zoom in/out with all markups staying pinned to the plan — Validated in Phase 1 (known issue: native Chromium zoom interference on Ctrl+scroll)
 
 ### Active
 
