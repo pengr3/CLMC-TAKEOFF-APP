@@ -38,9 +38,9 @@ created: 2026-03-28
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 02-01-01 | 01 | 1 | SCAL-01 | unit | `npx vitest run src/tests/scale-calibration.test.ts` | ❌ W0 | ⬜ pending |
-| 02-01-02 | 01 | 1 | SCAL-02 | unit | `npx vitest run src/tests/scale-calibration.test.ts` | ❌ W0 | ⬜ pending |
-| 02-02-01 | 02 | 2 | SCAL-03 | unit | `npx vitest run src/tests/scale-verify.test.ts` | ❌ W0 | ⬜ pending |
+| 02-01-01 | 01 | 1 | SCAL-01 | unit | `npx vitest run src/tests/scale-math.test.ts` | ❌ W0 | ⬜ pending |
+| 02-01-02 | 01 | 1 | SCAL-02 | unit | `npx vitest run src/tests/scale-store.test.ts` | ❌ W0 | ⬜ pending |
+| 02-02-01 | 02 | 2 | SCAL-03 | unit | `npx vitest run --reporter=verbose` | ❌ W0 | ⬜ pending |
 | 02-02-02 | 02 | 2 | SCAL-04 | integration | `npx vitest run` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
@@ -49,8 +49,8 @@ created: 2026-03-28
 
 ## Wave 0 Requirements
 
-- [ ] `src/tests/scale-calibration.test.ts` — stubs for SCAL-01, SCAL-02
-- [ ] `src/tests/scale-verify.test.ts` — stubs for SCAL-03
+- [ ] `src/tests/scale-math.test.ts` — stubs for SCAL-01 (scale math functions)
+- [ ] `src/tests/scale-store.test.ts` — stubs for SCAL-02 (per-page scale state)
 
 *Existing vitest infrastructure covers framework needs.*
 
