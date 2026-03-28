@@ -34,7 +34,7 @@ Plans:
 - [x] 01-01-PLAN.md — Scaffold electron-vite project, Electron shell with IPC, UI chrome, Zustand store, Vitest
 - [x] 01-02-PLAN.md — PDF.js rendering, Konva canvas viewport, page navigation
 - [x] 01-03-PLAN.md — Zoom-to-cursor, pan, keyboard shortcuts, status bar wiring, visual verification
-- [ ] 01-04-PLAN.md — Gap closure: snappy page switching with canvas cache and pre-rendering
+- [x] 01-04-PLAN.md — Gap closure: snappy page switching with canvas cache and pre-rendering
 **UI hint**: yes
 
 ### Phase 2: Scale Calibration
@@ -99,7 +99,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. PDF Viewer and Canvas Foundation | 3/4 | Gap closure | 2026-03-28 |
+| 1. PDF Viewer and Canvas Foundation | 3/4 | In Progress|  |
 | 2. Scale Calibration | 0/0 | Not started | - |
 | 3. Markup Tools and Editing | 0/0 | Not started | - |
 | 4. Project Persistence | 0/0 | Not started | - |
