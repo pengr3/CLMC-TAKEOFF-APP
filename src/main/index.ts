@@ -59,6 +59,11 @@ function createWindow(): void {
   }
 }
 
+// Disable Chromium's compositor-level zoom gesture recognition.
+// Without this, Ctrl+scroll is processed as a zoom gesture by the GPU compositor
+// BEFORE DOM wheel events fire, so preventDefault() in the renderer is too late.
+app.commandLine.appendSwitch('disable-pinch')
+
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.clmc.takeoff')
 
