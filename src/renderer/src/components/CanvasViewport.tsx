@@ -44,7 +44,7 @@ export function CanvasViewport() {
   const getViewport = useViewerStore((s) => s.getViewport)
   const setViewport = useViewerStore((s) => s.setViewport)
 
-  const { handleWheel, zoomIn, zoomOut, spaceHeld } = useViewportControls(stageRef)
+  const { handleWheel, zoomIn, zoomOut, spaceHeld, isDraggable } = useViewportControls(stageRef)
   const { openPdfDialog } = usePdfDocument()
 
   // Observe container resize
@@ -131,7 +131,7 @@ export function CanvasViewport() {
 
   // Determine cursor based on interaction state
   const getCursor = (): string => {
-    if (spaceHeld) return 'grab'
+    if (isDraggable) return spaceHeld ? 'grab' : 'grabbing'
     return 'default'
   }
 
@@ -153,6 +153,7 @@ export function CanvasViewport() {
         ref={stageRef}
         width={containerSize.width}
         height={containerSize.height}
+        draggable={isDraggable}
         onWheel={handleWheel}
         onDragEnd={handleDragEnd}
       >

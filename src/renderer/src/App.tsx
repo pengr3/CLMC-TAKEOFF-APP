@@ -22,6 +22,16 @@ function App(): React.JSX.Element {
     }
   }, [])
 
+  // Prevent Ctrl+scroll from triggering Chromium's native page zoom.
+  // All zoom is handled by Konva's viewport controls.
+  useEffect(() => {
+    const preventNativeZoom = (e: WheelEvent): void => {
+      if (e.ctrlKey) e.preventDefault()
+    }
+    window.addEventListener('wheel', preventNativeZoom, { passive: false })
+    return () => window.removeEventListener('wheel', preventNativeZoom)
+  }, [])
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
       <TitleBar />

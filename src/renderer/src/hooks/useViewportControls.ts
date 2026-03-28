@@ -43,6 +43,7 @@ export function zoomToPoint(
 
 export function useViewportControls(stageRef: RefObject<Konva.Stage | null>) {
   const [spaceHeld, setSpaceHeld] = useState(false)
+  const [middleDrag, setMiddleDrag] = useState(false)
   const currentPage = useViewerStore((s) => s.currentPage)
   const setViewport = useViewerStore((s) => s.setViewport)
 
@@ -116,7 +117,7 @@ export function useViewportControls(stageRef: RefObject<Konva.Stage | null>) {
     }
   }, [])
 
-  // Middle-mouse-button pan
+  // Middle-mouse-button pan — track via state so <Stage draggable> stays in sync
   useEffect(() => {
     const stage = stageRef.current
     if (!stage) return
@@ -125,46 +126,38 @@ export function useViewportControls(stageRef: RefObject<Konva.Stage | null>) {
 
     const handleMouseDown = (e: MouseEvent): void => {
       if (e.button === 1) {
-        // Middle button
-        stage.draggable(true)
-        stage.startDrag()
+        setMiddleDrag(true)
         e.preventDefault()
       }
     }
     const handleMouseUp = (e: MouseEvent): void => {
       if (e.button === 1) {
-        stage.draggable(false)
+        setMiddleDrag(false)
         // Sync position to store
-        const pos = stage.position()
-        const scale = stage.scaleX()
-        setViewport(currentPage, { zoom: scale, panX: pos.x, panY: pos.y })
+        const s = stageRef.current
+        if (s) {
+          const pos = s.position()
+          const scale = s.scaleX()
+          setViewport(currentPage, { zoom: scale, panX: pos.x, panY: pos.y })
+        }
       }
     }
 
     container.addEventListener('mousedown', handleMouseDown)
-    container.addEventListener('mouseup', handleMouseUp)
+    window.addEventListener('mouseup', handleMouseUp)
     return () => {
       container.removeEventListener('mousedown', handleMouseDown)
-      container.removeEventListener('mouseup', handleMouseUp)
+      window.removeEventListener('mouseup', handleMouseUp)
     }
   }, [stageRef.current, currentPage, setViewport])
 
-  // Enable/disable stage draggable based on spacebar state
-  useEffect(() => {
-    const stage = stageRef.current
-    if (!stage) return
-    stage.draggable(spaceHeld)
-    if (spaceHeld) {
-      stage.container().style.cursor = 'grab'
-    } else {
-      stage.container().style.cursor = 'default'
-    }
-  }, [spaceHeld, stageRef.current])
+  const isDraggable = spaceHeld || middleDrag
 
   return {
     handleWheel,
     zoomIn,
     zoomOut,
-    spaceHeld
+    spaceHeld,
+    isDraggable
   }
 }

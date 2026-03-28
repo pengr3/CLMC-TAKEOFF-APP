@@ -25,7 +25,8 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false
+      sandbox: false,
+      zoomFactor: 1
     }
   })
 
@@ -56,6 +57,19 @@ app.whenReady().then(() => {
   registerIpcHandlers()
 
   createWindow()
+
+  // Prevent Ctrl+scroll / Ctrl+= / Ctrl+- from triggering Chromium's native zoom.
+  // All zoom is handled by the Konva viewport controls.
+  app.on('browser-window-created', (_, window) => {
+    window.webContents.on('before-input-event', (_event, input) => {
+      if (
+        input.control &&
+        (input.key === '=' || input.key === '+' || input.key === '-')
+      ) {
+        window.webContents.setZoomLevel(0)
+      }
+    })
+  })
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
