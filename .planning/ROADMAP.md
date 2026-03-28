@@ -8,7 +8,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: PDF Viewer and Canvas Foundation** - Working multi-page PDF viewer with zoom, pan, and a stable Konva canvas overlay that holds markup coordinates in PDF page space
+- [x] **Phase 1: PDF Viewer and Canvas Foundation** - Working multi-page PDF viewer with zoom, pan, and a stable Konva canvas overlay that holds markup coordinates in PDF page space (completed 2026-03-28)
 - [ ] **Phase 2: Scale Calibration** - Per-page scale calibration by drawn line, measurement unit system, and scale display — the math layer that all markup measurements depend on
 - [ ] **Phase 3: Markup Tools and Editing** - All four markup types (count, linear, area, perimeter) with freehand naming, category assignment, color-coding, labels, and full undo/redo
 - [ ] **Phase 4: Project Persistence** - Save and load .clmc project files so work survives across sessions
@@ -33,7 +33,7 @@
 Plans:
 - [x] 01-01-PLAN.md — Scaffold electron-vite project, Electron shell with IPC, UI chrome, Zustand store, Vitest
 - [x] 01-02-PLAN.md — PDF.js rendering, Konva canvas viewport, page navigation
-- [ ] 01-03-PLAN.md — Zoom-to-cursor, pan, keyboard shortcuts, status bar wiring, visual verification
+- [x] 01-03-PLAN.md — Zoom-to-cursor, pan, keyboard shortcuts, status bar wiring, visual verification
 **UI hint**: yes
 
 ### Phase 2: Scale Calibration
@@ -98,7 +98,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. PDF Viewer and Canvas Foundation | 0/3 | Planned | - |
+| 1. PDF Viewer and Canvas Foundation | 3/3 | Complete   | 2026-03-28 |
 | 2. Scale Calibration | 0/0 | Not started | - |
 | 3. Markup Tools and Editing | 0/0 | Not started | - |
 | 4. Project Persistence | 0/0 | Not started | - |
