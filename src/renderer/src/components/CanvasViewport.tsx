@@ -25,6 +25,21 @@ export function CanvasViewport() {
   const [containerSize, setContainerSize] = useState({ width: 800, height: 600 })
   const { pageCanvas, pageSize } = usePdfRenderer()
 
+  // Keep a ref to the last valid render so we never flash blank during transitions
+  const lastValidRef = useRef<{
+    pageCanvas: HTMLCanvasElement
+    pageSize: { width: number; height: number }
+  } | null>(null)
+
+  // Update the ref whenever we have a valid new render
+  if (pageCanvas && pageSize) {
+    lastValidRef.current = { pageCanvas, pageSize }
+  }
+
+  // Use current values if available, otherwise fall back to last valid
+  const displayCanvas = pageCanvas ?? lastValidRef.current?.pageCanvas ?? null
+  const displayPageSize = pageSize ?? lastValidRef.current?.pageSize ?? null
+
   const currentPage = useViewerStore((s) => s.currentPage)
   const getViewport = useViewerStore((s) => s.getViewport)
   const setViewport = useViewerStore((s) => s.setViewport)
@@ -120,7 +135,8 @@ export function CanvasViewport() {
     return 'default'
   }
 
-  if (!pageCanvas || !pageSize) return null
+  // Only return null if there has NEVER been a valid render (initial state before any PDF loaded)
+  if (!displayCanvas || !displayPageSize) return null
 
   return (
     <div
@@ -142,7 +158,11 @@ export function CanvasViewport() {
       >
         {/* Layer 0: PDF background */}
         <Layer>
-          <KonvaImage image={pageCanvas} width={pageSize.width} height={pageSize.height} />
+          <KonvaImage
+            image={displayCanvas}
+            width={displayPageSize.width}
+            height={displayPageSize.height}
+          />
         </Layer>
         {/* Layer 1: Markup overlay (empty in Phase 1) */}
         <Layer />
