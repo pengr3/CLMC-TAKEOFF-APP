@@ -30,6 +30,18 @@ function createWindow(): void {
     }
   })
 
+  // Disable Chromium's built-in pinch/scroll zoom entirely.
+  // All zoom is handled by Konva's viewport controls in the renderer.
+  // Must be applied after each page load (navigation resets zoom limits).
+  const lockZoom = (): void => {
+    mainWindow.webContents.setVisualZoomLevelLimits(1, 1)
+    mainWindow.webContents.setZoomLevel(0)
+  }
+  mainWindow.webContents.on('did-finish-load', lockZoom)
+
+  // Also lock zoom immediately for the initial load
+  lockZoom()
+
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
@@ -58,16 +70,23 @@ app.whenReady().then(() => {
 
   createWindow()
 
-  // Prevent Ctrl+scroll / Ctrl+= / Ctrl+- from triggering Chromium's native zoom.
+  // Prevent ALL Chromium-native zoom keyboard shortcuts.
+  // Also reset zoom level on any zoom-changed event as a safety net.
   // All zoom is handled by the Konva viewport controls.
   app.on('browser-window-created', (_, window) => {
-    window.webContents.on('before-input-event', (_event, input) => {
+    window.webContents.on('before-input-event', (event, input) => {
       if (
+        input.type === 'keyDown' &&
         input.control &&
-        (input.key === '=' || input.key === '+' || input.key === '-')
+        (input.key === '=' || input.key === '+' || input.key === '-' || input.key === '0')
       ) {
+        event.preventDefault()
         window.webContents.setZoomLevel(0)
       }
+    })
+
+    window.webContents.on('zoom-changed', () => {
+      window.webContents.setZoomLevel(0)
     })
   })
 

@@ -6,7 +6,6 @@ import { useViewerStore } from '../stores/viewerStore'
 import { useViewportControls } from '../hooks/useViewportControls'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { usePdfDocument } from '../hooks/usePdfDocument'
-import { COLORS } from '../lib/constants'
 
 // Module-level ref for canvas control functions (consumed by Toolbar via getCanvasControls)
 let _canvasControls: {
@@ -44,9 +43,6 @@ export function CanvasViewport() {
   const getViewport = useViewerStore((s) => s.getViewport)
   const setViewport = useViewerStore((s) => s.setViewport)
 
-  const { handleWheel, zoomIn, zoomOut, spaceHeld, isDraggable } = useViewportControls(stageRef)
-  const { openPdfDialog } = usePdfDocument()
-
   // Observe container resize
   useEffect(() => {
     const container = containerRef.current
@@ -59,7 +55,7 @@ export function CanvasViewport() {
     return () => observer.disconnect()
   }, [])
 
-  // Calculate fit-to-window scale
+  // Calculate fit-to-window scale (must be defined before useViewportControls uses it)
   const calculateFitScale = useCallback(() => {
     if (!pageSize) return 1
     const padding = 20
@@ -69,6 +65,14 @@ export function CanvasViewport() {
     const scaleY = availableHeight / pageSize.height
     return Math.min(scaleX, scaleY)
   }, [pageSize, containerSize])
+
+  // Pass fit scale to viewport controls so zoom steps include it
+  const currentFitScale = calculateFitScale()
+  const { handleWheel, zoomIn, zoomOut, spaceHeld, isDraggable } = useViewportControls(
+    stageRef,
+    currentFitScale
+  )
+  const { openPdfDialog } = usePdfDocument()
 
   // Apply viewport state to stage when page changes or loads
   useEffect(() => {
@@ -130,8 +134,10 @@ export function CanvasViewport() {
   })
 
   // Determine cursor based on interaction state
+  // Spacebar held = grab cursor (left-click pan mode). Otherwise default.
+  // Middle-click pan works silently without cursor change.
   const getCursor = (): string => {
-    if (isDraggable) return spaceHeld ? 'grab' : 'grabbing'
+    if (spaceHeld) return 'grab'
     return 'default'
   }
 
@@ -144,7 +150,10 @@ export function CanvasViewport() {
       style={{
         width: '100%',
         height: '100%',
-        background: COLORS.dominant,
+        backgroundColor: '#141414',
+        backgroundImage:
+          'radial-gradient(circle, #1e1e1e 1px, transparent 1px)',
+        backgroundSize: '20px 20px',
         overflow: 'hidden',
         cursor: getCursor()
       }}

@@ -3,20 +3,41 @@ import Konva from 'konva'
 import { ZOOM_STEPS } from '../lib/constants'
 import { useViewerStore } from '../stores/viewerStore'
 
-// Find the next zoom step in the given direction
-export function getNextZoomStep(currentZoom: number, direction: 1 | -1): number {
+// Build effective zoom steps, optionally inserting the fit-to-window scale
+// so the user can always zoom back to the fit view via scroll wheel.
+function buildZoomSteps(fitScale?: number): number[] {
+  const steps = [...ZOOM_STEPS]
+  if (fitScale !== undefined && fitScale > 0) {
+    // Only insert if fitScale isn't already close to an existing step
+    const alreadyPresent = steps.some((s) => Math.abs(s - fitScale) < 0.001)
+    if (!alreadyPresent) {
+      steps.push(fitScale)
+      steps.sort((a, b) => a - b)
+    }
+  }
+  return steps
+}
+
+// Find the next zoom step in the given direction.
+// fitScale: if provided, ensures the fit-to-window zoom level is reachable.
+export function getNextZoomStep(
+  currentZoom: number,
+  direction: 1 | -1,
+  fitScale?: number
+): number {
+  const steps = buildZoomSteps(fitScale)
   if (direction === 1) {
     // Zoom in: find first step greater than current
-    for (const step of ZOOM_STEPS) {
+    for (const step of steps) {
       if (step > currentZoom + 0.001) return step
     }
-    return ZOOM_STEPS[ZOOM_STEPS.length - 1]
+    return steps[steps.length - 1]
   } else {
     // Zoom out: find last step less than current
-    for (let i = ZOOM_STEPS.length - 1; i >= 0; i--) {
-      if (ZOOM_STEPS[i] < currentZoom - 0.001) return ZOOM_STEPS[i]
+    for (let i = steps.length - 1; i >= 0; i--) {
+      if (steps[i] < currentZoom - 0.001) return steps[i]
     }
-    return ZOOM_STEPS[0]
+    return steps[0]
   }
 }
 
@@ -41,11 +62,20 @@ export function zoomToPoint(
   return { zoom: newScale, panX: newPos.x, panY: newPos.y }
 }
 
-export function useViewportControls(stageRef: RefObject<Konva.Stage | null>) {
+export function useViewportControls(
+  stageRef: RefObject<Konva.Stage | null>,
+  fitScale?: number
+) {
   const [spaceHeld, setSpaceHeld] = useState(false)
-  const [middleDrag, setMiddleDrag] = useState(false)
   const currentPage = useViewerStore((s) => s.currentPage)
   const setViewport = useViewerStore((s) => s.setViewport)
+
+  // Configure Konva drag buttons based on spacebar state.
+  // Middle-mouse (button 1) can always drag the stage.
+  // Left-mouse (button 0) can only drag when spacebar is held (pan mode).
+  useEffect(() => {
+    Konva.dragButtons = spaceHeld ? [0, 1] : [1]
+  }, [spaceHeld])
 
   // Handle Ctrl+scroll wheel zoom
   const handleWheel = useCallback(
@@ -62,13 +92,13 @@ export function useViewportControls(stageRef: RefObject<Konva.Stage | null>) {
       if (!pointer) return
 
       const direction = e.evt.deltaY < 0 ? 1 : -1
-      const newScale = getNextZoomStep(oldScale, direction as 1 | -1)
+      const newScale = getNextZoomStep(oldScale, direction as 1 | -1, fitScale)
       if (newScale === oldScale) return
 
       const vp = zoomToPoint(stage, newScale, pointer.x, pointer.y)
       setViewport(currentPage, vp)
     },
-    [stageRef, currentPage, setViewport]
+    [stageRef, currentPage, setViewport, fitScale]
   )
 
   // Zoom in/out from toolbar buttons (zoom toward center of viewport)
@@ -76,25 +106,25 @@ export function useViewportControls(stageRef: RefObject<Konva.Stage | null>) {
     const stage = stageRef.current
     if (!stage) return
     const oldScale = stage.scaleX()
-    const newScale = getNextZoomStep(oldScale, 1)
+    const newScale = getNextZoomStep(oldScale, 1, fitScale)
     if (newScale === oldScale) return
     const centerX = stage.width() / 2
     const centerY = stage.height() / 2
     const vp = zoomToPoint(stage, newScale, centerX, centerY)
     setViewport(currentPage, vp)
-  }, [stageRef, currentPage, setViewport])
+  }, [stageRef, currentPage, setViewport, fitScale])
 
   const zoomOut = useCallback(() => {
     const stage = stageRef.current
     if (!stage) return
     const oldScale = stage.scaleX()
-    const newScale = getNextZoomStep(oldScale, -1)
+    const newScale = getNextZoomStep(oldScale, -1, fitScale)
     if (newScale === oldScale) return
     const centerX = stage.width() / 2
     const centerY = stage.height() / 2
     const vp = zoomToPoint(stage, newScale, centerX, centerY)
     setViewport(currentPage, vp)
-  }, [stageRef, currentPage, setViewport])
+  }, [stageRef, currentPage, setViewport, fitScale])
 
   // Spacebar pan mode
   useEffect(() => {
@@ -117,41 +147,21 @@ export function useViewportControls(stageRef: RefObject<Konva.Stage | null>) {
     }
   }, [])
 
-  // Middle-mouse-button pan — track via state so <Stage draggable> stays in sync
+  // Prevent middle-click auto-scroll (browser default for middle-click)
   useEffect(() => {
     const stage = stageRef.current
     if (!stage) return
 
     const container = stage.container()
-
-    const handleMouseDown = (e: MouseEvent): void => {
-      if (e.button === 1) {
-        setMiddleDrag(true)
-        e.preventDefault()
-      }
+    const preventAutoScroll = (e: MouseEvent): void => {
+      if (e.button === 1) e.preventDefault()
     }
-    const handleMouseUp = (e: MouseEvent): void => {
-      if (e.button === 1) {
-        setMiddleDrag(false)
-        // Sync position to store
-        const s = stageRef.current
-        if (s) {
-          const pos = s.position()
-          const scale = s.scaleX()
-          setViewport(currentPage, { zoom: scale, panX: pos.x, panY: pos.y })
-        }
-      }
-    }
+    container.addEventListener('mousedown', preventAutoScroll)
+    return () => container.removeEventListener('mousedown', preventAutoScroll)
+  }, [stageRef.current])
 
-    container.addEventListener('mousedown', handleMouseDown)
-    window.addEventListener('mouseup', handleMouseUp)
-    return () => {
-      container.removeEventListener('mousedown', handleMouseDown)
-      window.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [stageRef.current, currentPage, setViewport])
-
-  const isDraggable = spaceHeld || middleDrag
+  // Stage is always draggable — Konva.dragButtons controls which buttons work
+  const isDraggable = true
 
   return {
     handleWheel,
