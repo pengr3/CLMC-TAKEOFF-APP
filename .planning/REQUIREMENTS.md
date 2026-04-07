@@ -16,10 +16,10 @@
 
 ### Scale Calibration
 
-- [ ] **SCAL-01**: User can set scale by drawing a line between two known points on the plan and entering the real-world distance
-- [ ] **SCAL-02**: Scale is stored per page — each page can have a different scale ratio
-- [ ] **SCAL-03**: User can see the current page's scale ratio displayed in the UI
-- [ ] **SCAL-04**: User can verify scale accuracy by measuring a second known dimension and comparing against its expected value
+- [x] **SCAL-01**: User can set scale by drawing a line between two known points on the plan and entering the real-world distance
+- [x] **SCAL-02**: Scale is stored per page — each page can have a different scale ratio
+- [x] **SCAL-03**: User can see the current page's scale ratio displayed in the UI
+- [x] **SCAL-04**: User can verify scale accuracy by measuring a second known dimension and comparing against its expected value
 
 ### Markup Tools
 
@@ -97,10 +97,10 @@
 | PDF-04 | Phase 1 | Complete |
 | PDF-05 | Phase 6 | Pending |
 | PDF-06 | Phase 1 | Complete |
-| SCAL-01 | Phase 2 | Pending |
-| SCAL-02 | Phase 2 | Pending |
-| SCAL-03 | Phase 2 | Pending |
-| SCAL-04 | Phase 2 | Pending |
+| SCAL-01 | Phase 2 | Complete |
+| SCAL-02 | Phase 2 | Complete |
+| SCAL-03 | Phase 2 | Complete |
+| SCAL-04 | Phase 2 | Complete |
 | MARK-01 | Phase 3 | Pending |
 | MARK-02 | Phase 3 | Pending |
 | MARK-03 | Phase 3 | Pending |

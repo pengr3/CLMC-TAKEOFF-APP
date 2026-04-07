@@ -49,7 +49,7 @@ Plans:
   5. Pages that have not been calibrated show a visible "not calibrated" warning so the estimator cannot accidentally measure without a scale set
 **Plans**: 2 plans
 Plans:
-- [ ] 02-01-PLAN.md — Scale math library (TDD), types, per-page scale state in Zustand store
+- [x] 02-01-PLAN.md — Scale math library (TDD), types, per-page scale state in Zustand store
 - [ ] 02-02-PLAN.md — Calibration UI: canvas interaction, dialog, toolbar buttons, StatusBar display, visual verification
 
 ### Phase 3: Markup Tools and Editing
