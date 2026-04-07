@@ -4,31 +4,37 @@ import {
   ChevronRight,
   ZoomIn,
   ZoomOut,
-  Maximize
+  Maximize,
+  Ruler,
+  CheckCircle
 } from 'lucide-react'
 import { useViewerStore } from '../stores/viewerStore'
 import { usePdfDocument } from '../hooks/usePdfDocument'
 import { getCanvasControls } from './CanvasViewport'
-import { MIN_ZOOM, MAX_ZOOM } from '../lib/constants'
+import { MIN_ZOOM, MAX_ZOOM, COLORS } from '../lib/constants'
 
 function IconButton({
   icon: Icon,
   label,
   onClick,
   disabled = false,
+  active = false,
   title
 }: {
   icon: React.ComponentType<{ size?: number; color?: string }>
   label?: string
   onClick: () => void
   disabled?: boolean
+  active?: boolean
   title: string
 }): React.JSX.Element {
+  const baseBackground = active ? COLORS.activeSurface : 'transparent'
   return (
     <button
       onClick={disabled ? undefined : onClick}
       title={title}
       aria-label={title}
+      aria-pressed={active}
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : 0}
       style={{
@@ -37,9 +43,10 @@ function IconButton({
         gap: label ? 4 : 0,
         height: 28,
         padding: label ? '4px 8px' : '6px',
-        background: 'transparent',
+        background: baseBackground,
         border: 'none',
         borderRadius: 4,
+        borderBottom: active ? `2px solid ${COLORS.accent}` : '2px solid transparent',
         color: '#cccccc',
         fontSize: 13,
         fontWeight: 600,
@@ -48,16 +55,16 @@ function IconButton({
         lineHeight: 1.4
       }}
       onMouseEnter={(e) => {
-        if (!disabled) e.currentTarget.style.background = '#2d2d30'
+        if (!disabled && !active) e.currentTarget.style.background = '#2d2d30'
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = 'transparent'
+        e.currentTarget.style.background = baseBackground
       }}
       onMouseDown={(e) => {
         if (!disabled) e.currentTarget.style.background = '#37373d'
       }}
       onMouseUp={(e) => {
-        if (!disabled) e.currentTarget.style.background = '#2d2d30'
+        if (!disabled) e.currentTarget.style.background = active ? COLORS.activeSurface : '#2d2d30'
       }}
     >
       <Icon size={16} color="currentColor" />
@@ -69,7 +76,12 @@ function IconButton({
 export function Toolbar(): React.JSX.Element {
   const { totalPages, currentPage, nextPage, prevPage } = useViewerStore()
   const getViewport = useViewerStore((s) => s.getViewport)
+  const activeTool = useViewerStore((s) => s.activeTool)
+  const setActiveTool = useViewerStore((s) => s.setActiveTool)
+  const getPageScale = useViewerStore((s) => s.getPageScale)
   const { openPdfDialog } = usePdfDocument()
+
+  const pageHasScale = totalPages > 0 ? getPageScale(currentPage) !== null : false
 
   const currentZoom = totalPages > 0 ? getViewport(currentPage).zoom : 1
   const zoomPct = Math.round(currentZoom * 100)
@@ -178,6 +190,31 @@ export function Toolbar(): React.JSX.Element {
             onClick={nextPage}
             disabled={currentPage === totalPages}
             title="Next page (Right Arrow)"
+          />
+        </div>
+      )}
+
+      {/* Tools: Set Scale, Verify Scale */}
+      {totalPages > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <IconButton
+            icon={Ruler}
+            label="Set Scale"
+            active={activeTool === 'scale'}
+            onClick={() =>
+              setActiveTool(activeTool === 'scale' ? 'select' : 'scale')
+            }
+            title="Set scale calibration (draw line between known points)"
+          />
+          <IconButton
+            icon={CheckCircle}
+            label="Verify"
+            active={activeTool === 'verify-scale'}
+            disabled={!pageHasScale}
+            onClick={() =>
+              setActiveTool(activeTool === 'verify-scale' ? 'select' : 'verify-scale')
+            }
+            title="Verify scale accuracy (measure a known dimension)"
           />
         </div>
       )}
