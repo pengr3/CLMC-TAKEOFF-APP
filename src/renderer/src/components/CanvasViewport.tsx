@@ -1,11 +1,14 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
-import { Stage, Layer, Image as KonvaImage } from 'react-konva'
+import { Stage, Layer, Image as KonvaImage, Circle, Line } from 'react-konva'
 import Konva from 'konva'
 import { usePdfRenderer } from '../hooks/usePdfRenderer'
 import { useViewerStore } from '../stores/viewerStore'
 import { useViewportControls } from '../hooks/useViewportControls'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { usePdfDocument } from '../hooks/usePdfDocument'
+import { useCalibration } from '../hooks/useCalibration'
+import { CalibrationDialog } from './CalibrationDialog'
+import { COLORS } from '../lib/constants'
 
 // Module-level ref for canvas control functions (consumed by Toolbar via getCanvasControls)
 let _canvasControls: {
@@ -40,8 +43,12 @@ export function CanvasViewport() {
   const displayPageSize = pageSize ?? lastValidRef.current?.pageSize ?? null
 
   const currentPage = useViewerStore((s) => s.currentPage)
+  const totalPages = useViewerStore((s) => s.totalPages)
   const getViewport = useViewerStore((s) => s.getViewport)
   const setViewport = useViewerStore((s) => s.setViewport)
+  const activeTool = useViewerStore((s) => s.activeTool)
+  const setActiveTool = useViewerStore((s) => s.setActiveTool)
+  const getPageScale = useViewerStore((s) => s.getPageScale)
 
   // Observe container resize
   useEffect(() => {
@@ -73,6 +80,18 @@ export function CanvasViewport() {
     currentFitScale
   )
   const { openPdfDialog } = usePdfDocument()
+
+  // Calibration interaction
+  const {
+    calibrationPoints,
+    showDialog,
+    pixelDistance,
+    verifyResult,
+    handleStageClick,
+    handleDialogConfirm,
+    handleDialogCancel,
+    dismissVerifyResult
+  } = useCalibration(stageRef)
 
   // Apply viewport state to stage when page changes or loads
   useEffect(() => {
@@ -133,16 +152,32 @@ export function CanvasViewport() {
     fitToWindow
   })
 
-  // Determine cursor based on interaction state
-  // Spacebar held = grab cursor (left-click pan mode). Otherwise default.
-  // Middle-click pan works silently without cursor change.
+  // Determine cursor based on interaction state.
+  // Spacebar held = grab cursor (left-click pan mode).
+  // Active tool (not select) = crosshair for click placement.
+  // Otherwise default.
   const getCursor = (): string => {
     if (spaceHeld) return 'grab'
+    if (activeTool !== 'select') return 'crosshair'
     return 'default'
   }
 
   // Only return null if there has NEVER been a valid render (initial state before any PDF loaded)
   if (!displayCanvas || !displayPageSize) return null
+
+  // Current zoom for compensating visual sizes
+  const currentZoom = getViewport(currentPage).zoom || 1
+  const pageScale = getPageScale(currentPage)
+  const showNotCalibratedBadge =
+    activeTool === 'select' && !pageScale && totalPages > 0
+
+  // Visual constants for calibration overlay
+  const POINT_RADIUS = 6 / currentZoom
+  const POINT_STROKE_WIDTH = 1 / currentZoom
+  const LINE_STROKE_WIDTH = 2 / currentZoom
+  const LINE_DASH = [8 / currentZoom, 4 / currentZoom]
+  const REFERENCE_LINE_STROKE = 1.5 / currentZoom
+  const REFERENCE_LINE_DASH = [6 / currentZoom, 3 / currentZoom]
 
   return (
     <div
@@ -155,7 +190,8 @@ export function CanvasViewport() {
           'radial-gradient(circle, #1e1e1e 1px, transparent 1px)',
         backgroundSize: '20px 20px',
         overflow: 'hidden',
-        cursor: getCursor()
+        cursor: getCursor(),
+        position: 'relative'
       }}
     >
       <Stage
@@ -165,18 +201,159 @@ export function CanvasViewport() {
         draggable={isDraggable}
         onWheel={handleWheel}
         onDragEnd={handleDragEnd}
+        onClick={handleStageClick}
+        onTap={handleStageClick}
       >
         {/* Layer 0: PDF background */}
-        <Layer>
+        <Layer listening={false}>
           <KonvaImage
             image={displayCanvas}
             width={displayPageSize.width}
             height={displayPageSize.height}
           />
         </Layer>
-        {/* Layer 1: Markup overlay (empty in Phase 1) */}
-        <Layer />
+        {/* Layer 1: Markup overlay (calibration line + persistent reference) */}
+        <Layer listening={false}>
+          {/* Persistent reference line for calibrated pages in select mode */}
+          {pageScale && activeTool === 'select' && (
+            <Line
+              points={pageScale.linePoints}
+              stroke="#ff4444"
+              opacity={0.3}
+              strokeWidth={REFERENCE_LINE_STROKE}
+              dash={REFERENCE_LINE_DASH}
+              listening={false}
+            />
+          )}
+          {/* Active calibration / verify-scale visuals */}
+          {(activeTool === 'scale' || activeTool === 'verify-scale') && (
+            <>
+              {calibrationPoints.map((pt, idx) => (
+                <Circle
+                  key={idx}
+                  x={pt.x}
+                  y={pt.y}
+                  radius={POINT_RADIUS}
+                  fill="#ff4444"
+                  stroke="#ffffff"
+                  strokeWidth={POINT_STROKE_WIDTH}
+                  listening={false}
+                />
+              ))}
+              {calibrationPoints.length === 2 && (
+                <Line
+                  points={[
+                    calibrationPoints[0].x,
+                    calibrationPoints[0].y,
+                    calibrationPoints[1].x,
+                    calibrationPoints[1].y
+                  ]}
+                  stroke="#ff4444"
+                  strokeWidth={LINE_STROKE_WIDTH}
+                  dash={LINE_DASH}
+                  listening={false}
+                />
+              )}
+            </>
+          )}
+        </Layer>
       </Stage>
+
+      {/* Calibration distance dialog */}
+      {showDialog && pixelDistance !== null && (
+        <CalibrationDialog
+          pixelDistance={pixelDistance}
+          onConfirm={handleDialogConfirm}
+          onCancel={handleDialogCancel}
+        />
+      )}
+
+      {/* Verify-scale result overlay */}
+      {verifyResult && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 16,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: COLORS.secondary,
+            border: `1px solid ${COLORS.accent}`,
+            borderRadius: 6,
+            padding: '12px 18px',
+            color: COLORS.textPrimary,
+            fontSize: 13,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            zIndex: 9,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.5)'
+          }}
+        >
+          <span>
+            Measured:{' '}
+            <strong style={{ color: COLORS.accent, fontFamily: 'monospace' }}>
+              {verifyResult.realWorldLength.toFixed(3)} {verifyResult.unit}
+            </strong>{' '}
+            <span style={{ color: COLORS.textSecondary }}>
+              ({verifyResult.pixelLength.toFixed(1)} px)
+            </span>
+          </span>
+          <button
+            onClick={dismissVerifyResult}
+            style={{
+              background: COLORS.accent,
+              border: 'none',
+              borderRadius: 4,
+              color: COLORS.textOnAccent,
+              padding: '4px 12px',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Done
+          </button>
+        </div>
+      )}
+
+      {/* "Not calibrated" warning badge */}
+      {showNotCalibratedBadge && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            background: 'rgba(232, 168, 56, 0.15)',
+            border: '1px solid #e8a838',
+            borderRadius: 4,
+            padding: '6px 10px',
+            color: '#e8a838',
+            fontSize: 12,
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            zIndex: 8
+          }}
+        >
+          <span>Scale not set</span>
+          <button
+            onClick={() => setActiveTool('scale')}
+            style={{
+              background: '#e8a838',
+              border: 'none',
+              borderRadius: 3,
+              color: '#1a1a1a',
+              padding: '2px 8px',
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            Set Scale
+          </button>
+        </div>
+      )}
     </div>
   )
 }
