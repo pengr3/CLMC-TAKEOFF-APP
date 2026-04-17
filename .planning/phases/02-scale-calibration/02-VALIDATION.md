@@ -1,13 +1,13 @@
 ---
-phase: 2
+phase: 02
 slug: scale-calibration
 status: draft
 nyquist_compliant: false
 wave_0_complete: false
-created: 2026-04-17
+created: 2026-03-28
 ---
 
-# Phase 2 — Validation Strategy
+# Phase 02 — Validation Strategy
 
 > Per-phase validation contract for feedback sampling during execution.
 
@@ -17,20 +17,20 @@ created: 2026-04-17
 
 | Property | Value |
 |----------|-------|
-| **Framework** | Vitest 4.1.1 |
-| **Config file** | `vitest.config.ts` (root) |
-| **Quick run command** | `npx vitest run src/tests/scale-math.test.ts src/tests/scale-store.test.ts` |
-| **Full suite command** | `npx vitest run` |
-| **Estimated runtime** | ~5 seconds |
+| **Framework** | vitest |
+| **Config file** | vitest.config.ts |
+| **Quick run command** | `npx vitest run` |
+| **Full suite command** | `npx vitest run --reporter=verbose` |
+| **Estimated runtime** | ~1 second |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `npx vitest run src/tests/scale-math.test.ts src/tests/scale-store.test.ts`
-- **After every plan wave:** Run `npx vitest run`
+- **After every task commit:** Run `npx vitest run`
+- **After every plan wave:** Run `npx vitest run --reporter=verbose`
 - **Before `/gsd:verify-work`:** Full suite must be green
-- **Max feedback latency:** 10 seconds
+- **Max feedback latency:** 2 seconds
 
 ---
 
@@ -38,8 +38,10 @@ created: 2026-04-17
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 2-W0-math | W0 | 0 | SCAL-01, SCAL-04 | unit | `npx vitest run src/tests/scale-math.test.ts` | ❌ W0 | ⬜ pending |
-| 2-W0-store | W0 | 0 | SCAL-02, SCAL-03 | unit | `npx vitest run src/tests/scale-store.test.ts` | ❌ W0 | ⬜ pending |
+| 02-01-01 | 01 | 1 | SCAL-01 | unit | `npx vitest run src/tests/scale-math.test.ts` | ❌ W0 | ⬜ pending |
+| 02-01-02 | 01 | 1 | SCAL-02 | unit | `npx vitest run src/tests/scale-store.test.ts` | ❌ W0 | ⬜ pending |
+| 02-02-01 | 02 | 2 | SCAL-03 | unit | `npx vitest run --reporter=verbose` | ❌ W0 | ⬜ pending |
+| 02-02-02 | 02 | 2 | SCAL-04 | integration | `npx vitest run` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -47,10 +49,10 @@ created: 2026-04-17
 
 ## Wave 0 Requirements
 
-- [ ] `src/tests/scale-math.test.ts` — stubs for SCAL-01, SCAL-04 pure math functions
-- [ ] `src/tests/scale-store.test.ts` — stubs for SCAL-02, SCAL-03 store actions
+- [ ] `src/tests/scale-math.test.ts` — stubs for SCAL-01 (scale math functions)
+- [ ] `src/tests/scale-store.test.ts` — stubs for SCAL-02 (per-page scale state)
 
-*(No framework installation needed — Vitest 4.1.1 already installed and configured)*
+*Existing vitest infrastructure covers framework needs.*
 
 ---
 
@@ -58,10 +60,8 @@ created: 2026-04-17
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Calibration line draws correctly on canvas with click-click | SCAL-01 | Konva canvas interaction requires visual inspection | Open PDF, activate Set Scale, click two points, verify line appears between them |
-| Inline popup appears near line endpoint | SCAL-01 | DOM positioning requires visual check | After drawing line, confirm popup is visible, accessible, and near endpoint |
-| Status bar shows scale ratio and "Not Set" warning | SCAL-03 | UI state requires visual inspection | Verify status bar shows "Scale: 1:N" after calibrate and "Scale: Not Set" in amber before |
-| Uncalibrated page warning visible | SCAL-03 | Visual amber/orange indicator | On fresh PDF open, verify status bar shows amber "Not Set" text |
+| Calibration line visual appearance at all zoom levels | SCAL-01 | Requires visual inspection of Konva shapes | Draw calibration line, zoom in/out, verify consistent stroke width and endpoint visibility |
+| "Not calibrated" warning visibility | SCAL-04 | Requires visual inspection | Open multi-page PDF, navigate to uncalibrated page, verify warning is visible |
 
 ---
 
@@ -71,7 +71,7 @@ created: 2026-04-17
 - [ ] Sampling continuity: no 3 consecutive tasks without automated verify
 - [ ] Wave 0 covers all MISSING references
 - [ ] No watch-mode flags
-- [ ] Feedback latency < 10s
+- [ ] Feedback latency < 2s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending

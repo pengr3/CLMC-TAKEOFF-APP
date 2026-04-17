@@ -1,158 +1,186 @@
 ---
 phase: 01-pdf-viewer-and-canvas-foundation
-verified: 2026-04-17T15:16:00Z
-status: passed
+verified: 2026-03-28T17:36:00Z
+status: human_needed
 score: 5/5 must-haves verified
+re_verification: false
+human_verification:
+  - test: "Snappy page switching — verify cache eliminates blank flash"
+    expected: "Navigating to a previously visited page shows it instantly with no white frame. First-visit forward/backward navigation (N+1, N-1) is also fast because adjacent pages are pre-rendered in background."
+    why_human: "Canvas cache behavior (sub-16ms response, absence of visual flash) cannot be measured programmatically without running the renderer and observing frame timing. This was the UAT-identified gap that Plan 04 specifically closed."
+  - test: "Zoom-to-cursor keeps feature pinned at all zoom levels"
+    expected: "Hold Ctrl and scroll on a specific door symbol on a construction PDF. The symbol stays exactly under the cursor as zoom increases from 25% to 800% and decreases back."
+    why_human: "Requires visual inspection of rendered pixel output against cursor position. The math is unit-tested (zoom.test.ts passes), but the physical correctness of pointer event coordinates under DPI scaling on a real Windows display cannot be verified without running the app."
+  - test: "150% DPI display — no blur or pointer offset"
+    expected: "Set Windows display scaling to 150%. Open a PDF, zoom to 4x, click on a plan feature. The canvas is sharp and click events land where the cursor appears."
+    why_human: "HiDPI correctness depends on devicePixelRatio at runtime and the physical monitor configuration. Cannot be verified without running on a 150% scaled display."
+  - test: "Middle-mouse-button pan and spacebar+drag pan"
+    expected: "Hold middle mouse and drag — canvas moves 1:1 with the mouse. Hold spacebar and left-click drag — same behavior. Cursor changes to grab/grabbing."
+    why_human: "Requires physical mouse interaction inside the running Electron window. Middle-mouse events cannot be simulated in the test environment."
 ---
 
 # Phase 1: PDF Viewer and Canvas Foundation Verification Report
 
-**Phase Goal:** Estimators can open a construction PDF, flip between pages, zoom and pan to inspect detail, and see an invisible-but-stable canvas overlay that keeps any future markup precisely anchored to the plan geometry
-**Verified:** 2026-04-17T15:16:00Z
-**Status:** passed
+**Phase Goal:** Electron shell + PDF viewer + Konva canvas with zoom/pan. User can open a PDF, view pages, zoom-to-cursor, pan, and navigate between pages with snappy transitions.
+**Verified:** 2026-03-28T17:36:00Z
+**Status:** human_needed
 **Re-verification:** No — initial verification
+
+---
 
 ## Goal Achievement
 
 ### Observable Truths (from ROADMAP.md Success Criteria)
 
-| #   | Truth | Status | Evidence |
-| --- | ----- | ------ | -------- |
-| 1   | User can open any multi-page construction PDF via a file picker and see it rendered at readable quality | HUMAN VERIFIED | `ipc-handlers.ts` opens native dialog filtered to `.pdf`, reads file into `ArrayBuffer`, `usePdfDocument.loadPdf()` calls `pdfjsLib.getDocument()`, `usePdfRenderer` renders to HiDPI offscreen canvas at `PDF_BASE_SCALE=2.0`, displayed as Konva `Image`. Human approved in Task 2 of 01-03. |
-| 2   | User can navigate forward and backward through pages without losing the current zoom state | HUMAN VERIFIED | `viewerStore` maintains `pageViewports: Record<number, ViewportState>`, `nextPage`/`prevPage` update `currentPage`, `CanvasViewport` restores stage scale and position from store on page change. Unit test `page-nav.test.ts` verifies state preservation. Human approved. |
-| 3   | User can zoom in to 8x or more and pan freely — a test point placed on a plan feature stays on that exact feature regardless of zoom or pan | HUMAN VERIFIED | `useViewportControls.zoomToPoint()` computes stage-space point under cursor before scale change and repositions stage to keep it fixed. `ZOOM_STEPS` tops at 8x. `zoomToPoint` math verified in `zoom.test.ts` (2 tests). Middle-mouse and spacebar pan both wired. Human approved. |
-| 4   | User can zoom out to fit-the-window and the full page is visible without distortion | HUMAN VERIFIED | `CanvasViewport.calculateFitScale()` computes `Math.min(scaleX, scaleY)` with 20px padding and centers the page. `fitToWindow` exposed via `getCanvasControls()` module ref, wired to Toolbar Fit button and Ctrl+0 keyboard shortcut. `stage-transform.test.ts` verifies the math. Human approved. |
-| 5   | The app works on a 150% Windows display-scaled monitor without blurry rendering or offset pointer events | HUMAN VERIFIED | `usePdfRenderer` multiplies canvas physical dimensions by `window.devicePixelRatio`, applies `transform: [dpr, 0, 0, dpr, 0, 0]` to PDF.js render call, and sizes Konva `Image` by CSS pixels (`pageSize`). Human verified at 150% DPI during Task 2 of 01-03. |
+| # | Truth | Status | Evidence |
+|---|-------|--------|----------|
+| 1 | User can open any multi-page construction PDF via a file picker and see it rendered at readable quality | VERIFIED | `usePdfDocument.ts` calls `window.api.openPdf()` → IPC → `dialog.showOpenDialog` with `.pdf` filter → `pdfjsLib.getDocument()` → `page.render()` at `PDF_BASE_SCALE=2.0` with HiDPI transform. UAT test 3 and 4 passed. |
+| 2 | User can navigate forward and backward through pages without losing the current zoom state | VERIFIED | `viewerStore.ts` stores `pageViewports: Record<number, ViewportState>` per page. `CanvasViewport.tsx` restores `vp.zoom/panX/panY` to the Konva Stage on page change. UAT test 7 and 8 passed (8 after Plan 04 gap closure). |
+| 3 | User can zoom in to 8x or more and pan freely — a test point placed on a plan feature stays on that exact feature | VERIFIED (math confirmed, visual needs human) | `zoomToPoint()` in `useViewportControls.ts` implements the correct zoom-to-cursor formula. `zoom.test.ts` proves `stagePointAfter === stagePointBefore` after zoom in/out. `MAX_ZOOM = 8` enforced. Pan via middle-mouse and spacebar both implemented in `useViewportControls.ts`. |
+| 4 | User can zoom out to fit-the-window and the full page is visible without distortion | VERIFIED | `calculateFitScale()` in `CanvasViewport.tsx` computes `Math.min(scaleX, scaleY)` with 20px padding. `stage-transform.test.ts` covers landscape/portrait/square cases. Fit triggered on Ctrl+0 keyboard shortcut and Fit toolbar button. Auto-fit on first page view confirmed. |
+| 5 | The app works on a 150% Windows display-scaled monitor without blurry rendering or offset pointer events | PARTIAL — needs human | `usePdfRenderer.ts` applies `devicePixelRatio` transform: `canvas.width = Math.floor(viewport.width * dpr)` and `transform: [dpr, 0, 0, dpr, 0, 0]`. The polyfill in `pdf-setup.ts` handles Chromium 134 API gaps. Runtime correctness on a physical 150% display requires human verification. |
 
-**Score:** 5/5 truths verified
+**Score:** 5/5 truths have verifiable implementation (1 item has a human-only runtime component)
 
 ---
 
 ### Required Artifacts
 
-All artifacts from plan frontmatters checked at three levels: exists, substantive, wired.
-
-| Artifact | Provides | Level 1: Exists | Level 2: Substantive | Level 3: Wired | Status |
-| -------- | -------- | --------------- | -------------------- | -------------- | ------ |
-| `src/main/index.ts` | BrowserWindow with frameless title bar and preload script | Yes | `titleBarStyle: 'hidden'`, `titleBarOverlay`, `registerIpcHandlers()` called | Wired to `ipc-handlers.ts` and preload | VERIFIED |
-| `src/main/ipc-handlers.ts` | IPC handler for file dialog | Yes | `ipcMain.handle('dialog:openPdf', ...)`, `dialog.showOpenDialog`, reads file as `Uint8Array` buffer | Called via `registerIpcHandlers()` in main | VERIFIED |
-| `src/preload/index.ts` | Context bridge exposing openPdf to renderer | Yes | `contextBridge.exposeInMainWorld('api', api)`, `ipcRenderer.invoke('dialog:openPdf')` | Used by `usePdfDocument.openPdfDialog()` | VERIFIED |
-| `src/preload/index.d.ts` | TypeScript interface for window.api | Yes | `interface ElectronAPI`, `openPdf` typed as `Promise<{filePath, data}>` | Referenced by renderer TypeScript | VERIFIED |
-| `src/renderer/src/stores/viewerStore.ts` | Zustand store with viewer state | Yes | Full `ViewerState` implemented: file, page nav, per-page viewports, pdfDocument | Used by all renderer components and hooks | VERIFIED |
-| `src/renderer/src/types/viewer.ts` | TypeScript interfaces for viewer state | Yes | `ViewportState`, `ViewerState`, `DEFAULT_VIEWPORT` exported | Imported by store, hooks, components | VERIFIED |
-| `src/renderer/src/lib/constants.ts` | App-wide constants | Yes | `ZOOM_STEPS`, `MIN_ZOOM`, `MAX_ZOOM`, `MAX_CANVAS_DIM=16384`, `PDF_BASE_SCALE=2.0`, `COLORS`, `LAYOUT` | Imported by hooks, components, tests | VERIFIED |
-| `src/renderer/src/lib/pdf-setup.ts` | PDF.js initialization with worker config | Yes | `GlobalWorkerOptions.workerSrc` set to blob wrapper URL that polyfills Uint8Array methods before importing real worker; renderer-side polyfills for `Map.getOrInsertComputed`, `Uint8Array.toHex/toBase64/fromBase64` | Imported by `usePdfDocument` | VERIFIED |
-| `src/renderer/src/hooks/usePdfDocument.ts` | PDF document loading hook | Yes | `loadPdf()` destroys previous doc, calls `pdfjsLib.getDocument({data})`, sets store via `setPdfDocument`/`setFile`; `openPdfDialog()` calls IPC bridge | Used by `CanvasViewport`, `Toolbar`, `EmptyState` | VERIFIED |
-| `src/renderer/src/hooks/usePdfRenderer.ts` | Page rendering to offscreen canvas with HiDPI support | Yes | `page.render({canvas, viewport, transform})` with DPR clamping; cancels in-flight renders on page change; sets `pageCanvas` and `pageSize` state | Used by `CanvasViewport` | VERIFIED |
-| `src/renderer/src/hooks/useViewportControls.ts` | Zoom-to-cursor and pan logic | Yes | `zoomToPoint()`, `getNextZoomStep()`, `handleWheel` (Ctrl+scroll), `zoomIn`/`zoomOut` from center, middle-mouse native DOM listener, spacebar pan via `draggable` toggle | Used by `CanvasViewport` via `useViewportControls(stageRef)` | VERIFIED |
-| `src/renderer/src/hooks/useKeyboardShortcuts.ts` | Global keyboard shortcut handler | Yes | Handles Ctrl+O, Ctrl+=/-, Ctrl+0, ArrowLeft/Right, PageUp/Down; gated on `totalPages > 0` except Ctrl+O | Used by `CanvasViewport` | VERIFIED |
-| `src/renderer/src/components/CanvasViewport.tsx` | Konva Stage displaying PDF page as Image on bottom layer | Yes | `Stage` with `onWheel`, `onDragEnd`; `Layer` with `KonvaImage`; second empty `Layer` for markup overlay; `ResizeObserver` for container size; `calculateFitScale`; exposes controls via `getCanvasControls()` module ref | Rendered by `App.tsx` when `totalPages > 0` | VERIFIED |
-| `src/renderer/src/components/Toolbar.tsx` | Toolbar with Open PDF, page nav, zoom controls | Yes | Open PDF button calls `openPdfDialog()`; page nav calls `prevPage`/`nextPage`; zoom buttons call `getCanvasControls().zoomIn/zoomOut/fitToWindow`; live `zoomPct` from store with accent color when not 100% | Rendered by `App.tsx` | VERIFIED |
-| `src/renderer/src/components/StatusBar.tsx` | Live status display | Yes | Reads `fileName`, `currentPage`, `totalPages`, `getViewport(currentPage).zoom` from store; shows `--` when no file loaded | Rendered by `App.tsx` | VERIFIED |
-| `src/renderer/src/components/TitleBar.tsx` | Frameless title bar | Yes | `WebkitAppRegion: 'drag'`, reads `fileName` from store, shows `{fileName} - CLMC Takeoff` or `CLMC Takeoff` | Rendered by `App.tsx` | VERIFIED |
-| `src/renderer/src/components/EmptyState.tsx` | Empty state with drag-and-drop | Yes | FileReader reads dropped file as ArrayBuffer, extracts Electron `file.path`, calls `loadPdf()`; drag-over border transitions to accent; window-level dragover/drop prevention | Rendered by `App.tsx` when `totalPages === 0` | VERIFIED |
+| Artifact | Status | Evidence |
+|----------|--------|----------|
+| `src/main/index.ts` | VERIFIED | `titleBarStyle: 'hidden'`, `titleBarOverlay`, `registerIpcHandlers()` all present. 70 lines, substantive. |
+| `src/main/ipc-handlers.ts` | VERIFIED | `ipcMain.handle('dialog:openPdf'`, `dialog.showOpenDialog`, `extensions: ['pdf']`, returns `{ filePath, data: new Uint8Array(data).buffer }`. 17 lines, fully wired. |
+| `src/preload/index.ts` | VERIFIED | `contextBridge.exposeInMainWorld('api', api)` with `ipcRenderer.invoke('dialog:openPdf')`. 8 lines. |
+| `src/preload/index.d.ts` | VERIFIED | `interface ElectronAPI { openPdf }`, `Window.api` declared. |
+| `src/renderer/src/types/viewer.ts` | VERIFIED | `ViewportState`, `ViewerState`, `DEFAULT_VIEWPORT` all exported. Full interface with all required methods. |
+| `src/renderer/src/lib/constants.ts` | VERIFIED | `ZOOM_STEPS`, `MIN_ZOOM`, `MAX_ZOOM`, `PDF_BASE_SCALE = 2.0`, `MAX_CANVAS_DIM = 16384`, `COLORS`, `LAYOUT` all present. |
+| `src/renderer/src/lib/pdf-setup.ts` | VERIFIED | `GlobalWorkerOptions.workerSrc` set to blob-wrapped worker with polyfills for Chromium 134 API gaps (`Map.getOrInsertComputed`, `Uint8Array.toHex/toBase64/fromBase64`). 148 lines, production-grade. |
+| `src/renderer/src/stores/viewerStore.ts` | VERIFIED | `useViewerStore = create<ViewerState>()` with `nextPage`, `prevPage`, `setPage`, `setViewport`, `getViewport`, `pageViewports` all implemented. |
+| `src/renderer/src/hooks/usePdfDocument.ts` | VERIFIED | `loadPdf()` calls `pdfjsLib.getDocument`, `openPdfDialog()` calls `window.api.openPdf()`. Fully wired to store. |
+| `src/renderer/src/hooks/usePdfRenderer.ts` | VERIFIED | Module-level `pageCache: Map<string, CachedPage>`, cache-first rendering, background pre-rendering via `requestIdleCallback`, cache invalidation on document change, `clampedRenderScale` export, `lastValidRef` pattern. 195 lines. |
+| `src/renderer/src/hooks/useViewportControls.ts` | VERIFIED | `useViewportControls(stageRef)` exports `handleWheel` (Ctrl+scroll zoom-to-cursor), `zoomIn`, `zoomOut`, spacebar pan, middle-mouse pan. 171 lines. |
+| `src/renderer/src/hooks/useKeyboardShortcuts.ts` | VERIFIED | `Ctrl+O`, `Ctrl+=/-`, `Ctrl+0`, `ArrowLeft/Right`, `PageUp/Down` all handled. 65 lines. |
+| `src/renderer/src/components/CanvasViewport.tsx` | VERIFIED | Konva `Stage`/`Layer`/`KonvaImage`, `usePdfRenderer`, `useViewportControls`, `useKeyboardShortcuts`, `lastValidRef` anti-flash pattern, `ResizeObserver`, `onWheel={handleWheel}`. 173 lines. |
+| `src/renderer/src/components/Toolbar.tsx` | VERIFIED | Open PDF button, page nav (prev/next with disable logic), zoom controls (in/out/fit with percentage display), wired to `getCanvasControls()` and `usePdfDocument`. 221 lines. |
+| `src/renderer/src/components/StatusBar.tsx` | VERIFIED | `fileName`, `currentPage/totalPages`, `getViewport(currentPage).zoom` all read from store and rendered. Em-dash fallback when no file loaded. 64 lines. |
+| `src/renderer/src/components/TitleBar.tsx` | VERIFIED | `app-region: drag`, `{fileName} - CLMC Takeoff` / `CLMC Takeoff` dynamic title. 33 lines. |
+| `src/renderer/src/components/EmptyState.tsx` | VERIFIED | Drop zone with `FileUp` icon, heading, body text, drag-over border highlight, `loadPdf()` wiring via `FileReader`. 105 lines. |
+| `src/renderer/src/App.tsx` | VERIFIED | `TitleBar / Toolbar / main(EmptyState|CanvasViewport) / StatusBar`, dragover prevention, `totalPages === 0` guard. 44 lines. |
+| `src/tests/viewer-store.test.ts` | VERIFIED | 12 tests covering setFile, navigation, viewport state, resetViewer. All pass. |
+| `src/tests/pdf-loader.test.ts` | VERIFIED | 4 tests for render scale clamping math. All pass. |
+| `src/tests/page-nav.test.ts` | VERIFIED | 2 tests for viewport preservation and fit-to-window calculation. All pass. |
+| `src/tests/zoom.test.ts` | VERIFIED | 7 tests for zoom-to-cursor math and step selection. All pass. |
+| `src/tests/stage-transform.test.ts` | VERIFIED | 5 tests for fit-to-window calculation across orientations. All pass. |
 
 ---
 
 ### Key Link Verification
 
-| From | To | Via | Pattern Found | Status |
-| ---- | -- | --- | ------------- | ------ |
-| `Toolbar.tsx` | `preload/index.ts` | `window.api.openPdf()` in `usePdfDocument.openPdfDialog()` | `window.api.openPdf` at `usePdfDocument.ts:36` | WIRED |
-| `ipc-handlers.ts` | Electron dialog | `ipcMain.handle('dialog:openPdf', ...)` | `ipcMain.handle('dialog:openPdf'` at line 5 | WIRED |
-| `Toolbar.tsx` | `usePdfDocument.ts` | `usePdfDocument` import, `openPdfDialog()` called | `import { usePdfDocument }` + `openPdfDialog()` | WIRED |
-| `usePdfRenderer.ts` | `pdfjs-dist` | `page.render()` to offscreen canvas | `page.render({` at line 61 | WIRED |
-| `CanvasViewport.tsx` | `konva` | Konva Stage with Image node | `import { Stage, Layer, Image as KonvaImage } from 'react-konva'` + `<Stage>` rendered | WIRED |
-| `CanvasViewport.tsx` | `useViewportControls.ts` | `onWheel` handler and zoom/pan functions | `useViewportControls(stageRef)` at line 32; `onWheel={handleWheel}` on Stage | WIRED |
-| `useKeyboardShortcuts.ts` | `viewerStore.ts` | keyboard events dispatch store actions | `useViewerStore.getState().prevPage()` / `nextPage()` | WIRED |
-| `StatusBar.tsx` | `viewerStore.ts` | reads fileName, currentPage, totalPages, zoom | `useViewerStore()` with destructuring | WIRED |
+| From | To | Via | Status | Evidence |
+|------|----|-----|--------|----------|
+| `Toolbar.tsx` | `preload/index.ts` | `window.api.openPdf()` | WIRED | `usePdfDocument.openPdfDialog()` calls `window.api.openPdf()` (line 36 of `usePdfDocument.ts`). Toolbar uses `openPdfDialog` from hook. |
+| `ipc-handlers.ts` | Electron dialog | `ipcMain.handle('dialog:openPdf')` | WIRED | `ipcMain.handle('dialog:openPdf', ...)` at line 5. Returns `{ filePath, data }`. |
+| `CanvasViewport.tsx` | `useViewportControls.ts` | `handleWheel` and zoom functions | WIRED | `const { handleWheel, zoomIn, zoomOut, spaceHeld } = useViewportControls(stageRef)` at line 47. `onWheel={handleWheel}` on Stage at line 156. |
+| `useKeyboardShortcuts.ts` | `viewerStore.ts` | keyboard events dispatch store actions | WIRED | `useViewerStore((s) => s.totalPages)` at line 12. `useViewerStore.getState().prevPage()` / `nextPage()` at lines 50, 56. |
+| `StatusBar.tsx` | `viewerStore.ts` | reads fileName, currentPage, totalPages, zoom | WIRED | `const { fileName, totalPages, currentPage } = useViewerStore()` at line 18. `getViewport(currentPage).zoom` at line 22. |
+| `usePdfRenderer.ts` | `CanvasViewport.tsx` | `pageCanvas` and `pageSize` returned from hook | WIRED | `const { pageCanvas, pageSize } = usePdfRenderer()` at line 26 of `CanvasViewport.tsx`. `lastValidRef` pattern holds previous value across transitions. |
+| `Toolbar.tsx` | `CanvasViewport.tsx` | `getCanvasControls()` for zoom/fit buttons | WIRED | `getCanvasControls()` imported and called in `handleZoomIn/Out/Fit`. `_canvasControls` populated in `CanvasViewport` `useEffect`. |
+| `EmptyState.tsx` | `usePdfDocument.ts` | `loadPdf()` for drag-and-drop | WIRED | `const { loadPdf } = usePdfDocument()` at line 7. Called in `handleDrop` after `FileReader.readAsArrayBuffer`. |
 
 ---
 
 ### Data-Flow Trace (Level 4)
 
-Verifying that the PDF render pipeline actually flows real data through the wiring.
-
 | Artifact | Data Variable | Source | Produces Real Data | Status |
-| -------- | ------------- | ------ | ------------------ | ------ |
-| `CanvasViewport.tsx` | `pageCanvas`, `pageSize` | `usePdfRenderer` → `page.render()` from `pdfDocument.getPage(currentPage)` | Yes — `pdfjsLib.getDocument({data})` processes the real ArrayBuffer from the file system | FLOWING |
-| `Toolbar.tsx` | `zoomPct` | `getViewport(currentPage).zoom` from Zustand store | Yes — zoom is written by `useViewportControls` on every wheel/drag event and `setViewport` on fit | FLOWING |
-| `StatusBar.tsx` | `fileName`, `currentPage`, `totalPages`, `zoomPct` | Zustand store, written by `setFile()` and `setViewport()` | Yes — all populated from actual file load and user interaction | FLOWING |
-| `TitleBar.tsx` | `fileName` | Zustand store `fileName` | Yes — set from `filePath.split(/[\\/]/).pop()` on real file path | FLOWING |
+|----------|---------------|--------|--------------------|--------|
+| `CanvasViewport.tsx` | `displayCanvas` / `displayPageSize` | `usePdfRenderer` → `page.render()` → `setPageCanvas/setPageSize` | Yes — real PDF.js render pipeline with HiDPI transform | FLOWING |
+| `Toolbar.tsx` | `currentPage`, `totalPages`, `currentZoom` | `useViewerStore` — populated by `usePdfDocument.loadPdf()` | Yes — store populated on real document load | FLOWING |
+| `StatusBar.tsx` | `fileName`, `currentPage`, `zoomPct` | `useViewerStore` — same store as Toolbar | Yes | FLOWING |
+| `TitleBar.tsx` | `fileName` | `useViewerStore` | Yes | FLOWING |
 
 ---
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
-| -------- | ------- | ------ | ------ |
-| All 31 unit tests pass | `npx vitest run --reporter=verbose` | 5 test files, 31 tests, all passed in 999ms | PASS |
-| Build completes without errors | `npm run build` | Built in 10.98s, pdf.worker copied, no errors | PASS |
-| Zoom-to-cursor math: point stays fixed under cursor | `zoom.test.ts` — 2 tests | Both pass: cursor point invariant maintained after zoom in and zoom out | PASS |
-| Zoom step boundaries enforced (min 0.25, max 8) | `zoom.test.ts` — 2 boundary tests | Pass: no step returned outside [0.25, 8] | PASS |
-| Fit-to-window scale calculation | `stage-transform.test.ts` — 4 tests | Pass: portrait/landscape pages, exact fit, centering all correct | PASS |
-| Per-page viewport state preserved across navigation | `page-nav.test.ts` | Pass: viewport for page 1 intact after navigating to page 2 and back | PASS |
-| Store navigation clamping | `viewer-store.test.ts` — 5 navigation tests | Pass: nextPage/prevPage/setPage all stay within bounds | PASS |
+|----------|---------|--------|--------|
+| All 31 unit tests pass | `npx vitest run --reporter=verbose` | 5 test files, 31 tests, 0 failures, 420ms | PASS |
+| Build produces output files | `npm run build` | Renderer JS (2155KB), PDF worker (2174KB), CSS (18KB) — built in 5.89s | PASS |
+| Module exports `usePdfRenderer` | File exists and exports function | Confirmed at line 62 of `usePdfRenderer.ts` | PASS |
+| Module exports `useViewportControls` | File exists and exports function | Confirmed at line 44 of `useViewportControls.ts` | PASS |
+| Page switching (cache/no-flash) | Requires running app | Cannot verify programmatically | SKIP — human needed |
 
 ---
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
-| ----------- | ----------- | ----------- | ------ | -------- |
-| PDF-01 | 01-01, 01-02 | User can load a PDF floor plan file via a file picker | SATISFIED | `ipc-handlers.ts` → `dialog.showOpenDialog` → `readFile` → `pdfjsLib.getDocument()` full pipeline working |
-| PDF-02 | 01-01, 01-02 | User can navigate between pages of a multi-page PDF | SATISFIED | `viewerStore` `nextPage`/`prevPage`, Toolbar nav buttons, ArrowLeft/Right keyboard shortcuts; per-page viewport preservation verified |
-| PDF-03 | 01-03 | User can zoom in and out while all markups remain pinned to their exact positions | SATISFIED | Konva Stage transform applied at Stage level — all layers (PDF + markup) move together; `zoomToPoint` keeps cursor-space point fixed; unit tests verify math |
-| PDF-04 | 01-03 | User can pan across the plan at any zoom level | SATISFIED | Middle-mouse native DOM handler + spacebar toggle `stage.draggable()`; both methods sync position to store via `setViewport` |
-| PDF-06 | 01-01, 01-02, 01-03 | User can see the current page number/label displayed in the viewer | SATISFIED | Toolbar: `Page {currentPage} of {totalPages}` (live, `aria-live="polite"`); StatusBar: same; both read from store and update on every page change |
+|-------------|-------------|-------------|--------|----------|
+| PDF-01 | 01-01, 01-02 | User can load a PDF floor plan via file picker | SATISFIED | IPC handler + `usePdfDocument.openPdfDialog()` + `dialog.showOpenDialog` with `.pdf` filter. UAT test 3 passed. |
+| PDF-02 | 01-02, 01-04 | User can navigate between pages of a multi-page PDF | SATISFIED | `nextPage/prevPage` in store, toolbar prev/next buttons, ArrowLeft/Right keyboard shortcuts. Canvas cache (Plan 04) makes switching snappy. UAT tests 7+8 passed. |
+| PDF-03 | 01-03 | User can zoom in/out while markups remain pinned | SATISFIED | `zoomToPoint()` math verified in `zoom.test.ts`. `ZOOM_STEPS` enforces 0.25–8x range. Markup layer (empty in Phase 1) is above PDF layer on the same Stage transform. |
+| PDF-04 | 01-03 | User can pan across the plan at any zoom level | SATISFIED | Middle-mouse-button pan (native drag) and spacebar+left-click drag implemented in `useViewportControls.ts`. Pan position synced to store on drag end. |
+| PDF-06 | 01-01, 01-02, 01-03 | User can see current page number/label in viewer | SATISFIED | Toolbar shows "Page N of M", StatusBar shows "Page N of M" and filename and zoom. Both read from `useViewerStore`. UAT test 5 passed. |
 
-**Orphaned requirements check:** REQUIREMENTS.md maps PDF-05 to Phase 6, not Phase 1. No Phase 1 requirements are orphaned.
+**All 5 Phase 1 requirement IDs (PDF-01, PDF-02, PDF-03, PDF-04, PDF-06) are satisfied.**
 
-**Coverage:** 5/5 Phase 1 requirements (PDF-01, PDF-02, PDF-03, PDF-04, PDF-06) satisfied.
+No orphaned requirements: ROADMAP.md maps PDF-05 to Phase 6, not Phase 1. This is documented in REQUIREMENTS.md (last line of notes).
 
 ---
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
-| ---- | ---- | ------- | -------- | ------ |
-| `usePdfDocument.ts` | 11, 19, 21, 26, 35, 37 | `console.log` debug statements | Info | Diagnostic logging left from PDF.js debugging session. Does not affect functionality; no user-visible output. Safe to remove before production. |
-| `pdf-setup.ts` | 144 | `console.log('[PDF] workerSrc set to...')` | Info | Debug logging for worker initialization. Not a functional issue. |
-| `CanvasViewport.tsx` | 123 | `return null` when `!pageCanvas || !pageSize` | Info (not a stub) | Legitimate loading guard — returns null while PDF page is rendering asynchronously. Data flows correctly once render completes. |
+|------|------|---------|----------|--------|
+| `usePdfDocument.ts` | 11, 19, 23, 36-38 | Multiple `console.log` debug statements | Info | Diagnostic logging left from debugging session. Does not affect functionality but should be cleaned up before Phase 2. |
+| `pdf-setup.ts` | 144 | `console.log('[PDF] workerSrc set to blob wrapper...')` | Info | Startup diagnostic log. Not a stub — just verbose output. |
+| `CanvasViewport.tsx` | 164 | `{/* Layer 1: Markup overlay (empty in Phase 1) */}` comment on empty `<Layer />` | Info | Intentional placeholder for Phase 3 markup layer. The comment makes the intent clear. Not a functional stub. |
+| `useViewportControls.ts` | 150, 162 | `stageRef.current` in `useEffect` dependency array (not ref.current) | Info | Minor React pattern issue — `stageRef.current` is not reactive and won't trigger the effect on ref assignment. Functional in practice because stage is mounted before these effects run, but technically incorrect. |
 
-No blockers. No stubs. No hardcoded empty arrays returned from data sources.
-
----
-
-### Human Verification
-
-Task 2 of Plan 01-03 was a `checkpoint:human-verify` gate and the user typed "approved". All visual and interactive behaviors listed below were approved:
-
-1. **Empty state** — centered card with FileUp icon, heading "Open a PDF floor plan to begin", dashed border visible
-2. **File open dialog** — native Windows file dialog opens filtered to .pdf files on "Open PDF" click
-3. **PDF rendering** — first page renders centered at fit-to-window zoom, text and lines sharp
-4. **Page navigation** — Next/Prev arrows and Right Arrow key update page counter correctly
-5. **Zoom-to-cursor** — Ctrl+scroll keeps plan feature under cursor fixed as zoom increases to 8x; zoom % updates in toolbar and status bar
-6. **Pan** — Middle mouse button drag and spacebar+left-click drag both move canvas
-7. **Fit to window** — Fit button and Ctrl+0 centers page in viewport
-8. **Per-page zoom persistence** — Zoom to 4x on page 1, navigate to page 2, return: page 1 still at 4x
-9. **Status bar** — filename, Page N of M, Zoom: X% all live; show `—` when no file
-10. **Title bar** — shows `CLMC Takeoff` / `{filename} - CLMC Takeoff`
-11. **Keyboard shortcuts** — Ctrl+O, Ctrl+=/-, Left/Right Arrow all working
-12. **Drag and drop** — dragging a .pdf onto empty state loads the file
-13. **HiDPI (150% display scaling)** — rendering sharp, pointer positions correct
-
-All human verification items: APPROVED.
+No blockers. No stubs that hollow out goal-critical behavior.
 
 ---
 
-### Gaps Summary
+### Human Verification Required
 
-No gaps. All 5 success criteria are verified, all 5 Phase 1 requirements are satisfied, all 16 artifacts pass all verification levels, all 8 key links are wired, all 31 unit tests pass, build succeeds, and human verification was approved.
+#### 1. Snappy Page Switching (Plan 04 Gap Closure)
 
-The only non-blocking finding is diagnostic `console.log` statements left in `usePdfDocument.ts` and `pdf-setup.ts` from the PDF.js compatibility debugging session. These are informational and can be cleaned up before Phase 2 or at any convenient time.
+**Test:** Open a multi-page construction PDF. Navigate to page 3, then back to page 1, then forward to page 2.
+**Expected:** Previously visited pages appear instantly with no white frame (canvas cache returns cached HTMLCanvasElement immediately). Page 2 (adjacent, pre-rendered) also appears fast on first visit.
+**Why human:** Canvas cache behavior requires frame-timing observation in the running renderer. `requestIdleCallback` pre-rendering is non-deterministic. The absence of visual flash cannot be measured with grep or unit tests.
+
+#### 2. Zoom-to-Cursor on Real Plan (PDF-03 visual confirmation)
+
+**Test:** Open a construction PDF at fit-to-window. Place cursor over a distinctive feature (door swing, column symbol). Hold Ctrl and scroll in — zoom to 8x. The feature must remain exactly under the cursor throughout.
+**Expected:** The plan feature stays pinned under the cursor at every intermediate zoom step.
+**Why human:** `zoom.test.ts` proves the math is correct in unit tests, but the physical correctness depends on Konva's `getPointerPosition()` returning accurate coordinates relative to the Stage at runtime, which varies with DPI and CSS transforms.
+
+#### 3. 150% DPI Display (Success Criterion 5)
+
+**Test:** Change Windows display scaling to 150% (Settings > Display > Scale). Run `npm run dev`. Open a PDF. Zoom to 4x and click on a plan feature.
+**Expected:** Canvas renders sharply (no blurry text or lines). Clicking on a feature at 4x zoom lands where the cursor appears, not offset.
+**Why human:** `devicePixelRatio` handling is implemented in `usePdfRenderer.ts` (DPR transform) and pointer events flow through Konva's native coordinate mapping. Correctness is display-hardware dependent.
+
+#### 4. Middle-Mouse and Spacebar Pan
+
+**Test:** Open a PDF, zoom to 2x. (a) Hold middle mouse button and drag — canvas should pan 1:1 with cursor. (b) Hold spacebar and left-click drag — same behavior. Cursor should show `grab` during spacebar hold.
+**Expected:** Both pan modes work. Releasing middle mouse or spacebar restores normal cursor and syncs pan position to store (verified by navigating away and back).
+**Why human:** Middle-mouse button events and spacebar state changes require physical input device interaction inside the running Electron window.
 
 ---
 
-_Verified: 2026-04-17T15:16:00Z_
+## Gaps Summary
+
+No automated gaps found. All 5 phase success criteria have verified implementations in the codebase. The 4 human verification items are runtime-behavioral checks that require the running app — they are not code gaps.
+
+The one UAT-identified gap (snappy page switching, UAT test 8) was explicitly closed by Plan 04, which added:
+- Module-level canvas cache in `usePdfRenderer.ts`
+- Background pre-rendering via `requestIdleCallback`
+- `lastValidRef` anti-flash pattern in `CanvasViewport.tsx`
+
+All 31 unit tests pass. Build succeeds cleanly. No placeholder components, empty API handlers, or disconnected wiring found in any phase artifact.
+
+---
+
+_Verified: 2026-03-28T17:36:00Z_
 _Verifier: Claude (gsd-verifier)_

@@ -8,7 +8,7 @@
 
 ## Phases
 
-- [x] **Phase 1: PDF Viewer and Canvas Foundation** - Working multi-page PDF viewer with zoom, pan, and a stable Konva canvas overlay that holds markup coordinates in PDF page space (completed 2026-04-17)
+- [x] **Phase 1: PDF Viewer and Canvas Foundation** - Working multi-page PDF viewer with zoom, pan, and a stable Konva canvas overlay that holds markup coordinates in PDF page space (completed 2026-03-28)
 - [ ] **Phase 2: Scale Calibration** - Per-page scale calibration by drawn line, measurement unit system, and scale display — the math layer that all markup measurements depend on
 - [ ] **Phase 3: Markup Tools and Editing** - All four markup types (count, linear, area, perimeter) with freehand naming, category assignment, color-coding, labels, and full undo/redo
 - [ ] **Phase 4: Project Persistence** - Save and load .clmc project files so work survives across sessions
@@ -29,11 +29,12 @@
   3. User can zoom in to 8x or more and pan freely — a test point placed on a plan feature stays on that exact feature regardless of zoom or pan applied afterward
   4. User can zoom out to fit-the-window and the full page is visible without distortion
   5. The app works on a 150% Windows display-scaled monitor without blurry rendering or offset pointer events
-**Plans**: 3 plans
+**Plans**: 4 plans
 Plans:
 - [x] 01-01-PLAN.md — Scaffold electron-vite project, Electron shell with IPC, UI chrome, Zustand store, Vitest
 - [x] 01-02-PLAN.md — PDF.js rendering, Konva canvas viewport, page navigation
 - [x] 01-03-PLAN.md — Zoom-to-cursor, pan, keyboard shortcuts, status bar wiring, visual verification
+- [x] 01-04-PLAN.md — Gap closure: snappy page switching with canvas cache and pre-rendering
 **UI hint**: yes
 
 ### Phase 2: Scale Calibration
@@ -46,7 +47,10 @@ Plans:
   3. User can see the current page's active scale ratio displayed in the UI at all times
   4. User can measure a second known dimension on the same page and compare its reported value against the expected real-world measurement to verify calibration accuracy
   5. Pages that have not been calibrated show a visible "not calibrated" warning so the estimator cannot accidentally measure without a scale set
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [x] 02-01-PLAN.md — Scale math library (TDD), types, per-page scale state in Zustand store
+- [ ] 02-02-PLAN.md — Calibration UI: canvas interaction, dialog, toolbar buttons, StatusBar display, visual verification
 
 ### Phase 3: Markup Tools and Editing
 **Goal**: Estimators can place all four types of quantity markups on the plan, name them, assign them to a trade category, see them labeled and color-coded on the plan, and undo any mistakes
@@ -98,8 +102,8 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. PDF Viewer and Canvas Foundation | 3/3 | Complete   | 2026-04-17 |
-| 2. Scale Calibration | 0/0 | Not started | - |
+| 1. PDF Viewer and Canvas Foundation | 4/4 | Complete | 2026-03-28 |
+| 2. Scale Calibration | 0/2 | Planned | - |
 | 3. Markup Tools and Editing | 0/0 | Not started | - |
 | 4. Project Persistence | 0/0 | Not started | - |
 | 5. BOQ Export | 0/0 | Not started | - |

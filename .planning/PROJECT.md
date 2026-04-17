@@ -12,12 +12,14 @@ Speed up quantity takeoff — let the estimator focus on reading the plan, not d
 
 ### Validated
 
-- [x] Load a multi-page PDF floor plan and flip between pages — *Validated in Phase 1: PDF Viewer and Canvas Foundation*
-- [x] Zoom in/out with all markups staying pinned to the plan — *Validated in Phase 1: PDF Viewer and Canvas Foundation*
+- [x] Load a multi-page PDF floor plan and flip between pages — Validated in Phase 1: PDF Viewer & Canvas Foundation
+- [x] Zoom in/out with all markups staying pinned to the plan — Validated in Phase 1 (known issue: native Chromium zoom interference on Ctrl+scroll)
 
 ### Active
 
+- [ ] Load a multi-page PDF floor plan and flip between pages
 - [ ] Set scale by drawing a line between two known points and entering the real-world distance
+- [ ] Zoom in/out with all markups staying pinned to the plan
 - [ ] Place count markups (pins/dots) on individual items (fixtures, columns, outlets, etc.)
 - [ ] Draw linear markups to measure wall runs, pipe lengths, conduit, etc.
 - [ ] Trace area markups (polygon) for floors, ceilings, tiling regions, etc.
@@ -79,4 +81,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-17 — Phase 1 complete (PDF viewer, canvas foundation, zoom/pan)*
+*Last updated: 2026-03-25 after initialization*

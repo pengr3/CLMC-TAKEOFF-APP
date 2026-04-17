@@ -1,4 +1,5 @@
 import { useViewerStore } from '../stores/viewerStore'
+import { formatScaleRatio } from '../lib/scale-math'
 
 function Divider(): React.JSX.Element {
   return (
@@ -17,9 +18,11 @@ function Divider(): React.JSX.Element {
 export function StatusBar(): React.JSX.Element {
   const { fileName, totalPages, currentPage } = useViewerStore()
   const getViewport = useViewerStore((s) => s.getViewport)
+  const getPageScale = useViewerStore((s) => s.getPageScale)
 
   const hasFile = totalPages > 0
   const zoomPct = hasFile ? Math.round(getViewport(currentPage).zoom * 100) : 0
+  const pageScale = hasFile ? getPageScale(currentPage) : null
 
   return (
     <div
@@ -57,8 +60,24 @@ export function StatusBar(): React.JSX.Element {
 
       <Divider />
 
-      {/* Right: zoom */}
+      {/* Zoom */}
       <span>{hasFile ? `Zoom: ${zoomPct}%` : '\u2014'}</span>
+
+      <Divider />
+
+      {/* Scale */}
+      <span
+        style={{
+          color: pageScale ? '#cccccc' : '#e8a838',
+          fontWeight: pageScale ? 400 : 600
+        }}
+      >
+        {hasFile
+          ? pageScale
+            ? `Scale: ${formatScaleRatio(pageScale.pixelsPerUnit, pageScale.unit)}`
+            : 'Not calibrated'
+          : '\u2014'}
+      </span>
     </div>
   )
 }

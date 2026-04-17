@@ -25,9 +25,22 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false
+      sandbox: false,
+      zoomFactor: 1
     }
   })
+
+  // Disable Chromium's built-in pinch/scroll zoom entirely.
+  // All zoom is handled by Konva's viewport controls in the renderer.
+  // Must be applied after each page load (navigation resets zoom limits).
+  const lockZoom = (): void => {
+    mainWindow.webContents.setVisualZoomLevelLimits(1, 1)
+    mainWindow.webContents.setZoomLevel(0)
+  }
+  mainWindow.webContents.on('did-finish-load', lockZoom)
+
+  // Also lock zoom immediately for the initial load
+  lockZoom()
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -46,6 +59,11 @@ function createWindow(): void {
   }
 }
 
+// Disable Chromium's compositor-level zoom gesture recognition.
+// Without this, Ctrl+scroll is processed as a zoom gesture by the GPU compositor
+// BEFORE DOM wheel events fire, so preventDefault() in the renderer is too late.
+app.commandLine.appendSwitch('disable-pinch')
+
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.clmc.takeoff')
 
@@ -56,6 +74,26 @@ app.whenReady().then(() => {
   registerIpcHandlers()
 
   createWindow()
+
+  // Prevent ALL Chromium-native zoom keyboard shortcuts.
+  // Also reset zoom level on any zoom-changed event as a safety net.
+  // All zoom is handled by the Konva viewport controls.
+  app.on('browser-window-created', (_, window) => {
+    window.webContents.on('before-input-event', (event, input) => {
+      if (
+        input.type === 'keyDown' &&
+        input.control &&
+        (input.key === '=' || input.key === '+' || input.key === '-' || input.key === '0')
+      ) {
+        event.preventDefault()
+        window.webContents.setZoomLevel(0)
+      }
+    })
+
+    window.webContents.on('zoom-changed', () => {
+      window.webContents.setZoomLevel(0)
+    })
+  })
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

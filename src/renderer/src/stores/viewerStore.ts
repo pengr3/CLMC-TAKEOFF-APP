@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { ViewerState, DEFAULT_VIEWPORT } from '../types/viewer'
+import { ViewerState, DEFAULT_VIEWPORT, ActiveTool } from '../types/viewer'
 
 export const useViewerStore = create<ViewerState>((set, get) => ({
   filePath: null,
@@ -8,6 +8,8 @@ export const useViewerStore = create<ViewerState>((set, get) => ({
   totalPages: 0,
   pageViewports: {},
   pdfDocument: null,
+  pageScales: {},
+  activeTool: 'select' as ActiveTool,
 
   setFile: (path, name, totalPages) =>
     set({
@@ -15,7 +17,9 @@ export const useViewerStore = create<ViewerState>((set, get) => ({
       fileName: name,
       totalPages,
       currentPage: 1,
-      pageViewports: {}
+      pageViewports: {},
+      pageScales: {},
+      activeTool: 'select' as ActiveTool
     }),
 
   setPage: (page) => {
@@ -61,6 +65,24 @@ export const useViewerStore = create<ViewerState>((set, get) => ({
       currentPage: 1,
       totalPages: 0,
       pageViewports: {},
-      pdfDocument: null
-    })
+      pdfDocument: null,
+      pageScales: {},
+      activeTool: 'select' as ActiveTool
+    }),
+
+  setPageScale: (page, scale) =>
+    set((state) => ({
+      pageScales: { ...state.pageScales, [page]: scale }
+    })),
+
+  getPageScale: (page) => get().pageScales[page] ?? null,
+
+  clearPageScale: (page) =>
+    set((state) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [page]: _removed, ...rest } = state.pageScales
+      return { pageScales: rest }
+    }),
+
+  setActiveTool: (tool) => set({ activeTool: tool })
 }))
