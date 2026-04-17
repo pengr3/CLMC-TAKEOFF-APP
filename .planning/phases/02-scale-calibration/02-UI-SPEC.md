@@ -84,7 +84,7 @@ Inherited from Phase 1 (unchanged). Declared values in use this phase:
 **Popup exact dimensions:**
 
 - Popup container: `min-width: 220px`, `max-width: 260px`, internal padding 16px (md)
-- Popup offset from line endpoint: 12px right, 0px vertical (clamped to container bounds — see Pitfall 3 in RESEARCH.md)
+- Popup offset from line endpoint: 8px right, 0px vertical (clamped to container bounds — see Pitfall 3 in RESEARCH.md)
 - Popup border-radius: 8px (same as empty-state drop zone)
 - Popup internal vertical gap between rows (label, distance input, unit dropdown, computed ratio, button row): 8px (sm)
 - Popup button row gap (Confirm ↔ Discard line): 8px (sm)
@@ -188,7 +188,7 @@ Rendered as a `<Line>` in Layer 1 of the Konva Stage during `drawing` and `confi
 
 ### NEW: Scale Popup (inline HTML overlay)
 
-A React `<div>` with `position: absolute`, positioned inside the canvas viewport container at the projected screen coordinate of the line endpoint plus an 8–12px offset (clamped to container bounds).
+A React `<div>` with `position: absolute`, positioned inside the canvas viewport container at the projected screen coordinate of the line endpoint plus an 8px offset (clamped to container bounds).
 
 **Container:**
 
@@ -233,8 +233,8 @@ A React `<div>` with `position: absolute`, positioned inside the canvas viewport
 - **Inline error** (replaces ratio preview when line is too short): "Line too short — please draw again." — 13px regular 400, `#f0a500`
 - **Action row:**
   - Right-aligned, 8px gap between Discard line and Confirm
-  - **Discard line button:** neutral toolbar-button styling — background transparent, text `#cccccc`, 13px semibold, padding 4px 12px, border `1px solid #3c3c3c`, border-radius 4px, hover `#2d2d30`, active `#37373d`. Label copy: `"Discard line"`.
-  - **Confirm button:** accent CTA styling — background `#0078d4`, text `#ffffff`, 13px semibold, padding 4px 12px, border-radius 4px, hover `#1a86db`, active `#0067b8`
+  - **Discard line button:** neutral toolbar-button styling — background transparent, text `#cccccc`, 13px semibold, padding 4px 8px, border `1px solid #3c3c3c`, border-radius 4px, hover `#2d2d30`, active `#37373d`. Label copy: `"Discard line"`.
+  - **Confirm button:** accent CTA styling — background `#0078d4`, text `#ffffff`, 13px semibold, padding 4px 8px, border-radius 4px, hover `#1a86db`, active `#0067b8`
   - Confirm is disabled (opacity 0.4, not-allowed cursor) when distance is empty, non-numeric, ≤ 0, or pixel length < 10
 
 ### NEW: Status Bar Scale Segment
