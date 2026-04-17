@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-04-17T10:46:46.938Z",
+  "phase": "2",
+  "phase_name": "Scale Calibration",
+  "phase_dir": ".planning/phases/02-scale-calibration",
+  "plan": null,
+  "task": null,
+  "total_tasks": null,
+  "status": "paused",
+  "completed_tasks": [
+    {
+      "id": "plan-phase",
+      "name": "Plan Phase 2 with cross-AI review feedback incorporated",
+      "status": "done",
+      "commit": "145034a"
+    }
+  ],
+  "remaining_tasks": [
+    {
+      "id": "execute-phase-2",
+      "name": "Execute Phase 2 — 3 plans across 3 waves",
+      "status": "not_started"
+    }
+  ],
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {
+      "decision": "Store scale as pixelsPerMm (unit-agnostic base) instead of pixelsPerUnit",
+      "rationale": "Cross-AI review (Gemini) identified that changing globalUnit after calibration would silently corrupt stored pixelsPerUnit values. pixelsPerMm is unit-agnostic so setGlobalUnit only affects display, not stored calibration data.",
+      "phase": "2"
+    },
+    {
+      "decision": "Move calibMode into Zustand scaleStore instead of module-level ref polling",
+      "rationale": "Gemini flagged the 100ms setInterval polling of getCalibrationControls().getMode() as a reactive anti-pattern. calibMode: CalibMode added to ScaleState so Toolbar subscribes reactively via useScaleStore.",
+      "phase": "2"
+    },
+    {
+      "decision": "ConfirmationToast is persistent — no auto-dismiss timer",
+      "rationale": "Gemini noted 6s is too short for an estimator to pan/zoom to a second known dimension. Toast now stays until user clicks Verify/Dismiss or navigates to a different page.",
+      "phase": "2"
+    }
+  ],
+  "uncommitted_files": [
+    ".planning/STATE.md"
+  ],
+  "next_action": "Run /gsd:execute-phase 2 in a fresh context window to execute all 3 plans (Wave 1: types+math+store, Wave 2: calibration interaction, Wave 3: status bar+verify+toast)",
+  "context_notes": "Phase 2 planning is complete and verified. Three plans revised from the original set to incorporate Gemini's cross-AI review. All MEDIUM concerns addressed. Plan checker passed. Ready to execute."
+}
