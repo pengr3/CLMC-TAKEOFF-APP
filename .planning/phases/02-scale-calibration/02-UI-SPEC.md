@@ -62,7 +62,7 @@ The calibration popup is a transient, absolutely-positioned HTML overlay that ap
 
 - **When current page is uncalibrated:** The "Set Scale" toolbar button is the focal action (painted in accent color to draw attention — see Color §Accent Usage). The status bar "Scale: Not Set" in amber reinforces the same signal.
 - **During calibration (drawing state):** The canvas cursor changes to `crosshair` and the calibration line renders in accent color as the user moves between click 1 and click 2. All other chrome recedes.
-- **During calibration (confirming state):** The inline popup near the line endpoint is the focal element. The popup's Confirm button is the primary action.
+- **During calibration (confirming state):** The inline popup near the line endpoint is the focal element. The popup's Confirm button is the primary action; the "Discard line" button is the secondary escape hatch.
 - **When current page has a scale set:** "Set Scale" returns to the standard neutral toolbar button style. Status bar shows "Scale: 1:N" in primary text color.
 
 ---
@@ -73,7 +73,7 @@ Inherited from Phase 1 (unchanged). Declared values in use this phase:
 
 | Token | Value | Usage in Phase 2 |
 |-------|-------|------------------|
-| xs | 4px | Popup internal icon-to-label gap; gap between Confirm/Cancel buttons inside popup |
+| xs | 4px | Popup internal icon-to-label gap; gap between Confirm/Discard buttons inside popup |
 | sm | 8px | Popup internal row spacing (gap between label, input, ratio preview); popup offset from line endpoint |
 | md | 16px | Popup horizontal padding; status bar divider margin before "Scale:" segment |
 | lg | 16px | (unchanged — edge padding) |
@@ -87,7 +87,7 @@ Inherited from Phase 1 (unchanged). Declared values in use this phase:
 - Popup offset from line endpoint: 12px right, 0px vertical (clamped to container bounds — see Pitfall 3 in RESEARCH.md)
 - Popup border-radius: 8px (same as empty-state drop zone)
 - Popup internal vertical gap between rows (label, distance input, unit dropdown, computed ratio, button row): 8px (sm)
-- Popup button row gap (Confirm ↔ Cancel): 8px (sm)
+- Popup button row gap (Confirm ↔ Discard line): 8px (sm)
 
 **Exceptions:** none — all spacing aligns with the 4/8/16 scale.
 
@@ -100,7 +100,7 @@ Inherited from Phase 1 (unchanged). Two weights only: 400 (regular) and 600 (sem
 | Role | Size | Weight | Line Height | Usage in Phase 2 |
 |------|------|--------|-------------|-------------------|
 | Body | 13px | 400 | 1.4 | Popup helper text ("Enter real-world distance"), status bar "Scale:" segment, verify-mode result text |
-| Label | 13px | 600 | 1.4 | Toolbar "Set Scale" button label, popup field labels ("Distance", "Unit"), computed ratio line, Confirm/Cancel button labels |
+| Label | 13px | 600 | 1.4 | Toolbar "Set Scale" button label, popup field labels ("Distance", "Unit"), computed ratio line, Confirm/Discard button labels |
 | Heading | 16px | 600 | 1.2 | Not used in Phase 2 (no heading-level text) |
 | Display | — | — | — | Not used |
 
@@ -128,8 +128,8 @@ Inherited from Phase 1 (unchanged). One new semantic color introduced.
 | Text primary | `#cccccc` | All body/label text in popup and status bar |
 | Text secondary | `#808080` | Popup helper hint text |
 | Text on accent | `#ffffff` | Text inside Confirm button |
-| Hover surface | `#2d2d30` | Cancel button hover; unit dropdown hover state |
-| Active surface | `#37373d` | Cancel button active/pressed state |
+| Hover surface | `#2d2d30` | Discard line button hover; unit dropdown hover state |
+| Active surface | `#37373d` | Discard line button active/pressed state |
 
 ### Accent Usage (expanded from Phase 1)
 
@@ -174,7 +174,7 @@ Follows the Phase 1 `IconButton` (icon + label variant) pattern exactly, with a 
 
 ### NEW: Calibration Line (Konva decoration, not persisted)
 
-Rendered as a `<Line>` in Layer 1 of the Konva Stage during `drawing` and `confirming` states. Not persisted to state; removed on Confirm or Cancel.
+Rendered as a `<Line>` in Layer 1 of the Konva Stage during `drawing` and `confirming` states. Not persisted to state; removed on Confirm or Discard line.
 
 - Stroke: `#0078d4` (accent)
 - Stroke width: `2 / stage.scaleX()` (kept visually constant at 2px regardless of zoom — RESEARCH.md Pattern 2)
@@ -204,16 +204,16 @@ A React `<div>` with `position: absolute`, positioned inside the canvas viewport
 **Layout (vertical stack, 8px gap between rows):**
 
 ```
-+----------------------------------------+
-| Enter real-world distance              |  ← helper hint, 13px regular #808080
-|                                        |
-| Distance                               |  ← label, 13px semibold #cccccc
-| [ 5.00                ]  [ m    v ]   |  ← input + unit dropdown
-|                                        |
-| Scale: 1:100                           |  ← computed ratio preview, 13px semibold #0078d4
-|                                        |
-|                  [ Cancel ] [ Confirm ] |  ← action row, right-aligned
-+----------------------------------------+
++---------------------------------------------+
+| Enter real-world distance                   |  ← helper hint, 13px regular #808080
+|                                             |
+| Distance                                    |  ← label, 13px semibold #cccccc
+| [ 5.00                ]  [ m    v ]        |  ← input + unit dropdown
+|                                             |
+| Scale: 1:100                                |  ← computed ratio preview, 13px semibold #0078d4
+|                                             |
+|            [ Discard line ] [ Confirm ]     |  ← action row, right-aligned
++---------------------------------------------+
 ```
 
 **Fields:**
@@ -232,8 +232,8 @@ A React `<div>` with `position: absolute`, positioned inside the canvas viewport
 - **Computed ratio preview:** "Scale: 1:{N}" — 13px semibold 600, color `#0078d4` when valid, `#f0a500` when line too short or distance ≤ 0, `#808080` when distance field is empty
 - **Inline error** (replaces ratio preview when line is too short): "Line too short — please draw again." — 13px regular 400, `#f0a500`
 - **Action row:**
-  - Right-aligned, 8px gap between Cancel and Confirm
-  - **Cancel button:** neutral toolbar-button styling — background transparent, text `#cccccc`, 13px semibold, padding 4px 12px, border `1px solid #3c3c3c`, border-radius 4px, hover `#2d2d30`, active `#37373d`
+  - Right-aligned, 8px gap between Discard line and Confirm
+  - **Discard line button:** neutral toolbar-button styling — background transparent, text `#cccccc`, 13px semibold, padding 4px 12px, border `1px solid #3c3c3c`, border-radius 4px, hover `#2d2d30`, active `#37373d`. Label copy: `"Discard line"`.
   - **Confirm button:** accent CTA styling — background `#0078d4`, text `#ffffff`, 13px semibold, padding 4px 12px, border-radius 4px, hover `#1a86db`, active `#0067b8`
   - Confirm is disabled (opacity 0.4, not-allowed cursor) when distance is empty, non-numeric, ≤ 0, or pixel length < 10
 
@@ -284,18 +284,18 @@ The crosshair cursor is the operating-system native crosshair (`cursor: crosshai
 1. User clicks the "Set Scale" toolbar button.
 2. Button flips to active-mode state (accent background, white text). Cursor changes to crosshair when hovering canvas.
 3. User clicks on the plan at the start of a known dimension. A 4px-radius accent dot appears at that point. Line preview follows the cursor.
-4. User clicks at the end of the known dimension. Line finalizes. If pixel length < 10 px, popup opens but shows the inline error `"Line too short — please draw again."` and Confirm is disabled; user must press Cancel and retry.
+4. User clicks at the end of the known dimension. Line finalizes. If pixel length < 10 px, popup opens but shows the inline error `"Line too short — please draw again."` and Confirm is disabled; user must press "Discard line" and retry.
 5. If pixel length ≥ 10 px, popup opens at the endpoint. Distance input is autofocused. Unit dropdown shows `scaleStore.globalUnit` (defaults to `m` on first ever calibration).
 6. User types distance, optionally changes unit. The computed ratio preview updates live as the user types.
 7. User clicks Confirm (or presses Enter). `scaleStore.setScale(currentPage, pixelsPerUnit, unit)` is called. `globalUnit` is updated to the chosen unit. Popup dismisses. Calibration line is removed. Toolbar button returns to normal state. Status bar updates to `"Scale: 1:{N}"`.
 8. Confirmation toast appears (see Verify Scale Control §1) with option to verify.
 
-### Cancel Calibration Flow
+### Discard Calibration Flow
 
 At any point during `drawing` or `confirming`:
 
 - User presses **Escape** → calibration line cleared, popup dismissed, mode returns to `idle`, toolbar button returns to neutral state.
-- User clicks the **Cancel** button in the popup → same as Escape.
+- User clicks the **"Discard line"** button in the popup → same as Escape (line cleared, popup dismissed, mode returns to `idle`).
 - User clicks the **"Set Scale" toolbar button a second time while in drawing mode** → calibration line cleared, mode returns to `idle` (button toggles off).
 
 ### Verify Scale Flow (SCAL-04)
@@ -321,7 +321,7 @@ When the user navigates to a different page, the status bar Scale segment update
 
 | Shortcut | Action |
 |----------|--------|
-| Escape (during calibration) | Cancel calibration, dismiss popup, exit Set Scale mode |
+| Escape (during calibration) | Discard calibration line, dismiss popup, exit Set Scale mode |
 | Enter (popup focused with valid distance) | Confirm |
 | Tab / Shift+Tab (popup focused) | Cycle focus within popup (focus trap) |
 
@@ -335,7 +335,7 @@ When the user navigates to a different page, the status bar Scale segment update
 |---------|------|
 | Primary CTA (toolbar) | "Set Scale" |
 | Primary CTA (popup) | "Confirm" |
-| Secondary action (popup) | "Cancel" |
+| Secondary action (popup) | "Discard line" |
 | Toolbar tooltip (default) | "Set Scale — draw a line over a known dimension" |
 | Toolbar tooltip (uncalibrated page) | "Set Scale — this page has no scale yet" |
 | Toolbar tooltip (calibration active) | "Drawing scale line — Escape to cancel" |
@@ -364,8 +364,9 @@ When the user navigates to a different page, the status bar Scale segment update
 - Em-dash `—` used for missing/empty values and inline clarifying phrases (consistent with Phase 1 status bar)
 - No exclamation marks, no emoji
 - Errors name the problem AND the next action ("Line too short — please draw again.") — per Phase 1 precedent ("Could not open this PDF. The file may be corrupted or password-protected. Try a different file.")
+- Secondary action uses a specific verb + noun ("Discard line") rather than the generic "Cancel" — names exactly what will be thrown away so the user is never surprised by the result.
 
-**Destructive action copy:** none. Re-calibration is not treated as destructive per CONTEXT.md locked decision.
+**Destructive action copy:** none. Re-calibration is not treated as destructive per CONTEXT.md locked decision. The "Discard line" secondary action only discards the in-progress calibration line; no persisted scale is destroyed.
 
 ---
 
@@ -395,7 +396,8 @@ No component-registry blocks are introduced in this phase. All new UI is hand-wr
 - `aria-labelledby` points at a visually-hidden heading `"Set scale for page {N}"`
 - Distance input: `<label htmlFor="scale-distance">Distance</label>` + `aria-describedby` pointing at the computed ratio line so screen readers announce the ratio as the user types
 - Inline error messages use `role="alert"` so assistive tech announces them on appearance
-- Escape key closes popup in addition to Cancel button
+- "Discard line" button: visible label `"Discard line"`, `aria-label="Discard line"` (matches visible label)
+- Escape key closes popup in addition to the "Discard line" button
 - Enter key submits when focus is on distance input AND distance is valid
 
 ### Status bar Scale segment
