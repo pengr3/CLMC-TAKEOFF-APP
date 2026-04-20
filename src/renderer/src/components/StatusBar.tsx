@@ -1,5 +1,7 @@
 import { useViewerStore } from '../stores/viewerStore'
+import { useScaleStore } from '../stores/scaleStore'
 import { formatScaleRatio } from '../lib/scale-math'
+import { COLORS } from '../lib/constants'
 
 function Divider(): React.JSX.Element {
   return (
@@ -18,11 +20,24 @@ function Divider(): React.JSX.Element {
 export function StatusBar(): React.JSX.Element {
   const { fileName, totalPages, currentPage } = useViewerStore()
   const getViewport = useViewerStore((s) => s.getViewport)
-  const getPageScale = useViewerStore((s) => s.getPageScale)
+  const getScale = useScaleStore((s) => s.getScale)
 
   const hasFile = totalPages > 0
   const zoomPct = hasFile ? Math.round(getViewport(currentPage).zoom * 100) : 0
-  const pageScale = hasFile ? getPageScale(currentPage) : null
+  const pageScale = hasFile ? getScale(currentPage) : null
+
+  let scaleText: string
+  let scaleColor: string
+  if (!hasFile) {
+    scaleText = '\u2014'
+    scaleColor = COLORS.textPrimary
+  } else if (pageScale === null) {
+    scaleText = 'Not Set'
+    scaleColor = COLORS.warning
+  } else {
+    scaleText = formatScaleRatio(pageScale.pixelsPerMm)
+    scaleColor = COLORS.textPrimary
+  }
 
   return (
     <div
@@ -66,17 +81,8 @@ export function StatusBar(): React.JSX.Element {
       <Divider />
 
       {/* Scale */}
-      <span
-        style={{
-          color: pageScale ? '#cccccc' : '#e8a838',
-          fontWeight: pageScale ? 400 : 600
-        }}
-      >
-        {hasFile
-          ? pageScale
-            ? `Scale: ${formatScaleRatio(pageScale.pixelsPerUnit, pageScale.unit)}`
-            : 'Not calibrated'
-          : '\u2014'}
+      <span aria-live="polite">
+        Scale: <span style={{ color: scaleColor }}>{scaleText}</span>
       </span>
     </div>
   )
