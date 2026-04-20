@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 02-02-PLAN.md — Phase 2 Scale Calibration complete
-last_updated: "2026-04-20T02:56:15.330Z"
+stopped_at: Completed 02-03-PLAN.md — Phase 2 Scale Calibration fully complete
+last_updated: "2026-04-20T03:08:44.442Z"
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State: CLMC Takeoff App
@@ -30,8 +30,8 @@ progress:
 
 ## Current Position
 
-Phase: 02 (scale-calibration) — EXECUTING
-Plan: 3 of 3 (02-02 complete — 02-03 next)
+Phase: 02 (scale-calibration) — COMPLETE
+Plan: 3 of 3 (ALL COMPLETE)
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Plan: 3 of 3 (02-02 complete — 02-03 next)
 | Phase 02 P02 | 8min | 2 tasks (+ checkpoint) | 5 files |
 | Phase 02 P02 | 8min | 2 tasks | 5 files |
 | Phase 02 P02 | 8min | 3 tasks | 5 files |
+| Phase 02 P03 | 7 | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,10 @@ Plan: 3 of 3 (02-02 complete — 02-03 next)
 | Stage inverse transform for page-space coords | `stage.getAbsoluteTransform().copy().invert().point(pointer)` is the canonical pattern — never use raw pointer coords |
 | Zoom-compensated Konva overlay visuals | Divide all stroke widths and radii by currentZoom so visual sizes appear constant at all zoom levels |
 | CalibrationDialog cancel keeps activeTool='scale' | User can immediately retry the line draw without re-clicking the toolbar button |
+| mm-based canonical scale storage (pixelsPerMm) | Unit-independent storage enables display unit switching without recalibrating; all scale math uses a single unit |
+| ConfirmationToast is pure presentational (no setTimeout) | Parent owns dismissal lifecycle via useEffect — avoids React cleanup race conditions with timers inside components |
+| formatScaleRatio single-arg returns '1:N' ratio | Estimators read drawing scales as ratios (1:100, 1:50) — integer round of mm/pixel is the natural representation |
+| scaleStore separate from viewerStore | Keeps scale concerns orthogonal to viewport/PDF navigation; Phase 3 markup tools import only what they need |
 
 ### Critical Pitfalls to Watch
 
@@ -100,11 +105,11 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T02:56:15.325Z
+**Last session:** 2026-04-20T03:08:44.435Z
 
-**Stopped at:** Completed 02-02-PLAN.md — Phase 2 Scale Calibration complete
+**Stopped at:** Completed 02-03-PLAN.md — Phase 2 Scale Calibration fully complete
 
-**Next action:** `/gsd:execute-phase 2 plan 3` — execute 02-03-PLAN.md (Phase 2 final plan)
+**Next action:** Phase 2 complete. Run `/gsd:transition` to validate Phase 2 delivery and plan Phase 3 (markup tools).
 
 ---
 *State initialized: 2026-03-25*

@@ -9,7 +9,7 @@
 ## Phases
 
 - [x] **Phase 1: PDF Viewer and Canvas Foundation** - Working multi-page PDF viewer with zoom, pan, and a stable Konva canvas overlay that holds markup coordinates in PDF page space (completed 2026-03-28)
-- [ ] **Phase 2: Scale Calibration** - Per-page scale calibration by drawn line, measurement unit system, and scale display — the math layer that all markup measurements depend on
+- [x] **Phase 2: Scale Calibration** - Per-page scale calibration by drawn line, measurement unit system, and scale display — the math layer that all markup measurements depend on (completed 2026-04-20)
 - [ ] **Phase 3: Markup Tools and Editing** - All four markup types (count, linear, area, perimeter) with freehand naming, category assignment, color-coding, labels, and full undo/redo
 - [ ] **Phase 4: Project Persistence** - Save and load .clmc project files so work survives across sessions
 - [ ] **Phase 5: BOQ Export** - Export takeoff sheet to Excel and CSV, grouped by category
@@ -51,7 +51,7 @@ Plans:
 Plans:
 - [x] 02-01-PLAN.md — Scale math library (TDD), types, per-page scale state in Zustand store
 - [x] 02-02-PLAN.md — Calibration UI: canvas interaction, dialog, toolbar buttons, StatusBar display, visual verification
-- [ ] 02-03-PLAN.md — Scale UX polish: StatusBar 1:N ratio format, confirmation toast, Set Scale context menu (re-calibrate/clear), ScalePopup
+- [x] 02-03-PLAN.md — Scale UX polish: StatusBar 1:N ratio format, confirmation toast, Set Scale context menu (re-calibrate/clear), ScalePopup
 
 ### Phase 3: Markup Tools and Editing
 **Goal**: Estimators can place all four types of quantity markups on the plan, name them, assign them to a trade category, see them labeled and color-coded on the plan, and undo any mistakes
@@ -104,7 +104,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. PDF Viewer and Canvas Foundation | 4/4 | Complete | 2026-03-28 |
-| 2. Scale Calibration | 2/3 | In Progress|  |
+| 2. Scale Calibration | 3/3 | Complete   | 2026-04-20 |
 | 3. Markup Tools and Editing | 0/0 | Not started | - |
 | 4. Project Persistence | 0/0 | Not started | - |
 | 5. BOQ Export | 0/0 | Not started | - |
