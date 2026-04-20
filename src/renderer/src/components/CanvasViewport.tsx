@@ -8,11 +8,18 @@ import { useViewportControls } from '../hooks/useViewportControls'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { usePdfDocument } from '../hooks/usePdfDocument'
 import { useCalibrationMode } from '../hooks/useCalibrationMode'
+import { useMarkupTool } from '../hooks/useMarkupTool'
+import { useMarkupStore } from '../stores/markupStore'
 import { ScalePopup } from './ScalePopup'
 import { ConfirmationToast } from './ConfirmationToast'
+import { MarkupNamePopup } from './MarkupNamePopup'
+import { CountPinMarkup } from './markup/CountPinMarkup'
+import { LinearMarkup } from './markup/LinearMarkup'
 import { COLORS } from '../lib/constants'
 import { formatScaleRatio } from '../lib/scale-math'
+import { isMarkupTool } from '../types/viewer'
 import type { ScaleUnit } from '../types/scale'
+import type { CountMarkup, LinearMarkup as LinearMarkupType } from '../types/markup'
 
 // Module-level ref for canvas control functions (consumed by Toolbar via getCanvasControls)
 let _canvasControls: {
@@ -62,7 +69,7 @@ export function CanvasViewport() {
   const getViewport = useViewerStore((s) => s.getViewport)
   const setViewport = useViewerStore((s) => s.setViewport)
 
-  const getScaleFromStore = useScaleStore((s) => s.getScale)
+  const pageScale = useScaleStore((s) => s.pageScales[currentPage] ?? null)
   const setScale = useScaleStore((s) => s.setScale)
   const calibMode = useScaleStore((s) => s.calibMode)
 
@@ -108,6 +115,34 @@ export function CanvasViewport() {
     recomputePopupPos
   } = useCalibrationMode(stageRef)
 
+  // Markup tool interaction state machine
+  const activeTool = useViewerStore((s) => s.activeTool)
+
+  const {
+    state: markupState,
+    activate: activateMarkup,
+    cancel: cancelMarkup,
+    recordClick: recordMarkupClick,
+    updatePreview: updateMarkupPreview,
+    finishLinear,
+    commitCountName,
+    commitShape,
+    dismissError
+  } = useMarkupTool(stageRef)
+
+  // Sync viewerStore.activeTool with the markup tool state machine
+  useEffect(() => {
+    if (isMarkupTool(activeTool) && markupState.toolType !== activeTool) {
+      activateMarkup(activeTool)
+    } else if (!isMarkupTool(activeTool) && markupState.mode !== 'idle') {
+      cancelMarkup()
+    }
+  }, [activeTool, markupState.toolType, markupState.mode, activateMarkup, cancelMarkup])
+
+  // Subscribe to markupStore for rendering committed markups on the current page
+  const pageMarkups = useMarkupStore((s) => s.pageMarkups[currentPage] ?? [])
+  const getCategory = useMarkupStore((s) => s.getCategory)
+
   // Confirmation toast state
   const [toast, setToast] = useState<{ ratioText: string } | null>(null)
 
@@ -122,6 +157,42 @@ export function CanvasViewport() {
       setToast(null)
     }
   }, [calibState.mode])
+
+  // Recompute popup position when container resizes while confirming
+  useEffect(() => {
+    if (calibState.mode === 'confirming') {
+      recomputePopupPos()
+    }
+  }, [containerSize, calibState.mode, recomputePopupPos])
+
+  // Escape key cancels active markup draw/place/name/confirm (D-07)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent): void {
+      if (e.key === 'Escape') {
+        if (
+          markupState.mode === 'drawing' ||
+          markupState.mode === 'confirming' ||
+          markupState.mode === 'naming' ||
+          markupState.mode === 'placing'
+        ) {
+          e.preventDefault()
+          cancelMarkup()
+          useViewerStore.getState().setActiveTool('select')
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [markupState.mode, cancelMarkup])
+
+  // Auto-dismiss error toast after 3s
+  useEffect(() => {
+    if (!markupState.errorToast) return
+    const id = setTimeout(() => {
+      dismissError()
+    }, 3000)
+    return () => clearTimeout(id)
+  }, [markupState.errorToast, dismissError])
 
   // Apply viewport state to stage when page changes or loads
   useEffect(() => {
@@ -194,45 +265,68 @@ export function CanvasViewport() {
     fitToWindow
   })
 
-  // Handle Stage click — forward to calibration recordClick when in drawing mode
+  // Handle Stage click — routes to calibration or markup tool as appropriate
   const handleStageClick = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
-      if (calibState.mode !== 'drawing') return
       if (e.evt.button !== 0) return
       const stage = stageRef.current
       if (!stage) return
       const pointer = stage.getPointerPosition()
       if (!pointer) return
-      // Get screen coords by transforming from stage-relative to document coords
-      const container = stage.container()
-      const rect = container.getBoundingClientRect()
-      recordClick({ x: rect.left + pointer.x, y: rect.top + pointer.y })
+
+      // Calibration path (existing)
+      if (calibState.mode === 'drawing') {
+        recordClick({ x: pointer.x, y: pointer.y })
+        return
+      }
+
+      // Markup path
+      if (markupState.mode === 'drawing' || markupState.mode === 'placing') {
+        recordMarkupClick({ x: pointer.x, y: pointer.y })
+        return
+      }
     },
-    [calibState.mode, stageRef, recordClick]
+    [calibState.mode, markupState.mode, stageRef, recordClick, recordMarkupClick]
   )
 
-  // Handle Stage mousemove — update preview point when in drawing mode after first click
+  // Handle Stage mousemove — update preview point for calibration or markup drawing
   const handleStageMouseMove = useCallback(
     (_e: Konva.KonvaEventObject<MouseEvent>) => {
-      if (calibState.mode !== 'drawing' || !calibState.startPoint) return
       const stage = stageRef.current
       if (!stage) return
       const pointer = stage.getPointerPosition()
       if (!pointer) return
-      const container = stage.container()
-      const rect = container.getBoundingClientRect()
-      updatePreview({ x: rect.left + pointer.x, y: rect.top + pointer.y })
+
+      if (calibState.mode === 'drawing' && calibState.startPoint) {
+        updatePreview({ x: pointer.x, y: pointer.y })
+        return
+      }
+      if (markupState.mode === 'drawing' && markupState.points.length > 0) {
+        updateMarkupPreview({ x: pointer.x, y: pointer.y })
+      }
     },
-    [calibState.mode, calibState.startPoint, stageRef, updatePreview]
+    [calibState.mode, calibState.startPoint, markupState.mode, markupState.points.length, stageRef, updatePreview, updateMarkupPreview]
+  )
+
+  // Handle Stage dblclick — finish linear polyline
+  const handleStageDblClick = useCallback(
+    (_e: Konva.KonvaEventObject<MouseEvent>) => {
+      if (markupState.toolType === 'linear' && markupState.mode === 'drawing') {
+        finishLinear()
+      }
+    },
+    [markupState.toolType, markupState.mode, finishLinear]
   )
 
   // Determine cursor based on interaction state.
   // Spacebar held = grab cursor (left-click pan mode).
-  // Active calibration mode = crosshair for click placement.
+  // Active calibration or markup drawing = crosshair for click placement.
   // Otherwise default.
   const getCursor = (): string => {
     if (spaceHeld) return 'grab'
     if (calibMode !== 'idle') return 'crosshair'
+    if (markupState.mode === 'drawing') return 'crosshair'
+    if (markupState.toolType === 'count' && markupState.mode === 'placing') return 'crosshair'
     return 'default'
   }
 
@@ -241,7 +335,6 @@ export function CanvasViewport() {
 
   // Current zoom for compensating visual sizes
   const currentZoom = getViewport(currentPage).zoom || 1
-  const pageScale = getScaleFromStore(currentPage)
   const showNotCalibratedBadge =
     calibMode === 'idle' && !pageScale && totalPages > 0
 
@@ -290,6 +383,7 @@ export function CanvasViewport() {
         onDragEnd={handleDragEnd}
         onClick={handleStageClick}
         onMouseMove={handleStageMouseMove}
+        onDblClick={handleStageDblClick}
       >
         {/* Layer 0: PDF background */}
         <Layer listening={false}>
@@ -341,6 +435,81 @@ export function CanvasViewport() {
 
           {/* Faint reference line for previously calibrated pages — only from legacy viewerStore */}
           {/* (new scaleStore doesn't persist line points; reference line deferred to Phase 4) */}
+
+          {/* Committed count markups */}
+          {pageMarkups.filter((m) => m.type === 'count').map((m) => {
+            const category = getCategory(m.categoryId)
+            if (!category) return null
+            return (
+              <CountPinMarkup
+                key={m.id}
+                markup={m as CountMarkup}
+                category={category}
+                currentZoom={currentZoom}
+              />
+            )
+          })}
+
+          {/* Committed linear markups */}
+          {pageMarkups.filter((m) => m.type === 'linear').map((m) => {
+            const category = getCategory(m.categoryId)
+            if (!category) return null
+            return (
+              <LinearMarkup
+                key={m.id}
+                markup={m as LinearMarkupType}
+                category={category}
+                currentZoom={currentZoom}
+                pageScale={pageScale}
+              />
+            )
+          })}
+
+          {/* In-progress linear preview */}
+          {markupState.toolType === 'linear' &&
+            markupState.mode === 'drawing' &&
+            markupState.points.length > 0 && (
+              <>
+                {/* Solid committed segments */}
+                <Line
+                  points={markupState.points.flatMap((p) => [p.x, p.y])}
+                  stroke={COLORS.accent}
+                  strokeWidth={2 / currentZoom}
+                  lineCap="round"
+                  lineJoin="round"
+                  listening={false}
+                />
+                {/* Dashed preview segment from last vertex to cursor */}
+                {markupState.previewPoint && (
+                  <Line
+                    points={[
+                      markupState.points[markupState.points.length - 1].x,
+                      markupState.points[markupState.points.length - 1].y,
+                      markupState.previewPoint.x,
+                      markupState.previewPoint.y
+                    ]}
+                    stroke={COLORS.accent}
+                    strokeWidth={2 / currentZoom}
+                    dash={[8 / currentZoom, 4 / currentZoom]}
+                    opacity={0.6}
+                    listening={false}
+                  />
+                )}
+                {/* Vertex dots */}
+                {markupState.points.map((p, i) => (
+                  <Circle
+                    key={i}
+                    x={p.x}
+                    y={p.y}
+                    radius={4 / currentZoom}
+                    fill={COLORS.accent}
+                    stroke="#ffffff"
+                    strokeWidth={1 / currentZoom}
+                    listening={false}
+                  />
+                ))}
+              </>
+            )}
         </Layer>
       </Stage>
 
@@ -368,9 +537,64 @@ export function CanvasViewport() {
           screenPos={calibState.popupScreenPos}
           containerSize={containerSize}
           pixelLength={calibState.linePixelLength}
-          pageScale={getScaleFromStore(currentPage)}
+          pageScale={pageScale}
           onCancel={cancel}
         />
+      )}
+
+      {/* Count tool — naming popup shown before first pin is placed (count-pre mode, D-01) */}
+      {markupState.toolType === 'count' &&
+        markupState.mode === 'naming' &&
+        markupState.popupScreenPos && (
+          <MarkupNamePopup
+            mode="count-pre"
+            screenPos={markupState.popupScreenPos}
+            containerSize={containerSize}
+            onConfirm={commitCountName}
+            onCancel={() => {
+              cancelMarkup()
+              useViewerStore.getState().setActiveTool('select')
+            }}
+          />
+        )}
+
+      {/* Linear/Area/Perimeter — save popup shown after shape is drawn (save-after mode) */}
+      {markupState.mode === 'confirming' && markupState.popupScreenPos && (
+        <MarkupNamePopup
+          mode="save-after"
+          screenPos={markupState.popupScreenPos}
+          containerSize={containerSize}
+          onConfirm={commitShape}
+          onCancel={() => {
+            cancelMarkup()
+            useViewerStore.getState().setActiveTool('select')
+          }}
+        />
+      )}
+
+      {/* Error toast — auto-dismissed after 3s, also dismissible on click */}
+      {markupState.errorToast && (
+        <div
+          role="alert"
+          style={{
+            position: 'absolute',
+            bottom: 40,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            padding: '8px 16px',
+            background: COLORS.warning,
+            color: COLORS.dominant,
+            borderRadius: 4,
+            fontSize: 13,
+            fontWeight: 600,
+            zIndex: 10,
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+            whiteSpace: 'nowrap'
+          }}
+          onClick={dismissError}
+        >
+          {markupState.errorToast}
+        </div>
       )}
 
       {/* Confirmation toast — persistent until user acts, page changes, or new calibration starts */}
@@ -424,13 +648,6 @@ export function CanvasViewport() {
         </div>
       )}
 
-      {/* Recompute popup position when container resizes */}
-      {calibState.mode === 'confirming' && (
-        <div
-          style={{ display: 'none' }}
-          ref={() => recomputePopupPos()}
-        />
-      )}
     </div>
   )
 }
