@@ -4,6 +4,7 @@ import type { StagePoint } from './useCalibrationMode'
 import { useMarkupStore } from '../stores/markupStore'
 import { useViewerStore } from '../stores/viewerStore'
 import type { CountMarkup, LinearMarkup, AreaMarkup, PerimeterMarkup } from '../types/markup'
+import { polygonCentroid } from '../lib/markup-math'
 
 const UNCATEGORIZED = 'Uncategorized'
 const DUPLICATE_POINT_EPSILON = 2 // stage-pixel threshold for de-duping dblclick duplicate point (Pitfall 1)
@@ -209,9 +210,32 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
   }, [stageRef])
 
   const finishPolygon = useCallback(() => {
-    // Plan 04 implements area/perimeter polygon close interaction
-    setState((prev) => prev)
-  }, [])
+    setState((prev) => {
+      if ((prev.toolType !== 'area' && prev.toolType !== 'perimeter') || prev.mode !== 'drawing') {
+        return prev
+      }
+      if (prev.points.length < 3) {
+        return {
+          ...prev,
+          mode: 'idle',
+          points: [],
+          previewPoint: null,
+          errorToast: 'Add at least three points to close the shape'
+        }
+      }
+      const stage = stageRef.current
+      if (!stage) return prev
+      const centroid = polygonCentroid(prev.points)
+      const screenCentroid = stageToScreenPoint(stage, centroid)
+      return {
+        ...prev,
+        mode: 'confirming',
+        previewPoint: null,
+        popupScreenPos: { x: screenCentroid.x, y: screenCentroid.y + 20 },
+        pendingPage: prev.pendingPage ?? useViewerStore.getState().currentPage
+      }
+    })
+  }, [stageRef])
 
   const commitShape = useCallback((payload: { name: string; categoryName: string }) => {
     setState((prev) => {
