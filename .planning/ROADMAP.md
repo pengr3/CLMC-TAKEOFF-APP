@@ -68,7 +68,7 @@ Plans:
 - [x] 03-01-PLAN.md — TDD foundation: markup types, math library (polyline length, polygon area/centroid, unit conversion), markupStore with command-pattern undo/redo
 - [x] 03-02-PLAN.md — DOM chrome: extend ActiveTool union, add 4 markup Toolbar buttons, build MarkupNamePopup + CategoryAutocomplete
 - [x] 03-03-PLAN.md — Count + Linear tools: useMarkupTool hook, CountPinMarkup/LinearMarkup renderers, CanvasViewport wiring
-- [ ] 03-04-PLAN.md — Area + Perimeter tools: polygon close detection, AreaMarkup/PerimeterMarkup renderers with category-colored fills
+- [x] 03-04-PLAN.md — Area + Perimeter tools: polygon close detection, AreaMarkup/PerimeterMarkup renderers with category-colored fills
 - [ ] 03-05-PLAN.md — Keyboard shortcuts (Ctrl+Z / Ctrl+Y) with text-input guard + end-to-end human-verify checkpoint
 **UI hint**: yes
 

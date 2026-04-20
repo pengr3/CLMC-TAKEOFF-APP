@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-04-20T14:33:45.944Z"
+stopped_at: Completed 03-04-PLAN.md
+last_updated: "2026-04-20T14:40:26.462Z"
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State: CLMC Takeoff App
@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 03 (markup-tools-and-editing) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Plan: 4 of 5
 | Phase 03 P01 | 7 | 3 tasks | 7 files |
 | Phase 03 P02 | 3 | 2 tasks | 5 files |
 | Phase 03-markup-tools-and-editing P03 | 6min | 3 tasks | 4 files |
+| Phase 03 P04 | 5 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,10 @@ Plan: 4 of 5
 | useMarkupTool state machine uses useState+useCallback (not useReducer) | Mirrors useCalibrationMode pattern for consistency; simpler than reducer for this use case |
 | recordClick places CountMarkup via Zustand getState() inside setState updater | Avoids double-render from separate dispatch; Zustand getState() is safe outside React render |
 | LinearMarkup label shows only name when pageScale is null | Graceful degradation on uncalibrated page rather than showing '0 m' stub |
+| finishPolygon positions popup at polygonCentroid+20px (screen-space) | Vertex average centroid is natural anchor for polygon popup |
+| Layer 2 transient polygon layer separate from Layer 1 | Enables hitStrokeWidth events on start vertex without forcing Layer 1 to have listening=true |
+| isOverStartPoint lives in CanvasViewport (not useMarkupTool) | Hook is isolated from Konva Layer structure; viewport owns the interactive event layer |
+| PerimeterMarkup appends points[0] to polylineLength input | Includes the closing segment in perimeter calculation — without this, last-to-first segment is missing |
 
 ### Critical Pitfalls to Watch
 
@@ -117,9 +122,9 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T14:33:45.940Z
+**Last session:** 2026-04-20T14:40:26.458Z
 
-**Stopped at:** Completed 03-03-PLAN.md
+**Stopped at:** Completed 03-04-PLAN.md
 
 **Next action:** Phase 2 complete. Run `/gsd:transition` to validate Phase 2 delivery and plan Phase 3 (markup tools).
 
