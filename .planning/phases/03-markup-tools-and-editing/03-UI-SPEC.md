@@ -66,7 +66,7 @@ Locked at **3 sizes + 2 weights** (matches existing Phase 1–2 typography; no n
 | Role | Size | Weight | Line Height | Usage in Phase 3 |
 |------|------|--------|-------------|------------------|
 | Body      | 13px | 400 (regular)  | 1.4 | Popup helper text, category auto-complete list items, confirmation toast body |
-| Label/CTA | 13px | 600 (semibold) | 1.4 | Form labels (Name, Category), button text (Save, Discard, Start), active tool button text |
+| Label/CTA | 13px | 600 (semibold) | 1.4 | Form labels (Name, Category), button text (Save Markup, Discard, Start Count), tool-selector button labels (Count, Linear, Area, Perimeter), active tool button text |
 | Heading   | 15px | 600 (semibold) | 1.2 | Popup title if shown (e.g. for full modal variants — not used for inline popups in this phase) |
 
 **Canvas labels (rendered in Konva, not DOM — zoom-compensated):**
@@ -99,7 +99,7 @@ Color philosophy **matches the locked Phase 1 dark theme exactly**. The 60/30/10
 | Warning (semantic)| `#e8a838` (`COLORS.warning`)          | Reserved for "Not Set" / "Not Calibrated" / error states — **NOT a category color** |
 
 **Accent (`#0078d4`) reserved EXCLUSIVELY for:**
-1. Primary CTA buttons — the "Save" button in the markup name popup and the "Start" button in the Count tool popup (filled accent fill + white text)
+1. Primary CTA buttons — the "Save Markup" button in the markup name popup (Linear/Area/Perimeter) and the "Start Count" button in the Count tool popup (filled accent fill + white text)
 2. Active tool button bottom-border (2px accent underline on the pressed tool — matches `IconButton active` pattern in `Toolbar.tsx`)
 3. In-progress calibration/markup drawing-line stroke color (preview segment following cursor — matches existing calibration line)
 4. Zoom-not-100% indicator in toolbar (already in use; unchanged)
@@ -146,16 +146,25 @@ Eight distinct colors, auto-assigned in order of first category creation (locked
 
 All copy follows the existing Phase 1–2 voice: **terse, verb-first, no exclamations, no marketing language**. Estimators are professional users; copy is operational.
 
-### Primary CTAs (per tool)
+### Tool Selectors (mode-switch buttons, not action CTAs)
+
+The four toolbar buttons activate a drawing mode; they are **mode selectors**, not action CTAs. Labels are noun-only (the tool type), matching the Phase 1–2 `IconButton` pattern already used for "Fit" and "Set Scale".
+
+| Element | Copy | Icon (lucide-react) |
+|---------|------|---------------------|
+| Toolbar Count tool selector     | "Count"     | `MapPin` or `Circle`, 16px |
+| Toolbar Linear tool selector    | "Linear"    | `Ruler` — already imported; or `Minus` — decide in planning |
+| Toolbar Area tool selector      | "Area"      | `Square` or `Hexagon` |
+| Toolbar Perimeter tool selector | "Perimeter" | `Frame` or `BoxSelect` |
+
+### Primary CTAs (action buttons inside popups)
+
+All primary CTAs pair a specific verb with a specific noun (no generic "Save", "Submit", "OK", "Go").
 
 | Element | Copy |
 |---------|------|
-| Toolbar Count tool button | "Count" (icon: `lucide-react` → `MapPin` or `Circle`, 16px) |
-| Toolbar Linear tool button | "Linear" (icon: `Ruler` — already imported; or `Minus` — decide in planning) |
-| Toolbar Area tool button | "Area" (icon: `Square` or `Hexagon`) |
-| Toolbar Perimeter tool button | "Perimeter" (icon: `Frame` or `BoxSelect`) |
-| Count-tool primary CTA (popup) | "Start" |
-| Linear/Area/Perimeter primary CTA (popup, after shape drawn) | "Save" |
+| Count-tool primary CTA (popup, before placement) | "Start Count" |
+| Linear/Area/Perimeter primary CTA (popup, after shape drawn) | "Save Markup" |
 | Shape-draw cancel button (in popup) | "Discard" |
 | In-progress draw cancel (keyboard) | ESC key (no label shown; matches calibration-cancel pattern) |
 | Undo button (if rendered — otherwise keyboard-only) | "Undo" with `Ctrl+Z` tooltip |
@@ -177,10 +186,10 @@ Three distinct empty states are relevant in Phase 3. Copy for each:
 
 | Error | Copy | Color |
 |-------|------|-------|
-| Markup name field empty on Save | "Enter an item name" | `COLORS.warning` inline below input |
+| Markup name field empty on Save Markup | "Enter an item name" | `COLORS.warning` inline below input |
 | Polyline has only one point when double-clicked | "Add at least two points before ending" | `COLORS.warning` toast, 3-second auto-dismiss |
 | Polygon has fewer than 3 vertices when closing | "Add at least three points to close the shape" | `COLORS.warning` toast, 3-second auto-dismiss |
-| Category name empty on Save | (allow empty — treat as "Uncategorized" with default palette color #1 blue) — no error | n/a |
+| Category name empty on Save Markup | (allow empty — treat as "Uncategorized" with default palette color #1 blue) — no error | n/a |
 
 No `alert()` dialogs. All errors are inline or as the existing `ConfirmationToast` pattern (bottom-center, auto-dismiss in error mode only).
 
@@ -246,7 +255,7 @@ This matches the existing `IconButton` active-state contract exactly — no new 
 |------|--------|
 | No tool active | default (arrow) |
 | Count tool active, popup not yet dismissed | default (waiting for name input) |
-| Count tool active after Start clicked | `crosshair` (placing pins) |
+| Count tool active after Start Count clicked | `crosshair` (placing pins) |
 | Linear/Area/Perimeter tool active | `crosshair` (drawing shape) |
 | Hover over existing markup | `default` (no click interaction in Phase 3 — v2 PROD-03 enables selection) |
 
@@ -266,7 +275,7 @@ Tool-switch keyboard shortcuts (e.g. `C` for count) are **out of scope** per def
 
 `MarkupNamePopup` reuses the `ScalePopup` screen-position clamping algorithm exactly:
 
-- **Count tool:** popup appears centered on the toolbar tool button's bottom edge (known fixed position — no canvas coordinate needed until Start is pressed).
+- **Count tool:** popup appears centered on the toolbar tool button's bottom edge (known fixed position — no canvas coordinate needed until Start Count is pressed).
 - **Linear tool:** popup appears 20px below the midpoint of the drawn polyline, clamped to container bounds.
 - **Area / Perimeter tool:** popup appears 20px below the geometric centroid of the closed polygon, clamped to container bounds.
 - **Min width 240px, max width 280px**, minHeight auto, maxHeight clamped so it never extends past the canvas viewport.
