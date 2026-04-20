@@ -9,7 +9,7 @@
 ## Phases
 
 - [x] **Phase 1: PDF Viewer and Canvas Foundation** - Working multi-page PDF viewer with zoom, pan, and a stable Konva canvas overlay that holds markup coordinates in PDF page space (completed 2026-03-28)
-- [x] **Phase 2: Scale Calibration** - Per-page scale calibration by drawn line, measurement unit system, and scale display — the math layer that all markup measurements depend on (completed 2026-04-20)
+- [x] **Phase 2: Scale Calibration** - Per-page scale calibration by drawn line, measurement unit system, and scale display — the math layer that all markup measurements depend on (completed 2026-04-20)
 - [ ] **Phase 3: Markup Tools and Editing** - All four markup types (count, linear, area, perimeter) with freehand naming, category assignment, color-coding, labels, and full undo/redo
 - [ ] **Phase 4: Project Persistence** - Save and load .clmc project files so work survives across sessions
 - [ ] **Phase 5: BOQ Export** - Export takeoff sheet to Excel and CSV, grouped by category
@@ -63,7 +63,13 @@ Plans:
   3. User can trace a closed polygon for an area markup and see both the enclosed area and the perimeter length reported, each in appropriate real-world units
   4. Every markup category is rendered in a distinct color, and a markup's label remains readable and positioned correctly at every zoom level from fit-to-window to maximum zoom
   5. User can undo the last 20+ markup actions (place, delete, rename) one step at a time, and redo them in sequence, with no markup data lost or corrupted after round-tripping through undo and redo
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 03-01-PLAN.md — TDD foundation: markup types, math library (polyline length, polygon area/centroid, unit conversion), markupStore with command-pattern undo/redo
+- [ ] 03-02-PLAN.md — DOM chrome: extend ActiveTool union, add 4 markup Toolbar buttons, build MarkupNamePopup + CategoryAutocomplete
+- [ ] 03-03-PLAN.md — Count + Linear tools: useMarkupTool hook, CountPinMarkup/LinearMarkup renderers, CanvasViewport wiring
+- [ ] 03-04-PLAN.md — Area + Perimeter tools: polygon close detection, AreaMarkup/PerimeterMarkup renderers with category-colored fills
+- [ ] 03-05-PLAN.md — Keyboard shortcuts (Ctrl+Z / Ctrl+Y) with text-input guard + end-to-end human-verify checkpoint
 **UI hint**: yes
 
 ### Phase 4: Project Persistence
@@ -105,7 +111,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. PDF Viewer and Canvas Foundation | 4/4 | Complete | 2026-03-28 |
 | 2. Scale Calibration | 3/3 | Complete   | 2026-04-20 |
-| 3. Markup Tools and Editing | 0/0 | Not started | - |
+| 3. Markup Tools and Editing | 0/5 | Planned | - |
 | 4. Project Persistence | 0/0 | Not started | - |
 | 5. BOQ Export | 0/0 | Not started | - |
 | 6. Live View and UI Polish | 0/0 | Not started | - |
