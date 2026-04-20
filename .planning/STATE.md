@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-04-20T11:40:03.783Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-04-20T14:24:50.897Z"
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 12
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State: CLMC Takeoff App
@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 03 (markup-tools-and-editing) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Plan: 2 of 5
 | Phase 02 P02 | 8min | 3 tasks | 5 files |
 | Phase 02 P03 | 7 | 3 tasks | 12 files |
 | Phase 03 P01 | 7 | 3 tasks | 7 files |
+| Phase 03 P02 | 3 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,9 @@ Plan: 2 of 5
 | MarkupCommand stores full Markup object (not just ID) | Enables undo/redo without any store lookup — safer and simpler for the command pattern |
 | nextCountSequence uses max(existing)+1 (gap-preserving) | Deleted markups leave permanent gaps, preventing duplicate sequence numbers (Pitfall 5) |
 | UNDO_STACK_MAX=50 (2.5x MARK-09 minimum) | Provides comfortable margin above the 20+ round-trip requirement for dense editing sessions |
+| isMarkupTool type guard in viewer.ts | Plans 03/04 can discriminate activeTool without string literal comparisons across files |
+| MarkupNamePopup emits raw categoryName string | Consumer (Plans 03/04) calls getOrCreateCategory — maps empty string to 'Uncategorized' |
+| CategoryAutocomplete uses onMouseDown + e.preventDefault() | Prevents input onBlur from closing the dropdown list before item selection fires |
 
 ### Critical Pitfalls to Watch
 
@@ -109,9 +113,9 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T11:40:03.772Z
+**Last session:** 2026-04-20T14:24:50.892Z
 
-**Stopped at:** Completed 03-01-PLAN.md
+**Stopped at:** Completed 03-02-PLAN.md
 
 **Next action:** Phase 2 complete. Run `/gsd:transition` to validate Phase 2 delivery and plan Phase 3 (markup tools).
 
