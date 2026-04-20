@@ -6,7 +6,7 @@ import { useViewerStore } from '../stores/viewerStore'
 // Build effective zoom steps, optionally inserting the fit-to-window scale
 // so the user can always zoom back to the fit view via scroll wheel.
 function buildZoomSteps(fitScale?: number): number[] {
-  const steps = [...ZOOM_STEPS]
+  const steps: number[] = [...ZOOM_STEPS]
   if (fitScale !== undefined && fitScale > 0) {
     // Only insert if fitScale isn't already close to an existing step
     const alreadyPresent = steps.some((s) => Math.abs(s - fitScale) < 0.001)
