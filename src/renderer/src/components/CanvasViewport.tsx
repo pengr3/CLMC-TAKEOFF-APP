@@ -15,11 +15,13 @@ import { ConfirmationToast } from './ConfirmationToast'
 import { MarkupNamePopup } from './MarkupNamePopup'
 import { CountPinMarkup } from './markup/CountPinMarkup'
 import { LinearMarkup } from './markup/LinearMarkup'
+import { AreaMarkup } from './markup/AreaMarkup'
+import { PerimeterMarkup } from './markup/PerimeterMarkup'
 import { COLORS } from '../lib/constants'
 import { formatScaleRatio } from '../lib/scale-math'
 import { isMarkupTool } from '../types/viewer'
 import type { ScaleUnit } from '../types/scale'
-import type { CountMarkup, LinearMarkup as LinearMarkupType } from '../types/markup'
+import type { CountMarkup, LinearMarkup as LinearMarkupType, AreaMarkup as AreaMarkupType, PerimeterMarkup as PerimeterMarkupType } from '../types/markup'
 
 // Module-level ref for canvas control functions (consumed by Toolbar via getCanvasControls)
 let _canvasControls: {
@@ -125,10 +127,14 @@ export function CanvasViewport() {
     recordClick: recordMarkupClick,
     updatePreview: updateMarkupPreview,
     finishLinear,
+    finishPolygon,
     commitCountName,
     commitShape,
     dismissError
   } = useMarkupTool(stageRef)
+
+  // Local state for polygon start-vertex hover (drives close-on-click affordance)
+  const [isOverStartPoint, setIsOverStartPoint] = useState(false)
 
   // Sync viewerStore.activeTool with the markup tool state machine
   useEffect(() => {
@@ -193,6 +199,13 @@ export function CanvasViewport() {
     }, 3000)
     return () => clearTimeout(id)
   }, [markupState.errorToast, dismissError])
+
+  // Reset start-vertex hover when drawing ends or tool cancels
+  useEffect(() => {
+    if (markupState.mode !== 'drawing') {
+      setIsOverStartPoint(false)
+    }
+  }, [markupState.mode])
 
   // Apply viewport state to stage when page changes or loads
   useEffect(() => {
@@ -282,11 +295,22 @@ export function CanvasViewport() {
 
       // Markup path
       if (markupState.mode === 'drawing' || markupState.mode === 'placing') {
+        // Polygon close check: if area/perimeter, hovering start vertex, and 3+ points placed
+        if (
+          (markupState.toolType === 'area' || markupState.toolType === 'perimeter') &&
+          markupState.mode === 'drawing' &&
+          isOverStartPoint &&
+          markupState.points.length >= 3
+        ) {
+          finishPolygon()
+          setIsOverStartPoint(false)
+          return
+        }
         recordMarkupClick({ x: pointer.x, y: pointer.y })
         return
       }
     },
-    [calibState.mode, markupState.mode, stageRef, recordClick, recordMarkupClick]
+    [calibState.mode, markupState.mode, markupState.toolType, markupState.points.length, isOverStartPoint, stageRef, recordClick, recordMarkupClick, finishPolygon]
   )
 
   // Handle Stage mousemove — update preview point for calibration or markup drawing
@@ -325,6 +349,14 @@ export function CanvasViewport() {
   const getCursor = (): string => {
     if (spaceHeld) return 'grab'
     if (calibMode !== 'idle') return 'crosshair'
+    if (
+      (markupState.toolType === 'area' || markupState.toolType === 'perimeter') &&
+      markupState.mode === 'drawing' &&
+      isOverStartPoint &&
+      markupState.points.length >= 3
+    ) {
+      return 'pointer'
+    }
     if (markupState.mode === 'drawing') return 'crosshair'
     if (markupState.toolType === 'count' && markupState.mode === 'placing') return 'crosshair'
     return 'default'
@@ -465,6 +497,36 @@ export function CanvasViewport() {
             )
           })}
 
+          {/* Committed area markups */}
+          {pageMarkups.filter((m) => m.type === 'area').map((m) => {
+            const category = getCategory(m.categoryId)
+            if (!category) return null
+            return (
+              <AreaMarkup
+                key={m.id}
+                markup={m as AreaMarkupType}
+                category={category}
+                currentZoom={currentZoom}
+                pageScale={pageScale}
+              />
+            )
+          })}
+
+          {/* Committed perimeter markups */}
+          {pageMarkups.filter((m) => m.type === 'perimeter').map((m) => {
+            const category = getCategory(m.categoryId)
+            if (!category) return null
+            return (
+              <PerimeterMarkup
+                key={m.id}
+                markup={m as PerimeterMarkupType}
+                category={category}
+                currentZoom={currentZoom}
+                pageScale={pageScale}
+              />
+            )
+          })}
+
           {/* In-progress linear preview */}
           {markupState.toolType === 'linear' &&
             markupState.mode === 'drawing' &&
@@ -511,6 +573,64 @@ export function CanvasViewport() {
               </>
             )}
         </Layer>
+
+        {/* Layer 2: Transient interactive polygon drawing (only mounted while drawing area/perimeter) */}
+        {(markupState.toolType === 'area' || markupState.toolType === 'perimeter') &&
+         markupState.mode === 'drawing' &&
+         markupState.points.length > 0 && (
+          <Layer>
+            {/* Solid committed segments */}
+            <Line
+              points={markupState.points.flatMap((p) => [p.x, p.y])}
+              stroke={COLORS.accent}
+              strokeWidth={2 / currentZoom}
+              lineCap="round"
+              lineJoin="round"
+              listening={false}
+            />
+            {/* Dashed preview segment from last point to cursor */}
+            {markupState.previewPoint && (
+              <Line
+                points={[
+                  markupState.points[markupState.points.length - 1].x,
+                  markupState.points[markupState.points.length - 1].y,
+                  markupState.previewPoint.x,
+                  markupState.previewPoint.y
+                ]}
+                stroke={COLORS.accent}
+                strokeWidth={2 / currentZoom}
+                dash={[8 / currentZoom, 4 / currentZoom]}
+                opacity={0.6}
+                listening={false}
+              />
+            )}
+            {/* Non-start vertex dots (non-interactive) */}
+            {markupState.points.slice(1).map((p, i) => (
+              <Circle
+                key={i}
+                x={p.x}
+                y={p.y}
+                radius={4 / currentZoom}
+                fill={COLORS.accent}
+                stroke="#ffffff"
+                strokeWidth={1 / currentZoom}
+                listening={false}
+              />
+            ))}
+            {/* Start vertex — INTERACTIVE for polygon-close hover detection via hitStrokeWidth */}
+            <Circle
+              x={markupState.points[0].x}
+              y={markupState.points[0].y}
+              radius={(isOverStartPoint && markupState.points.length >= 3 ? 7 : 5) / currentZoom}
+              fill={isOverStartPoint && markupState.points.length >= 3 ? '#ffffff' : COLORS.accent}
+              stroke={COLORS.accent}
+              strokeWidth={2 / currentZoom}
+              hitStrokeWidth={12 / currentZoom}
+              onMouseEnter={() => setIsOverStartPoint(true)}
+              onMouseLeave={() => setIsOverStartPoint(false)}
+            />
+          </Layer>
+        )}
       </Stage>
 
       {/* ScalePopup: confirm mode — shown after user draws a calibration line */}
