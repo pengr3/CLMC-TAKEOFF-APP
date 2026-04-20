@@ -3,12 +3,16 @@ import { Stage, Layer, Image as KonvaImage, Circle, Line } from 'react-konva'
 import Konva from 'konva'
 import { usePdfRenderer } from '../hooks/usePdfRenderer'
 import { useViewerStore } from '../stores/viewerStore'
+import { useScaleStore } from '../stores/scaleStore'
 import { useViewportControls } from '../hooks/useViewportControls'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { usePdfDocument } from '../hooks/usePdfDocument'
-import { useCalibration } from '../hooks/useCalibration'
-import { CalibrationDialog } from './CalibrationDialog'
+import { useCalibrationMode } from '../hooks/useCalibrationMode'
+import { ScalePopup } from './ScalePopup'
+import { ConfirmationToast } from './ConfirmationToast'
 import { COLORS } from '../lib/constants'
+import { formatScaleRatio } from '../lib/scale-math'
+import type { ScaleUnit } from '../types/scale'
 
 // Module-level ref for canvas control functions (consumed by Toolbar via getCanvasControls)
 let _canvasControls: {
@@ -19,6 +23,17 @@ let _canvasControls: {
 
 export function getCanvasControls() {
   return _canvasControls
+}
+
+// Module-level ref for calibration control functions (consumed by Toolbar via getCalibrationControls)
+let _calibrationControls: {
+  activate: () => void
+  activateVerify: () => void
+  cancel: () => void
+} | null = null
+
+export function getCalibrationControls() {
+  return _calibrationControls
 }
 
 export function CanvasViewport() {
@@ -46,9 +61,10 @@ export function CanvasViewport() {
   const totalPages = useViewerStore((s) => s.totalPages)
   const getViewport = useViewerStore((s) => s.getViewport)
   const setViewport = useViewerStore((s) => s.setViewport)
-  const activeTool = useViewerStore((s) => s.activeTool)
-  const setActiveTool = useViewerStore((s) => s.setActiveTool)
-  const getPageScale = useViewerStore((s) => s.getPageScale)
+
+  const getScaleFromStore = useScaleStore((s) => s.getScale)
+  const setScale = useScaleStore((s) => s.setScale)
+  const calibMode = useScaleStore((s) => s.calibMode)
 
   // Observe container resize
   useEffect(() => {
@@ -81,17 +97,31 @@ export function CanvasViewport() {
   )
   const { openPdfDialog } = usePdfDocument()
 
-  // Calibration interaction
+  // Calibration interaction (new mm-based hook)
   const {
-    calibrationPoints,
-    showDialog,
-    pixelDistance,
-    verifyResult,
-    handleStageClick,
-    handleDialogConfirm,
-    handleDialogCancel,
-    dismissVerifyResult
-  } = useCalibration(stageRef)
+    state: calibState,
+    activate,
+    activateVerify,
+    cancel,
+    recordClick,
+    updatePreview,
+    recomputePopupPos
+  } = useCalibrationMode(stageRef)
+
+  // Confirmation toast state
+  const [toast, setToast] = useState<{ ratioText: string } | null>(null)
+
+  // Dismiss toast on page change (MEDIUM #3 — persistent toast)
+  useEffect(() => {
+    setToast(null)
+  }, [currentPage])
+
+  // Dismiss toast when a new calibration run starts (MEDIUM #3)
+  useEffect(() => {
+    if (calibState.mode === 'drawing') {
+      setToast(null)
+    }
+  }, [calibState.mode])
 
   // Apply viewport state to stage when page changes or loads
   useEffect(() => {
@@ -136,13 +166,25 @@ export function CanvasViewport() {
     setViewport(currentPage, { zoom: fitScale, panX: centerX, panY: centerY })
   }, [currentPage, pageSize, containerSize, calculateFitScale, setViewport])
 
-  // Expose control functions via module-level ref
+  // Expose canvas control functions via module-level ref
   useEffect(() => {
     _canvasControls = { zoomIn, zoomOut, fitToWindow }
     return () => {
       _canvasControls = null
     }
   }, [zoomIn, zoomOut, fitToWindow])
+
+  // Expose calibration control functions via module-level ref
+  useEffect(() => {
+    _calibrationControls = {
+      activate,
+      activateVerify,
+      cancel
+    }
+    return () => {
+      _calibrationControls = null
+    }
+  }, [activate, activateVerify, cancel])
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
@@ -152,13 +194,45 @@ export function CanvasViewport() {
     fitToWindow
   })
 
+  // Handle Stage click — forward to calibration recordClick when in drawing mode
+  const handleStageClick = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      if (calibState.mode !== 'drawing') return
+      if (e.evt.button !== 0) return
+      const stage = stageRef.current
+      if (!stage) return
+      const pointer = stage.getPointerPosition()
+      if (!pointer) return
+      // Get screen coords by transforming from stage-relative to document coords
+      const container = stage.container()
+      const rect = container.getBoundingClientRect()
+      recordClick({ x: rect.left + pointer.x, y: rect.top + pointer.y })
+    },
+    [calibState.mode, stageRef, recordClick]
+  )
+
+  // Handle Stage mousemove — update preview point when in drawing mode after first click
+  const handleStageMouseMove = useCallback(
+    (_e: Konva.KonvaEventObject<MouseEvent>) => {
+      if (calibState.mode !== 'drawing' || !calibState.startPoint) return
+      const stage = stageRef.current
+      if (!stage) return
+      const pointer = stage.getPointerPosition()
+      if (!pointer) return
+      const container = stage.container()
+      const rect = container.getBoundingClientRect()
+      updatePreview({ x: rect.left + pointer.x, y: rect.top + pointer.y })
+    },
+    [calibState.mode, calibState.startPoint, stageRef, updatePreview]
+  )
+
   // Determine cursor based on interaction state.
   // Spacebar held = grab cursor (left-click pan mode).
-  // Active tool (not select) = crosshair for click placement.
+  // Active calibration mode = crosshair for click placement.
   // Otherwise default.
   const getCursor = (): string => {
     if (spaceHeld) return 'grab'
-    if (activeTool !== 'select') return 'crosshair'
+    if (calibMode !== 'idle') return 'crosshair'
     return 'default'
   }
 
@@ -167,17 +241,30 @@ export function CanvasViewport() {
 
   // Current zoom for compensating visual sizes
   const currentZoom = getViewport(currentPage).zoom || 1
-  const pageScale = getPageScale(currentPage)
+  const pageScale = getScaleFromStore(currentPage)
   const showNotCalibratedBadge =
-    activeTool === 'select' && !pageScale && totalPages > 0
+    calibMode === 'idle' && !pageScale && totalPages > 0
 
   // Visual constants for calibration overlay
   const POINT_RADIUS = 6 / currentZoom
   const POINT_STROKE_WIDTH = 1 / currentZoom
   const LINE_STROKE_WIDTH = 2 / currentZoom
   const LINE_DASH = [8 / currentZoom, 4 / currentZoom]
-  const REFERENCE_LINE_STROKE = 1.5 / currentZoom
-  const REFERENCE_LINE_DASH = [6 / currentZoom, 3 / currentZoom]
+  // Note: REFERENCE_LINE_STROKE and REFERENCE_LINE_DASH will be used in Phase 4
+  // when the persistent calibration line is wired to the new scaleStore API.
+
+  // Build calibration line points for active drawing
+  const calibLinePoints: number[] = (() => {
+    if (calibState.startPoint && (calibState.endPoint ?? calibState.previewPoint)) {
+      const end = calibState.endPoint ?? calibState.previewPoint!
+      return [calibState.startPoint.x, calibState.startPoint.y, end.x, end.y]
+    }
+    return []
+  })()
+
+  // Build reference line points from stored scale (old viewerStore linePoints for legacy)
+  // New scaleStore doesn't store linePoints — reference line is omitted for new API
+  // (could be added in a future phase when we want to persist the calibration line)
 
   return (
     <div
@@ -202,7 +289,7 @@ export function CanvasViewport() {
         onWheel={handleWheel}
         onDragEnd={handleDragEnd}
         onClick={handleStageClick}
-        onTap={handleStageClick}
+        onMouseMove={handleStageMouseMove}
       >
         {/* Layer 0: PDF background */}
         <Layer listening={false}>
@@ -214,106 +301,88 @@ export function CanvasViewport() {
         </Layer>
         {/* Layer 1: Markup overlay (calibration line + persistent reference) */}
         <Layer listening={false}>
-          {/* Persistent reference line for calibrated pages in select mode */}
-          {pageScale && activeTool === 'select' && (
-            <Line
-              points={pageScale.linePoints}
-              stroke="#ff4444"
-              opacity={0.3}
-              strokeWidth={REFERENCE_LINE_STROKE}
-              dash={REFERENCE_LINE_DASH}
-              listening={false}
-            />
-          )}
-          {/* Active calibration / verify-scale visuals */}
-          {(activeTool === 'scale' || activeTool === 'verify-scale') && (
+          {/* Active calibration / verify visuals */}
+          {(calibState.mode === 'drawing' || calibState.mode === 'confirming') && (
             <>
-              {calibrationPoints.map((pt, idx) => (
+              {calibState.startPoint && (
                 <Circle
-                  key={idx}
-                  x={pt.x}
-                  y={pt.y}
+                  x={calibState.startPoint.x}
+                  y={calibState.startPoint.y}
                   radius={POINT_RADIUS}
-                  fill="#ff4444"
+                  fill={COLORS.accent}
                   stroke="#ffffff"
                   strokeWidth={POINT_STROKE_WIDTH}
                   listening={false}
                 />
-              ))}
-              {calibrationPoints.length === 2 && (
+              )}
+              {(calibState.endPoint ?? calibState.previewPoint) && (
+                <Circle
+                  x={(calibState.endPoint ?? calibState.previewPoint)!.x}
+                  y={(calibState.endPoint ?? calibState.previewPoint)!.y}
+                  radius={POINT_RADIUS}
+                  fill={COLORS.accent}
+                  stroke="#ffffff"
+                  strokeWidth={POINT_STROKE_WIDTH}
+                  listening={false}
+                />
+              )}
+              {calibLinePoints.length === 4 && (
                 <Line
-                  points={[
-                    calibrationPoints[0].x,
-                    calibrationPoints[0].y,
-                    calibrationPoints[1].x,
-                    calibrationPoints[1].y
-                  ]}
-                  stroke="#ff4444"
+                  points={calibLinePoints}
+                  stroke={COLORS.accent}
                   strokeWidth={LINE_STROKE_WIDTH}
                   dash={LINE_DASH}
+                  lineCap="round"
                   listening={false}
                 />
               )}
             </>
           )}
+
+          {/* Faint reference line for previously calibrated pages — only from legacy viewerStore */}
+          {/* (new scaleStore doesn't persist line points; reference line deferred to Phase 4) */}
         </Layer>
       </Stage>
 
-      {/* Calibration distance dialog */}
-      {showDialog && pixelDistance !== null && (
-        <CalibrationDialog
-          pixelDistance={pixelDistance}
-          onConfirm={handleDialogConfirm}
-          onCancel={handleDialogCancel}
+      {/* ScalePopup: confirm mode — shown after user draws a calibration line */}
+      {calibState.mode === 'confirming' && calibState.popupScreenPos && !calibState.isVerify && (
+        <ScalePopup
+          mode="confirm"
+          screenPos={calibState.popupScreenPos}
+          containerSize={containerSize}
+          pixelLength={calibState.linePixelLength}
+          onConfirm={(pixelsPerMm: number, displayUnit: ScaleUnit) => {
+            setScale(currentPage, pixelsPerMm, displayUnit)
+            const ratioText = formatScaleRatio(pixelsPerMm)
+            cancel()
+            setToast({ ratioText })
+          }}
+          onCancel={cancel}
         />
       )}
 
-      {/* Verify-scale result overlay */}
-      {verifyResult && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 16,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: COLORS.secondary,
-            border: `1px solid ${COLORS.accent}`,
-            borderRadius: 6,
-            padding: '12px 18px',
-            color: COLORS.textPrimary,
-            fontSize: 13,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 16,
-            zIndex: 9,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.5)'
+      {/* ScalePopup: verify mode — shown after user draws a verify line (read-only) */}
+      {calibState.mode === 'confirming' && calibState.popupScreenPos && calibState.isVerify && (
+        <ScalePopup
+          mode="verify"
+          screenPos={calibState.popupScreenPos}
+          containerSize={containerSize}
+          pixelLength={calibState.linePixelLength}
+          pageScale={getScaleFromStore(currentPage)}
+          onCancel={cancel}
+        />
+      )}
+
+      {/* Confirmation toast — persistent until user acts, page changes, or new calibration starts */}
+      {toast && (
+        <ConfirmationToast
+          ratioText={toast.ratioText}
+          onVerify={() => {
+            setToast(null)
+            activateVerify()
           }}
-        >
-          <span>
-            Measured:{' '}
-            <strong style={{ color: COLORS.accent, fontFamily: 'monospace' }}>
-              {verifyResult.realWorldLength.toFixed(3)} {verifyResult.unit}
-            </strong>{' '}
-            <span style={{ color: COLORS.textSecondary }}>
-              ({verifyResult.pixelLength.toFixed(1)} px)
-            </span>
-          </span>
-          <button
-            onClick={dismissVerifyResult}
-            style={{
-              background: COLORS.accent,
-              border: 'none',
-              borderRadius: 4,
-              color: COLORS.textOnAccent,
-              padding: '4px 12px',
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            Done
-          </button>
-        </div>
+          onDismiss={() => setToast(null)}
+        />
       )}
 
       {/* "Not calibrated" warning badge */}
@@ -338,7 +407,7 @@ export function CanvasViewport() {
         >
           <span>Scale not set</span>
           <button
-            onClick={() => setActiveTool('scale')}
+            onClick={() => activate()}
             style={{
               background: '#e8a838',
               border: 'none',
@@ -353,6 +422,14 @@ export function CanvasViewport() {
             Set Scale
           </button>
         </div>
+      )}
+
+      {/* Recompute popup position when container resizes */}
+      {calibState.mode === 'confirming' && (
+        <div
+          style={{ display: 'none' }}
+          ref={() => recomputePopupPos()}
+        />
       )}
     </div>
   )

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   FileUp,
   ChevronLeft,
@@ -5,12 +6,13 @@ import {
   ZoomIn,
   ZoomOut,
   Maximize,
-  Ruler,
-  CheckCircle
+  Ruler
 } from 'lucide-react'
 import { useViewerStore } from '../stores/viewerStore'
+import { useScaleStore } from '../stores/scaleStore'
 import { usePdfDocument } from '../hooks/usePdfDocument'
-import { getCanvasControls } from './CanvasViewport'
+import { getCanvasControls, getCalibrationControls } from './CanvasViewport'
+import { ScaleContextMenu } from './ScaleContextMenu'
 import { MIN_ZOOM, MAX_ZOOM, COLORS } from '../lib/constants'
 
 function IconButton({
@@ -19,7 +21,9 @@ function IconButton({
   onClick,
   disabled = false,
   active = false,
-  title
+  title,
+  onContextMenu,
+  children
 }: {
   icon: React.ComponentType<{ size?: number; color?: string }>
   label?: string
@@ -27,11 +31,14 @@ function IconButton({
   disabled?: boolean
   active?: boolean
   title: string
+  onContextMenu?: (e: React.MouseEvent<HTMLButtonElement>) => void
+  children?: React.ReactNode
 }): React.JSX.Element {
   const baseBackground = active ? COLORS.activeSurface : 'transparent'
   return (
     <button
       onClick={disabled ? undefined : onClick}
+      onContextMenu={onContextMenu}
       title={title}
       aria-label={title}
       aria-pressed={active}
@@ -69,6 +76,7 @@ function IconButton({
     >
       <Icon size={16} color="currentColor" />
       {label && <span>{label}</span>}
+      {children}
     </button>
   )
 }
@@ -76,12 +84,15 @@ function IconButton({
 export function Toolbar(): React.JSX.Element {
   const { totalPages, currentPage, nextPage, prevPage } = useViewerStore()
   const getViewport = useViewerStore((s) => s.getViewport)
-  const activeTool = useViewerStore((s) => s.activeTool)
-  const setActiveTool = useViewerStore((s) => s.setActiveTool)
-  const getPageScale = useViewerStore((s) => s.getPageScale)
+  const getScale = useScaleStore((s) => s.getScale)
+  const calibMode = useScaleStore((s) => s.calibMode)
   const { openPdfDialog } = usePdfDocument()
 
-  const pageHasScale = totalPages > 0 ? getPageScale(currentPage) !== null : false
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
+
+  const pageScale = totalPages > 0 ? getScale(currentPage) : null
+  const setScaleDisabled = totalPages === 0
+  const isCalibrating = calibMode !== 'idle'
 
   const currentZoom = totalPages > 0 ? getViewport(currentPage).zoom : 1
   const zoomPct = Math.round(currentZoom * 100)
@@ -111,6 +122,34 @@ export function Toolbar(): React.JSX.Element {
     if (controls) {
       controls.fitToWindow()
     }
+  }
+
+  const handleSetScale = (): void => {
+    const controls = getCalibrationControls()
+    if (!controls) return
+    if (isCalibrating) {
+      controls.cancel()
+    } else {
+      controls.activate()
+    }
+  }
+
+  const openContextMenu = (clientX: number, clientY: number): void => {
+    // Only open when page has a scale
+    if (setScaleDisabled || pageScale === null) return
+    setContextMenu({ x: clientX, y: clientY })
+  }
+
+  const handleContextMenu = (e: React.MouseEvent<HTMLButtonElement>): void => {
+    if (setScaleDisabled || pageScale === null) return
+    e.preventDefault()
+    openContextMenu(e.clientX, e.clientY)
+  }
+
+  const handleChevronClick = (e: React.MouseEvent<HTMLSpanElement>): void => {
+    e.stopPropagation() // prevent firing the Set Scale button's onClick
+    const rect = e.currentTarget.getBoundingClientRect()
+    openContextMenu(rect.left, rect.bottom + 2)
   }
 
   return (
@@ -194,28 +233,37 @@ export function Toolbar(): React.JSX.Element {
         </div>
       )}
 
-      {/* Tools: Set Scale, Verify Scale */}
+      {/* Tools: Set Scale (with chevron when calibrated) */}
       {totalPages > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <IconButton
             icon={Ruler}
             label="Set Scale"
-            active={activeTool === 'scale'}
-            onClick={() =>
-              setActiveTool(activeTool === 'scale' ? 'select' : 'scale')
-            }
+            active={isCalibrating}
+            disabled={setScaleDisabled}
+            onClick={handleSetScale}
+            onContextMenu={handleContextMenu}
             title="Set scale calibration (draw line between known points)"
-          />
-          <IconButton
-            icon={CheckCircle}
-            label="Verify"
-            active={activeTool === 'verify-scale'}
-            disabled={!pageHasScale}
-            onClick={() =>
-              setActiveTool(activeTool === 'verify-scale' ? 'select' : 'verify-scale')
-            }
-            title="Verify scale accuracy (measure a known dimension)"
-          />
+          >
+            {pageScale !== null && (
+              <span
+                role="button"
+                aria-label="Scale actions menu"
+                aria-haspopup="menu"
+                onClick={handleChevronClick}
+                style={{
+                  display: 'inline-block',
+                  marginLeft: 6,
+                  fontSize: 10,
+                  lineHeight: 1,
+                  opacity: 0.7,
+                  cursor: 'pointer'
+                }}
+              >
+                {'\u25BE'}
+              </span>
+            )}
+          </IconButton>
         </div>
       )}
 
@@ -252,6 +300,22 @@ export function Toolbar(): React.JSX.Element {
             title="Fit to window (Ctrl+0)"
           />
         </div>
+      )}
+
+      {/* Scale context menu (rendered at document level via fixed positioning) */}
+      {contextMenu && (
+        <ScaleContextMenu
+          screenPos={contextMenu}
+          onRecalibrate={() => {
+            const controls = getCalibrationControls()
+            controls?.activate()
+          }}
+          onVerify={() => {
+            const controls = getCalibrationControls()
+            controls?.activateVerify()
+          }}
+          onClose={() => setContextMenu(null)}
+        />
       )}
     </div>
   )
