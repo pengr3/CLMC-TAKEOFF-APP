@@ -23,22 +23,22 @@
 
 ### Markup Tools
 
-- [ ] **MARK-01**: User can place count markups (pins/dots) on the plan to tally individual items (fixtures, columns, outlets, etc.)
-- [ ] **MARK-02**: User can draw linear markups (polylines) to measure lengths in real-world units (walls, pipes, conduit runs, etc.)
-- [ ] **MARK-03**: User can trace area markups (closed polygons) to measure surface area in real-world units (floors, ceilings, tiling, etc.)
-- [ ] **MARK-04**: User can trace perimeter markups (closed polygons) that return both the perimeter length and the enclosed area in real-world units
+- [x] **MARK-01**: User can place count markups (pins/dots) on the plan to tally individual items (fixtures, columns, outlets, etc.)
+- [x] **MARK-02**: User can draw linear markups (polylines) to measure lengths in real-world units (walls, pipes, conduit runs, etc.)
+- [x] **MARK-03**: User can trace area markups (closed polygons) to measure surface area in real-world units (floors, ceilings, tiling, etc.)
+- [x] **MARK-04**: User can trace perimeter markups (closed polygons) that return both the perimeter length and the enclosed area in real-world units
 
 ### Markup Detail
 
-- [ ] **MARK-05**: User can assign a freehand item name to each markup when placing it
-- [ ] **MARK-06**: User can assign each markup to a named category (e.g., Electrical, Plumbing, Civil)
+- [x] **MARK-05**: User can assign a freehand item name to each markup when placing it
+- [x] **MARK-06**: User can assign each markup to a named category (e.g., Electrical, Plumbing, Civil)
 - [ ] **MARK-07**: The item name/label is displayed on the plan next to its markup at all zoom levels
-- [ ] **MARK-08**: Each category is rendered in a distinct color on the plan so markups can be visually distinguished
+- [x] **MARK-08**: Each category is rendered in a distinct color on the plan so markups can be visually distinguished
 
 ### Markup Editing
 
-- [ ] **MARK-09**: User can undo the last 20+ actions (place markup, delete markup, rename markup)
-- [ ] **MARK-10**: User can redo actions that were undone
+- [x] **MARK-09**: User can undo the last 20+ actions (place markup, delete markup, rename markup)
+- [x] **MARK-10**: User can redo actions that were undone
 
 ### Project Persistence
 
@@ -101,16 +101,16 @@
 | SCAL-02 | Phase 2 | Complete |
 | SCAL-03 | Phase 2 | Complete |
 | SCAL-04 | Phase 2 | Complete |
-| MARK-01 | Phase 3 | Pending |
-| MARK-02 | Phase 3 | Pending |
-| MARK-03 | Phase 3 | Pending |
-| MARK-04 | Phase 3 | Pending |
-| MARK-05 | Phase 3 | Pending |
-| MARK-06 | Phase 3 | Pending |
+| MARK-01 | Phase 3 | Complete |
+| MARK-02 | Phase 3 | Complete |
+| MARK-03 | Phase 3 | Complete |
+| MARK-04 | Phase 3 | Complete |
+| MARK-05 | Phase 3 | Complete |
+| MARK-06 | Phase 3 | Complete |
 | MARK-07 | Phase 3 | Pending |
-| MARK-08 | Phase 3 | Pending |
-| MARK-09 | Phase 3 | Pending |
-| MARK-10 | Phase 3 | Pending |
+| MARK-08 | Phase 3 | Complete |
+| MARK-09 | Phase 3 | Complete |
+| MARK-10 | Phase 3 | Complete |
 | PERS-01 | Phase 4 | Pending |
 | PERS-02 | Phase 4 | Pending |
 | EXPRT-01 | Phase 5 | Pending |

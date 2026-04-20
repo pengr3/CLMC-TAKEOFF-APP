@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 3 context gathered
-last_updated: "2026-04-20T09:05:50.422Z"
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-04-20T11:40:03.783Z"
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 12
+  completed_plans: 8
 ---
 
 # Project State: CLMC Takeoff App
@@ -24,14 +24,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 02 — scale-calibration
+**Current Focus:** Phase 03 — markup-tools-and-editing
 
 ---
 
 ## Current Position
 
-Phase: 02 (scale-calibration) — COMPLETE
-Plan: 3 of 3 (ALL COMPLETE)
+Phase: 03 (markup-tools-and-editing) — EXECUTING
+Plan: 2 of 5
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Plan: 3 of 3 (ALL COMPLETE)
 | Phase 02 P02 | 8min | 2 tasks | 5 files |
 | Phase 02 P02 | 8min | 3 tasks | 5 files |
 | Phase 02 P03 | 7 | 3 tasks | 12 files |
+| Phase 03 P01 | 7 | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,9 @@ Plan: 3 of 3 (ALL COMPLETE)
 | ConfirmationToast is pure presentational (no setTimeout) | Parent owns dismissal lifecycle via useEffect — avoids React cleanup race conditions with timers inside components |
 | formatScaleRatio single-arg returns '1:N' ratio | Estimators read drawing scales as ratios (1:100, 1:50) — integer round of mm/pixel is the natural representation |
 | scaleStore separate from viewerStore | Keeps scale concerns orthogonal to viewport/PDF navigation; Phase 3 markup tools import only what they need |
+| MarkupCommand stores full Markup object (not just ID) | Enables undo/redo without any store lookup — safer and simpler for the command pattern |
+| nextCountSequence uses max(existing)+1 (gap-preserving) | Deleted markups leave permanent gaps, preventing duplicate sequence numbers (Pitfall 5) |
+| UNDO_STACK_MAX=50 (2.5x MARK-09 minimum) | Provides comfortable margin above the 20+ round-trip requirement for dense editing sessions |
 
 ### Critical Pitfalls to Watch
 
@@ -105,9 +109,9 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T09:05:50.415Z
+**Last session:** 2026-04-20T11:40:03.772Z
 
-**Stopped at:** Phase 3 context gathered
+**Stopped at:** Completed 03-01-PLAN.md
 
 **Next action:** Phase 2 complete. Run `/gsd:transition` to validate Phase 2 delivery and plan Phase 3 (markup tools).
 
