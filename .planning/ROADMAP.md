@@ -47,10 +47,11 @@ Plans:
   3. User can see the current page's active scale ratio displayed in the UI at all times
   4. User can measure a second known dimension on the same page and compare its reported value against the expected real-world measurement to verify calibration accuracy
   5. Pages that have not been calibrated show a visible "not calibrated" warning so the estimator cannot accidentally measure without a scale set
-**Plans**: 2 plans
+**Plans**: 3 plans
 Plans:
 - [x] 02-01-PLAN.md — Scale math library (TDD), types, per-page scale state in Zustand store
 - [x] 02-02-PLAN.md — Calibration UI: canvas interaction, dialog, toolbar buttons, StatusBar display, visual verification
+- [ ] 02-03-PLAN.md — Scale UX polish: StatusBar 1:N ratio format, confirmation toast, Set Scale context menu (re-calibrate/clear), ScalePopup
 
 ### Phase 3: Markup Tools and Editing
 **Goal**: Estimators can place all four types of quantity markups on the plan, name them, assign them to a trade category, see them labeled and color-coded on the plan, and undo any mistakes
