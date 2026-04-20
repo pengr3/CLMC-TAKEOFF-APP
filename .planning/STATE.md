@@ -4,11 +4,11 @@ milestone: v1.0
 milestone_name: milestone
 status: unknown
 stopped_at: Completed 02-01-PLAN.md (Phase 2 Wave 1 — math foundation)
-last_updated: "2026-04-07T03:14:00.279Z"
+last_updated: "2026-04-20T02:42:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 6
+  total_plans: 7
   completed_plans: 5
 ---
 
@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 02 (scale-calibration) — EXECUTING
-Plan: 2 of 2
+Plan: 2 of 3 (awaiting Task 3 human-verify checkpoint)
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Plan: 2 of 2
 | Phase 01 P02 | 3min | 2 tasks | 8 files |
 | Phase 01 P03 | 3min | 1 task | 8 files |
 | Phase 02 P01 | 2min | 2 tasks | 5 files |
+| Phase 02 P02 | 8min | 2 tasks (+ checkpoint) | 5 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,9 @@ Plan: 2 of 2
 | Module-level ref pattern for canvas controls | Simpler than React context or Zustand function refs for cross-component communication |
 | Discrete zoom steps [0.25..8] with snapping | Predictable behavior matching CAD tool conventions |
 | DOM event listeners for middle-mouse pan | Avoids drag conflicts with Konva's built-in drag system |
+| Stage inverse transform for page-space coords | `stage.getAbsoluteTransform().copy().invert().point(pointer)` is the canonical pattern — never use raw pointer coords |
+| Zoom-compensated Konva overlay visuals | Divide all stroke widths and radii by currentZoom so visual sizes appear constant at all zoom levels |
+| CalibrationDialog cancel keeps activeTool='scale' | User can immediately retry the line draw without re-clicking the toolbar button |
 
 ### Critical Pitfalls to Watch
 
@@ -96,9 +100,9 @@ None.
 
 **Last session:** 2026-04-07T03:14:00.275Z
 
-**Stopped at:** Completed 02-01-PLAN.md (Phase 2 Wave 1 — math foundation)
+**Stopped at:** 02-02 Task 3 checkpoint — human-verify calibration workflow
 
-**Next action:** `/gsd:plan-phase 2` -- Plan Phase 2 (Scale Calibration)
+**Next action:** Human visual verification of 02-02 Task 3 checkpoint, then `/gsd:execute-phase 2 plan 3`
 
 ---
 *State initialized: 2026-03-25*
