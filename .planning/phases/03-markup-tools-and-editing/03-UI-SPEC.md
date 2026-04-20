@@ -1,7 +1,8 @@
 ---
 phase: 3
 slug: markup-tools-and-editing
-status: draft
+status: approved
+reviewed_at: 2026-04-20
 shadcn_initialized: false
 preset: none
 created: 2026-04-20
