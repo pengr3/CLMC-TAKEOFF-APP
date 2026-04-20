@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-04-20T14:24:50.897Z"
+stopped_at: Completed 03-03-PLAN.md
+last_updated: "2026-04-20T14:33:45.944Z"
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 12
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State: CLMC Takeoff App
@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 03 (markup-tools-and-editing) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Plan: 3 of 5
 | Phase 02 P03 | 7 | 3 tasks | 12 files |
 | Phase 03 P01 | 7 | 3 tasks | 7 files |
 | Phase 03 P02 | 3 | 2 tasks | 5 files |
+| Phase 03-markup-tools-and-editing P03 | 6min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,9 @@ Plan: 3 of 5
 | isMarkupTool type guard in viewer.ts | Plans 03/04 can discriminate activeTool without string literal comparisons across files |
 | MarkupNamePopup emits raw categoryName string | Consumer (Plans 03/04) calls getOrCreateCategory — maps empty string to 'Uncategorized' |
 | CategoryAutocomplete uses onMouseDown + e.preventDefault() | Prevents input onBlur from closing the dropdown list before item selection fires |
+| useMarkupTool state machine uses useState+useCallback (not useReducer) | Mirrors useCalibrationMode pattern for consistency; simpler than reducer for this use case |
+| recordClick places CountMarkup via Zustand getState() inside setState updater | Avoids double-render from separate dispatch; Zustand getState() is safe outside React render |
+| LinearMarkup label shows only name when pageScale is null | Graceful degradation on uncalibrated page rather than showing '0 m' stub |
 
 ### Critical Pitfalls to Watch
 
@@ -113,9 +117,9 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T14:24:50.892Z
+**Last session:** 2026-04-20T14:33:45.940Z
 
-**Stopped at:** Completed 03-02-PLAN.md
+**Stopped at:** Completed 03-03-PLAN.md
 
 **Next action:** Phase 2 complete. Run `/gsd:transition` to validate Phase 2 delivery and plan Phase 3 (markup tools).
 
