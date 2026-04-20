@@ -42,7 +42,14 @@ export interface ScaleState {
   linePoints: [number, number, number, number] // [x1,y1,x2,y2] in page-space
 }
 
-export type ActiveTool = 'select' | 'scale' | 'verify-scale'
+export type ActiveTool = 'select' | 'scale' | 'verify-scale' | 'count' | 'linear' | 'area' | 'perimeter'
+
+export const MARKUP_TOOLS = ['count', 'linear', 'area', 'perimeter'] as const
+export type MarkupToolType = typeof MARKUP_TOOLS[number]
+
+export function isMarkupTool(tool: ActiveTool): tool is MarkupToolType {
+  return (MARKUP_TOOLS as readonly string[]).includes(tool)
+}
 
 export interface CalibrationPoint {
   x: number

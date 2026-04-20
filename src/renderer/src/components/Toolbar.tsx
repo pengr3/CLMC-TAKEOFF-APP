@@ -6,7 +6,11 @@ import {
   ZoomIn,
   ZoomOut,
   Maximize,
-  Ruler
+  Ruler,
+  MapPin,
+  Minus,
+  Square,
+  Hexagon
 } from 'lucide-react'
 import { useViewerStore } from '../stores/viewerStore'
 import { useScaleStore } from '../stores/scaleStore'
@@ -84,6 +88,8 @@ function IconButton({
 export function Toolbar(): React.JSX.Element {
   const { totalPages, currentPage, nextPage, prevPage } = useViewerStore()
   const getViewport = useViewerStore((s) => s.getViewport)
+  const activeTool = useViewerStore((s) => s.activeTool)
+  const setActiveTool = useViewerStore((s) => s.setActiveTool)
   const getScale = useScaleStore((s) => s.getScale)
   const calibMode = useScaleStore((s) => s.calibMode)
   const { openPdfDialog } = usePdfDocument()
@@ -138,6 +144,14 @@ export function Toolbar(): React.JSX.Element {
     // Only open when page has a scale
     if (setScaleDisabled || pageScale === null) return
     setContextMenu({ x: clientX, y: clientY })
+  }
+
+  const handleMarkupToolClick = (tool: 'count' | 'linear' | 'area' | 'perimeter'): void => {
+    if (activeTool === tool) {
+      setActiveTool('select')
+    } else {
+      setActiveTool(tool)
+    }
   }
 
   const handleContextMenu = (e: React.MouseEvent<HTMLButtonElement>): void => {
@@ -264,6 +278,44 @@ export function Toolbar(): React.JSX.Element {
               </span>
             )}
           </IconButton>
+        </div>
+      )}
+
+      {/* Markup tools: Count, Linear, Area, Perimeter */}
+      {totalPages > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <IconButton
+            icon={MapPin}
+            label="Count"
+            active={activeTool === 'count'}
+            disabled={setScaleDisabled}
+            onClick={() => handleMarkupToolClick('count')}
+            title="Count tool — place pins to tally items"
+          />
+          <IconButton
+            icon={Minus}
+            label="Linear"
+            active={activeTool === 'linear'}
+            disabled={setScaleDisabled}
+            onClick={() => handleMarkupToolClick('linear')}
+            title="Linear tool — draw polylines to measure lengths"
+          />
+          <IconButton
+            icon={Square}
+            label="Area"
+            active={activeTool === 'area'}
+            disabled={setScaleDisabled}
+            onClick={() => handleMarkupToolClick('area')}
+            title="Area tool — trace polygons to measure surface area"
+          />
+          <IconButton
+            icon={Hexagon}
+            label="Perimeter"
+            active={activeTool === 'perimeter'}
+            disabled={setScaleDisabled}
+            onClick={() => handleMarkupToolClick('perimeter')}
+            title="Perimeter tool — trace polygons for perimeter + area"
+          />
         </div>
       )}
 

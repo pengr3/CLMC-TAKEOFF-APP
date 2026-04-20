@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useViewerStore } from '@renderer/stores/viewerStore'
-import { DEFAULT_VIEWPORT } from '@renderer/types/viewer'
+import { DEFAULT_VIEWPORT, isMarkupTool } from '@renderer/types/viewer'
 
 beforeEach(() => {
   useViewerStore.setState({
@@ -117,5 +117,26 @@ describe('viewer store', () => {
       expect(s.totalPages).toBe(0)
       expect(s.currentPage).toBe(1)
     })
+  })
+})
+
+describe('ActiveTool markup extensions', () => {
+  beforeEach(() => {
+    useViewerStore.getState().resetViewer()
+  })
+  it('setActiveTool accepts count, linear, area, perimeter', () => {
+    const { setActiveTool } = useViewerStore.getState()
+    for (const tool of ['count', 'linear', 'area', 'perimeter'] as const) {
+      setActiveTool(tool)
+      expect(useViewerStore.getState().activeTool).toBe(tool)
+    }
+  })
+  it('isMarkupTool discriminates correctly', () => {
+    expect(isMarkupTool('count')).toBe(true)
+    expect(isMarkupTool('linear')).toBe(true)
+    expect(isMarkupTool('area')).toBe(true)
+    expect(isMarkupTool('perimeter')).toBe(true)
+    expect(isMarkupTool('select')).toBe(false)
+    expect(isMarkupTool('scale')).toBe(false)
   })
 })
