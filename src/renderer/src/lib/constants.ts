@@ -19,7 +19,8 @@ export const COLORS = {
   textOnAccent: '#ffffff',
   hoverSurface: '#2d2d30',
   activeSurface: '#37373d',
-  titleBar: '#1e1e1e'
+  titleBar: '#1e1e1e',
+  warning: '#e8a838'
 } as const
 
 export const LAYOUT = {
