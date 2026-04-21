@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03.1-02-PLAN.md (D-21/D-22/D-23/D-24/D-31/D-34 visual redesign + B2 arc-length midpoint)
-last_updated: "2026-04-21T06:24:34.120Z"
+stopped_at: Completed 03.1-03-PLAN.md (MarkupNamePopup swatch row + D-25 inheritance + CategoryAutocomplete D-27 cleanup, 8 render tests)
+last_updated: "2026-04-21T06:25:53.882Z"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 18
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 # Project State: CLMC Takeoff App
@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 03.1 (markup-gap-closure-and-visual-redesign) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Plan: 3 of 6
 | Phase 03.1 P01 | 6min | 3 tasks | 7 files |
 | Phase 03.1 P04 | 8min | 3 tasks | 5 files |
 | Phase 03.1 P02 | 6min | 3 tasks | 8 files |
+| Phase 03.1 P03 | 7min | 4 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,9 @@ Plan: 3 of 6
 | CONTRAST_LUMINANCE_THRESHOLD = 0.179 module-level literal in color-utils.ts | WCAG break point for white text meets 4.5:1 contrast; exact value is grep-verifiable per D-23 acceptance criteria |
 | polylineMidpointByArcLength walks cumulative segment distance + interpolates inside the half-mark segment | B2 fix: LinearMarkup label lands at geometric center, not an arbitrary vertex (index-based midpoint bias) |
 | category.color stripped from all 4 markup render components | D-29 cascade complete; Category.name retained for BOQ grouping only (D-27) |
+| MarkupNamePopup userOverrodeColor stored as useRef (not useState) | Flag participates in useEffect inheritance logic without triggering re-renders; ref avoids the stale-closure bug useState would introduce if the effect's dependency array excluded the flag |
+| Render tests kept as .test.ts with React.createElement | vitest.config.ts include glob is src/tests/**/*.test.ts — avoids modifying config mid-wave (parallel-executor safety); mirrors existing spacebar-text-guard.test.ts pattern |
+| MarkupNamePopup.onConfirm payload widened { name, categoryName, color } without touching CanvasViewport callsites | TypeScript's default method-parameter bivariance allowed the narrower commitCountName to satisfy the widened onConfirm type without casts — kept diff scoped to popup + hook only |
 
 ### Critical Pitfalls to Watch
 
@@ -137,9 +141,9 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T06:24:34.100Z
+**Last session:** 2026-04-21T06:25:53.875Z
 
-**Stopped at:** Completed 03.1-02-PLAN.md (D-21/D-22/D-23/D-24/D-31/D-34 visual redesign + B2 arc-length midpoint)
+**Stopped at:** Completed 03.1-03-PLAN.md (MarkupNamePopup swatch row + D-25 inheritance + CategoryAutocomplete D-27 cleanup, 8 render tests)
 
 **Next action:** Phase 2 complete. Run `/gsd:transition` to validate Phase 2 delivery and plan Phase 3 (markup tools).
 
