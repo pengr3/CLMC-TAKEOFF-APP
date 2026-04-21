@@ -9,8 +9,20 @@ export interface CategoryAutocompleteProps {
 }
 
 export function CategoryAutocomplete({ query, onSelect }: CategoryAutocompleteProps): React.JSX.Element | null {
-  const categories = useMarkupStore((s) => s.getAllCategories())
+  // Select primitive store fields — getAllCategories() returns a fresh array
+  // each call, which breaks useSyncExternalStore's snapshot equality check
+  // and infinite-loops the renderer.
+  const categoriesById = useMarkupStore((s) => s.categories)
+  const categoryOrder = useMarkupStore((s) => s.categoryOrder)
   const findByName = useMarkupStore((s) => s.findCategoryByName)
+
+  const categories = useMemo<Category[]>(
+    () =>
+      categoryOrder
+        .map((id) => categoriesById[id])
+        .filter((c): c is Category => Boolean(c)),
+    [categoryOrder, categoriesById]
+  )
 
   const filtered = useMemo<Category[]>(() => {
     if (query.trim() === '') return categories
