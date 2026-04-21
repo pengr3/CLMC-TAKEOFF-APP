@@ -21,7 +21,12 @@ import { COLORS } from '../lib/constants'
 import { formatScaleRatio } from '../lib/scale-math'
 import { isMarkupTool } from '../types/viewer'
 import type { ScaleUnit } from '../types/scale'
-import type { CountMarkup, LinearMarkup as LinearMarkupType, AreaMarkup as AreaMarkupType, PerimeterMarkup as PerimeterMarkupType } from '../types/markup'
+import type { Markup, CountMarkup, LinearMarkup as LinearMarkupType, AreaMarkup as AreaMarkupType, PerimeterMarkup as PerimeterMarkupType } from '../types/markup'
+
+// Stable empty-array reference for the pageMarkups selector fallback.
+// A fresh `[]` literal inside a Zustand selector breaks useSyncExternalStore's
+// Object.is snapshot check and causes an infinite re-render loop.
+const EMPTY_MARKUPS: Markup[] = []
 
 // Module-level ref for canvas control functions (consumed by Toolbar via getCanvasControls)
 let _canvasControls: {
@@ -146,7 +151,7 @@ export function CanvasViewport() {
   }, [activeTool, markupState.toolType, markupState.mode, activateMarkup, cancelMarkup])
 
   // Subscribe to markupStore for rendering committed markups on the current page
-  const pageMarkups = useMarkupStore((s) => s.pageMarkups[currentPage] ?? [])
+  const pageMarkups = useMarkupStore((s) => s.pageMarkups[currentPage] ?? EMPTY_MARKUPS)
   const getCategory = useMarkupStore((s) => s.getCategory)
 
   // Confirmation toast state
