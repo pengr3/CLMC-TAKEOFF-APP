@@ -7,22 +7,6 @@ import type { CountMarkup, LinearMarkup, AreaMarkup, PerimeterMarkup } from '../
 import { polygonCentroid } from '../lib/markup-math'
 import { MARKUP_PALETTE } from '../lib/markup-palette'
 
-/**
- * Resolve the color for a new markup with `name` on `page`:
- *  - If any markup already has this name, inherit its color (D-29 — color lives on name-group)
- *  - Otherwise, pick the first palette swatch not already in use on this page
- *  - Fallback to palette[0] if the page is saturated with colors (wrap — matches CATEGORY_PALETTE cycling)
- *
- * NOTE: This is the temporary default used until Plan 03.1-03 wires the popup swatch picker.
- */
-function resolveColorForName(name: string, page: number): string {
-  const store = useMarkupStore.getState()
-  const inherited = store.getColorForName(name, page)
-  if (inherited) return inherited
-  const used = Array.from(new Set((store.pageMarkups[page] ?? []).map((m) => m.color)))
-  return MARKUP_PALETTE.find((c) => !used.includes(c)) ?? MARKUP_PALETTE[0]
-}
-
 const UNCATEGORIZED = 'Uncategorized'
 const DUPLICATE_POINT_EPSILON = 2 // stage-pixel threshold for de-duping dblclick duplicate point (Pitfall 1)
 
@@ -34,6 +18,7 @@ export interface MarkupDrawState {
   popupScreenPos: { x: number; y: number } | null
   pendingName: string
   pendingCategoryName: string
+  pendingColor: string // D-28 — color chosen in popup before placement
   pendingPage: number | null
   errorToast: string | null
 }
@@ -46,6 +31,7 @@ const INITIAL_STATE: MarkupDrawState = {
   popupScreenPos: null,
   pendingName: '',
   pendingCategoryName: '',
+  pendingColor: MARKUP_PALETTE[0],
   pendingPage: null,
   errorToast: null
 }
@@ -74,8 +60,8 @@ export interface UseMarkupToolReturn {
   updatePreview: (screenPos: { x: number; y: number }) => void
   finishLinear: () => void
   finishPolygon: () => void
-  commitCountName: (payload: { name: string; categoryName: string }) => void
-  commitShape: (payload: { name: string; categoryName: string }) => void
+  commitCountName: (payload: { name: string; categoryName: string; color: string }) => void
+  commitShape: (payload: { name: string; categoryName: string; color: string }) => void
   dismissError: () => void
 }
 
@@ -103,12 +89,13 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     setState(INITIAL_STATE)
   }, [])
 
-  const commitCountName = useCallback((payload: { name: string; categoryName: string }) => {
+  const commitCountName = useCallback((payload: { name: string; categoryName: string; color: string }) => {
     setState((s) => ({
       ...s,
       mode: 'placing',
       pendingName: payload.name,
       pendingCategoryName: payload.categoryName || UNCATEGORIZED,
+      pendingColor: payload.color,
       popupScreenPos: null
     }))
   }, [])
@@ -132,7 +119,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
             page,
             name: prev.pendingName,
             categoryId: category.id,
-            color: resolveColorForName(prev.pendingName, page),
+            color: prev.pendingColor,
             createdAt: Date.now(),
             point: stagePoint,
             sequence
@@ -255,7 +242,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     })
   }, [stageRef])
 
-  const commitShape = useCallback((payload: { name: string; categoryName: string }) => {
+  const commitShape = useCallback((payload: { name: string; categoryName: string; color: string }) => {
     setState((prev) => {
       if (prev.mode !== 'confirming') return prev
       const page = prev.pendingPage ?? useViewerStore.getState().currentPage
@@ -265,7 +252,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
       const createdAt = Date.now()
       const name = payload.name
 
-      const color = resolveColorForName(name, page)
+      const color = payload.color
 
       if (prev.toolType === 'linear') {
         const m: LinearMarkup = {
