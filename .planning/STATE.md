@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03-04-PLAN.md
-last_updated: "2026-04-20T14:40:26.462Z"
+stopped_at: Phase 03.1 context gathered
+last_updated: "2026-04-21T04:33:01.714Z"
 progress:
-  total_phases: 6
-  completed_phases: 2
+  total_phases: 7
+  completed_phases: 3
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State: CLMC Takeoff App
@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 03 (markup-tools-and-editing) — EXECUTING
-Plan: 5 of 5
+Plan: 1 of 5
 
 ## Performance Metrics
 
@@ -118,13 +118,17 @@ Plan: 5 of 5
 
 None.
 
+### Roadmap Evolution
+
+- Phase 03.1 inserted after Phase 3: Markup Gap Closure and Visual Redesign (URGENT) — supersedes MARK-08 per-category-color must-have, revises UI-SPEC D-04/D-13 count pin label format, closes 4 bugs surfaced in Plan 03-05 human verification (spacebar blocked in text inputs, Linear/Area label legibility, stale currentZoom after zoom)
+
 ---
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T14:40:26.458Z
+**Last session:** 2026-04-21T04:33:01.576Z
 
-**Stopped at:** Completed 03-04-PLAN.md
+**Stopped at:** Phase 03.1 context gathered
 
 **Next action:** Phase 2 complete. Run `/gsd:transition` to validate Phase 2 delivery and plan Phase 3 (markup tools).
 
