@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03.1-04-PLAN.md (B1 spacebar guard + B4 zoom subscription, 9 regression tests)
-last_updated: "2026-04-21T05:21:33.521Z"
+stopped_at: Completed 03.1-02-PLAN.md (D-21/D-22/D-23/D-24/D-31/D-34 visual redesign + B2 arc-length midpoint)
+last_updated: "2026-04-21T06:24:34.120Z"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 18
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State: CLMC Takeoff App
@@ -57,6 +57,7 @@ Plan: 3 of 6
 | Phase 03 P04 | 5 | 3 tasks | 4 files |
 | Phase 03.1 P01 | 6min | 3 tasks | 7 files |
 | Phase 03.1 P04 | 8min | 3 tasks | 5 files |
+| Phase 03.1 P02 | 6min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,10 @@ Plan: 3 of 6
 | MARKUP_PALETTE uses Tailwind 600-level hues (10 swatches) | Guaranteed WCAG-AA contrast against both white and black — enables D-23 auto-contrast pin numbers with zero palette edge cases |
 | getColorForName returns most-recent (not first) markup color for a name | Matches "the last color chosen is the current color" mental model without walking full history |
 | Category.color retained alongside Markup.color during 03.1 transition | Plans 03.1-02/03 migrate rendering components off category.color — avoiding full cascade in plan 01 keeps data-model refactor atomic |
+| Pin geometry constants lifted to module scope (PIN_RADIUS_WORLD=10, NUMBER_FONT_WORLD=12) | Pure world-anchored per D-22; module-level placement makes any future zoom-division regression a single-line visible diff |
+| CONTRAST_LUMINANCE_THRESHOLD = 0.179 module-level literal in color-utils.ts | WCAG break point for white text meets 4.5:1 contrast; exact value is grep-verifiable per D-23 acceptance criteria |
+| polylineMidpointByArcLength walks cumulative segment distance + interpolates inside the half-mark segment | B2 fix: LinearMarkup label lands at geometric center, not an arbitrary vertex (index-based midpoint bias) |
+| category.color stripped from all 4 markup render components | D-29 cascade complete; Category.name retained for BOQ grouping only (D-27) |
 
 ### Critical Pitfalls to Watch
 
@@ -132,9 +137,9 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T05:21:33.509Z
+**Last session:** 2026-04-21T06:24:34.100Z
 
-**Stopped at:** Completed 03.1-04-PLAN.md (B1 spacebar guard + B4 zoom subscription, 9 regression tests)
+**Stopped at:** Completed 03.1-02-PLAN.md (D-21/D-22/D-23/D-24/D-31/D-34 visual redesign + B2 arc-length midpoint)
 
 **Next action:** Phase 2 complete. Run `/gsd:transition` to validate Phase 2 delivery and plan Phase 3 (markup tools).
 
