@@ -21,6 +21,7 @@ import { AreaMarkup } from './markup/AreaMarkup'
 import { PerimeterMarkup } from './markup/PerimeterMarkup'
 import { COLORS } from '../lib/constants'
 import { formatScaleRatio } from '../lib/scale-math'
+import { setMarkupUndoHandler } from '../lib/markup-undo-ref'
 import {
   polylineLength,
   polygonArea,
@@ -57,6 +58,7 @@ let _calibrationControls: {
 export function getCalibrationControls() {
   return _calibrationControls
 }
+
 
 export function CanvasViewport() {
   const stageRef = useRef<Konva.Stage>(null)
@@ -148,8 +150,19 @@ export function CanvasViewport() {
     finishPolygon,
     commitCountName,
     commitShape,
-    dismissError
+    dismissError,
+    popLastPoint
   } = useMarkupTool(stageRef)
+
+  // Expose the mid-draw undo handler via a module-level ref so useKeyboardShortcuts
+  // can prefer it over the committed-markup undo stack while a polyline/polygon is
+  // being drawn. Returns true when a vertex was popped, false otherwise.
+  useEffect(() => {
+    setMarkupUndoHandler(popLastPoint)
+    return () => {
+      setMarkupUndoHandler(null)
+    }
+  }, [popLastPoint])
 
   // Local state for polygon start-vertex hover (drives close-on-click affordance)
   const [isOverStartPoint, setIsOverStartPoint] = useState(false)

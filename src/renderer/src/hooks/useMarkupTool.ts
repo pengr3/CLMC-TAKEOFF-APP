@@ -63,6 +63,12 @@ export interface UseMarkupToolReturn {
   commitCountName: (payload: { name: string; categoryName: string; color: string }) => void
   commitShape: (payload: { name: string; categoryName: string; color: string }) => void
   dismissError: () => void
+  // Pop the last vertex of the in-progress linear/area/perimeter draw.
+  // Returns true if a point was actually popped (meaning the caller should
+  // treat the undo as handled), false otherwise. Used by the global Ctrl+Z
+  // handler so mid-draw misclicks can be corrected without undoing a prior
+  // committed markup.
+  popLastPoint: () => boolean
 }
 
 export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarkupToolReturn {
@@ -322,6 +328,17 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     setState((prev) => ({ ...prev, errorToast: null }))
   }, [])
 
+  const popLastPoint = useCallback((): boolean => {
+    const current = stateRef.current
+    if (current.mode !== 'drawing') return false
+    if (current.points.length === 0) return false
+    setState((prev) => {
+      if (prev.mode !== 'drawing' || prev.points.length === 0) return prev
+      return { ...prev, points: prev.points.slice(0, -1), previewPoint: null }
+    })
+    return true
+  }, [])
+
   return {
     state,
     activate,
@@ -332,6 +349,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     finishPolygon,
     commitCountName,
     commitShape,
-    dismissError
+    dismissError,
+    popLastPoint
   }
 }

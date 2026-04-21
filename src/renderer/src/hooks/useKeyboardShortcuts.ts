@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useViewerStore } from '../stores/viewerStore'
 import { useMarkupStore } from '../stores/markupStore'
+import { getMarkupUndoHandler } from '../lib/markup-undo-ref'
 
 interface KeyboardShortcutHandlers {
   openPdf: () => void
@@ -46,11 +47,17 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
         return
       }
 
-      // Ctrl+Z: Undo markup action (respects native edit-undo in text inputs — Pitfall 7)
+      // Ctrl+Z: Undo markup action (respects native edit-undo in text inputs — Pitfall 7).
+      // While a linear/area/perimeter draw is in progress, prefer popping the last
+      // placed vertex so a mid-draw misclick can be corrected without undoing a
+      // previously committed markup.
       if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
         if (isTextInputActive()) return
         e.preventDefault()
-        useMarkupStore.getState().undo()
+        const handledByDraw = getMarkupUndoHandler()?.() ?? false
+        if (!handledByDraw) {
+          useMarkupStore.getState().undo()
+        }
         return
       }
 
