@@ -69,8 +69,23 @@ Plans:
 - [x] 03-02-PLAN.md — DOM chrome: extend ActiveTool union, add 4 markup Toolbar buttons, build MarkupNamePopup + CategoryAutocomplete
 - [x] 03-03-PLAN.md — Count + Linear tools: useMarkupTool hook, CountPinMarkup/LinearMarkup renderers, CanvasViewport wiring
 - [x] 03-04-PLAN.md — Area + Perimeter tools: polygon close detection, AreaMarkup/PerimeterMarkup renderers with category-colored fills
-- [ ] 03-05-PLAN.md — Keyboard shortcuts (Ctrl+Z / Ctrl+Y) with text-input guard + end-to-end human-verify checkpoint
+- [ ] 03-05-PLAN.md — Keyboard shortcuts (Ctrl+Z / Ctrl+Y) with text-input guard + end-to-end human-verify checkpoint (superseded by Phase 03.1 for the checkpoint portion)
 **UI hint**: yes
+
+### Phase 03.1: Markup Gap Closure and Visual Redesign (INSERTED)
+
+**Goal**: Close 4 bugs surfaced in Plan 03-05 human verification (B1 spacebar guard in text inputs, B2 linear arc-length midpoint, B3 label legibility, B4 stale-zoom subscription) AND ship the D-21..D-35 visual redesign (count-pin circle-with-number-inside, per-name-group color model with 10-swatch palette picker, hover tooltip for names, right-click recolor context menu). Supersedes MARK-08 (per-category-color → per-name-group-color) and revises UI-SPEC D-04/D-13 (count pin label format).
+**Requirements**: MARK-08 (revised), B1, B2, B3, B4, D-21 through D-35
+**Depends on**: Phase 3
+**Plans**: 6 plans
+
+Plans:
+- [ ] 03.1-01-PLAN.md — Color model refactor: add Markup.color field, MARKUP_PALETTE module, recolorGroup undoable command (Wave 1, autonomous)
+- [ ] 03.1-02-PLAN.md — Visual redesign of all four markup components: circle+number pin (world-anchored, auto-contrast ink), arc-length midpoint for linear, measurement-only labels (Wave 2, autonomous)
+- [ ] 03.1-03-PLAN.md — MarkupNamePopup color picker row + D-25 inheritance + CategoryAutocomplete color-role removal (Wave 2, autonomous)
+- [ ] 03.1-04-PLAN.md — Stale-zoom subscription fix (B4) + spacebar text-input guard (B1) (Wave 1, autonomous)
+- [ ] 03.1-05-PLAN.md — MarkupContextMenu (right-click recolor + delete) + MarkupTooltip (hover name) (Wave 3, autonomous)
+- [ ] 03.1-06-PLAN.md — Human-verify checkpoint + Phase 3 / 3.1 closure + REQUIREMENTS.md MARK-08 annotation (Wave 4, autonomous:false)
 
 ### Phase 4: Project Persistence
 **Goal**: Estimators can save their work to a .clmc file and reopen it later to continue exactly where they left off, with all markups and scale calibrations intact
@@ -111,7 +126,8 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. PDF Viewer and Canvas Foundation | 4/4 | Complete | 2026-03-28 |
 | 2. Scale Calibration | 3/3 | Complete   | 2026-04-20 |
-| 3. Markup Tools and Editing | 3/5 | In Progress|  |
+| 3. Markup Tools and Editing | 4/5 | In Progress (03-05 superseded by Phase 03.1) |  |
+| 3.1. Markup Gap Closure and Visual Redesign | 0/6 | In Progress (gates Phase 3 closure) |  |
 | 4. Project Persistence | 0/0 | Not started | - |
 | 5. BOQ Export | 0/0 | Not started | - |
 | 6. Live View and UI Polish | 0/0 | Not started | - |
@@ -139,7 +155,7 @@ Plans:
 | MARK-05 | Phase 3 |
 | MARK-06 | Phase 3 |
 | MARK-07 | Phase 3 |
-| MARK-08 | Phase 3 |
+| MARK-08 | Phase 3 (revised by 03.1) |
 | MARK-09 | Phase 3 |
 | MARK-10 | Phase 3 |
 | PERS-01 | Phase 4 |
@@ -154,3 +170,4 @@ Plans:
 
 ---
 *Created: 2026-03-25*
+*Updated: 2026-04-21 — Phase 03.1 plans finalized (6 plans across 4 waves)*
