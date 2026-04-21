@@ -84,7 +84,7 @@ Plans:
 - [x] 03.1-02-PLAN.md — Visual redesign of all four markup components: circle+number pin (world-anchored, auto-contrast ink), arc-length midpoint for linear, measurement-only labels (Wave 2, autonomous)
 - [x] 03.1-03-PLAN.md — MarkupNamePopup color picker row + D-25 inheritance + CategoryAutocomplete color-role removal (Wave 2, autonomous)
 - [x] 03.1-04-PLAN.md — Stale-zoom subscription fix (B4) + spacebar text-input guard (B1) (Wave 1, autonomous)
-- [ ] 03.1-05-PLAN.md — MarkupContextMenu (right-click recolor + delete) + MarkupTooltip (hover name) (Wave 3, autonomous)
+- [x] 03.1-05-PLAN.md — MarkupContextMenu (right-click recolor + delete) + MarkupTooltip (hover name) (Wave 3, autonomous)
 - [ ] 03.1-06-PLAN.md — Human-verify checkpoint + Phase 3 / 3.1 closure + REQUIREMENTS.md MARK-08 annotation (Wave 4, autonomous:false)
 
 ### Phase 4: Project Persistence

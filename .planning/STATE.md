@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03.1-03-PLAN.md (MarkupNamePopup swatch row + D-25 inheritance + CategoryAutocomplete D-27 cleanup, 8 render tests)
-last_updated: "2026-04-21T06:25:53.882Z"
+stopped_at: Completed 03.1-05-PLAN.md (hover tooltip + right-click recolor context menu, Layer split, 6 tests, 201/201 green)
+last_updated: "2026-04-21T06:40:34.448Z"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 17
 ---
 
 # Project State: CLMC Takeoff App
@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 03.1 (markup-gap-closure-and-visual-redesign) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Plan: 4 of 6
 | Phase 03.1 P04 | 8min | 3 tasks | 5 files |
 | Phase 03.1 P02 | 6min | 3 tasks | 8 files |
 | Phase 03.1 P03 | 7min | 4 tasks | 4 files |
+| Phase 03.1 P05 | 10min | 4 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,10 @@ Plan: 4 of 6
 | MarkupNamePopup userOverrodeColor stored as useRef (not useState) | Flag participates in useEffect inheritance logic without triggering re-renders; ref avoids the stale-closure bug useState would introduce if the effect's dependency array excluded the flag |
 | Render tests kept as .test.ts with React.createElement | vitest.config.ts include glob is src/tests/**/*.test.ts — avoids modifying config mid-wave (parallel-executor safety); mirrors existing spacebar-text-guard.test.ts pattern |
 | MarkupNamePopup.onConfirm payload widened { name, categoryName, color } without touching CanvasViewport callsites | TypeScript's default method-parameter bivariance allowed the narrower commitCountName to satisfy the widened onConfirm type without casts — kept diff scoped to popup + hook only |
+| Layer 1 split into 1a (non-listening) + 1b (listening=true) | Calibration + in-progress linear preview stay off the hit-testing graph; only committed markups cost hover work. Matches existing Layer 2 transient-polygon isolation pattern |
+| Hover tooltip debounce owned by CanvasViewport not MarkupTooltip | MarkupTooltip stays pure presentational; parent holds the 200ms window.setTimeout ref and cancels on leave/context-open. Mirrors ConfirmationToast parent-owns-lifecycle pattern |
+| MarkupContextMenu currentColor wired to contextMarkup.color (not getColorForName) | The pin the user right-clicked is authoritative — avoids UI surprise if name-group has drifted colors. recolorGroup still flips the whole name-group per D-29 |
+| Konva onContextMenu handlers translate event via stage.getPointerPosition() then call e.evt.preventDefault() | Screen-space pointer is correct at any zoom because getPointerPosition reads raw mouse coords (unaffected by Stage transform); preventDefault suppresses the browser's native right-click menu on the canvas |
 
 ### Critical Pitfalls to Watch
 
@@ -141,9 +146,9 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T06:25:53.875Z
+**Last session:** 2026-04-21T06:40:34.440Z
 
-**Stopped at:** Completed 03.1-03-PLAN.md (MarkupNamePopup swatch row + D-25 inheritance + CategoryAutocomplete D-27 cleanup, 8 render tests)
+**Stopped at:** Completed 03.1-05-PLAN.md (hover tooltip + right-click recolor context menu, Layer split, 6 tests, 201/201 green)
 
 **Next action:** Phase 2 complete. Run `/gsd:transition` to validate Phase 2 delivery and plan Phase 3 (markup tools).
 
