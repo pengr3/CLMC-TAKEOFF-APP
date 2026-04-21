@@ -50,8 +50,8 @@ export function CategoryAutocomplete({ query, onSelect }: CategoryAutocompletePr
     color: COLORS.textPrimary,
     cursor: 'pointer',
     display: 'flex',
-    alignItems: 'center',
-    gap: 8
+    alignItems: 'center'
+    // gap removed — only one child now (D-27: Category no longer carries color)
   }
 
   return (
@@ -66,13 +66,6 @@ export function CategoryAutocomplete({ query, onSelect }: CategoryAutocompletePr
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
           style={itemStyle}
         >
-          <span
-            aria-hidden="true"
-            style={{
-              width: 10, height: 10, borderRadius: '50%',
-              background: cat.color, flexShrink: 0
-            }}
-          />
           <span>{cat.name}</span>
         </div>
       ))}
