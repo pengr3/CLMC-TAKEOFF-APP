@@ -5,7 +5,8 @@ import {
   polygonCentroid,
   pixelLengthToReal,
   pixelAreaToReal,
-  labelFontSize
+  labelFontSize,
+  polylineMidpointByArcLength
 } from '@renderer/lib/markup-math'
 
 describe('polylineLength', () => {
@@ -118,6 +119,62 @@ describe('pixelAreaToReal', () => {
     // 1 ft = 304.8 mm. At 1 px/mm: 304.8 px = 1 ft. So 304.8^2 px² = 1 ft²
     const ft2 = pixelAreaToReal(304.8 * 304.8, 1, 'ft')
     expect(ft2).toBeCloseTo(1, 10)
+  })
+})
+
+describe('polylineMidpointByArcLength', () => {
+  it('returns origin for empty array', () => {
+    expect(polylineMidpointByArcLength([])).toEqual({ x: 0, y: 0 })
+  })
+
+  it('returns the only point for a single-point array', () => {
+    expect(polylineMidpointByArcLength([{ x: 5, y: 3 }])).toEqual({ x: 5, y: 3 })
+  })
+
+  it('returns midpoint of a single 10-unit segment at (5, 0)', () => {
+    const mid = polylineMidpointByArcLength([{ x: 0, y: 0 }, { x: 10, y: 0 }])
+    expect(mid.x).toBeCloseTo(5, 10)
+    expect(mid.y).toBeCloseTo(0, 10)
+  })
+
+  it('returns geometric center for a 2-segment L-shape of equal length (not the vertex)', () => {
+    // L shape: (0,0) -> (10,0) -> (10,10)  total length 20, half = 10
+    // Half-distance lands exactly at the elbow (10, 0)
+    const mid = polylineMidpointByArcLength([
+      { x: 0, y: 0 },
+      { x: 10, y: 0 },
+      { x: 10, y: 10 }
+    ])
+    expect(mid.x).toBeCloseTo(10, 10)
+    expect(mid.y).toBeCloseTo(0, 10)
+  })
+
+  it('interpolates inside a segment when half-distance lands mid-segment', () => {
+    // 3 points with uneven segments: (0,0) -> (4,0) -> (4,6)  total=10, half=5
+    // Half distance lies 1 unit into the second segment -> (4, 1)
+    const mid = polylineMidpointByArcLength([
+      { x: 0, y: 0 },
+      { x: 4, y: 0 },
+      { x: 4, y: 6 }
+    ])
+    expect(mid.x).toBeCloseTo(4, 10)
+    expect(mid.y).toBeCloseTo(1, 10)
+  })
+
+  it('B2 regression - index midpoint would pick a vertex but arc-length picks geometric center', () => {
+    // 5 points where index midpoint (points[2]) would be far from geometric center
+    // Points: (0,0), (1,0), (2,0), (2,10), (2,20) - total = 1+1+10+10 = 22, half = 11
+    // Arc-length half lies 9 units into segment 3 -> (2, 9)
+    // Index midpoint (points[2]) would be (2, 0) - wrong per B2
+    const mid = polylineMidpointByArcLength([
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+      { x: 2, y: 10 },
+      { x: 2, y: 20 }
+    ])
+    expect(mid.x).toBeCloseTo(2, 10)
+    expect(mid.y).toBeCloseTo(9, 10)
   })
 })
 

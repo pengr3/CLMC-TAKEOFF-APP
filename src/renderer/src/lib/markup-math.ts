@@ -52,3 +52,30 @@ export function pixelAreaToReal(pixelArea: number, pixelsPerMm: number, unit: Sc
 export function labelFontSize(currentZoom: number): number {
   return Math.max(LABEL_FONT_BASE / currentZoom, LABEL_FONT_FLOOR)
 }
+
+/**
+ * Returns the point exactly half-way along the arc length of the polyline.
+ * Walks cumulative segment distance, interpolates inside the segment containing
+ * the half-distance mark. Fixes B2 — index-based midpoint landed on an arbitrary
+ * vertex; arc-length midpoint lands at the geometric center of the drawn line.
+ */
+export function polylineMidpointByArcLength(points: StagePoint[]): StagePoint {
+  if (points.length === 0) return { x: 0, y: 0 }
+  if (points.length === 1) return { x: points[0].x, y: points[0].y }
+  const total = polylineLength(points)
+  if (total === 0) return { x: points[0].x, y: points[0].y }
+  const half = total / 2
+  let accumulated = 0
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1]
+    const b = points[i]
+    const segLen = euclideanDistance(a.x, a.y, b.x, b.y)
+    if (accumulated + segLen >= half) {
+      const t = segLen === 0 ? 0 : (half - accumulated) / segLen
+      return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }
+    }
+    accumulated += segLen
+  }
+  // Fallback (unreachable for total > 0 but satisfies TS)
+  return { x: points[points.length - 1].x, y: points[points.length - 1].y }
+}
