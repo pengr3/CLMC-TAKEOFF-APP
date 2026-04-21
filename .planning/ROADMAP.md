@@ -95,7 +95,15 @@ Plans:
   1. User can save the current project to a .clmc file; the saved file contains the PDF file reference, all markup positions and names, per-page scale calibrations, and a format version field
   2. User can reopen a saved .clmc file and every markup appears on the correct position on the correct page, indistinguishable from the state at save time
   3. If the original PDF file has been moved or renamed, the app shows a clear "PDF not found" message with a Browse button to re-link it — rather than crashing or silently showing a blank canvas
-**Plans**: TBD
+**Plans:** 7 plans
+Plans:
+- [ ] 04-00-PLAN.md — Wave 0 test scaffolds (7 red test files + fixture PDF)
+- [ ] 04-01-PLAN.md — Schema, serialize, project-io (SHA256 + path math), IPC triad
+- [ ] 04-02-PLAN.md — projectStore + hydrate/reset methods + subscribeWithSelector dirty-tracking
+- [ ] 04-03-PLAN.md — useProject hook, usePdfDocument refactor, 4 recovery modals
+- [ ] 04-04-PLAN.md — Toolbar Open/Save/SaveAs, TitleBar dirty asterisk, Ctrl+S/Shift+S, App modal router
+- [ ] 04-05-PLAN.md — Close-window guard (main+renderer) + SaveCloseModal (D-16/D-21)
+- [ ] 04-06-PLAN.md — Human-verify checkpoint + PERS-01/PERS-02 closure + ROADMAP update
 
 ### Phase 5: BOQ Export
 **Goal**: Estimators can export the complete quantity takeoff to an Excel or CSV file that is ready to paste into a bid sheet, with items grouped by trade category
