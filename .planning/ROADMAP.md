@@ -10,7 +10,7 @@
 
 - [x] **Phase 1: PDF Viewer and Canvas Foundation** - Working multi-page PDF viewer with zoom, pan, and a stable Konva canvas overlay that holds markup coordinates in PDF page space (completed 2026-03-28)
 - [x] **Phase 2: Scale Calibration** - Per-page scale calibration by drawn line, measurement unit system, and scale display — the math layer that all markup measurements depend on (completed 2026-04-20)
-- [ ] **Phase 3: Markup Tools and Editing** - All four markup types (count, linear, area, perimeter) with freehand naming, category assignment, color-coding, labels, and full undo/redo
+- [x] **Phase 3: Markup Tools and Editing** - All four markup types (count, linear, area, perimeter) with freehand naming, category assignment, color-coding, labels, and full undo/redo (completed 2026-04-21 via Phase 03.1 gap-closure)
 - [ ] **Phase 4: Project Persistence** - Save and load .clmc project files so work survives across sessions
 - [ ] **Phase 5: BOQ Export** - Export takeoff sheet to Excel and CSV, grouped by category
 - [ ] **Phase 6: Live View and UI Polish** - Running totals panel, thumbnail strip navigation, and page/scale status indicators that complete the day-to-day estimating workflow
@@ -69,7 +69,7 @@ Plans:
 - [x] 03-02-PLAN.md — DOM chrome: extend ActiveTool union, add 4 markup Toolbar buttons, build MarkupNamePopup + CategoryAutocomplete
 - [x] 03-03-PLAN.md — Count + Linear tools: useMarkupTool hook, CountPinMarkup/LinearMarkup renderers, CanvasViewport wiring
 - [x] 03-04-PLAN.md — Area + Perimeter tools: polygon close detection, AreaMarkup/PerimeterMarkup renderers with category-colored fills
-- [ ] 03-05-PLAN.md — Keyboard shortcuts (Ctrl+Z / Ctrl+Y) with text-input guard + end-to-end human-verify checkpoint (superseded by Phase 03.1 for the checkpoint portion)
+- [x] 03-05-PLAN.md — Keyboard shortcuts (Ctrl+Z / Ctrl+Y) with text-input guard + end-to-end human-verify checkpoint (checkpoint ultimately closed via Phase 03.1)
 **UI hint**: yes
 
 ### Phase 03.1: Markup Gap Closure and Visual Redesign (INSERTED)
@@ -85,7 +85,7 @@ Plans:
 - [x] 03.1-03-PLAN.md — MarkupNamePopup color picker row + D-25 inheritance + CategoryAutocomplete color-role removal (Wave 2, autonomous)
 - [x] 03.1-04-PLAN.md — Stale-zoom subscription fix (B4) + spacebar text-input guard (B1) (Wave 1, autonomous)
 - [x] 03.1-05-PLAN.md — MarkupContextMenu (right-click recolor + delete) + MarkupTooltip (hover name) (Wave 3, autonomous)
-- [ ] 03.1-06-PLAN.md — Human-verify checkpoint + Phase 3 / 3.1 closure + REQUIREMENTS.md MARK-08 annotation (Wave 4, autonomous:false)
+- [x] 03.1-06-PLAN.md — Human-verify checkpoint + Phase 3 / 3.1 closure + REQUIREMENTS.md MARK-08 annotation (Wave 4, autonomous:false)
 
 ### Phase 4: Project Persistence
 **Goal**: Estimators can save their work to a .clmc file and reopen it later to continue exactly where they left off, with all markups and scale calibrations intact
@@ -126,8 +126,8 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. PDF Viewer and Canvas Foundation | 4/4 | Complete | 2026-03-28 |
 | 2. Scale Calibration | 3/3 | Complete   | 2026-04-20 |
-| 3. Markup Tools and Editing | 4/5 | In Progress (03-05 superseded by Phase 03.1) |  |
-| 3.1. Markup Gap Closure and Visual Redesign | 0/6 | In Progress (gates Phase 3 closure) |  |
+| 3. Markup Tools and Editing | 5/5 | Complete | 2026-04-21 |
+| 3.1. Markup Gap Closure and Visual Redesign | 6/6 | Complete | 2026-04-21 |
 | 4. Project Persistence | 0/0 | Not started | - |
 | 5. BOQ Export | 0/0 | Not started | - |
 | 6. Live View and UI Polish | 0/0 | Not started | - |

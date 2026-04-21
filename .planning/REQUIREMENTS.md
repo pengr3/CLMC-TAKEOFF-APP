@@ -33,7 +33,7 @@
 - [x] **MARK-05**: User can assign a freehand item name to each markup when placing it
 - [x] **MARK-06**: User can assign each markup to a named category (e.g., Electrical, Plumbing, Civil)
 - [x] **MARK-07**: The item name/label is displayed on the plan next to its markup at all zoom levels
-- [x] **MARK-08**: Each category is rendered in a distinct color on the plan so markups can be visually distinguished
+- [x] **MARK-08**: Each category is rendered in a distinct color on the plan so markups can be visually distinguished — **revised by Phase 03.1 (2026-04-21): color is now per-name-group, not per-category. See D-26/D-27/D-29 in `.planning/phases/03.1-markup-gap-closure-and-visual-redesign/03.1-CONTEXT.md`.**
 
 ### Markup Editing
 
@@ -108,7 +108,7 @@
 | MARK-05 | Phase 3 | Complete |
 | MARK-06 | Phase 3 | Complete |
 | MARK-07 | Phase 3 | Complete |
-| MARK-08 | Phase 3 | Complete |
+| MARK-08 | Phase 3 (revised by 03.1) | Complete |
 | MARK-09 | Phase 3 | Complete |
 | MARK-10 | Phase 3 | Complete |
 | PERS-01 | Phase 4 | Pending |
