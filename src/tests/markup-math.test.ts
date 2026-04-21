@@ -121,20 +121,20 @@ describe('pixelAreaToReal', () => {
   })
 })
 
-describe('labelFontSize', () => {
-  it('returns 12 at zoom 1', () => {
-    expect(labelFontSize(1)).toBe(12)
+describe('labelFontSize (LABEL_FONT_BASE=14 per D-34)', () => {
+  it('returns 14 at zoom 1', () => {
+    expect(labelFontSize(1)).toBe(14)
   })
 
-  it('returns 10 at zoom 2 (12/2=6, floor to 10)', () => {
+  it('returns 10 at zoom 2 (14/2=7, floor to 10)', () => {
     expect(labelFontSize(2)).toBe(10)
   })
 
-  it('returns 48 at zoom 0.25 (12/0.25=48)', () => {
-    expect(labelFontSize(0.25)).toBe(48)
+  it('returns 56 at zoom 0.25 (14/0.25=56)', () => {
+    expect(labelFontSize(0.25)).toBe(56)
   })
 
-  it('returns 10 at zoom 4 (12/4=3, floor to 10)', () => {
+  it('returns 10 at zoom 4 (14/4=3.5, floor to 10)', () => {
     expect(labelFontSize(4)).toBe(10)
   })
 
