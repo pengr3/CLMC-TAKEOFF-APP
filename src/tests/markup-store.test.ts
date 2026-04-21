@@ -15,6 +15,7 @@ function makeCount(
     page,
     name,
     categoryId,
+    color: '#dc2626',
     sequence,
     point: { x: 10, y: 10 },
     createdAt: Date.now()
@@ -28,6 +29,7 @@ function makeLinear(page: number, name: string, categoryId = 'cat-1'): LinearMar
     page,
     name,
     categoryId,
+    color: '#dc2626',
     points: [
       { x: 0, y: 0 },
       { x: 10, y: 10 }
@@ -129,6 +131,7 @@ describe('per-page markups', () => {
       page: 1,
       name: 'Floor',
       categoryId: 'cat-1',
+      color: '#dc2626',
       points: [
         { x: 0, y: 0 },
         { x: 10, y: 0 },
@@ -142,6 +145,7 @@ describe('per-page markups', () => {
       page: 1,
       name: 'Wall',
       categoryId: 'cat-1',
+      color: '#dc2626',
       points: [
         { x: 0, y: 0 },
         { x: 5, y: 5 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, RefObject } from 'react'
 import Konva from 'konva'
 import { ZOOM_STEPS } from '../lib/constants'
 import { useViewerStore } from '../stores/viewerStore'
+import { isTextInputActive } from './useKeyboardShortcuts'
 
 // Build effective zoom steps, optionally inserting the fit-to-window scale
 // so the user can always zoom back to the fit view via scroll wheel.
@@ -130,6 +131,9 @@ export function useViewportControls(
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
       if (e.code === 'Space' && !e.repeat) {
+        // B1 fix: don't hijack spacebar when user is typing in a text input
+        // (markup name field, category field, future search, etc.)
+        if (isTextInputActive()) return
         e.preventDefault()
         setSpaceHeld(true)
       }

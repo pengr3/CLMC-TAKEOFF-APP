@@ -5,6 +5,23 @@ import { useMarkupStore } from '../stores/markupStore'
 import { useViewerStore } from '../stores/viewerStore'
 import type { CountMarkup, LinearMarkup, AreaMarkup, PerimeterMarkup } from '../types/markup'
 import { polygonCentroid } from '../lib/markup-math'
+import { MARKUP_PALETTE } from '../lib/markup-palette'
+
+/**
+ * Resolve the color for a new markup with `name` on `page`:
+ *  - If any markup already has this name, inherit its color (D-29 — color lives on name-group)
+ *  - Otherwise, pick the first palette swatch not already in use on this page
+ *  - Fallback to palette[0] if the page is saturated with colors (wrap — matches CATEGORY_PALETTE cycling)
+ *
+ * NOTE: This is the temporary default used until Plan 03.1-03 wires the popup swatch picker.
+ */
+function resolveColorForName(name: string, page: number): string {
+  const store = useMarkupStore.getState()
+  const inherited = store.getColorForName(name, page)
+  if (inherited) return inherited
+  const used = Array.from(new Set((store.pageMarkups[page] ?? []).map((m) => m.color)))
+  return MARKUP_PALETTE.find((c) => !used.includes(c)) ?? MARKUP_PALETTE[0]
+}
 
 const UNCATEGORIZED = 'Uncategorized'
 const DUPLICATE_POINT_EPSILON = 2 // stage-pixel threshold for de-duping dblclick duplicate point (Pitfall 1)
@@ -115,6 +132,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
             page,
             name: prev.pendingName,
             categoryId: category.id,
+            color: resolveColorForName(prev.pendingName, page),
             createdAt: Date.now(),
             point: stagePoint,
             sequence
@@ -247,6 +265,8 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
       const createdAt = Date.now()
       const name = payload.name
 
+      const color = resolveColorForName(name, page)
+
       if (prev.toolType === 'linear') {
         const m: LinearMarkup = {
           id,
@@ -254,6 +274,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
           page,
           name,
           categoryId: category.id,
+          color,
           createdAt,
           points: prev.points
         }
@@ -265,6 +286,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
           page,
           name,
           categoryId: category.id,
+          color,
           createdAt,
           points: prev.points
         }
@@ -276,6 +298,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
           page,
           name,
           categoryId: category.id,
+          color,
           createdAt,
           points: prev.points
         }

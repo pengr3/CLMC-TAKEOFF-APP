@@ -20,6 +20,7 @@ function makeCount(page: number, name: string, seq: number, categoryId: string):
     page,
     name,
     categoryId,
+    color: '#dc2626',
     sequence: seq,
     point: { x: seq * 10, y: seq * 10 },
     createdAt: Date.now() + seq

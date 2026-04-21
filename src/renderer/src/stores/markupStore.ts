@@ -18,6 +18,8 @@ interface MarkupStoreState {
   getOrCreateCategory: (name: string) => Category
   placeMarkup: (markup: Markup) => void
   deleteMarkup: (page: number, markupId: string) => void
+  recolorGroup: (name: string, newColor: string, page?: number) => void
+  getColorForName: (name: string, page?: number) => string | null
 
   undo: () => void
   redo: () => void
@@ -99,10 +101,82 @@ export const useMarkupStore = create<MarkupStoreState>((set, get) => ({
       }
     }),
 
+  recolorGroup: (name, newColor, page) =>
+    set((s) => {
+      const pagesToScan =
+        page !== undefined ? [page] : Object.keys(s.pageMarkups).map(Number)
+      const oldColors: Record<string, string> = {}
+      const idsAffected: string[] = []
+      const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+
+      for (const p of pagesToScan) {
+        const list = s.pageMarkups[p] ?? []
+        const updated = list.map((m) => {
+          if (m.name === name && m.color !== newColor) {
+            oldColors[m.id] = m.color
+            idsAffected.push(m.id)
+            return { ...m, color: newColor } as Markup
+          }
+          return m
+        })
+        nextPageMarkups[p] = updated
+      }
+
+      if (idsAffected.length === 0) return s
+
+      const cmd: MarkupCommand = {
+        type: 'recolor-group',
+        name,
+        newColor,
+        oldColors,
+        page,
+        markupIdsAffected: idsAffected
+      }
+      return {
+        pageMarkups: nextPageMarkups,
+        undoStack: pushCommand(s.undoStack, cmd),
+        redoStack: []
+      }
+    }),
+
+  getColorForName: (name, page) => {
+    const pagesToScan =
+      page !== undefined ? [page] : Object.keys(get().pageMarkups).map(Number)
+    let latest: Markup | null = null
+    for (const p of pagesToScan) {
+      for (const m of get().pageMarkups[p] ?? []) {
+        if (m.name === name) {
+          if (!latest || m.createdAt > latest.createdAt) latest = m
+        }
+      }
+    }
+    return latest ? latest.color : null
+  },
+
   undo: () =>
     set((s) => {
       if (s.undoStack.length === 0) return s
       const cmd = s.undoStack[s.undoStack.length - 1]
+
+      if (cmd.type === 'recolor-group') {
+        const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+        const pagesToScan =
+          cmd.page !== undefined ? [cmd.page] : Object.keys(s.pageMarkups).map(Number)
+        for (const p of pagesToScan) {
+          const list = s.pageMarkups[p] ?? []
+          nextPageMarkups[p] = list.map((m) =>
+            cmd.oldColors[m.id] !== undefined
+              ? ({ ...m, color: cmd.oldColors[m.id] } as Markup)
+              : m
+          )
+        }
+        return {
+          pageMarkups: nextPageMarkups,
+          undoStack: s.undoStack.slice(0, -1),
+          redoStack: [...s.redoStack, cmd]
+        }
+      }
+
       const page = cmd.markup.page
       const pageList = s.pageMarkups[page] ?? []
       let nextList: Markup[]
@@ -122,6 +196,26 @@ export const useMarkupStore = create<MarkupStoreState>((set, get) => ({
     set((s) => {
       if (s.redoStack.length === 0) return s
       const cmd = s.redoStack[s.redoStack.length - 1]
+
+      if (cmd.type === 'recolor-group') {
+        const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+        const pagesToScan =
+          cmd.page !== undefined ? [cmd.page] : Object.keys(s.pageMarkups).map(Number)
+        for (const p of pagesToScan) {
+          const list = s.pageMarkups[p] ?? []
+          nextPageMarkups[p] = list.map((m) =>
+            cmd.markupIdsAffected.includes(m.id)
+              ? ({ ...m, color: cmd.newColor } as Markup)
+              : m
+          )
+        }
+        return {
+          pageMarkups: nextPageMarkups,
+          undoStack: pushCommand(s.undoStack, cmd),
+          redoStack: s.redoStack.slice(0, -1)
+        }
+      }
+
       const page = cmd.markup.page
       const pageList = s.pageMarkups[page] ?? []
       let nextList: Markup[]
