@@ -8,6 +8,7 @@ export interface BaseMarkup {
   page: number
   name: string
   categoryId: string
+  color: string
   createdAt: number
 }
 
@@ -44,6 +45,14 @@ export interface Category {
 export type MarkupCommand =
   | { type: 'place'; markup: Markup }
   | { type: 'delete'; markup: Markup }
+  | {
+      type: 'recolor-group'
+      name: string
+      newColor: string
+      oldColors: Record<string, string>
+      page?: number
+      markupIdsAffected: string[]
+    }
 
 export const CATEGORY_PALETTE = [
   '#0078d4',
@@ -58,4 +67,4 @@ export const CATEGORY_PALETTE = [
 
 export const UNDO_STACK_MAX = 50
 export const LABEL_FONT_FLOOR = 10
-export const LABEL_FONT_BASE = 12
+export const LABEL_FONT_BASE = 14
