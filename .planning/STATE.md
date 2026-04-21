@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 03.1 context gathered
-last_updated: "2026-04-21T04:33:01.714Z"
+stopped_at: Completed 03.1-01-PLAN.md (color model + RecolorGroup command)
+last_updated: "2026-04-21T05:18:47.458Z"
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 18
+  completed_plans: 13
 ---
 
 # Project State: CLMC Takeoff App
@@ -24,14 +24,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 03 — markup-tools-and-editing
+**Current Focus:** Phase 03.1 — markup-gap-closure-and-visual-redesign
 
 ---
 
 ## Current Position
 
-Phase: 03 (markup-tools-and-editing) — EXECUTING
-Plan: 1 of 5
+Phase: 03.1 (markup-gap-closure-and-visual-redesign) — EXECUTING
+Plan: 2 of 6
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Plan: 1 of 5
 | Phase 03 P02 | 3 | 2 tasks | 5 files |
 | Phase 03-markup-tools-and-editing P03 | 6min | 3 tasks | 4 files |
 | Phase 03 P04 | 5 | 3 tasks | 4 files |
+| Phase 03.1 P01 | 6min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,10 @@ Plan: 1 of 5
 | Layer 2 transient polygon layer separate from Layer 1 | Enables hitStrokeWidth events on start vertex without forcing Layer 1 to have listening=true |
 | isOverStartPoint lives in CanvasViewport (not useMarkupTool) | Hook is isolated from Konva Layer structure; viewport owns the interactive event layer |
 | PerimeterMarkup appends points[0] to polylineLength input | Includes the closing segment in perimeter calculation — without this, last-to-first segment is missing |
+| RecolorGroup command stores oldColors dict (per-markup) not single oldColor | Preserves per-pin color drift on undo — D-29 uniform recolor stays reversible to exact prior state |
+| MARKUP_PALETTE uses Tailwind 600-level hues (10 swatches) | Guaranteed WCAG-AA contrast against both white and black — enables D-23 auto-contrast pin numbers with zero palette edge cases |
+| getColorForName returns most-recent (not first) markup color for a name | Matches "the last color chosen is the current color" mental model without walking full history |
+| Category.color retained alongside Markup.color during 03.1 transition | Plans 03.1-02/03 migrate rendering components off category.color — avoiding full cascade in plan 01 keeps data-model refactor atomic |
 
 ### Critical Pitfalls to Watch
 
@@ -126,9 +131,9 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T04:33:01.576Z
+**Last session:** 2026-04-21T05:18:47.443Z
 
-**Stopped at:** Phase 03.1 context gathered
+**Stopped at:** Completed 03.1-01-PLAN.md (color model + RecolorGroup command)
 
 **Next action:** Phase 2 complete. Run `/gsd:transition` to validate Phase 2 delivery and plan Phase 3 (markup tools).
 
