@@ -75,6 +75,11 @@ export function CanvasViewport() {
   const totalPages = useViewerStore((s) => s.totalPages)
   const getViewport = useViewerStore((s) => s.getViewport)
   const setViewport = useViewerStore((s) => s.setViewport)
+  // B4 fix: subscribe to the zoom primitive so changes trigger a re-render.
+  // Reading through getViewport(page).zoom inside render bypasses the subscription
+  // (getViewport is a stable function reference). The `?? 1` fallback is a primitive
+  // literal so Object.is equality works — same pattern as EMPTY_MARKUPS precedent.
+  const currentZoom = useViewerStore((s) => s.pageViewports[currentPage]?.zoom ?? 1)
 
   const pageScale = useScaleStore((s) => s.pageScales[currentPage] ?? null)
   const setScale = useScaleStore((s) => s.setScale)
@@ -370,8 +375,6 @@ export function CanvasViewport() {
   // Only return null if there has NEVER been a valid render (initial state before any PDF loaded)
   if (!displayCanvas || !displayPageSize) return null
 
-  // Current zoom for compensating visual sizes
-  const currentZoom = getViewport(currentPage).zoom || 1
   const showNotCalibratedBadge =
     calibMode === 'idle' && !pageScale && totalPages > 0
 
