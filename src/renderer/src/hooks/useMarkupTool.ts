@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef, RefObject } from 'react'
+import { useCallback, useEffect, useState, useRef, RefObject } from 'react'
 import Konva from 'konva'
 import type { StagePoint } from './useCalibrationMode'
 import { useMarkupStore } from '../stores/markupStore'
@@ -69,6 +69,14 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
   const [state, setState] = useState<MarkupDrawState>(INITIAL_STATE)
   // Ref to track last click time (unused in logic but kept for potential future debounce)
   const lastClickTimeRef = useRef<number>(0)
+  // Mirror of `state` kept in a ref so recordClick's count-placing path can read
+  // the current mode/name/color/category WITHOUT using a setState updater (whose
+  // function body is double-invoked under React StrictMode in dev, causing the
+  // store.placeMarkup side effect to fire twice → double count pins).
+  const stateRef = useRef<MarkupDrawState>(state)
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
 
   const activate = useCallback((tool: 'count' | 'linear' | 'area' | 'perimeter') => {
     if (tool === 'count') {
@@ -102,33 +110,44 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
 
   const recordClick = useCallback(
     (screenPos: { x: number; y: number }) => {
-      setState((prev) => {
-        const stage = stageRef.current
-        if (!stage) return prev
-        const stagePoint = screenToStagePoint(stage, screenPos.x, screenPos.y)
+      const stage = stageRef.current
+      if (!stage) return
+      const stagePoint = screenToStagePoint(stage, screenPos.x, screenPos.y)
 
-        if (prev.toolType === 'count' && prev.mode === 'placing') {
-          // Place a count pin immediately — stay in placing mode for rapid-fire clicks (D-02)
-          const store = useMarkupStore.getState()
-          const page = useViewerStore.getState().currentPage
-          const category = store.getOrCreateCategory(prev.pendingCategoryName || UNCATEGORIZED)
-          const sequence = store.nextCountSequence(page, prev.pendingName)
-          const markup: CountMarkup = {
-            id: crypto.randomUUID(),
-            type: 'count',
-            page,
-            name: prev.pendingName,
-            categoryId: category.id,
-            color: prev.pendingColor,
-            createdAt: Date.now(),
-            point: stagePoint,
-            sequence
-          }
-          store.placeMarkup(markup)
-          // Stay in placing mode for subsequent clicks
-          return prev
+      // NOTE: The count-placing side effect (store.placeMarkup) is intentionally
+      // performed OUTSIDE the setState updater. React StrictMode double-invokes
+      // setState updater functions in dev to surface impurities; running the
+      // placeMarkup side effect inside the updater caused TWO pins to be
+      // written per click. Reading state via a getState ref snapshot keeps the
+      // dispatch idempotent under StrictMode.
+      const currentState = stateRef.current
+
+      if (currentState.toolType === 'count' && currentState.mode === 'placing') {
+        // Place a count pin immediately — stay in placing mode for rapid-fire clicks (D-02)
+        const store = useMarkupStore.getState()
+        const page = useViewerStore.getState().currentPage
+        const category = store.getOrCreateCategory(
+          currentState.pendingCategoryName || UNCATEGORIZED
+        )
+        const sequence = store.nextCountSequence(page, currentState.pendingName)
+        const markup: CountMarkup = {
+          id: crypto.randomUUID(),
+          type: 'count',
+          page,
+          name: currentState.pendingName,
+          categoryId: category.id,
+          color: currentState.pendingColor,
+          createdAt: Date.now(),
+          point: stagePoint,
+          sequence
         }
+        store.placeMarkup(markup)
+        lastClickTimeRef.current = Date.now()
+        return
+      }
 
+      // Linear / area / perimeter — pure state update, safe inside setState updater
+      setState((prev) => {
         if (
           prev.mode === 'drawing' &&
           (prev.toolType === 'linear' ||
@@ -243,57 +262,60 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
   }, [stageRef])
 
   const commitShape = useCallback((payload: { name: string; categoryName: string; color: string }) => {
-    setState((prev) => {
-      if (prev.mode !== 'confirming') return prev
-      const page = prev.pendingPage ?? useViewerStore.getState().currentPage
-      const store = useMarkupStore.getState()
-      const category = store.getOrCreateCategory(payload.categoryName || UNCATEGORIZED)
-      const id = crypto.randomUUID()
-      const createdAt = Date.now()
-      const name = payload.name
+    // Read state from the ref snapshot, dispatch the side effect ONCE, then
+    // reset state via setState. Doing the store.placeMarkup inside a setState
+    // updater would double-fire under React StrictMode (same pattern as the
+    // count-placing path in recordClick above).
+    const prev = stateRef.current
+    if (prev.mode !== 'confirming') return
 
-      const color = payload.color
+    const page = prev.pendingPage ?? useViewerStore.getState().currentPage
+    const store = useMarkupStore.getState()
+    const category = store.getOrCreateCategory(payload.categoryName || UNCATEGORIZED)
+    const id = crypto.randomUUID()
+    const createdAt = Date.now()
+    const name = payload.name
+    const color = payload.color
 
-      if (prev.toolType === 'linear') {
-        const m: LinearMarkup = {
-          id,
-          type: 'linear',
-          page,
-          name,
-          categoryId: category.id,
-          color,
-          createdAt,
-          points: prev.points
-        }
-        store.placeMarkup(m)
-      } else if (prev.toolType === 'area') {
-        const m: AreaMarkup = {
-          id,
-          type: 'area',
-          page,
-          name,
-          categoryId: category.id,
-          color,
-          createdAt,
-          points: prev.points
-        }
-        store.placeMarkup(m)
-      } else if (prev.toolType === 'perimeter') {
-        const m: PerimeterMarkup = {
-          id,
-          type: 'perimeter',
-          page,
-          name,
-          categoryId: category.id,
-          color,
-          createdAt,
-          points: prev.points
-        }
-        store.placeMarkup(m)
+    if (prev.toolType === 'linear') {
+      const m: LinearMarkup = {
+        id,
+        type: 'linear',
+        page,
+        name,
+        categoryId: category.id,
+        color,
+        createdAt,
+        points: prev.points
       }
+      store.placeMarkup(m)
+    } else if (prev.toolType === 'area') {
+      const m: AreaMarkup = {
+        id,
+        type: 'area',
+        page,
+        name,
+        categoryId: category.id,
+        color,
+        createdAt,
+        points: prev.points
+      }
+      store.placeMarkup(m)
+    } else if (prev.toolType === 'perimeter') {
+      const m: PerimeterMarkup = {
+        id,
+        type: 'perimeter',
+        page,
+        name,
+        categoryId: category.id,
+        color,
+        createdAt,
+        points: prev.points
+      }
+      store.placeMarkup(m)
+    }
 
-      return INITIAL_STATE
-    })
+    setState(INITIAL_STATE)
   }, [])
 
   const dismissError = useCallback(() => {
