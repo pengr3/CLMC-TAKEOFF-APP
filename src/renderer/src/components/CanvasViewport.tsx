@@ -13,12 +13,20 @@ import { useMarkupStore } from '../stores/markupStore'
 import { ScalePopup } from './ScalePopup'
 import { ConfirmationToast } from './ConfirmationToast'
 import { MarkupNamePopup } from './MarkupNamePopup'
+import { MarkupTooltip } from './MarkupTooltip'
+import { MarkupContextMenu } from './MarkupContextMenu'
 import { CountPinMarkup } from './markup/CountPinMarkup'
 import { LinearMarkup } from './markup/LinearMarkup'
 import { AreaMarkup } from './markup/AreaMarkup'
 import { PerimeterMarkup } from './markup/PerimeterMarkup'
 import { COLORS } from '../lib/constants'
 import { formatScaleRatio } from '../lib/scale-math'
+import {
+  polylineLength,
+  polygonArea,
+  pixelLengthToReal,
+  pixelAreaToReal
+} from '../lib/markup-math'
 import { isMarkupTool } from '../types/viewer'
 import type { ScaleUnit } from '../types/scale'
 import type { Markup, CountMarkup, LinearMarkup as LinearMarkupType, AreaMarkup as AreaMarkupType, PerimeterMarkup as PerimeterMarkupType } from '../types/markup'
@@ -195,20 +203,23 @@ export function CanvasViewport() {
     }
   }, [])
 
-  // Silence noUnusedLocals until Task 3 wires the render.
-  // Task 3 will reference hoverState/tooltipShown/contextMenu in the JSX
-  // and remove these void references. Keeping the state hooks declared here so
-  // the callbacks' setState calls typecheck in isolation for this task.
-  void hoverState
-  void tooltipShown
-  void contextMenu
-
   // Confirmation toast state
   const [toast, setToast] = useState<{ ratioText: string } | null>(null)
 
   // Dismiss toast on page change (MEDIUM #3 — persistent toast)
   useEffect(() => {
     setToast(null)
+  }, [currentPage])
+
+  // Dismiss hover tooltip + context menu on page change (plan 03.1-05)
+  useEffect(() => {
+    setHoverState(null)
+    setTooltipShown(false)
+    setContextMenu(null)
+    if (hoverTimerRef.current !== null) {
+      window.clearTimeout(hoverTimerRef.current)
+      hoverTimerRef.current = null
+    }
   }, [currentPage])
 
   // Dismiss toast when a new calibration run starts (MEDIUM #3)
@@ -442,6 +453,38 @@ export function CanvasViewport() {
   // Build reference line points from stored scale (old viewerStore linePoints for legacy)
   // New scaleStore doesn't store linePoints — reference line is omitted for new API
   // (could be added in a future phase when we want to persist the calibration line)
+
+  // Tooltip summary builder — count shows #sequence; linear/area/perimeter
+  // include the measurement when page is calibrated, name-only otherwise.
+  function buildMarkupSummary(m: Markup): string {
+    if (m.type === 'count') {
+      return `${m.name} — #${m.sequence}`
+    }
+    if (!pageScale || pageScale.pixelsPerMm <= 0) return m.name
+    const unit = pageScale.displayUnit
+    if (m.type === 'linear') {
+      const len = pixelLengthToReal(polylineLength(m.points), pageScale.pixelsPerMm, unit)
+      return `${m.name} — ${len.toFixed(1)} ${unit}`
+    }
+    if (m.type === 'area') {
+      const areaVal = pixelAreaToReal(polygonArea(m.points), pageScale.pixelsPerMm, unit)
+      return `${m.name} — ${areaVal.toFixed(1)} ${unit}²`
+    }
+    // perimeter
+    const closed = [...m.points, m.points[0]]
+    const perim = pixelLengthToReal(polylineLength(closed), pageScale.pixelsPerMm, unit)
+    const areaVal = pixelAreaToReal(polygonArea(m.points), pageScale.pixelsPerMm, unit)
+    return `${m.name} — P:${perim.toFixed(1)} ${unit}  A:${areaVal.toFixed(1)} ${unit}²`
+  }
+
+  const hoveredMarkup: Markup | null =
+    hoverState !== null
+      ? (pageMarkups.find((mm) => mm.id === hoverState.id) ?? null)
+      : null
+  const contextMarkup: Markup | null =
+    contextMenu !== null
+      ? (pageMarkups.find((mm) => mm.id === contextMenu.id) ?? null)
+      : null
 
   return (
     <div
@@ -833,6 +876,29 @@ export function CanvasViewport() {
             Set Scale
           </button>
         </div>
+      )}
+
+      {/* Hover tooltip — 200ms delay + immediate hide (plan 03.1-05 / D-30 / D-33) */}
+      {tooltipShown && hoverState && hoveredMarkup && (
+        <MarkupTooltip
+          screenPos={{ x: hoverState.x, y: hoverState.y }}
+          text={buildMarkupSummary(hoveredMarkup)}
+        />
+      )}
+
+      {/* Right-click context menu — recolor (D-28/D-29) + delete */}
+      {contextMenu && contextMarkup && (
+        <MarkupContextMenu
+          screenPos={{ x: contextMenu.x, y: contextMenu.y }}
+          currentColor={contextMarkup.color}
+          onRecolor={(hex) => {
+            useMarkupStore.getState().recolorGroup(contextMarkup.name, hex)
+          }}
+          onDelete={() => {
+            useMarkupStore.getState().deleteMarkup(contextMarkup.page, contextMarkup.id)
+          }}
+          onClose={() => setContextMenu(null)}
+        />
       )}
 
     </div>
