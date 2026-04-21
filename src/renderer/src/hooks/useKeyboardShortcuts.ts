@@ -22,7 +22,15 @@ export function isTextInputActive(): boolean {
   if (!el) return false
   if (el instanceof HTMLInputElement) return true
   if (el instanceof HTMLTextAreaElement) return true
-  if (el instanceof HTMLElement && (el.isContentEditable || el.contentEditable === 'true')) return true
+  if (el instanceof HTMLElement) {
+    if (el.isContentEditable) return true
+    if (el.contentEditable === 'true') return true
+    // Attribute fallback — handles environments (e.g. jsdom, legacy HTML)
+    // where the IDL property does not reflect the attribute. An empty string
+    // attribute value also means "contenteditable" per the HTML spec.
+    const attr = el.getAttribute('contenteditable')
+    if (attr !== null && (attr === '' || attr.toLowerCase() === 'true')) return true
+  }
   return false
 }
 
