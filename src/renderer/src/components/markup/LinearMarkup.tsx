@@ -2,23 +2,31 @@ import { Line, Text, Group } from 'react-konva'
 import type { LinearMarkup as LinearMarkupType, Category } from '../../types/markup'
 import type { PageScale } from '../../types/scale'
 import { COLORS } from '../../lib/constants'
-import { polylineLength, pixelLengthToReal, labelFontSize } from '../../lib/markup-math'
+import {
+  polylineLength,
+  pixelLengthToReal,
+  labelFontSize,
+  polylineMidpointByArcLength
+} from '../../lib/markup-math'
 
 export interface LinearMarkupProps {
   markup: LinearMarkupType
-  category: Category
+  category: Category   // legacy prop compat
   currentZoom: number
   pageScale: PageScale | null
 }
 
 /**
- * Renders a committed polyline with a zoom-compensated midpoint label.
- * Label format: "{name} \u2014 {value} {unit}" per D-13 / UI-SPEC Canvas Label Copy.
- * If page is uncalibrated (pageScale null), shows only the name.
+ * Linear polyline renderer per D-24/D-31/D-34 + B2 fix.
+ * - Stroke color from markup.color (D-29), not from the legacy category field
+ * - Label shows ONLY the measurement (no name, D-24)
+ * - Label positioned at true arc-length midpoint (B2 fix - NOT index midpoint)
+ * - Uncalibrated page: no measurement label rendered
+ * - Font 14px world base, still zoom-compensated (D-34 applies to labels,
+ *   D-22 carve-out for pins only)
  */
 export function LinearMarkup({
   markup,
-  category,
   currentZoom,
   pageScale
 }: LinearMarkupProps): React.JSX.Element {
@@ -27,41 +35,42 @@ export function LinearMarkup({
   const shadowBlur = 2 / currentZoom
 
   const flatPoints = markup.points.flatMap((p) => [p.x, p.y])
-  const pixelLen = polylineLength(markup.points)
 
-  // Midpoint of the polyline by index
-  const midIndex = Math.floor(markup.points.length / 2)
-  const midpoint = markup.points[midIndex] ?? markup.points[0]
+  // B2 fix: arc-length midpoint, not index midpoint
+  const midpoint = polylineMidpointByArcLength(markup.points)
 
-  // D-13 Linear: "Name — 12.4 m" or just "Name" if uncalibrated
-  let labelText = markup.name
+  let labelText = ''
   if (pageScale && pageScale.pixelsPerMm > 0) {
+    const pixelLen = polylineLength(markup.points)
     const realLen = pixelLengthToReal(pixelLen, pageScale.pixelsPerMm, pageScale.displayUnit)
-    labelText = `${markup.name} \u2014 ${realLen.toFixed(1)} ${pageScale.displayUnit}`
+    labelText = `${realLen.toFixed(1)} ${pageScale.displayUnit}`
   }
 
   return (
-    <Group listening={false}>
+    <Group>
       <Line
         points={flatPoints}
-        stroke={category.color}
+        stroke={markup.color}
         strokeWidth={strokeWidth}
         lineCap="round"
         lineJoin="round"
       />
-      <Text
-        x={midpoint.x}
-        y={midpoint.y + fontSize}
-        text={labelText}
-        fontSize={fontSize}
-        fontFamily="Inter, sans-serif"
-        fontStyle="600"
-        fill={COLORS.textPrimary}
-        shadowColor="#ffffff"
-        shadowBlur={shadowBlur}
-        shadowOpacity={0.9}
-        align="center"
-      />
+      {labelText && (
+        <Text
+          x={midpoint.x}
+          y={midpoint.y + fontSize}
+          text={labelText}
+          fontSize={fontSize}
+          fontFamily="Inter, sans-serif"
+          fontStyle="600"
+          fill={COLORS.textPrimary}
+          shadowColor="#ffffff"
+          shadowBlur={shadowBlur}
+          shadowOpacity={0.9}
+          align="center"
+          listening={false}
+        />
+      )}
     </Group>
   )
 }

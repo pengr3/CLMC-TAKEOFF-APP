@@ -2,23 +2,28 @@ import { Line, Text, Group } from 'react-konva'
 import type { AreaMarkup as AreaMarkupType, Category } from '../../types/markup'
 import type { PageScale } from '../../types/scale'
 import { COLORS } from '../../lib/constants'
-import { polygonArea, polygonCentroid, pixelAreaToReal, labelFontSize } from '../../lib/markup-math'
+import {
+  polygonArea,
+  polygonCentroid,
+  pixelAreaToReal,
+  labelFontSize
+} from '../../lib/markup-math'
 
 export interface AreaMarkupProps {
   markup: AreaMarkupType
-  category: Category
+  category: Category   // legacy prop compat
   currentZoom: number
   pageScale: PageScale | null
 }
 
 /**
- * Renders a committed area polygon with semi-transparent fill and two-line centroid label.
- * Label format (D-13): line 1 = name, line 2 = "{value} {unit}\u00B2"
- * Fill = category.color + '33' (20% alpha) per UI-SPEC Category Color Palette.
+ * Area polygon renderer per D-24/D-31/D-34.
+ * - Stroke/fill from markup.color (D-29)
+ * - Label shows ONLY the area value (no name line, D-24)
+ * - Positioned at vertex-mean centroid
  */
 export function AreaMarkup({
   markup,
-  category,
   currentZoom,
   pageScale
 }: AreaMarkupProps): React.JSX.Element {
@@ -28,44 +33,29 @@ export function AreaMarkup({
 
   const flatPoints = markup.points.flatMap((p) => [p.x, p.y])
   const centroid = polygonCentroid(markup.points)
-  const pixelArea = polygonArea(markup.points)
 
-  // D-13 Area: two-line — name / "{value} {unit}\u00B2"
-  const line1 = markup.name
-  let line2 = ''
+  let labelText = ''
   if (pageScale && pageScale.pixelsPerMm > 0) {
+    const pixelArea = polygonArea(markup.points)
     const realArea = pixelAreaToReal(pixelArea, pageScale.pixelsPerMm, pageScale.displayUnit)
-    line2 = `${realArea.toFixed(1)} ${pageScale.displayUnit}\u00B2`
+    labelText = `${realArea.toFixed(1)} ${pageScale.displayUnit}²`
   }
 
   return (
-    <Group listening={false}>
+    <Group>
       <Line
         points={flatPoints}
         closed
-        stroke={category.color}
+        stroke={markup.color}
         strokeWidth={strokeWidth}
-        fill={`${category.color}33`}
+        fill={`${markup.color}33`}
         lineJoin="round"
       />
-      <Text
-        x={centroid.x}
-        y={centroid.y - fontSize}
-        text={line1}
-        fontSize={fontSize}
-        fontFamily="Inter, sans-serif"
-        fontStyle="600"
-        fill={COLORS.textPrimary}
-        shadowColor="#ffffff"
-        shadowBlur={shadowBlur}
-        shadowOpacity={0.9}
-        align="center"
-      />
-      {line2 && (
+      {labelText && (
         <Text
           x={centroid.x}
-          y={centroid.y + 2 / currentZoom}
-          text={line2}
+          y={centroid.y - fontSize / 2}
+          text={labelText}
           fontSize={fontSize}
           fontFamily="Inter, sans-serif"
           fontStyle="600"
@@ -74,6 +64,7 @@ export function AreaMarkup({
           shadowBlur={shadowBlur}
           shadowOpacity={0.9}
           align="center"
+          listening={false}
         />
       )}
     </Group>
