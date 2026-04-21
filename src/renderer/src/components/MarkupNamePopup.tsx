@@ -1,9 +1,11 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { COLORS } from '../lib/constants'
 import { CategoryAutocomplete } from './CategoryAutocomplete'
+import { MARKUP_PALETTE, nextPaletteColor } from '../lib/markup-palette'
+import { useMarkupStore } from '../stores/markupStore'
 
-const POPUP_MIN_WIDTH = 240
-const POPUP_MAX_WIDTH = 280
+const POPUP_MIN_WIDTH = 260
+const POPUP_MAX_WIDTH = 320
 
 export interface MarkupNamePopupProps {
   mode: 'count-pre' | 'save-after'
@@ -13,16 +15,42 @@ export interface MarkupNamePopupProps {
   containerSize: { width: number; height: number }
   initialName?: string
   initialCategoryName?: string
+  /** Optional initial color. If not provided, we inherit from store or pick next unused (D-25). */
+  initialColor?: string
   // Optional measurement preview shown under the inputs (e.g. "12.4 m" for Linear)
   // Rendered if provided; omitted for Count
   measurementPreview?: string
-  onConfirm: (payload: { name: string; categoryName: string }) => void
+  /** Payload widened (D-26, D-28): includes the chosen palette color. */
+  onConfirm: (payload: { name: string; categoryName: string; color: string }) => void
   onCancel: () => void
+}
+
+/**
+ * Compute default color following D-25:
+ *  - If the name already has a color in the store, inherit it.
+ *  - Else pick the next palette swatch not currently in use across ALL pages.
+ */
+function resolveDefaultColor(
+  name: string,
+  getColorForName: (n: string) => string | null,
+  pageMarkups: Record<number, Array<{ color: string }>>
+): string {
+  const inherited = name.trim() === '' ? null : getColorForName(name.trim())
+  if (inherited) return inherited
+  const used = Array.from(
+    new Set(
+      Object.values(pageMarkups)
+        .flat()
+        .map((m) => m.color)
+    )
+  )
+  return nextPaletteColor(used)
 }
 
 export function MarkupNamePopup({
   mode, screenPos, containerSize,
   initialName = '', initialCategoryName = '',
+  initialColor,
   measurementPreview, onConfirm, onCancel
 }: MarkupNamePopupProps): React.JSX.Element {
   const [name, setName] = useState(initialName)
@@ -31,11 +59,29 @@ export function MarkupNamePopup({
   const [nameError, setNameError] = useState<string | null>(null)
   const nameRef = useRef<HTMLInputElement>(null)
 
+  // Subscribe to store for inheritance lookups (primitive + selector pattern — NOT method-invoking selectors;
+  // getColorForName is a stable function reference on the store, so subscribing to it is safe)
+  const getColorForName = useMarkupStore((s) => s.getColorForName)
+  const pageMarkups = useMarkupStore((s) => s.pageMarkups)
+
+  const [selectedColor, setSelectedColor] = useState<string>(
+    () => initialColor ?? resolveDefaultColor(initialName, getColorForName, pageMarkups)
+  )
+  // Track whether user manually overrode the color — once overridden, stop auto-inheriting on name change
+  const userOverrodeColor = useRef<boolean>(!!initialColor)
+
+  // D-25 inheritance: when name changes to an existing name, auto-switch color (unless user overrode)
+  useEffect(() => {
+    if (userOverrodeColor.current) return
+    const inherited = name.trim() === '' ? null : getColorForName(name.trim())
+    if (inherited) setSelectedColor(inherited)
+  }, [name, getColorForName])
+
   useEffect(() => { nameRef.current?.focus() }, [])
 
   const popupStyle = useMemo(() => {
     const left = Math.min(Math.max(screenPos.x, 0), containerSize.width - POPUP_MIN_WIDTH)
-    const top = Math.min(Math.max(screenPos.y, 0), containerSize.height - 200)
+    const top = Math.min(Math.max(screenPos.y, 0), containerSize.height - 240)
     return { left, top }
   }, [screenPos, containerSize])
 
@@ -45,8 +91,12 @@ export function MarkupNamePopup({
       setNameError('Enter an item name')
       return
     }
-    onConfirm({ name: trimmedName, categoryName: categoryName.trim() })
-  }, [name, categoryName, onConfirm])
+    onConfirm({
+      name: trimmedName,
+      categoryName: categoryName.trim(),
+      color: selectedColor
+    })
+  }, [name, categoryName, selectedColor, onConfirm])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>): void => {
     if (e.key === 'Enter') {
@@ -118,6 +168,7 @@ export function MarkupNamePopup({
           </div>
         )}
       </div>
+
       <div>
         <label style={{ display: 'block', fontWeight: 600, marginBottom: 4 }}>Category</label>
         <input
@@ -136,6 +187,44 @@ export function MarkupNamePopup({
           />
         )}
       </div>
+
+      <div>
+        <label style={{ display: 'block', fontWeight: 600, marginBottom: 4 }}>Color</label>
+        <div
+          role="radiogroup"
+          aria-label="Markup color"
+          style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}
+        >
+          {MARKUP_PALETTE.map((hex) => {
+            const isSelected = hex === selectedColor
+            return (
+              <button
+                key={hex}
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
+                aria-label={`Color ${hex}`}
+                onClick={() => {
+                  setSelectedColor(hex)
+                  userOverrodeColor.current = true
+                }}
+                style={{
+                  width: 24,
+                  height: 24,
+                  padding: 0,
+                  borderRadius: 4,
+                  background: hex,
+                  border: isSelected ? `2px solid ${COLORS.accent}` : `2px solid ${COLORS.border}`,
+                  boxShadow: isSelected ? `inset 0 0 0 2px #ffffff` : 'none',
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
+              />
+            )
+          })}
+        </div>
+      </div>
+
       {measurementPreview && (
         <div
           style={{
