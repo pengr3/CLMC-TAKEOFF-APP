@@ -14,6 +14,9 @@ export interface AreaMarkupProps {
   category: Category   // legacy prop compat
   currentZoom: number
   pageScale: PageScale | null
+  onHoverEnter?: (id: string, screenX: number, screenY: number) => void
+  onHoverLeave?: (id: string) => void
+  onContextMenu?: (id: string, screenX: number, screenY: number) => void
 }
 
 /**
@@ -25,7 +28,10 @@ export interface AreaMarkupProps {
 export function AreaMarkup({
   markup,
   currentZoom,
-  pageScale
+  pageScale,
+  onHoverEnter,
+  onHoverLeave,
+  onContextMenu
 }: AreaMarkupProps): React.JSX.Element {
   const strokeWidth = 2 / currentZoom
   const fontSize = labelFontSize(currentZoom)
@@ -42,7 +48,20 @@ export function AreaMarkup({
   }
 
   return (
-    <Group>
+    <Group
+      onMouseEnter={(e) => {
+        const stage = e.target.getStage()
+        const p = stage?.getPointerPosition()
+        if (p && onHoverEnter) onHoverEnter(markup.id, p.x, p.y)
+      }}
+      onMouseLeave={() => onHoverLeave?.(markup.id)}
+      onContextMenu={(e) => {
+        e.evt.preventDefault()
+        const stage = e.target.getStage()
+        const p = stage?.getPointerPosition()
+        if (p && onContextMenu) onContextMenu(markup.id, p.x, p.y)
+      }}
+    >
       <Line
         points={flatPoints}
         closed

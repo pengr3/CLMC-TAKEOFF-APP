@@ -8,6 +8,9 @@ export interface CountPinMarkupProps {
   category: Category
   /** Not used by the pin body anymore (D-22 pure world-anchored) - accepted for prop compat. */
   currentZoom: number
+  onHoverEnter?: (id: string, screenX: number, screenY: number) => void
+  onHoverLeave?: (id: string) => void
+  onContextMenu?: (id: string, screenX: number, screenY: number) => void
 }
 
 // D-22: pins are "stamps on the plan" - pure world-anchored.
@@ -26,7 +29,10 @@ const NUMBER_FONT_WORLD = 12
  *    rendered by CanvasViewport.
  */
 export function CountPinMarkup({
-  markup
+  markup,
+  onHoverEnter,
+  onHoverLeave,
+  onContextMenu
 }: CountPinMarkupProps): React.JSX.Element {
   const fill = markup.color
   const ink = getContrastingInk(fill)
@@ -37,7 +43,20 @@ export function CountPinMarkup({
   const boxW = PIN_RADIUS_WORLD * 2
 
   return (
-    <Group>
+    <Group
+      onMouseEnter={(e) => {
+        const stage = e.target.getStage()
+        const p = stage?.getPointerPosition()
+        if (p && onHoverEnter) onHoverEnter(markup.id, p.x, p.y)
+      }}
+      onMouseLeave={() => onHoverLeave?.(markup.id)}
+      onContextMenu={(e) => {
+        e.evt.preventDefault()
+        const stage = e.target.getStage()
+        const p = stage?.getPointerPosition()
+        if (p && onContextMenu) onContextMenu(markup.id, p.x, p.y)
+      }}
+    >
       <Circle
         x={markup.point.x}
         y={markup.point.y}

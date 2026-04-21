@@ -159,6 +159,50 @@ export function CanvasViewport() {
   const pageMarkups = useMarkupStore((s) => s.pageMarkups[currentPage] ?? EMPTY_MARKUPS)
   const getCategory = useMarkupStore((s) => s.getCategory)
 
+  // Hover + context-menu state for committed markups (plan 03.1-05)
+  const [hoverState, setHoverState] = useState<{ id: string; x: number; y: number } | null>(null)
+  const hoverTimerRef = useRef<number | null>(null)
+  const [tooltipShown, setTooltipShown] = useState(false)
+  const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number } | null>(null)
+
+  const handleHoverEnter = useCallback((id: string, x: number, y: number) => {
+    setHoverState({ id, x, y })
+    if (hoverTimerRef.current !== null) {
+      window.clearTimeout(hoverTimerRef.current)
+    }
+    hoverTimerRef.current = window.setTimeout(() => {
+      setTooltipShown(true)
+    }, 200)
+  }, [])
+
+  const handleHoverLeave = useCallback(() => {
+    if (hoverTimerRef.current !== null) {
+      window.clearTimeout(hoverTimerRef.current)
+      hoverTimerRef.current = null
+    }
+    setHoverState(null)
+    setTooltipShown(false)
+  }, [])
+
+  const handleContextMenu = useCallback((id: string, x: number, y: number) => {
+    setContextMenu({ id, x, y })
+    // Hide any active tooltip when opening the menu
+    setTooltipShown(false)
+    setHoverState(null)
+    if (hoverTimerRef.current !== null) {
+      window.clearTimeout(hoverTimerRef.current)
+      hoverTimerRef.current = null
+    }
+  }, [])
+
+  // Silence noUnusedLocals until Task 3 wires the render.
+  // Task 3 will reference hoverState/tooltipShown/contextMenu in the JSX
+  // and remove these void references. Keeping the state hooks declared here so
+  // the callbacks' setState calls typecheck in isolation for this task.
+  void hoverState
+  void tooltipShown
+  void contextMenu
+
   // Confirmation toast state
   const [toast, setToast] = useState<{ ratioText: string } | null>(null)
 
@@ -433,7 +477,7 @@ export function CanvasViewport() {
             height={displayPageSize.height}
           />
         </Layer>
-        {/* Layer 1: Markup overlay (calibration line + persistent reference) */}
+        {/* Layer 1a: Non-interactive calibration + in-progress linear preview */}
         <Layer listening={false}>
           {/* Active calibration / verify visuals */}
           {(calibState.mode === 'drawing' || calibState.mode === 'confirming') && (
@@ -475,65 +519,6 @@ export function CanvasViewport() {
 
           {/* Faint reference line for previously calibrated pages — only from legacy viewerStore */}
           {/* (new scaleStore doesn't persist line points; reference line deferred to Phase 4) */}
-
-          {/* Committed count markups */}
-          {pageMarkups.filter((m) => m.type === 'count').map((m) => {
-            const category = getCategory(m.categoryId)
-            if (!category) return null
-            return (
-              <CountPinMarkup
-                key={m.id}
-                markup={m as CountMarkup}
-                category={category}
-                currentZoom={currentZoom}
-              />
-            )
-          })}
-
-          {/* Committed linear markups */}
-          {pageMarkups.filter((m) => m.type === 'linear').map((m) => {
-            const category = getCategory(m.categoryId)
-            if (!category) return null
-            return (
-              <LinearMarkup
-                key={m.id}
-                markup={m as LinearMarkupType}
-                category={category}
-                currentZoom={currentZoom}
-                pageScale={pageScale}
-              />
-            )
-          })}
-
-          {/* Committed area markups */}
-          {pageMarkups.filter((m) => m.type === 'area').map((m) => {
-            const category = getCategory(m.categoryId)
-            if (!category) return null
-            return (
-              <AreaMarkup
-                key={m.id}
-                markup={m as AreaMarkupType}
-                category={category}
-                currentZoom={currentZoom}
-                pageScale={pageScale}
-              />
-            )
-          })}
-
-          {/* Committed perimeter markups */}
-          {pageMarkups.filter((m) => m.type === 'perimeter').map((m) => {
-            const category = getCategory(m.categoryId)
-            if (!category) return null
-            return (
-              <PerimeterMarkup
-                key={m.id}
-                markup={m as PerimeterMarkupType}
-                category={category}
-                currentZoom={currentZoom}
-                pageScale={pageScale}
-              />
-            )
-          })}
 
           {/* In-progress linear preview */}
           {markupState.toolType === 'linear' &&
@@ -580,6 +565,80 @@ export function CanvasViewport() {
                 ))}
               </>
             )}
+        </Layer>
+
+        {/* Layer 1b: Committed markups — LISTENING for hover + right-click (plan 03.1-05) */}
+        <Layer listening={true}>
+          {/* Committed count markups */}
+          {pageMarkups.filter((m) => m.type === 'count').map((m) => {
+            const category = getCategory(m.categoryId)
+            if (!category) return null
+            return (
+              <CountPinMarkup
+                key={m.id}
+                markup={m as CountMarkup}
+                category={category}
+                currentZoom={currentZoom}
+                onHoverEnter={handleHoverEnter}
+                onHoverLeave={handleHoverLeave}
+                onContextMenu={handleContextMenu}
+              />
+            )
+          })}
+
+          {/* Committed linear markups */}
+          {pageMarkups.filter((m) => m.type === 'linear').map((m) => {
+            const category = getCategory(m.categoryId)
+            if (!category) return null
+            return (
+              <LinearMarkup
+                key={m.id}
+                markup={m as LinearMarkupType}
+                category={category}
+                currentZoom={currentZoom}
+                pageScale={pageScale}
+                onHoverEnter={handleHoverEnter}
+                onHoverLeave={handleHoverLeave}
+                onContextMenu={handleContextMenu}
+              />
+            )
+          })}
+
+          {/* Committed area markups */}
+          {pageMarkups.filter((m) => m.type === 'area').map((m) => {
+            const category = getCategory(m.categoryId)
+            if (!category) return null
+            return (
+              <AreaMarkup
+                key={m.id}
+                markup={m as AreaMarkupType}
+                category={category}
+                currentZoom={currentZoom}
+                pageScale={pageScale}
+                onHoverEnter={handleHoverEnter}
+                onHoverLeave={handleHoverLeave}
+                onContextMenu={handleContextMenu}
+              />
+            )
+          })}
+
+          {/* Committed perimeter markups */}
+          {pageMarkups.filter((m) => m.type === 'perimeter').map((m) => {
+            const category = getCategory(m.categoryId)
+            if (!category) return null
+            return (
+              <PerimeterMarkup
+                key={m.id}
+                markup={m as PerimeterMarkupType}
+                category={category}
+                currentZoom={currentZoom}
+                pageScale={pageScale}
+                onHoverEnter={handleHoverEnter}
+                onHoverLeave={handleHoverLeave}
+                onContextMenu={handleContextMenu}
+              />
+            )
+          })}
         </Layer>
 
         {/* Layer 2: Transient interactive polygon drawing (only mounted while drawing area/perimeter) */}
