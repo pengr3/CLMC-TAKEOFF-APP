@@ -1,4 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+
+// Mock pdf-setup to prevent pdfjs-dist DOMMatrix errors in node/jsdom environment.
+// routeOpenByExtension is a pure string helper — it does not use PDF.js at all.
+vi.mock('@renderer/lib/pdf-setup', () => ({
+  pdfjsLib: { getDocument: vi.fn() },
+  PDFDocumentProxy: class {}
+}))
+
 import { routeOpenByExtension } from '@renderer/hooks/useProject'
 
 describe('project-open-routing', () => {
