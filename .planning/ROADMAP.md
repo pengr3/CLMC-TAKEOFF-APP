@@ -95,13 +95,13 @@ Plans:
   1. User can save the current project to a .clmc file; the saved file contains the PDF file reference, all markup positions and names, per-page scale calibrations, and a format version field
   2. User can reopen a saved .clmc file and every markup appears on the correct position on the correct page, indistinguishable from the state at save time
   3. If the original PDF file has been moved or renamed, the app shows a clear "PDF not found" message with a Browse button to re-link it — rather than crashing or silently showing a blank canvas
-**Plans:** 2/7 plans executed
+**Plans:** 5/7 plans executed
 Plans:
 - [x] 04-00-PLAN.md — Wave 0 test scaffolds (7 red test files + fixture PDF)
 - [x] 04-01-PLAN.md — Schema, serialize, project-io (SHA256 + path math), IPC triad
 - [x] 04-02-PLAN.md — projectStore + hydrate/reset methods + subscribeWithSelector dirty-tracking
 - [x] 04-03-PLAN.md — useProject hook, usePdfDocument refactor, 4 recovery modals
-- [ ] 04-04-PLAN.md — Toolbar Open/Save/SaveAs, TitleBar dirty asterisk, Ctrl+S/Shift+S, App modal router
+- [x] 04-04-PLAN.md — Toolbar Open/Save/SaveAs, TitleBar dirty asterisk, Ctrl+S/Shift+S, App modal router
 - [ ] 04-05-PLAN.md — Close-window guard (main+renderer) + SaveCloseModal (D-16/D-21)
 - [ ] 04-06-PLAN.md — Human-verify checkpoint + PERS-01/PERS-02 closure + ROADMAP update
 
@@ -136,7 +136,7 @@ Plans:
 | 2. Scale Calibration | 3/3 | Complete   | 2026-04-20 |
 | 3. Markup Tools and Editing | 5/5 | Complete | 2026-04-21 |
 | 3.1. Markup Gap Closure and Visual Redesign | 6/6 | Complete | 2026-04-21 |
-| 4. Project Persistence | 2/7 | In Progress|  |
+| 4. Project Persistence | 5/7 | In Progress|  |
 | 5. BOQ Export | 0/0 | Not started | - |
 | 6. Live View and UI Polish | 0/0 | Not started | - |
 
