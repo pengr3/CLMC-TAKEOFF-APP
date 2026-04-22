@@ -4,7 +4,10 @@ import { useMarkupStore } from '../stores/markupStore'
 import { getMarkupUndoHandler } from '../lib/markup-undo-ref'
 
 interface KeyboardShortcutHandlers {
-  openPdf: () => void
+  openPdf: () => void                          // kept for backwards compat
+  openProject: () => void                      // Ctrl+O — extension-sniffing Open (D-20)
+  saveProject: () => void                      // Ctrl+S (routes to Save As if no path — handled inside useProject)
+  saveProjectAs: () => void                    // Ctrl+Shift+S
   zoomIn: () => void
   zoomOut: () => void
   fitToWindow: () => void
@@ -35,15 +38,40 @@ export function isTextInputActive(): boolean {
   return false
 }
 
+/**
+ * Pure helper used by both the shortcut handler and the unit test.
+ * "Ctrl+S on a project that has never been saved routes through Save As" — D-13.
+ */
+export function chooseSaveShortcut(currentFilePath: string | null): 'save' | 'save-as' {
+  return currentFilePath ? 'save' : 'save-as'
+}
+
 export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
   const totalPages = useViewerStore((s) => s.totalPages)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
-      // Ctrl+O: Open PDF
-      if (e.ctrlKey && e.key === 'o') {
+      // Ctrl+O: extension-sniffing open (D-20)
+      if (e.ctrlKey && !e.shiftKey && e.key === 'o') {
+        if (isTextInputActive()) return
         e.preventDefault()
-        handlers.openPdf()
+        handlers.openProject()
+        return
+      }
+
+      // Ctrl+Shift+S: Save As (must be checked before Ctrl+S to avoid conflict)
+      if (e.ctrlKey && e.shiftKey && (e.key === 's' || e.key === 'S')) {
+        if (isTextInputActive()) return
+        e.preventDefault()
+        handlers.saveProjectAs()
+        return
+      }
+
+      // Ctrl+S: Save (routes to Save As internally if currentFilePath is null — D-13)
+      if (e.ctrlKey && !e.shiftKey && (e.key === 's' || e.key === 'S')) {
+        if (isTextInputActive()) return
+        e.preventDefault()
+        handlers.saveProject()
         return
       }
 

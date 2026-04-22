@@ -349,8 +349,14 @@ export function CanvasViewport() {
   }, [activate, activateVerify, cancel])
 
   // Keyboard shortcuts
+  // Note: openProject, saveProject, saveProjectAs are wired in App.tsx (Plan 04-04 Task 3).
+  // CanvasViewport passes no-op stubs here to satisfy the updated interface; App.tsx
+  // owns the actual handlers via useKeyboardShortcuts at the top level.
   useKeyboardShortcuts({
     openPdf: openPdfDialog,
+    openProject: openPdfDialog,
+    saveProject: () => {},
+    saveProjectAs: () => {},
     zoomIn,
     zoomOut,
     fitToWindow
