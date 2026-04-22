@@ -29,6 +29,8 @@ export interface ViewerState {
   getPageScale: (page: number) => ScaleState | null
   clearPageScale: (page: number) => void
   setActiveTool: (tool: ActiveTool) => void
+
+  hydrate: (data: { currentPage: number; pageViewports: Record<number, ViewportState> }) => void
 }
 
 export const DEFAULT_VIEWPORT: ViewportState = { zoom: 1, panX: 0, panY: 0 }

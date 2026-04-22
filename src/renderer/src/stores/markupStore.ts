@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { subscribeWithSelector } from 'zustand/middleware'
 import type { Markup, Category, MarkupCommand, CountMarkup } from '../types/markup'
 import { CATEGORY_PALETTE, UNDO_STACK_MAX } from '../types/markup'
 
@@ -25,6 +26,13 @@ interface MarkupStoreState {
   redo: () => void
   canUndo: () => boolean
   canRedo: () => boolean
+
+  hydrate: (data: {
+    pageMarkups: Record<number, Markup[]>
+    categories: Record<string, Category>
+    categoryOrder: string[]
+  }) => void
+  reset: () => void
 }
 
 function pushCommand(stack: MarkupCommand[], cmd: MarkupCommand): MarkupCommand[] {
@@ -32,7 +40,8 @@ function pushCommand(stack: MarkupCommand[], cmd: MarkupCommand): MarkupCommand[
   return next.length > UNDO_STACK_MAX ? next.slice(next.length - UNDO_STACK_MAX) : next
 }
 
-export const useMarkupStore = create<MarkupStoreState>((set, get) => ({
+export const useMarkupStore = create<MarkupStoreState>()(
+  subscribeWithSelector((set, get) => ({
   pageMarkups: {},
   categories: {},
   categoryOrder: [],
@@ -232,5 +241,24 @@ export const useMarkupStore = create<MarkupStoreState>((set, get) => ({
     }),
 
   canUndo: () => get().undoStack.length > 0,
-  canRedo: () => get().redoStack.length > 0
+  canRedo: () => get().redoStack.length > 0,
+
+  hydrate: (data) =>
+    set({
+      pageMarkups: data.pageMarkups,
+      categories: data.categories,
+      categoryOrder: data.categoryOrder,
+      undoStack: [],
+      redoStack: []
+    }),
+
+  reset: () =>
+    set({
+      pageMarkups: {},
+      categories: {},
+      categoryOrder: [],
+      undoStack: [],
+      redoStack: []
+    })
 }))
+)

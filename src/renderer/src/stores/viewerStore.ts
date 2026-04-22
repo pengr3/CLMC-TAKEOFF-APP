@@ -1,7 +1,9 @@
 import { create } from 'zustand'
+import { subscribeWithSelector } from 'zustand/middleware'
 import { ViewerState, DEFAULT_VIEWPORT, ActiveTool } from '../types/viewer'
 
-export const useViewerStore = create<ViewerState>((set, get) => ({
+export const useViewerStore = create<ViewerState>()(
+  subscribeWithSelector((set, get) => ({
   filePath: null,
   fileName: null,
   currentPage: 1,
@@ -84,5 +86,13 @@ export const useViewerStore = create<ViewerState>((set, get) => ({
       return { pageScales: rest }
     }),
 
-  setActiveTool: (tool) => set({ activeTool: tool })
+  setActiveTool: (tool) => set({ activeTool: tool }),
+
+  hydrate: (data) =>
+    set({
+      currentPage: data.currentPage,
+      pageViewports: data.pageViewports,
+      activeTool: 'select' as ActiveTool
+    })
 }))
+)
