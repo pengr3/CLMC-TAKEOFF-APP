@@ -13,6 +13,10 @@ interface ElectronAPI {
     relativePath: string | null
   ) => Promise<{ resolvedPath: string; source: 'absolute' | 'relative' } | null>
   computeRelativePath: (clmcPath: string, pdfPath: string) => Promise<string | null>
+  // Close guard (D-16)
+  onCloseRequest: (callback: () => void) => void
+  offCloseRequest: (callback: () => void) => void
+  confirmClose: () => void
 }
 
 declare global {

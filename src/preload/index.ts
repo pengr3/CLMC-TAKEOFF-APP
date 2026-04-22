@@ -4,6 +4,10 @@ import { contextBridge, ipcRenderer, webFrame } from 'electron'
 // This complements disable-pinch (compositor) and setVisualZoomLevelLimits (visual zoom).
 webFrame.setVisualZoomLevelLimits(1, 1)
 
+// Pitfall 10: WeakMap preserves the 1:1 user-callback → wrapped-listener mapping
+// so offCloseRequest correctly removes the right internal listener.
+const closeRequestListeners = new WeakMap<() => void, (...args: unknown[]) => void>()
+
 const api = {
   openPdf: (): Promise<{ filePath: string; data: ArrayBuffer } | null> =>
     ipcRenderer.invoke('dialog:openPdf'),
@@ -38,7 +42,27 @@ const api = {
 
   // Path math in main (CONTEXT.md). Returns null on cross-drive (Pitfall 4).
   computeRelativePath: (clmcPath: string, pdfPath: string): Promise<string | null> =>
-    ipcRenderer.invoke('file:computeRelativePath', clmcPath, pdfPath)
+    ipcRenderer.invoke('file:computeRelativePath', clmcPath, pdfPath),
+
+  // Close guard (D-16) — fire-and-forget IPC pair.
+  // onCloseRequest: register a zero-arg callback fired when main wants to close.
+  // offCloseRequest: remove the same callback (WeakMap preserves wrapped listener).
+  // confirmClose: tell main "go ahead and close" after async save/discard resolves.
+  onCloseRequest: (cb: () => void): void => {
+    const wrapped = (): void => cb()
+    closeRequestListeners.set(cb, wrapped)
+    ipcRenderer.on('app:close-request', wrapped)
+  },
+  offCloseRequest: (cb: () => void): void => {
+    const wrapped = closeRequestListeners.get(cb)
+    if (wrapped) {
+      ipcRenderer.removeListener('app:close-request', wrapped)
+      closeRequestListeners.delete(cb)
+    }
+  },
+  confirmClose: (): void => {
+    ipcRenderer.send('app:confirm-close')
+  }
 }
 
 contextBridge.exposeInMainWorld('api', api)

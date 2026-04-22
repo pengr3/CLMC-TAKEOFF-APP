@@ -1,8 +1,11 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { registerIpcHandlers } from './ipc-handlers'
+
+let canClose = false
+let mainWindowRef: BrowserWindow | null = null
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -28,6 +31,15 @@ function createWindow(): void {
       sandbox: false,
       zoomFactor: 1
     }
+  })
+
+  mainWindowRef = mainWindow
+
+  // Close guard (D-16): always intercept close, signal renderer, wait for confirmClose.
+  mainWindow.on('close', (event) => {
+    if (canClose) return
+    event.preventDefault()
+    mainWindow.webContents.send('app:close-request')
   })
 
   // Disable Chromium's built-in pinch/scroll zoom entirely.
@@ -72,6 +84,13 @@ app.whenReady().then(() => {
   })
 
   registerIpcHandlers()
+
+  // Confirm-close listener: renderer calls this after save/discard decision resolves.
+  // Sets canClose=true then re-triggers the OS close — next close event is allowed through.
+  ipcMain.on('app:confirm-close', () => {
+    canClose = true
+    mainWindowRef?.close()
+  })
 
   createWindow()
 
