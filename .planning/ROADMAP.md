@@ -99,7 +99,7 @@ Plans:
 Plans:
 - [x] 04-00-PLAN.md — Wave 0 test scaffolds (7 red test files + fixture PDF)
 - [x] 04-01-PLAN.md — Schema, serialize, project-io (SHA256 + path math), IPC triad
-- [ ] 04-02-PLAN.md — projectStore + hydrate/reset methods + subscribeWithSelector dirty-tracking
+- [x] 04-02-PLAN.md — projectStore + hydrate/reset methods + subscribeWithSelector dirty-tracking
 - [ ] 04-03-PLAN.md — useProject hook, usePdfDocument refactor, 4 recovery modals
 - [ ] 04-04-PLAN.md — Toolbar Open/Save/SaveAs, TitleBar dirty asterisk, Ctrl+S/Shift+S, App modal router
 - [ ] 04-05-PLAN.md — Close-window guard (main+renderer) + SaveCloseModal (D-16/D-21)
