@@ -8,10 +8,12 @@ import { MissingPdfModal } from './components/MissingPdfModal'
 import { HashMismatchModal } from './components/HashMismatchModal'
 import { DimensionMismatchModal } from './components/DimensionMismatchModal'
 import { PageCountAbortModal } from './components/PageCountAbortModal'
+import { SaveCloseModal } from './components/SaveCloseModal'
 import { useViewerStore } from './stores/viewerStore'
-import { attachDirtyTracking } from './stores/projectStore'
+import { attachDirtyTracking, useProjectStore } from './stores/projectStore'
 import { useProject, type ProjectOpenResult } from './hooks/useProject'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { useCloseGuard } from './hooks/useCloseGuard'
 import { getCanvasControls } from './components/CanvasViewport'
 import type { ProjectFileV1 } from './lib/project-schema'
 
@@ -19,8 +21,10 @@ function basename(p: string): string { return p.split(/[\\/]/).pop() ?? p }
 
 function App(): React.JSX.Element {
   const totalPages = useViewerStore((s) => s.totalPages)
+  const fileName = useViewerStore((s) => s.fileName)
+  const currentFilePath = useProjectStore((s) => s.currentFilePath)
   const {
-    openProjectDialog,
+    openByExtension,
     saveProject,
     saveProjectAs,
     relinkPdf,
@@ -33,6 +37,13 @@ function App(): React.JSX.Element {
   const [dimMiss, setDimMiss] = useState<{ resolvedPdfPath: string; data: ProjectFileV1; clmcPath: string } | null>(null)
   const [pageAbort, setPageAbort] = useState<{ expected: number; actual: number; data: ProjectFileV1; clmcPath: string } | null>(null)
   const [saveToast, setSaveToast] = useState<string | null>(null)
+  const [closeModal, setCloseModal] = useState<'close-window' | 'open-other' | null>(null)
+  const [pendingOpen, setPendingOpen] = useState<{ filePath: string; extension: string } | null>(null)
+
+  // Derived display name for the SaveCloseModal prompt
+  const displayFilename = currentFilePath
+    ? (currentFilePath.split(/[\\/]/).pop() ?? 'project')
+    : (fileName ?? 'project')
 
   // Attach dirty tracking once on mount (Pitfall 10)
   useEffect(() => attachDirtyTracking(), [])
@@ -63,6 +74,16 @@ function App(): React.JSX.Element {
     return () => window.clearTimeout(t)
   }, [saveToast])
 
+  // D-16: intercept window close. If not dirty, confirm immediately (no modal).
+  // If dirty, show SaveCloseModal so user can save/discard/cancel before the window closes.
+  useCloseGuard(() => {
+    if (!useProjectStore.getState().isDirty) {
+      window.api.confirmClose()
+      return
+    }
+    setCloseModal('close-window')
+  })
+
   const handleOpenResult = useCallback((result: ProjectOpenResult | null): void => {
     if (!result || result.kind === 'canceled') return
     if (result.kind === 'ok') { setMissing(null); setHashMiss(null); setDimMiss(null); setPageAbort(null); return }
@@ -73,10 +94,20 @@ function App(): React.JSX.Element {
     if (result.kind === 'error') { console.error('[App] open error:', result.message); return }
   }, [])
 
+  // D-21: open-while-dirty guard. Show picker first (user may cancel), THEN check dirty.
+  // If dirty, park the picked file in pendingOpen and show SaveCloseModal.
+  // If clean, route directly to openByExtension (same as before).
   const handleOpenClick = useCallback(async () => {
-    const r = await openProjectDialog()
+    const picked = await window.api.openProject()
+    if (!picked) return
+    if (useProjectStore.getState().isDirty) {
+      setPendingOpen({ filePath: picked.filePath, extension: picked.extension })
+      setCloseModal('open-other')
+      return
+    }
+    const r = await openByExtension(picked.filePath, picked.extension)
     handleOpenResult(r)
-  }, [openProjectDialog, handleOpenResult])
+  }, [openByExtension, handleOpenResult])
 
   const handleSaveClick = useCallback(async () => {
     const r = await saveProject()
@@ -187,6 +218,43 @@ function App(): React.JSX.Element {
             handleOpenResult(r)
           }}
           onCancel={() => setPageAbort(null)}
+        />
+      )}
+
+      {/* D-16 / D-21: close-window and open-while-dirty guard modal (zIndex 120 > others) */}
+      {closeModal && (
+        <SaveCloseModal
+          filename={displayFilename}
+          onSave={async () => {
+            const r = await saveProject()
+            if (r === 'ok') {
+              setSaveToast('Saved')
+              if (closeModal === 'close-window') {
+                window.api.confirmClose()
+              } else if (closeModal === 'open-other' && pendingOpen) {
+                const res = await openByExtension(pendingOpen.filePath, pendingOpen.extension)
+                handleOpenResult(res)
+              }
+              setCloseModal(null)
+              setPendingOpen(null)
+            }
+            // If save was canceled (user dismissed the Save As dialog), keep the modal
+            // open — user can retry Save or choose Discard/Cancel instead.
+          }}
+          onDiscard={async () => {
+            if (closeModal === 'close-window') {
+              window.api.confirmClose()
+            } else if (closeModal === 'open-other' && pendingOpen) {
+              const res = await openByExtension(pendingOpen.filePath, pendingOpen.extension)
+              handleOpenResult(res)
+            }
+            setCloseModal(null)
+            setPendingOpen(null)
+          }}
+          onCancel={() => {
+            setCloseModal(null)
+            setPendingOpen(null)
+          }}
         />
       )}
     </div>
