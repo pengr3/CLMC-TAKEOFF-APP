@@ -42,8 +42,8 @@
 
 ### Project Persistence
 
-- [ ] **PERS-01**: User can save the current project (PDF file reference + all markup positions + per-page scale) to a .clmc project file
-- [ ] **PERS-02**: User can reopen a .clmc project file and continue marking up where they left off
+- [x] **PERS-01**: User can save the current project (PDF file reference + all markup positions + per-page scale) to a .clmc project file
+- [x] **PERS-02**: User can reopen a .clmc project file and continue marking up where they left off
 
 ### Export
 
@@ -111,8 +111,8 @@
 | MARK-08 | Phase 3 (revised by 03.1) | Complete |
 | MARK-09 | Phase 3 | Complete |
 | MARK-10 | Phase 3 | Complete |
-| PERS-01 | Phase 4 | Pending |
-| PERS-02 | Phase 4 | Pending |
+| PERS-01 | Phase 4 | Complete |
+| PERS-02 | Phase 4 | Complete |
 | EXPRT-01 | Phase 5 | Pending |
 | EXPRT-02 | Phase 5 | Pending |
 | VIEW-01 | Phase 6 | Pending |
