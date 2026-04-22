@@ -10,11 +10,13 @@ import {
   MapPin,
   Minus,
   Square,
-  Hexagon
+  Hexagon,
+  Save,
+  SaveAll
 } from 'lucide-react'
 import { useViewerStore } from '../stores/viewerStore'
 import { useScaleStore } from '../stores/scaleStore'
-import { usePdfDocument } from '../hooks/usePdfDocument'
+import { useProject } from '../hooks/useProject'
 import { getCanvasControls, getCalibrationControls } from './CanvasViewport'
 import { ScaleContextMenu } from './ScaleContextMenu'
 import { MIN_ZOOM, MAX_ZOOM, COLORS } from '../lib/constants'
@@ -92,22 +94,21 @@ export function Toolbar(): React.JSX.Element {
   const setActiveTool = useViewerStore((s) => s.setActiveTool)
   const getScale = useScaleStore((s) => s.getScale)
   const calibMode = useScaleStore((s) => s.calibMode)
-  const { openPdfDialog } = usePdfDocument()
+
+  // useProject called ONCE per render; save/open callbacks destructured for buttons
+  const { saveProject, saveProjectAs, openProjectDialog } = useProject()
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
 
   const pageScale = totalPages > 0 ? getScale(currentPage) : null
   const setScaleDisabled = totalPages === 0
   const isCalibrating = calibMode !== 'idle'
+  const saveDisabled = totalPages === 0
 
   const currentZoom = totalPages > 0 ? getViewport(currentPage).zoom : 1
   const zoomPct = Math.round(currentZoom * 100)
   // Highlight zoom text when not at 100% (tolerance of 0.01 for float comparison)
   const isZoomDefault = Math.abs(currentZoom - 1.0) < 0.01
-
-  const handleOpenPdf = async (): Promise<void> => {
-    await openPdfDialog()
-  }
 
   const handleZoomIn = (): void => {
     const controls = getCanvasControls()
@@ -179,12 +180,12 @@ export function Toolbar(): React.JSX.Element {
         flexShrink: 0
       }}
     >
-      {/* Left: Open PDF */}
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      {/* Left: Open + Save + Save As */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <button
-          onClick={handleOpenPdf}
-          title="Open PDF file (Ctrl+O)"
-          aria-label="Open PDF file (Ctrl+O)"
+          onClick={() => { void openProjectDialog() }}
+          title="Open project or PDF (Ctrl+O)"
+          aria-label="Open project or PDF (Ctrl+O)"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -214,8 +215,24 @@ export function Toolbar(): React.JSX.Element {
           }}
         >
           <FileUp size={16} color="#ffffff" />
-          <span>Open PDF</span>
+          <span>Open</span>
         </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8 }}>
+          <IconButton
+            icon={Save}
+            label="Save"
+            disabled={saveDisabled}
+            onClick={() => { void saveProject() }}
+            title="Save (Ctrl+S)"
+          />
+          <IconButton
+            icon={SaveAll}
+            label="Save As"
+            disabled={saveDisabled}
+            onClick={() => { void saveProjectAs() }}
+            title="Save As (Ctrl+Shift+S)"
+          />
+        </div>
       </div>
 
       {/* Center: Page navigation */}
@@ -274,7 +291,7 @@ export function Toolbar(): React.JSX.Element {
                   cursor: 'pointer'
                 }}
               >
-                {'\u25BE'}
+                {'▾'}
               </span>
             )}
           </IconButton>
