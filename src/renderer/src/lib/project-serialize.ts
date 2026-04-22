@@ -2,6 +2,11 @@ import type { ProjectFileV1 } from './project-schema'
 import { useMarkupStore } from '../stores/markupStore'
 import { useScaleStore } from '../stores/scaleStore'
 import { useViewerStore } from '../stores/viewerStore'
+import {
+  useProjectStore,
+  suspendDirtyTracking,
+  resumeDirtyTracking
+} from '../stores/projectStore'
 import type { Markup } from '../types/markup'
 import type { PageScale } from '../types/scale'
 import type { ViewportState } from '../types/viewer'
@@ -59,47 +64,55 @@ export function snapshotProject(params: SnapshotParams): ProjectFileV1 {
 
 /**
  * Hydrate the three Zustand stores from a validated ProjectFileV1.
- * One setState() per store to avoid intermediate re-renders (Pitfall 2).
+ * Brackets all store writes with suspendDirtyTracking()/resumeDirtyTracking()
+ * so opening a .clmc file does NOT leave isDirty=true (Pitfall 1).
+ * Each store's dedicated hydrate() method uses ONE setState call per store (Pitfall 2).
+ * Calls reset() before hydrate() to guarantee a clean slate when opening
+ * a second project in the same session (Runtime State Inventory).
  * Excludes transient state (D-09): undoStack, redoStack, calibMode, activeTool.
- *
- * Wave 1 implementation uses setState directly. Wave 2 will introduce
- * dedicated hydrate(snapshot) methods on each store and a _hydrating
- * guard to suspend dirty-flag tracking — until then, hydrate() writes
- * still flip dirty (the projectStore + subscription land in Wave 2).
  */
 export function hydrateStores(data: ProjectFileV1): void {
-  // Rebuild per-page maps from the dense pages array
-  const pageMarkups: Record<number, Markup[]> = {}
-  const pageScales: Record<number, PageScale> = {}
-  const pageViewports: Record<number, ViewportState> = {}
+  suspendDirtyTracking()
+  try {
+    // Rebuild per-page maps from the dense pages array
+    const pageMarkups: Record<number, Markup[]> = {}
+    const pageScales: Record<number, PageScale> = {}
+    const pageViewports: Record<number, ViewportState> = {}
 
-  for (const page of data.pages) {
-    pageMarkups[page.pageIndex] = page.markups
-    if (page.scale) pageScales[page.pageIndex] = page.scale
-    pageViewports[page.pageIndex] = page.viewport
+    for (const page of data.pages) {
+      pageMarkups[page.pageIndex] = page.markups
+      if (page.scale) pageScales[page.pageIndex] = page.scale
+      pageViewports[page.pageIndex] = page.viewport
+    }
+
+    // Clean slate first (Runtime State Inventory — opening a 2nd project in same session).
+    useMarkupStore.getState().reset()
+    useScaleStore.getState().reset()
+    // viewerStore keeps its existing resetViewer for filePath/fileName etc;
+    // we don't call it here because loadPdfFromPath will set those fields.
+
+    // Each hydrate() is ONE setState call per store.
+    useMarkupStore.getState().hydrate({
+      pageMarkups,
+      categories: data.categories,
+      categoryOrder: data.categoryOrder
+    })
+
+    useScaleStore.getState().hydrate({
+      pageScales,
+      globalUnit: data.globalUnit
+    })
+
+    // viewerStore — do NOT touch filePath/fileName/totalPages here;
+    // those are owned by usePdfDocument.loadPdfFromPath which runs after hydrate.
+    useViewerStore.getState().hydrate({
+      currentPage: data.currentPage,
+      pageViewports
+    })
+  } finally {
+    resumeDirtyTracking()
+    // Final safety reset — even if a subscription fired in the wrong order during
+    // the brief window between reset() and hydrate(), mark clean here.
+    useProjectStore.setState({ isDirty: false })
   }
-
-  // markupStore — single setState
-  useMarkupStore.setState({
-    pageMarkups,
-    categories: data.categories,
-    categoryOrder: data.categoryOrder,
-    undoStack: [],
-    redoStack: []
-  })
-
-  // scaleStore — single setState
-  useScaleStore.setState({
-    pageScales,
-    globalUnit: data.globalUnit,
-    calibMode: 'idle'
-  })
-
-  // viewerStore — single setState (do NOT touch filePath/fileName/totalPages here;
-  // those are owned by usePdfDocument.loadPdfFromPath which runs after hydrate)
-  useViewerStore.setState({
-    currentPage: data.currentPage,
-    pageViewports,
-    activeTool: 'select'
-  })
 }
