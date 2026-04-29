@@ -1,50 +1,35 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-17T10:46:46.938Z",
-  "phase": "2",
-  "phase_name": "Scale Calibration",
-  "phase_dir": ".planning/phases/02-scale-calibration",
+  "timestamp": "2026-04-29T10:20:51.004Z",
+  "phase": "04",
+  "phase_name": "project-persistence",
+  "phase_dir": ".planning/phases/04-project-persistence",
   "plan": null,
   "task": null,
   "total_tasks": null,
-  "status": "paused",
+  "status": "paused — phase 04 complete, scoping new phase 4.1",
   "completed_tasks": [
-    {
-      "id": "plan-phase",
-      "name": "Plan Phase 2 with cross-AI review feedback incorporated",
-      "status": "done",
-      "commit": "145034a"
-    }
+    {"id": 1, "name": "Phase 04 all 8 plans executed", "status": "done", "commit": "b3a1c66"},
+    {"id": 2, "name": "ENOENT guard + OpenErrorModal ok-branch fix (04-07 gap closure)", "status": "done", "commit": "4cf2622"},
+    {"id": 3, "name": "Toolbar onOpenClick prop wiring + window show guard + regression test", "status": "done", "commit": "0cf4446"},
+    {"id": 4, "name": "Phase 04 VERIFICATION.md — all human sections F/G/H passed", "status": "done", "commit": "0cf4446"}
   ],
-  "remaining_tasks": [
-    {
-      "id": "execute-phase-2",
-      "name": "Execute Phase 2 — 3 plans across 3 waves",
-      "status": "not_started"
-    }
-  ],
+  "remaining_tasks": [],
   "blockers": [],
   "human_actions_pending": [],
   "decisions": [
     {
-      "decision": "Store scale as pixelsPerMm (unit-agnostic base) instead of pixelsPerUnit",
-      "rationale": "Cross-AI review (Gemini) identified that changing globalUnit after calibration would silently corrupt stored pixelsPerUnit values. pixelsPerMm is unit-agnostic so setGlobalUnit only affects display, not stored calibration data.",
-      "phase": "2"
-    },
-    {
-      "decision": "Move calibMode into Zustand scaleStore instead of module-level ref polling",
-      "rationale": "Gemini flagged the 100ms setInterval polling of getCalibrationControls().getMode() as a reactive anti-pattern. calibMode: CalibMode added to ScaleState so Toolbar subscribes reactively via useScaleStore.",
-      "phase": "2"
-    },
-    {
-      "decision": "ConfirmationToast is persistent — no auto-dismiss timer",
-      "rationale": "Gemini noted 6s is too short for an estimator to pan/zoom to a second known dimension. Toast now stays until user clicks Verify/Dismiss or navigates to a different page.",
-      "phase": "2"
+      "decision": "Embed PDF inside .clmc file using ZIP archive format (jszip)",
+      "rationale": "User raised portability concern: current design stores external PDF path, which breaks when .clmc is transferred to another PC with a different path or filename. User wants a single self-contained file any user can open on any machine. Four options considered: ZIP (jszip), custom flat binary, SQLite (sql.js), base64 JSON. ZIP/jszip chosen as best: pure JS (no native addon), standard inspectable format, no size overhead, easy migration from old plain-JSON .clmc files.",
+      "phase": "04.1-planned"
     }
   ],
   "uncommitted_files": [
-    ".planning/STATE.md"
+    ".claude/ (memory system — not repo files)",
+    ".planning/debug/electron-window-no-show-on-second-dev-run.md",
+    ".planning/debug/missing-pdf-modal-not-appearing.md",
+    ".planning/quick/260429-k5x-remove-optimizedeps-exclude-pdfjs-dist-f/"
   ],
-  "next_action": "Run /gsd:execute-phase 2 in a fresh context window to execute all 3 plans (Wave 1: types+math+store, Wave 2: calibration interaction, Wave 3: status bar+verify+toast)",
-  "context_notes": "Phase 2 planning is complete and verified. Three plans revised from the original set to incorporate Gemini's cross-AI review. All MEDIUM concerns addressed. Plan checker passed. Ready to execute."
+  "next_action": "Plan Phase 4.1: change .clmc format from plain JSON to ZIP archive (jszip) embedding the PDF. Migration: on open, detect ZIP vs plain JSON, upgrade in-place. On save: store project.json + plan.pdf inside the archive. Remove absolutePath/relativePath resolution entirely — PDF is always self-contained.",
+  "context_notes": "Phase 04 is 100% complete. All 253 tests pass. Human UAT sections A-H all passed. The new requirement is NOT in the roadmap — it needs a new phase (4.1). The user explicitly asked about single-file format options, chose ZIP/jszip, and paused before planning started. Resume by planning Phase 4.1."
 }
