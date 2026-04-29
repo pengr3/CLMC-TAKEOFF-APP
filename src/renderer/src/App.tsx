@@ -134,7 +134,7 @@ function App(): React.JSX.Element {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
       <TitleBar />
-      <Toolbar />
+      <Toolbar onOpenClick={handleOpenClick} />
       <main
         style={{
           flex: 1,

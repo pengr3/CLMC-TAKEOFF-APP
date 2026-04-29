@@ -54,9 +54,21 @@ function createWindow(): void {
   // Also lock zoom immediately for the initial load
   lockZoom()
 
-  mainWindow.on('ready-to-show', () => {
+  // Show the window once content is loaded.
+  // `ready-to-show` is the preferred trigger but is unreliable on Windows
+  // (electron/electron #25253, #7779, #6427) — it intermittently does not
+  // fire on subsequent dev runs, leaving the window created-but-hidden
+  // because we use `show: false`. Fall back to `did-finish-load` with an
+  // idempotency guard so show() is called exactly once whichever event
+  // arrives first.
+  let hasShown = false
+  const showOnce = (): void => {
+    if (hasShown || mainWindow.isDestroyed()) return
+    hasShown = true
     mainWindow.show()
-  })
+  }
+  mainWindow.on('ready-to-show', showOnce)
+  mainWindow.webContents.on('did-finish-load', showOnce)
 
 
   mainWindow.webContents.setWindowOpenHandler((details) => {

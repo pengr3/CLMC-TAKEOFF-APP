@@ -87,7 +87,18 @@ function IconButton({
   )
 }
 
-export function Toolbar(): React.JSX.Element {
+export interface ToolbarProps {
+  /**
+   * Called when the user clicks the Open button. Owned by App.tsx so the
+   * dirty-guard + result-routing through handleOpenResult (which mounts
+   * MissingPdfModal/HashMismatchModal/etc.) stays in one place. Toolbar must
+   * NOT call useProject().openProjectDialog directly — that path discards the
+   * ProjectOpenResult and recovery modals never appear.
+   */
+  onOpenClick: () => void | Promise<void>
+}
+
+export function Toolbar({ onOpenClick }: ToolbarProps): React.JSX.Element {
   const { totalPages, currentPage, nextPage, prevPage } = useViewerStore()
   const getViewport = useViewerStore((s) => s.getViewport)
   const activeTool = useViewerStore((s) => s.activeTool)
@@ -95,8 +106,9 @@ export function Toolbar(): React.JSX.Element {
   const getScale = useScaleStore((s) => s.getScale)
   const calibMode = useScaleStore((s) => s.calibMode)
 
-  // useProject called ONCE per render; save/open callbacks destructured for buttons
-  const { saveProject, saveProjectAs, openProjectDialog } = useProject()
+  // useProject called ONCE per render; save callbacks destructured for buttons.
+  // Open is routed via the onOpenClick prop (owned by App.tsx) — see ToolbarProps.
+  const { saveProject, saveProjectAs } = useProject()
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
 
@@ -183,7 +195,7 @@ export function Toolbar(): React.JSX.Element {
       {/* Left: Open + Save + Save As */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <button
-          onClick={() => { void openProjectDialog() }}
+          onClick={() => { void onOpenClick() }}
           title="Open project or PDF (Ctrl+O)"
           aria-label="Open project or PDF (Ctrl+O)"
           style={{
