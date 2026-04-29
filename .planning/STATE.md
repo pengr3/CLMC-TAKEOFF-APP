@@ -3,13 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-05-PLAN.md — close guard + open-while-dirty guard (D-16, D-21)
-last_updated: "2026-04-22T02:43:09.811Z"
+stopped_at: "Completed 04-07-PLAN.md — gap closure F/G/H: ENOENT guard, OpenErrorModal, contract tests"
+last_updated: "2026-04-29T07:38:09.578Z"
+last_activity: 2026-04-29
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 25
-  completed_plans: 24
+  total_plans: 26
+  completed_plans: 25
 ---
 
 # Project State: CLMC Takeoff App
@@ -31,7 +32,7 @@ progress:
 ## Current Position
 
 Phase: 04 (project-persistence) — EXECUTING
-Plan: 7 of 7 (gap closure complete)
+Plan: 2 of 8
 
 ## Performance Metrics
 
@@ -122,9 +123,6 @@ Plan: 7 of 7 (gap closure complete)
 | Hover tooltip debounce owned by CanvasViewport not MarkupTooltip | MarkupTooltip stays pure presentational; parent holds the 200ms window.setTimeout ref and cancels on leave/context-open. Mirrors ConfirmationToast parent-owns-lifecycle pattern |
 | MarkupContextMenu currentColor wired to contextMarkup.color (not getColorForName) | The pin the user right-clicked is authoritative — avoids UI surprise if name-group has drifted colors. recolorGroup still flips the whole name-group per D-29 |
 | Konva onContextMenu handlers translate event via stage.getPointerPosition() then call e.evt.preventDefault() | Screen-space pointer is correct at any zoom because getPointerPosition reads raw mouse coords (unaffected by Stage transform); preventDefault suppresses the browser's native right-click menu on the canvas |
-| routeOpenResult pure helper exported from useProject.ts (not App.tsx) | .test.ts files can test modal dispatch without mounting React — mirrors routeOpenByExtension pattern |
-| ENOENT guard uses dedicated inner try/catch around hashPdf only | hashPdf throwing after resolvePdfPath succeeds now returns missing-pdf result instead of generic error |
-| OpenErrorModal uses single Close button (no recovery) | Surfaces kind=error results that were previously console-only; no safe recovery action for generic open errors |
 
 ### Critical Pitfalls to Watch
 
@@ -148,6 +146,12 @@ Plan: 7 of 7 (gap closure complete)
 
 None.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260429-jov | Restore optimizeDeps exclude pdfjs-dist in electron.vite.config.ts | 2026-04-29 | 0442ebc | [260429-jov-restore-optimizedeps-exclude-pdfjs-dist-](./quick/260429-jov-restore-optimizedeps-exclude-pdfjs-dist-/) |
+
 ### Roadmap Evolution
 
 - Phase 03.1 inserted after Phase 3: Markup Gap Closure and Visual Redesign (URGENT) — supersedes MARK-08 per-category-color must-have, revises UI-SPEC D-04/D-13 count pin label format, closes 4 bugs surfaced in Plan 03-05 human verification (spacebar blocked in text inputs, Linear/Area label legibility, stale currentZoom after zoom)
@@ -156,11 +160,13 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-29T07:36:50Z
+**Last activity:** 2026-04-29
+
+**Last session:** 2026-04-29T07:38:09.573Z
 
 **Stopped at:** Completed 04-07-PLAN.md — gap closure F/G/H: ENOENT guard, OpenErrorModal, contract tests
 
-**Next action:** Phase 4 gap closure complete. Re-run 04-06 human verification for sections F/G/H. On approval, flip PERS-01/PERS-02 to [x] in REQUIREMENTS.md and close Phase 4 in ROADMAP.md.
+**Next action:** Continue Phase 04 — execute 04-06-PLAN.md (final plan in persistence phase).
 
 ---
 *State initialized: 2026-03-25*

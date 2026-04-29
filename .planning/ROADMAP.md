@@ -95,7 +95,7 @@ Plans:
   1. User can save the current project to a .clmc file; the saved file contains the PDF file reference, all markup positions and names, per-page scale calibrations, and a format version field
   2. User can reopen a saved .clmc file and every markup appears on the correct position on the correct page, indistinguishable from the state at save time
   3. If the original PDF file has been moved or renamed, the app shows a clear "PDF not found" message with a Browse button to re-link it — rather than crashing or silently showing a blank canvas
-**Plans:** 6/8 plans executed (gap-closure 04-07 added 2026-04-29 after 04-06 checkpoint surfaced F/G/H modal silent-failure)
+**Plans:** 7/8 plans executed
 Plans:
 - [x] 04-00-PLAN.md — Wave 0 test scaffolds (7 red test files + fixture PDF)
 - [x] 04-01-PLAN.md — Schema, serialize, project-io (SHA256 + path math), IPC triad
@@ -137,7 +137,7 @@ Plans:
 | 2. Scale Calibration | 3/3 | Complete   | 2026-04-20 |
 | 3. Markup Tools and Editing | 5/5 | Complete | 2026-04-21 |
 | 3.1. Markup Gap Closure and Visual Redesign | 6/6 | Complete | 2026-04-21 |
-| 4. Project Persistence | 6/7 | In Progress|  |
+| 4. Project Persistence | 7/8 | In Progress|  |
 | 5. BOQ Export | 0/0 | Not started | - |
 | 6. Live View and UI Polish | 0/0 | Not started | - |
 

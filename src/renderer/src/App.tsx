@@ -88,7 +88,7 @@ function App(): React.JSX.Element {
 
   const handleOpenResult = useCallback((result: ProjectOpenResult | null): void => {
     if (!result || result.kind === 'canceled') return
-    if (result.kind === 'ok') { setMissing(null); setHashMiss(null); setDimMiss(null); setPageAbort(null); return }
+    if (result.kind === 'ok') { setMissing(null); setHashMiss(null); setDimMiss(null); setPageAbort(null); setOpenError(null); return }
     if (result.kind === 'missing-pdf') { setMissing({ data: result.data, clmcPath: result.clmcPath }); return }
     if (result.kind === 'hash-mismatch') { setHashMiss({ resolvedPdfPath: result.resolvedPdfPath, data: result.data, clmcPath: result.clmcPath }); return }
     if (result.kind === 'dimension-mismatch') { setDimMiss({ resolvedPdfPath: result.resolvedPdfPath, data: result.data, clmcPath: result.clmcPath }); return }
