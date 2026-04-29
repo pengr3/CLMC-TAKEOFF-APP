@@ -109,14 +109,12 @@ export function useCalibrationMode(
         x: (prev.startPoint.x + prev.endPoint.x) / 2,
         y: (prev.startPoint.y + prev.endPoint.y) / 2
       }
-      const midScreen = transform.point(midPage)
-      const container = stage.container()
-      const rect = container.getBoundingClientRect()
+      const midCanvas = transform.point(midPage)
       return {
         ...prev,
         popupScreenPos: {
-          x: rect.left + midScreen.x,
-          y: rect.top + midScreen.y + 20
+          x: midCanvas.x,
+          y: midCanvas.y + 20
         }
       }
     })
@@ -145,18 +143,16 @@ export function useCalibrationMode(
           return { ...prev, lineTooShort: true }
         }
 
-        // Compute popup position
+        // Compute popup position in container-relative coords (stage canvas = container)
         const transform = stage.getAbsoluteTransform()
         const midPage = {
           x: (prev.startPoint.x + stagePos.x) / 2,
           y: (prev.startPoint.y + stagePos.y) / 2
         }
-        const midScreen = transform.point(midPage)
-        const container = stage.container()
-        const rect = container.getBoundingClientRect()
+        const midCanvas = transform.point(midPage)
         const popupPos = {
-          x: rect.left + midScreen.x,
-          y: rect.top + midScreen.y + 20
+          x: midCanvas.x,
+          y: midCanvas.y + 20
         }
 
         const nextState: CalibrationState = {
