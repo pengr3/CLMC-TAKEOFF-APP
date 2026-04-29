@@ -24,6 +24,23 @@ export type ProjectOpenResult =
   | { kind: 'canceled' }
   | { kind: 'error'; message: string }
 
+/**
+ * Pure helper: maps a ProjectOpenResult.kind to the modal that should appear.
+ * Extracted so App.tsx's handleOpenResult is testable without mounting React.
+ * Returns 'none' for ok/canceled (no modal), or the modal key for error states.
+ */
+export function routeOpenResult(
+  result: ProjectOpenResult | null
+): 'none' | 'missing-pdf' | 'page-count-mismatch' | 'hash-mismatch' | 'dimension-mismatch' | 'open-error' {
+  if (!result || result.kind === 'ok' || result.kind === 'canceled') return 'none'
+  if (result.kind === 'missing-pdf') return 'missing-pdf'
+  if (result.kind === 'page-count-mismatch') return 'page-count-mismatch'
+  if (result.kind === 'hash-mismatch') return 'hash-mismatch'
+  if (result.kind === 'dimension-mismatch') return 'dimension-mismatch'
+  if (result.kind === 'error') return 'open-error'
+  return 'none'
+}
+
 async function perPageDimensions(doc: PDFDocumentProxy): Promise<Record<number, { width: number; height: number }>> {
   const dims: Record<number, { width: number; height: number }> = {}
   for (let i = 1; i <= doc.numPages; i++) {
@@ -157,7 +174,22 @@ export function useProject() {
         }
 
         // Hash compare BEFORE loading bytes fully — hash is its own IPC streaming call.
-        const actualHash = await window.api.hashPdf(resolved.resolvedPath)
+        // ENOENT guard: file can vanish between resolvePdfPath and hashPdf (e.g. file locked,
+        // deleted, or on a network drive that disconnects). Treat as missing-pdf, not generic error.
+        let actualHash: string
+        try {
+          actualHash = await window.api.hashPdf(resolved.resolvedPath)
+        } catch (hashErr) {
+          const msg = hashErr instanceof Error ? hashErr.message : String(hashErr)
+          console.error('[useProject] hashPdf failed after resolvePdfPath succeeded — treating as missing-pdf:', msg)
+          return {
+            kind: 'missing-pdf',
+            expectedPath: data.pdf.absolutePath,
+            expectedName: basename(data.pdf.absolutePath),
+            data,
+            clmcPath
+          }
+        }
         if (actualHash !== data.pdf.sha256) {
           // Defer proceed decision to caller — return a result they can resolve.
           return { kind: 'hash-mismatch', resolvedPdfPath: resolved.resolvedPath, data, clmcPath }
@@ -165,8 +197,9 @@ export function useProject() {
 
         return await finishOpen(resolved.resolvedPath, data, clmcPath)
       } catch (err) {
-        console.error('[useProject] openClmc failed:', err)
-        return { kind: 'error', message: err instanceof Error ? err.message : String(err) }
+        const msg = err instanceof Error ? err.message : String(err)
+        console.error('[useProject] openClmcFromPath failed — kind: error will surface to user via OpenErrorModal. Error:', msg)
+        return { kind: 'error', message: msg }
       }
     },
     [loadPdfFromPath]
@@ -216,7 +249,9 @@ export function useProject() {
       useProjectStore.setState({ isDirty: false, lastSavedAt: Date.now() })
       return { kind: 'ok' }
     } catch (err) {
-      return { kind: 'error', message: err instanceof Error ? err.message : String(err) }
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('[useProject] finishOpen failed — kind: error will surface to user via OpenErrorModal. Error:', msg)
+      return { kind: 'error', message: msg }
     }
   }
 
