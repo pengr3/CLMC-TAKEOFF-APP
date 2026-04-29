@@ -17,9 +17,6 @@ export default defineConfig({
         '@renderer': resolve('src/renderer/src')
       }
     },
-    optimizeDeps: {
-      exclude: ['pdfjs-dist']
-    },
     plugins: [
       react(),
       tailwindcss(),
