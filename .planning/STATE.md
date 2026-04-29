@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: unknown
 stopped_at: Completed 04-05-PLAN.md — close guard + open-while-dirty guard (D-16, D-21)
-last_updated: "2026-04-22T02:43:09.811Z"
+last_updated: "2026-04-29T06:15:33Z"
 progress:
   total_phases: 7
   completed_phases: 4
@@ -152,11 +152,11 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T02:43:09.798Z
+**Last session:** 2026-04-29T06:15:33Z
 
-**Stopped at:** Completed 04-05-PLAN.md — close guard + open-while-dirty guard (D-16, D-21)
+**Stopped at:** Completed quick/260429-jov — restored optimizeDeps.exclude pdfjs-dist in electron.vite.config.ts; fixed calibration popup double-offset bug in useCalibrationMode.ts
 
-**Next action:** Phase 2 complete. Run `/gsd:transition` to validate Phase 2 delivery and plan Phase 3 (markup tools).
+**Next action:** Continue Phase 04 — execute 04-06-PLAN.md (final plan in persistence phase).
 
 ---
 *State initialized: 2026-03-25*
