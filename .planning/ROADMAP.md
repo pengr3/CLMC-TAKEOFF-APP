@@ -95,7 +95,7 @@ Plans:
   1. User can save the current project to a .clmc file; the saved file contains the PDF file reference, all markup positions and names, per-page scale calibrations, and a format version field
   2. User can reopen a saved .clmc file and every markup appears on the correct position on the correct page, indistinguishable from the state at save time
   3. If the original PDF file has been moved or renamed, the app shows a clear "PDF not found" message with a Browse button to re-link it — rather than crashing or silently showing a blank canvas
-**Plans:** 6/7 plans executed
+**Plans:** 6/8 plans executed (gap-closure 04-07 added 2026-04-29 after 04-06 checkpoint surfaced F/G/H modal silent-failure)
 Plans:
 - [x] 04-00-PLAN.md — Wave 0 test scaffolds (7 red test files + fixture PDF)
 - [x] 04-01-PLAN.md — Schema, serialize, project-io (SHA256 + path math), IPC triad
@@ -103,7 +103,8 @@ Plans:
 - [x] 04-03-PLAN.md — useProject hook, usePdfDocument refactor, 4 recovery modals
 - [x] 04-04-PLAN.md — Toolbar Open/Save/SaveAs, TitleBar dirty asterisk, Ctrl+S/Shift+S, App modal router
 - [x] 04-05-PLAN.md — Close-window guard (main+renderer) + SaveCloseModal (D-16/D-21)
-- [ ] 04-06-PLAN.md — Human-verify checkpoint + PERS-01/PERS-02 closure + ROADMAP update
+- [x] 04-06-PLAN.md — Human-verify checkpoint — gaps captured (F/G/H modals did not appear)
+- [ ] 04-07-PLAN.md — Gap closure: surface silent error, ENOENT-as-missing-pdf guard, diagnostic logging, contract test (closes F/G/H)
 
 ### Phase 5: BOQ Export
 **Goal**: Estimators can export the complete quantity takeoff to an Excel or CSV file that is ready to paste into a bid sheet, with items grouped by trade category
