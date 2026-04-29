@@ -144,6 +144,12 @@ Plan: 6 of 7
 
 None.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260429-jov | Restore optimizeDeps exclude pdfjs-dist in electron.vite.config.ts | 2026-04-29 | 0442ebc | [260429-jov-restore-optimizedeps-exclude-pdfjs-dist-](./quick/260429-jov-restore-optimizedeps-exclude-pdfjs-dist-/) |
+
 ### Roadmap Evolution
 
 - Phase 03.1 inserted after Phase 3: Markup Gap Closure and Visual Redesign (URGENT) — supersedes MARK-08 per-category-color must-have, revises UI-SPEC D-04/D-13 count pin label format, closes 4 bugs surfaced in Plan 03-05 human verification (spacebar blocked in text inputs, Linear/Area label legibility, stale currentZoom after zoom)
@@ -151,6 +157,8 @@ None.
 ---
 
 ## Session Continuity
+
+**Last activity:** 2026-04-29 - Completed quick task 260429-jov: Restore optimizeDeps exclude pdfjs-dist in electron.vite.config.ts
 
 **Last session:** 2026-04-29T06:15:33Z
 
