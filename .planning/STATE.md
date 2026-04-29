@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 04 (project-persistence) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7 (gap closure complete)
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Plan: 6 of 7
 | Phase 04 P03 | 5min | 3 tasks | 7 files |
 | Phase 04 P04 | 11min | 3 tasks | 9 files |
 | Phase 04 P05 | 5min | 3 tasks | 6 files |
+| Phase 04 P07 | 4min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,9 @@ Plan: 6 of 7
 | Hover tooltip debounce owned by CanvasViewport not MarkupTooltip | MarkupTooltip stays pure presentational; parent holds the 200ms window.setTimeout ref and cancels on leave/context-open. Mirrors ConfirmationToast parent-owns-lifecycle pattern |
 | MarkupContextMenu currentColor wired to contextMarkup.color (not getColorForName) | The pin the user right-clicked is authoritative — avoids UI surprise if name-group has drifted colors. recolorGroup still flips the whole name-group per D-29 |
 | Konva onContextMenu handlers translate event via stage.getPointerPosition() then call e.evt.preventDefault() | Screen-space pointer is correct at any zoom because getPointerPosition reads raw mouse coords (unaffected by Stage transform); preventDefault suppresses the browser's native right-click menu on the canvas |
+| routeOpenResult pure helper exported from useProject.ts (not App.tsx) | .test.ts files can test modal dispatch without mounting React — mirrors routeOpenByExtension pattern |
+| ENOENT guard uses dedicated inner try/catch around hashPdf only | hashPdf throwing after resolvePdfPath succeeds now returns missing-pdf result instead of generic error |
+| OpenErrorModal uses single Close button (no recovery) | Surfaces kind=error results that were previously console-only; no safe recovery action for generic open errors |
 
 ### Critical Pitfalls to Watch
 
@@ -152,11 +156,11 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T02:43:09.798Z
+**Last session:** 2026-04-29T07:36:50Z
 
-**Stopped at:** Completed 04-05-PLAN.md — close guard + open-while-dirty guard (D-16, D-21)
+**Stopped at:** Completed 04-07-PLAN.md — gap closure F/G/H: ENOENT guard, OpenErrorModal, contract tests
 
-**Next action:** Phase 2 complete. Run `/gsd:transition` to validate Phase 2 delivery and plan Phase 3 (markup tools).
+**Next action:** Phase 4 gap closure complete. Re-run 04-06 human verification for sections F/G/H. On approval, flip PERS-01/PERS-02 to [x] in REQUIREMENTS.md and close Phase 4 in ROADMAP.md.
 
 ---
 *State initialized: 2026-03-25*
