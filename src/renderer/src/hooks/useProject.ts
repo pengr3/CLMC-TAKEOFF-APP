@@ -24,6 +24,23 @@ export type ProjectOpenResult =
   | { kind: 'canceled' }
   | { kind: 'error'; message: string }
 
+/**
+ * Pure helper: maps a ProjectOpenResult.kind to the modal that should appear.
+ * Extracted so App.tsx's handleOpenResult is testable without mounting React.
+ * Returns 'none' for ok/canceled (no modal), or the modal key for error states.
+ */
+export function routeOpenResult(
+  result: ProjectOpenResult | null
+): 'none' | 'missing-pdf' | 'page-count-mismatch' | 'hash-mismatch' | 'dimension-mismatch' | 'open-error' {
+  if (!result || result.kind === 'ok' || result.kind === 'canceled') return 'none'
+  if (result.kind === 'missing-pdf') return 'missing-pdf'
+  if (result.kind === 'page-count-mismatch') return 'page-count-mismatch'
+  if (result.kind === 'hash-mismatch') return 'hash-mismatch'
+  if (result.kind === 'dimension-mismatch') return 'dimension-mismatch'
+  if (result.kind === 'error') return 'open-error'
+  return 'none'
+}
+
 async function perPageDimensions(doc: PDFDocumentProxy): Promise<Record<number, { width: number; height: number }>> {
   const dims: Record<number, { width: number; height: number }> = {}
   for (let i = 1; i <= doc.numPages; i++) {
