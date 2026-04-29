@@ -9,6 +9,7 @@ import { HashMismatchModal } from './components/HashMismatchModal'
 import { DimensionMismatchModal } from './components/DimensionMismatchModal'
 import { PageCountAbortModal } from './components/PageCountAbortModal'
 import { SaveCloseModal } from './components/SaveCloseModal'
+import { OpenErrorModal } from './components/OpenErrorModal'
 import { useViewerStore } from './stores/viewerStore'
 import { attachDirtyTracking, useProjectStore } from './stores/projectStore'
 import { useProject, type ProjectOpenResult } from './hooks/useProject'
@@ -36,6 +37,7 @@ function App(): React.JSX.Element {
   const [hashMiss, setHashMiss] = useState<{ resolvedPdfPath: string; data: ProjectFileV1; clmcPath: string } | null>(null)
   const [dimMiss, setDimMiss] = useState<{ resolvedPdfPath: string; data: ProjectFileV1; clmcPath: string } | null>(null)
   const [pageAbort, setPageAbort] = useState<{ expected: number; actual: number; data: ProjectFileV1; clmcPath: string } | null>(null)
+  const [openError, setOpenError] = useState<string | null>(null)
   const [saveToast, setSaveToast] = useState<string | null>(null)
   const [closeModal, setCloseModal] = useState<'close-window' | 'open-other' | null>(null)
   const [pendingOpen, setPendingOpen] = useState<{ filePath: string; extension: string } | null>(null)
@@ -91,7 +93,7 @@ function App(): React.JSX.Element {
     if (result.kind === 'hash-mismatch') { setHashMiss({ resolvedPdfPath: result.resolvedPdfPath, data: result.data, clmcPath: result.clmcPath }); return }
     if (result.kind === 'dimension-mismatch') { setDimMiss({ resolvedPdfPath: result.resolvedPdfPath, data: result.data, clmcPath: result.clmcPath }); return }
     if (result.kind === 'page-count-mismatch') { setPageAbort({ expected: result.expected, actual: result.actual, data: result.data, clmcPath: result.clmcPath }); return }
-    if (result.kind === 'error') { console.error('[App] open error:', result.message); return }
+    if (result.kind === 'error') { console.error('[App] open error:', result.message); setOpenError(result.message); return }
   }, [])
 
   // D-21: open-while-dirty guard. Show picker first (user may cancel), THEN check dirty.
@@ -169,6 +171,14 @@ function App(): React.JSX.Element {
         )}
       </main>
       <StatusBar />
+
+      {/* OpenErrorModal — surfaces kind === 'error' results to user (previously console-only) */}
+      {openError !== null && (
+        <OpenErrorModal
+          message={openError}
+          onClose={() => setOpenError(null)}
+        />
+      )}
 
       {/* Recovery modals — mounted on ProjectOpenResult.kind */}
       {missing && (
