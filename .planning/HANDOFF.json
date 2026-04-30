@@ -1,35 +1,32 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-29T10:20:51.004Z",
-  "phase": "04",
-  "phase_name": "project-persistence",
-  "phase_dir": ".planning/phases/04-project-persistence",
-  "plan": null,
-  "task": null,
-  "total_tasks": null,
-  "status": "paused — phase 04 complete, scoping new phase 4.1",
+  "timestamp": "2026-04-30T09:55:07Z",
+  "phase": "4.1",
+  "phase_name": "zip-embedded-clmc",
+  "phase_dir": ".planning/phases/04.1-zip-embedded-clmc",
+  "plan": 6,
+  "task": 2,
+  "total_tasks": 3,
+  "status": "paused",
   "completed_tasks": [
-    {"id": 1, "name": "Phase 04 all 8 plans executed", "status": "done", "commit": "b3a1c66"},
-    {"id": 2, "name": "ENOENT guard + OpenErrorModal ok-branch fix (04-07 gap closure)", "status": "done", "commit": "4cf2622"},
-    {"id": 3, "name": "Toolbar onOpenClick prop wiring + window show guard + regression test", "status": "done", "commit": "0cf4446"},
-    {"id": 4, "name": "Phase 04 VERIFICATION.md — all human sections F/G/H passed", "status": "done", "commit": "0cf4446"}
+    {"id": 1, "name": "Create 04.1-UAT.md scaffold with 6 test scenarios + review-concern verification", "status": "done", "commit": "cd2aed4"}
   ],
-  "remaining_tasks": [],
-  "blockers": [],
-  "human_actions_pending": [],
-  "decisions": [
+  "remaining_tasks": [
+    {"id": 2, "name": "Human verification — execute the 6 UAT scenarios", "status": "awaiting_human", "progress": "UAT scaffold ready; user must run app and complete tests 1–4 (required), 5–6 (optional)"},
+    {"id": 3, "name": "Update REQUIREMENTS.md + ROADMAP.md to record Phase 4.1 closure", "status": "not_started", "progress": "Only runs after Task 2 UAT verdict is 'pass'"}
+  ],
+  "blockers": [
+    {"description": "Human must run UAT tests on real construction PDF before phase can close", "type": "human_action", "workaround": "none — required gating step"}
+  ],
+  "human_actions_pending": [
     {
-      "decision": "Embed PDF inside .clmc file using ZIP archive format (jszip)",
-      "rationale": "User raised portability concern: current design stores external PDF path, which breaks when .clmc is transferred to another PC with a different path or filename. User wants a single self-contained file any user can open on any machine. Four options considered: ZIP (jszip), custom flat binary, SQLite (sql.js), base64 JSON. ZIP/jszip chosen as best: pure JS (no native addon), standard inspectable format, no size overhead, easy migration from old plain-JSON .clmc files.",
-      "phase": "04.1-planned"
+      "action": "Run the 6 UAT tests documented in .planning/phases/04.1-zip-embedded-clmc/04.1-UAT.md",
+      "context": "Phase 4.1 is fully implemented (7 plans, waves 0–5 complete). The UAT is the only remaining gate. Tests 1–4 are required; tests 5–6 are optional. Respond 'approved' if all required tests pass, or describe any failures.",
+      "blocking": true
     }
   ],
-  "uncommitted_files": [
-    ".claude/ (memory system — not repo files)",
-    ".planning/debug/electron-window-no-show-on-second-dev-run.md",
-    ".planning/debug/missing-pdf-modal-not-appearing.md",
-    ".planning/quick/260429-k5x-remove-optimizedeps-exclude-pdfjs-dist-f/"
-  ],
-  "next_action": "Plan Phase 4.1: change .clmc format from plain JSON to ZIP archive (jszip) embedding the PDF. Migration: on open, detect ZIP vs plain JSON, upgrade in-place. On save: store project.json + plan.pdf inside the archive. Remove absolutePath/relativePath resolution entirely — PDF is always self-contained.",
-  "context_notes": "Phase 04 is 100% complete. All 253 tests pass. Human UAT sections A-H all passed. The new requirement is NOT in the roadmap — it needs a new phase (4.1). The user explicitly asked about single-file format options, chose ZIP/jszip, and paused before planning started. Resume by planning Phase 4.1."
+  "decisions": [],
+  "uncommitted_files": [],
+  "next_action": "Spawn a continuation executor agent for phase 4.1, plan 06. Pass the user's UAT response as the resume signal. The continuation agent executes Task 3 (REQUIREMENTS.md + ROADMAP.md closure) if UAT passed, or routes to /gsd:plan-phase 4.1 --gaps if failures were found.",
+  "context_notes": "All 7 waves executed successfully. 284 tests passing, TypeScript clean, build passing. Plan 06 Task 1 (UAT scaffold) is merged to master at commit cd2aed4 (then merge commit af58f19). The execute-phase orchestrator is mid-run at the Wave 6 checkpoint — the continuation should be spawned by the execute-phase orchestrator after user approves the checkpoint, then the orchestrator completes verification and roadmap closure."
 }
