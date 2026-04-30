@@ -118,7 +118,15 @@ Plans:
   2. User can open an old v1 plain-JSON `.clmc` file; it loads correctly and the app marks it dirty, prompting the user to re-save in the v2 format
   3. User can use "Replace Plan PDF" in the Toolbar to swap the embedded PDF for a revised architect drawing, with page-count validation, while preserving all markups
   4. Save shows a "Saving..." indicator in the title bar while the ZIP is being written, and Save/SaveAs buttons are disabled during the write
-**Plans**: TBD
+**Plans**: 7 plans
+Plans:
+- [ ] 04.1-00-PLAN.md — Wave 0 RED tests + jszip install
+- [ ] 04.1-01-PLAN.md — project-io v2 primitives + project-schema v2 + serialize
+- [ ] 04.1-02-PLAN.md — IPC handlers + preload (readProject discriminated union, writeProject with PDF bytes)
+- [ ] 04.1-03-PLAN.md — projectStore.isSaving + viewerStore.pdfBytes
+- [ ] 04.1-04-PLAN.md — useProject rewrite (v2 save/open + replacePlanPdf) + sha256-renderer + ArchiveCorruptedModal
+- [ ] 04.1-05-PLAN.md — TitleBar Saving... + Toolbar Replace Plan PDF + App.tsx wiring
+- [ ] 04.1-06-PLAN.md — Manual UAT + roadmap closure
 
 ### Phase 5: BOQ Export
 **Goal**: Estimators can export the complete quantity takeoff to an Excel or CSV file that is ready to paste into a bid sheet, with items grouped by trade category
