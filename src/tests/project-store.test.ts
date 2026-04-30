@@ -112,5 +112,33 @@ describe('projectStore', () => {
   })
 })
 
+describe('projectStore isSaving (D-12)', () => {
+  it('isSaving primitive selector defaults to false', () => {
+    useProjectStore.getState().reset()
+    expect(useProjectStore.getState().isSaving).toBe(false)
+  })
+
+  it('setSaving(true) flips isSaving to true; setSaving(false) flips back', () => {
+    useProjectStore.getState().setSaving(true)
+    expect(useProjectStore.getState().isSaving).toBe(true)
+    useProjectStore.getState().setSaving(false)
+    expect(useProjectStore.getState().isSaving).toBe(false)
+  })
+
+  it('reset() resets isSaving to false even when mid-save', () => {
+    useProjectStore.getState().setSaving(true)
+    useProjectStore.getState().reset()
+    expect(useProjectStore.getState().isSaving).toBe(false)
+  })
+
+  it('setSaving does NOT flip isDirty (orthogonal to user-data dirty-tracking)', () => {
+    useProjectStore.getState().reset()
+    useProjectStore.getState().setSaving(true)
+    expect(useProjectStore.getState().isDirty).toBe(false)
+    useProjectStore.getState().setSaving(false)
+    expect(useProjectStore.getState().isDirty).toBe(false)
+  })
+})
+
 // Re-export for potential external use in test verification
 export { suspendDirtyTracking, resumeDirtyTracking }

@@ -45,8 +45,7 @@ beforeEach(() => {
 describe('project-serialize', () => {
   it('snapshot includes D-02 fields (formatVersion, createdAt, updatedAt, pdf, globalUnit, categories, categoryOrder, currentPage, pages)', () => {
     const snap = snapshotProject({
-      pdfAbsolutePath: 'C:/plans.pdf',
-      pdfRelativePath: null,
+      pdfOriginalFilename: 'plans.pdf',
       pdfSha256: 'abc',
       pdfTotalPages: 1,
       perPageDimensions: { 1: { width: 595, height: 842 } }
@@ -65,12 +64,15 @@ describe('project-serialize', () => {
       expect(snap).toHaveProperty(key)
     }
     expect(snap.pages[0].markups[0].id).toBe('m1')
+    expect(snap.formatVersion).toBe(2)
+    expect(snap.pdf.originalFilename).toBe('plans.pdf')
+    expect((snap.pdf as Record<string, unknown>).absolutePath).toBeUndefined()
+    expect((snap.pdf as Record<string, unknown>).relativePath).toBeUndefined()
   })
 
   it('excludes transient state (undoStack, redoStack, calibMode, activeTool)', () => {
     const snap = snapshotProject({
-      pdfAbsolutePath: 'C:/plans.pdf',
-      pdfRelativePath: null,
+      pdfOriginalFilename: 'plans.pdf',
       pdfSha256: 'abc',
       pdfTotalPages: 1,
       perPageDimensions: { 1: { width: 595, height: 842 } }
@@ -84,8 +86,7 @@ describe('project-serialize', () => {
 
   it('hydrate round-trip: snapshot -> JSON.stringify -> JSON.parse -> hydrate reproduces store state', () => {
     const snap = snapshotProject({
-      pdfAbsolutePath: 'C:/plans.pdf',
-      pdfRelativePath: null,
+      pdfOriginalFilename: 'plans.pdf',
       pdfSha256: 'abc',
       pdfTotalPages: 1,
       perPageDimensions: { 1: { width: 595, height: 842 } }
@@ -109,8 +110,7 @@ describe('project-serialize', () => {
 
   it('hydrate clears undo/redo stacks', () => {
     const snap = snapshotProject({
-      pdfAbsolutePath: 'C:/plans.pdf',
-      pdfRelativePath: null,
+      pdfOriginalFilename: 'plans.pdf',
       pdfSha256: 'abc',
       pdfTotalPages: 1,
       perPageDimensions: { 1: { width: 595, height: 842 } }
@@ -123,8 +123,7 @@ describe('project-serialize', () => {
 
   it('coords stable round-trip — Markup.point/points bytes unchanged after save/load', () => {
     const snap = snapshotProject({
-      pdfAbsolutePath: 'C:/plans.pdf',
-      pdfRelativePath: null,
+      pdfOriginalFilename: 'plans.pdf',
       pdfSha256: 'abc',
       pdfTotalPages: 1,
       perPageDimensions: { 1: { width: 595, height: 842 } }
