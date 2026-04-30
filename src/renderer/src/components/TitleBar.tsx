@@ -10,11 +10,19 @@ export function TitleBar(): React.JSX.Element {
   const fileName = useViewerStore((s) => s.fileName)
   const currentFilePath = useProjectStore((s) => s.currentFilePath)
   const isDirty = useProjectStore((s) => s.isDirty)
+  const isSaving = useProjectStore((s) => s.isSaving)
 
   const displayName = basename(currentFilePath) ?? fileName ?? null
   const dirtyMark = isDirty ? ' * ' : ' '
-  const title =
-    displayName !== null ? `${displayName}${dirtyMark}— CLMC Takeoff` : 'CLMC Takeoff'
+
+  // D-11: while saving, override the regular title with "Saving..." prefix.
+  const title = isSaving
+    ? (displayName !== null
+        ? `Saving... ${displayName} — CLMC Takeoff`
+        : 'Saving... — CLMC Takeoff')
+    : (displayName !== null
+        ? `${displayName}${dirtyMark}— CLMC Takeoff`
+        : 'CLMC Takeoff')
 
   return (
     <div
