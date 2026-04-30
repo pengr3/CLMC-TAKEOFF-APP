@@ -11,6 +11,25 @@ export interface ViewerState {
   totalPages: number
   pageViewports: Record<number, ViewportState>
   pdfDocument: unknown | null
+  /**
+   * Cached PDF bytes (Phase 4.1).
+   *
+   * Lifecycle:
+   *   - `null` ONLY before any PDF has loaded, or after `resetViewer()`
+   *   - non-null `Uint8Array` whenever a project is open (i.e., totalPages > 0)
+   *
+   * Used by:
+   *   - Save flow: avoids re-reading the PDF from disk before assembling the ZIP
+   *   - Replace Plan PDF flow: held until user confirms replacement
+   *
+   * Memory cost: holds one full copy of the PDF bytes in renderer memory while
+   * a project is open. For 100 MB+ construction PDFs this is the dominant
+   * memory factor — acceptable for a single-user desktop app, flagged in UAT.
+   *
+   * IMPORTANT: pdfBytes is transient cache and MUST NOT participate in
+   * dirty-tracking. Setting pdfBytes does not represent user-edit work.
+   */
+  pdfBytes: Uint8Array | null
   pageScales: Record<number, ScaleState>
   activeTool: ActiveTool
 
@@ -23,6 +42,7 @@ export interface ViewerState {
   setZoom: (page: number, zoom: number) => void
   setPan: (page: number, panX: number, panY: number) => void
   setPdfDocument: (doc: unknown | null) => void
+  setPdfBytes: (bytes: Uint8Array | null) => void
   resetViewer: () => void
 
   setPageScale: (page: number, scale: ScaleState) => void

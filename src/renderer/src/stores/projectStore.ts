@@ -6,9 +6,11 @@ import { useViewerStore } from './viewerStore'
 interface ProjectStoreState {
   currentFilePath: string | null
   isDirty: boolean
+  isSaving: boolean
   lastSavedAt: number | null
 
   setSaved: (filePath: string) => void
+  setSaving: (v: boolean) => void
   setCurrentFilePath: (filePath: string | null) => void
   markDirty: () => void
   reset: () => void
@@ -33,10 +35,13 @@ export function isHydrating(): boolean {
 export const useProjectStore = create<ProjectStoreState>((set, get) => ({
   currentFilePath: null,
   isDirty: false,
+  isSaving: false,
   lastSavedAt: null,
 
   setSaved: (filePath) =>
     set({ currentFilePath: filePath, isDirty: false, lastSavedAt: Date.now() }),
+
+  setSaving: (v) => set({ isSaving: v }),
 
   setCurrentFilePath: (filePath) => set({ currentFilePath: filePath }),
 
@@ -46,7 +51,12 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     set({ isDirty: true })
   },
 
-  reset: () => set({ currentFilePath: null, isDirty: false, lastSavedAt: null })
+  reset: () => set({
+    currentFilePath: null,
+    isDirty: false,
+    isSaving: false,
+    lastSavedAt: null
+  })
 }))
 
 // Shallow-equal for array-tuple selectors returned by subscribeWithSelector.

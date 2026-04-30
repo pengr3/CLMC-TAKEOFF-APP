@@ -10,6 +10,7 @@ export const useViewerStore = create<ViewerState>()(
   totalPages: 0,
   pageViewports: {},
   pdfDocument: null,
+  pdfBytes: null,
   pageScales: {},
   activeTool: 'select' as ActiveTool,
 
@@ -60,6 +61,8 @@ export const useViewerStore = create<ViewerState>()(
 
   setPdfDocument: (doc) => set({ pdfDocument: doc }),
 
+  setPdfBytes: (bytes) => set({ pdfBytes: bytes }),
+
   resetViewer: () =>
     set({
       filePath: null,
@@ -68,6 +71,7 @@ export const useViewerStore = create<ViewerState>()(
       totalPages: 0,
       pageViewports: {},
       pdfDocument: null,
+      pdfBytes: null,
       pageScales: {},
       activeTool: 'select' as ActiveTool
     }),
