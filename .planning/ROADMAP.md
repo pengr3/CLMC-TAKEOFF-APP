@@ -11,7 +11,8 @@
 - [x] **Phase 1: PDF Viewer and Canvas Foundation** - Working multi-page PDF viewer with zoom, pan, and a stable Konva canvas overlay that holds markup coordinates in PDF page space (completed 2026-03-28)
 - [x] **Phase 2: Scale Calibration** - Per-page scale calibration by drawn line, measurement unit system, and scale display — the math layer that all markup measurements depend on (completed 2026-04-20)
 - [x] **Phase 3: Markup Tools and Editing** - All four markup types (count, linear, area, perimeter) with freehand naming, category assignment, color-coding, labels, and full undo/redo (completed 2026-04-21 via Phase 03.1 gap-closure)
-- [ ] **Phase 4: Project Persistence** - Save and load .clmc project files so work survives across sessions
+- [x] **Phase 4: Project Persistence** - Save and load .clmc project files so work survives across sessions (completed 2026-04-29)
+- [ ] **Phase 4.1: ZIP-Embedded .clmc Format** - Upgrade .clmc to a self-contained ZIP archive that embeds the PDF, eliminating path-dependency and enabling true portability
 - [ ] **Phase 5: BOQ Export** - Export takeoff sheet to Excel and CSV, grouped by category
 - [ ] **Phase 6: Live View and UI Polish** - Running totals panel, thumbnail strip navigation, and page/scale status indicators that complete the day-to-day estimating workflow
 
@@ -104,7 +105,20 @@ Plans:
 - [x] 04-04-PLAN.md — Toolbar Open/Save/SaveAs, TitleBar dirty asterisk, Ctrl+S/Shift+S, App modal router
 - [x] 04-05-PLAN.md — Close-window guard (main+renderer) + SaveCloseModal (D-16/D-21)
 - [x] 04-06-PLAN.md — Human-verify checkpoint — gaps captured (F/G/H modals did not appear)
-- [ ] 04-07-PLAN.md — Gap closure: surface silent error, ENOENT-as-missing-pdf guard, diagnostic logging, contract test (closes F/G/H)
+- [x] 04-07-PLAN.md — Gap closure: surface silent error, ENOENT-as-missing-pdf guard, diagnostic logging, contract test (closes F/G/H)
+**Status:** Complete (all 8 plans executed, human UAT A-H passed, 2026-04-29)
+
+### Phase 4.1: ZIP-Embedded .clmc Format (INSERTED)
+
+**Goal**: Upgrade the `.clmc` file format from plain UTF-8 JSON (with external PDF path reference) to a ZIP archive that embeds the PDF, making each project file fully self-contained and portable across machines
+**Depends on**: Phase 4
+**Requirements**: PERS-01, PERS-02 (same requirements, better format)
+**Success Criteria** (what must be TRUE):
+  1. User can save a project to a `.clmc` v2 file that contains both the project data and the PDF — the file opens on any machine without any PDF path setup
+  2. User can open an old v1 plain-JSON `.clmc` file; it loads correctly and the app marks it dirty, prompting the user to re-save in the v2 format
+  3. User can use "Replace Plan PDF" in the Toolbar to swap the embedded PDF for a revised architect drawing, with page-count validation, while preserving all markups
+  4. Save shows a "Saving..." indicator in the title bar while the ZIP is being written, and Save/SaveAs buttons are disabled during the write
+**Plans**: TBD
 
 ### Phase 5: BOQ Export
 **Goal**: Estimators can export the complete quantity takeoff to an Excel or CSV file that is ready to paste into a bid sheet, with items grouped by trade category
