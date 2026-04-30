@@ -1,4 +1,4 @@
-import type { ProjectFileV1 } from './project-schema'
+import type { ProjectFileV2 } from './project-schema'
 import { useMarkupStore } from '../stores/markupStore'
 import { useScaleStore } from '../stores/scaleStore'
 import { useViewerStore } from '../stores/viewerStore'
@@ -12,8 +12,7 @@ import type { PageScale } from '../types/scale'
 import type { ViewportState } from '../types/viewer'
 
 export interface SnapshotParams {
-  pdfAbsolutePath: string
-  pdfRelativePath: string | null
+  pdfOriginalFilename: string  // display name only (D-04); v1 path-based fields removed in Phase 4.1
   pdfSha256: string
   pdfTotalPages: number
   perPageDimensions: Record<number, { width: number; height: number }>
@@ -21,12 +20,12 @@ export interface SnapshotParams {
 }
 
 /**
- * Snapshot the current store state into a JSON-serializable ProjectFileV1.
+ * Snapshot the current store state into a JSON-serializable ProjectFileV2.
  * Reads from .getState() (one shot per store) — no React hooks.
  * Excludes transient state (D-09): undoStack, redoStack, calibMode, activeTool,
  * pdfDocument.
  */
-export function snapshotProject(params: SnapshotParams): ProjectFileV1 {
+export function snapshotProject(params: SnapshotParams): ProjectFileV2 {
   const markup = useMarkupStore.getState()
   const scale = useScaleStore.getState()
   const viewer = useViewerStore.getState()
@@ -45,14 +44,13 @@ export function snapshotProject(params: SnapshotParams): ProjectFileV1 {
   })
 
   return {
-    formatVersion: 1,
+    formatVersion: 2,
     createdAt: params.createdAt ?? now,
     updatedAt: now,
     pdf: {
-      absolutePath: params.pdfAbsolutePath,
-      relativePath: params.pdfRelativePath,
-      totalPages: params.pdfTotalPages,
-      sha256: params.pdfSha256
+      originalFilename: params.pdfOriginalFilename,
+      sha256: params.pdfSha256,
+      totalPages: params.pdfTotalPages
     },
     globalUnit: scale.globalUnit,
     categories: markup.categories,
@@ -63,7 +61,7 @@ export function snapshotProject(params: SnapshotParams): ProjectFileV1 {
 }
 
 /**
- * Hydrate the three Zustand stores from a validated ProjectFileV1.
+ * Hydrate the three Zustand stores from a validated ProjectFileV2.
  * Brackets all store writes with suspendDirtyTracking()/resumeDirtyTracking()
  * so opening a .clmc file does NOT leave isDirty=true (Pitfall 1).
  * Each store's dedicated hydrate() method uses ONE setState call per store (Pitfall 2).
@@ -71,7 +69,7 @@ export function snapshotProject(params: SnapshotParams): ProjectFileV1 {
  * a second project in the same session (Runtime State Inventory).
  * Excludes transient state (D-09): undoStack, redoStack, calibMode, activeTool.
  */
-export function hydrateStores(data: ProjectFileV1): void {
+export function hydrateStores(data: ProjectFileV2): void {
   suspendDirtyTracking()
   try {
     // Rebuild per-page maps from the dense pages array
