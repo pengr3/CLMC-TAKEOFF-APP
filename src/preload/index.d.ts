@@ -1,19 +1,18 @@
+type ReadProjectResult =
+  | { kind: 'v2-zip'; projectJson: string; pdfBytes: Uint8Array; computedSha256: string }
+  | { kind: 'v1-json'; text: string }
+  | { kind: 'unknown'; reason: string }
+
 interface ElectronAPI {
   openPdf: () => Promise<{ filePath: string; data: ArrayBuffer } | null>
   openProject: () => Promise<{ filePath: string; extension: string; fileName: string } | null>
   saveProjectDialog: (defaultPath?: string) => Promise<string | null>
-  readProject: (filePath: string) => Promise<string>
-  writeProject: (filePath: string, json: string) => Promise<{ ok: true }>
-  hashPdf: (pdfPath: string) => Promise<string>
-  checkExists: (filePath: string) => Promise<boolean>
+
+  readProject: (filePath: string) => Promise<ReadProjectResult>
+  writeProject: (filePath: string, json: string, pdfBytes: Uint8Array) => Promise<{ ok: true }>
+  hashBuffer: (bytes: Uint8Array) => Promise<string>
   readPdfBytes: (pdfPath: string) => Promise<ArrayBuffer>
-  resolvePdfPath: (
-    clmcPath: string,
-    absolutePath: string,
-    relativePath: string | null
-  ) => Promise<{ resolvedPath: string; source: 'absolute' | 'relative' } | null>
-  computeRelativePath: (clmcPath: string, pdfPath: string) => Promise<string | null>
-  // Close guard (D-16)
+
   onCloseRequest: (callback: () => void) => void
   offCloseRequest: (callback: () => void) => void
   confirmClose: () => void

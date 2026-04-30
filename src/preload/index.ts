@@ -1,53 +1,47 @@
 import { contextBridge, ipcRenderer, webFrame } from 'electron'
 
-// Lock zoom from the renderer side — prevents layout/page zoom via webFrame.
-// This complements disable-pinch (compositor) and setVisualZoomLevelLimits (visual zoom).
 webFrame.setVisualZoomLevelLimits(1, 1)
 
-// Pitfall 10: WeakMap preserves the 1:1 user-callback → wrapped-listener mapping
-// so offCloseRequest correctly removes the right internal listener.
 const closeRequestListeners = new WeakMap<() => void, (...args: unknown[]) => void>()
+
+// Wire type for file:readProject return — must match ipc-handlers.ts ReadProjectResult.
+type ReadProjectResult =
+  | { kind: 'v2-zip'; projectJson: string; pdfBytes: Uint8Array; computedSha256: string }
+  | { kind: 'v1-json'; text: string }
+  | { kind: 'unknown'; reason: string }
 
 const api = {
   openPdf: (): Promise<{ filePath: string; data: ArrayBuffer } | null> =>
     ipcRenderer.invoke('dialog:openPdf'),
 
-  // Project persistence (Phase 4)
   openProject: (): Promise<{ filePath: string; extension: string; fileName: string } | null> =>
     ipcRenderer.invoke('dialog:openProject'),
 
   saveProjectDialog: (defaultPath?: string): Promise<string | null> =>
     ipcRenderer.invoke('dialog:saveProject', defaultPath),
 
-  readProject: (filePath: string): Promise<string> =>
+  // v2 read: returns discriminated union with computedSha256 in v2-zip kind.
+  readProject: (filePath: string): Promise<ReadProjectResult> =>
     ipcRenderer.invoke('file:readProject', filePath),
 
-  writeProject: (filePath: string, json: string): Promise<{ ok: true }> =>
-    ipcRenderer.invoke('file:writeProject', filePath, json),
+  // v2 write: caller supplies project JSON text + raw PDF bytes; main assembles ZIP atomically.
+  writeProject: (
+    filePath: string,
+    json: string,
+    pdfBytes: Uint8Array
+  ): Promise<{ ok: true }> =>
+    ipcRenderer.invoke('file:writeProject', filePath, json, pdfBytes),
 
-  hashPdf: (pdfPath: string): Promise<string> => ipcRenderer.invoke('file:hashPdf', pdfPath),
+  // SHA256 a buffer in main; used by save flow to populate project.json.pdf.sha256
+  // (replaces SubtleCrypto in renderer per review feedback).
+  hashBuffer: (bytes: Uint8Array): Promise<string> =>
+    ipcRenderer.invoke('file:hashBuffer', bytes),
 
-  checkExists: (filePath: string): Promise<boolean> =>
-    ipcRenderer.invoke('file:checkExists', filePath),
-
+  // Read PDF bytes from a known path (used for v1 silent migration in Wave 4).
   readPdfBytes: (pdfPath: string): Promise<ArrayBuffer> =>
     ipcRenderer.invoke('file:readPdfBytes', pdfPath),
 
-  resolvePdfPath: (
-    clmcPath: string,
-    absolutePath: string,
-    relativePath: string | null
-  ): Promise<{ resolvedPath: string; source: 'absolute' | 'relative' } | null> =>
-    ipcRenderer.invoke('file:resolvePdfPath', clmcPath, absolutePath, relativePath),
-
-  // Path math in main (CONTEXT.md). Returns null on cross-drive (Pitfall 4).
-  computeRelativePath: (clmcPath: string, pdfPath: string): Promise<string | null> =>
-    ipcRenderer.invoke('file:computeRelativePath', clmcPath, pdfPath),
-
   // Close guard (D-16) — fire-and-forget IPC pair.
-  // onCloseRequest: register a zero-arg callback fired when main wants to close.
-  // offCloseRequest: remove the same callback (WeakMap preserves wrapped listener).
-  // confirmClose: tell main "go ahead and close" after async save/discard resolves.
   onCloseRequest: (cb: () => void): void => {
     const wrapped = (): void => cb()
     closeRequestListeners.set(cb, wrapped)
