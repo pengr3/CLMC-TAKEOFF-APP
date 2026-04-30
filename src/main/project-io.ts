@@ -1,6 +1,7 @@
-import { createReadStream, existsSync } from 'fs'
+import { createReadStream } from 'fs'
 import { createHash } from 'crypto'
-import { extname, isAbsolute, parse, relative, resolve, dirname } from 'path'
+import { extname } from 'path'
+import JSZip from 'jszip'
 
 /**
  * Stream-based SHA256 hash of a file.
@@ -17,51 +18,27 @@ export function sha256File(filePath: string): Promise<string> {
   })
 }
 
-export interface ResolvedPdfPath {
-  resolvedPath: string
-  source: 'absolute' | 'relative'
+/**
+ * SHA256 of an in-memory Buffer or Uint8Array.
+ * Use this when the bytes already exist in memory (post-extract or post-embed).
+ * For files on disk, prefer sha256File which streams.
+ * Returns a 64-char lowercase hex string. Sync — no I/O.
+ */
+export function sha256Buffer(buf: Buffer | Uint8Array): string {
+  return createHash('sha256').update(buf).digest('hex')
 }
 
 /**
- * Resolve the PDF path from a .clmc project file.
- * Strategy: try absolutePath first; if missing, resolve relativePath relative to
- * the .clmc file's directory. Returns null when neither resolves to an existing file.
+ * Verify a buffer's SHA256 hash against an expected hex string.
+ * Boolean wrapper around `sha256Buffer(buf) === expectedHex`. Case-sensitive
+ * (both producers emit lowercase hex from Node's createHash().digest('hex')).
  *
- * relativePath may be null (cross-drive save — see Pitfall 4 / D-10).
+ * Added per cross-AI review feedback to make hash-verification call sites
+ * (Wave 2 IPC handler, Wave 4 hook) read as `verifySha256(bytes, expected)`
+ * rather than manually composing the equality check.
  */
-export function resolvePdfPath(
-  clmcFilePath: string,
-  absolutePath: string,
-  relativePath: string | null
-): ResolvedPdfPath | null {
-  // Try absolute path first (D-10)
-  if (absolutePath && existsSync(absolutePath)) {
-    return { resolvedPath: absolutePath, source: 'absolute' }
-  }
-
-  // Fall back to relative path (D-10)
-  if (relativePath) {
-    const resolved = isAbsolute(relativePath)
-      ? relativePath
-      : resolve(dirname(clmcFilePath), relativePath)
-    if (existsSync(resolved)) {
-      return { resolvedPath: resolved, source: 'relative' }
-    }
-  }
-
-  return null
-}
-
-/**
- * Compute a relative path from a .clmc file to its PDF.
- * Returns null when the two paths are on different Windows drive letters (Pitfall 4).
- * Uses parse(...).root to detect cross-drive — this is the canonical Node.js guard.
- */
-export function computeRelativePath(clmcFilePath: string, pdfPath: string): string | null {
-  // Cross-drive guard (Pitfall 4): path.relative returns an absolute path when roots differ,
-  // which is not useful as a portability-enabling relative fallback.
-  if (parse(clmcFilePath).root !== parse(pdfPath).root) return null
-  return relative(dirname(clmcFilePath), pdfPath)
+export function verifySha256(buf: Buffer | Uint8Array, expectedHex: string): boolean {
+  return sha256Buffer(buf) === expectedHex
 }
 
 /**
@@ -70,4 +47,69 @@ export function computeRelativePath(clmcFilePath: string, pdfPath: string): stri
  */
 export function enforceClmcExtension(filePath: string): string {
   return extname(filePath).toLowerCase() === '.clmc' ? filePath : filePath + '.clmc'
+}
+
+// ----- v2 ZIP-embedded .clmc format (Phase 4.1) -----
+
+export type ClmcFormat = 'v2-zip' | 'v1-json' | 'unknown'
+
+// ZIP local-file-header signature (PKWARE APPNOTE.txt §4.3.7).
+const ZIP_MAGIC = Buffer.from([0x50, 0x4b, 0x03, 0x04])
+
+/**
+ * Detect file format by sniffing the first 4 bytes.
+ * 'PK\x03\x04'  → 'v2-zip'   (ZIP archive)
+ * Anything else with length >= 4 → 'v1-json' (caller validates JSON parse)
+ * Length < 4 → 'unknown'
+ */
+export function detectClmcFormat(buf: Buffer): ClmcFormat {
+  if (buf.length < 4) return 'unknown'
+  if (buf.subarray(0, 4).equals(ZIP_MAGIC)) return 'v2-zip'
+  return 'v1-json'
+}
+
+export interface ExtractedClmc {
+  projectJson: string  // raw text — caller calls JSON.parse + validateV2
+  pdfBytes: Buffer     // for IPC return + verifySha256 compare
+}
+
+/**
+ * Assemble a v2 .clmc archive from project JSON text and embedded PDF bytes.
+ * Layout (D-01, D-04):
+ *   project.json — UTF-8 JSON, STORE-compressed
+ *   plan.pdf     — raw PDF bytes, STORE-compressed (D-03)
+ *
+ * Returns a Node Buffer ready for fs.writeFile.
+ * NEVER call this from the renderer — main process only.
+ */
+export async function assembleClmcZip(
+  projectJson: string,
+  pdfBytes: Buffer
+): Promise<Buffer> {
+  const zip = new JSZip()
+  zip.file('project.json', projectJson, { compression: 'STORE' })
+  zip.file('plan.pdf', pdfBytes, { compression: 'STORE' })
+  return await zip.generateAsync({
+    type: 'nodebuffer',
+    compression: 'STORE'
+  })
+}
+
+/**
+ * Extract project.json + plan.pdf from a v2 .clmc archive.
+ * Throws Error('Invalid .clmc archive: missing project.json') or '... missing plan.pdf'
+ * when either expected entry is absent. Other entries (if any) are ignored —
+ * exact-match lookup defends against ZIP entry-name traversal (T-4.1-01-01).
+ */
+export async function extractClmcZip(zipBytes: Buffer): Promise<ExtractedClmc> {
+  const zip = await JSZip.loadAsync(zipBytes)
+  const jsonEntry = zip.file('project.json')
+  const pdfEntry = zip.file('plan.pdf')
+  if (!jsonEntry) throw new Error('Invalid .clmc archive: missing project.json')
+  if (!pdfEntry) throw new Error('Invalid .clmc archive: missing plan.pdf')
+  const [projectJson, pdfBytes] = await Promise.all([
+    jsonEntry.async('string'),
+    pdfEntry.async('nodebuffer')
+  ])
+  return { projectJson, pdfBytes }
 }
