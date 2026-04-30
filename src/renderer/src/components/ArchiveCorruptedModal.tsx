@@ -1,15 +1,21 @@
 import { useEffect, useRef } from 'react'
 import { COLORS } from '../lib/constants'
 
-export interface HashMismatchModalProps {
+export interface ArchiveCorruptedModalProps {
   onOpenAnyway: () => void
   onCancel: () => void
 }
 
-export function HashMismatchModal({
+/**
+ * D-07: shown when an opened .clmc archive's embedded plan.pdf SHA256 does not
+ * match the sha256 stored in project.json. The user can [Open anyway] (markup
+ * data may still be intact — markup positions are unaffected by PDF byte
+ * changes if the PDF was simply re-saved) or [Cancel].
+ */
+export function ArchiveCorruptedModal({
   onOpenAnyway,
   onCancel
-}: HashMismatchModalProps): React.JSX.Element {
+}: ArchiveCorruptedModalProps): React.JSX.Element {
   const openRef = useRef<HTMLButtonElement>(null)
   useEffect(() => { openRef.current?.focus() }, [])
 
@@ -28,7 +34,7 @@ export function HashMismatchModal({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="PDF changed warning"
+        aria-label="Archive corruption warning"
         style={{
           width: 420, padding: 20,
           background: COLORS.secondary,
@@ -39,9 +45,11 @@ export function HashMismatchModal({
           fontSize: 13, lineHeight: 1.45, color: COLORS.textPrimary
         }}
       >
-        <div style={{ fontWeight: 600, fontSize: 14 }}>PDF may have changed</div>
+        <div style={{ fontWeight: 600, fontSize: 14 }}>Archive may be corrupted</div>
         <div>
-          This PDF has changed since your last save — markup positions may no longer align.
+          The embedded PDF&apos;s checksum doesn&apos;t match the saved project.json.
+          The file may have been modified outside the app or partially corrupted in transit.
+          Open anyway to inspect — markup data may still be intact.
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button

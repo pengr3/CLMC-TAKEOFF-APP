@@ -4,7 +4,7 @@ import { useProjectStore } from '../stores/projectStore'
 import { useMarkupStore } from '../stores/markupStore'
 import { useScaleStore } from '../stores/scaleStore'
 import { usePdfDocument } from './usePdfDocument'
-import { migrate, type ProjectFileV1 } from '../lib/project-schema'
+import { migrate, type ProjectFileV2 } from '../lib/project-schema'
 import { snapshotProject, hydrateStores } from '../lib/project-serialize'
 import type { PDFDocumentProxy } from '../lib/pdf-setup'
 
@@ -15,53 +15,54 @@ export function routeOpenByExtension(extension: string): 'pdf' | 'clmc' | 'unkno
   return 'unknown'
 }
 
+/**
+ * Open-flow result. v2 only has these kinds. The v1 missing-pdf/page-count/
+ * dimension/hash kinds moved to ReplacePlanPdfResult. 'archive-corrupted'
+ * (D-07) is the v2 equivalent of v1's hash-mismatch.
+ */
 export type ProjectOpenResult =
   | { kind: 'ok' }
-  | { kind: 'missing-pdf'; expectedPath: string; expectedName: string; data: ProjectFileV1; clmcPath: string }
-  | { kind: 'page-count-mismatch'; expected: number; actual: number; data: ProjectFileV1; clmcPath: string }
-  | { kind: 'hash-mismatch'; resolvedPdfPath: string; data: ProjectFileV1; clmcPath: string }
-  | { kind: 'dimension-mismatch'; resolvedPdfPath: string; data: ProjectFileV1; clmcPath: string }
+  | { kind: 'archive-corrupted'; validated: ProjectFileV2; pdfBytes: Uint8Array; clmcPath: string }
   | { kind: 'canceled' }
   | { kind: 'error'; message: string }
 
-/**
- * Pure helper: maps a ProjectOpenResult.kind to the modal that should appear.
- * Extracted so App.tsx's handleOpenResult is testable without mounting React.
- * Returns 'none' for ok/canceled (no modal), or the modal key for error states.
- */
+export type ReplacePlanPdfResult =
+  | { kind: 'ok' }
+  | { kind: 'page-count-mismatch'; expected: number; actual: number }
+  | { kind: 'dimension-mismatch'; pendingBytes: Uint8Array; pendingFilename: string }
+  | { kind: 'canceled' }
+  | { kind: 'error'; message: string }
+
+/** Pure helper: maps ProjectOpenResult.kind to the modal that should appear. */
 export function routeOpenResult(
   result: ProjectOpenResult | null
-): 'none' | 'missing-pdf' | 'page-count-mismatch' | 'hash-mismatch' | 'dimension-mismatch' | 'open-error' {
+): 'none' | 'archive-corrupted' | 'open-error' {
   if (!result || result.kind === 'ok' || result.kind === 'canceled') return 'none'
-  if (result.kind === 'missing-pdf') return 'missing-pdf'
-  if (result.kind === 'page-count-mismatch') return 'page-count-mismatch'
-  if (result.kind === 'hash-mismatch') return 'hash-mismatch'
-  if (result.kind === 'dimension-mismatch') return 'dimension-mismatch'
+  if (result.kind === 'archive-corrupted') return 'archive-corrupted'
   if (result.kind === 'error') return 'open-error'
   return 'none'
 }
 
-async function perPageDimensions(doc: PDFDocumentProxy): Promise<Record<number, { width: number; height: number }>> {
+async function perPageDimensions(
+  doc: PDFDocumentProxy
+): Promise<Record<number, { width: number; height: number }>> {
   const dims: Record<number, { width: number; height: number }> = {}
   for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i)
-    const vp = page.getViewport({ scale: 1, rotation: 0 })   // Pitfall 7 — rotation-invariant
+    const vp = page.getViewport({ scale: 1, rotation: 0 })  // Pitfall 7
     dims[i] = { width: vp.width, height: vp.height }
   }
   return dims
 }
 
-function basename(p: string): string {
-  return p.split(/[\\/]/).pop() ?? p
+function basenameAny(p: string): string {
+  const idx = Math.max(p.lastIndexOf('/'), p.lastIndexOf('\\'))
+  return idx >= 0 ? p.slice(idx + 1) : p
 }
 
 export function useProject() {
-  const { loadPdfFromPath } = usePdfDocument()
+  const { loadPdfFromPath, loadPdfFromBytes } = usePdfDocument()
 
-  /**
-   * New project: reset all stores to initial (Runtime State Inventory).
-   * Does NOT touch the PDF — caller may or may not open a PDF afterwards.
-   */
   const newProject = useCallback((): void => {
     useMarkupStore.getState().reset()
     useScaleStore.getState().reset()
@@ -69,254 +70,274 @@ export function useProject() {
     useProjectStore.getState().reset()
   }, [])
 
-  /**
-   * Save to the existing currentFilePath. If no file path yet, route to Save As.
-   */
+  // ===== SAVE =====
+
   const saveProject = useCallback(async (): Promise<'ok' | 'canceled' | 'error'> => {
-    const { currentFilePath } = useProjectStore.getState()
+    const { currentFilePath, isSaving } = useProjectStore.getState()
+    if (isSaving) return 'canceled'   // T-4.1-04-05 race guard
     if (!currentFilePath) return saveProjectAsImpl()
     return writeSnapshotToPath(currentFilePath, false)
   }, [])
 
   const saveProjectAs = useCallback(async (): Promise<'ok' | 'canceled' | 'error'> => {
+    if (useProjectStore.getState().isSaving) return 'canceled'
     return saveProjectAsImpl()
   }, [])
 
   async function saveProjectAsImpl(): Promise<'ok' | 'canceled' | 'error'> {
-    const { filePath: pdfPath, fileName: pdfName, totalPages } = useViewerStore.getState()
-    if (!pdfPath || totalPages === 0) return 'error' // D-24 — can't save without an open PDF
-    // D-14: default Save As filename = PDF basename with .clmc in the PDF's directory.
+    const { fileName: pdfName, totalPages } = useViewerStore.getState()
+    if (totalPages === 0) return 'error'
     const dotIdx = (pdfName ?? '').lastIndexOf('.')
     const baseNoExt = dotIdx > 0 ? (pdfName as string).slice(0, dotIdx) : (pdfName ?? 'project')
-    const pdfDir = pdfPath.replace(/[\\/][^\\/]+$/, '')
-    const defaultPath = `${pdfDir}/${baseNoExt}.clmc`
+    const defaultPath = `${baseNoExt}.clmc`
     const chosen = await window.api.saveProjectDialog(defaultPath)
     if (!chosen) return 'canceled'
-    return writeSnapshotToPath(chosen, true /* firstSave */)
+    return writeSnapshotToPath(chosen, true)
   }
 
-  /**
-   * Write a fresh snapshot to the given .clmc path. Handles createdAt preservation.
-   * Path math delegated to main via window.api.computeRelativePath (CONTEXT.md).
-   */
-  async function writeSnapshotToPath(clmcPath: string, firstSave: boolean): Promise<'ok' | 'canceled' | 'error'> {
+  async function writeSnapshotToPath(
+    clmcPath: string,
+    firstSave: boolean
+  ): Promise<'ok' | 'canceled' | 'error'> {
+    const setSaving = useProjectStore.getState().setSaving
+    setSaving(true)
     try {
-      const { filePath: pdfPath, totalPages } = useViewerStore.getState()
-      const pdfDoc = useViewerStore.getState().pdfDocument as PDFDocumentProxy | null
-      if (!pdfPath || !pdfDoc || totalPages === 0) return 'error'
+      const { fileName, totalPages, pdfBytes, pdfDocument } = useViewerStore.getState()
+      const pdfDoc = pdfDocument as PDFDocumentProxy | null
+      if (!pdfDoc || !pdfBytes || totalPages === 0 || !fileName) {
+        console.error('[useProject] save: missing PDF state (pdfDoc/pdfBytes/totalPages/fileName)')
+        return 'error'
+      }
 
-      const pdfSha256 = await window.api.hashPdf(pdfPath)
-      // Path math runs in main (Node path.win32 semantics). Returns null on cross-drive (Pitfall 4).
-      const relativePath = await window.api.computeRelativePath(clmcPath, pdfPath)
+      // Hash via main process (review feedback: no SubtleCrypto in renderer).
+      const pdfSha256 = await window.api.hashBuffer(pdfBytes)
       const perPageDims = await perPageDimensions(pdfDoc)
 
-      // Preserve createdAt when overwriting existing file (not first save)
+      // Preserve createdAt for non-first saves.
       let createdAt: string | undefined
       if (!firstSave) {
         try {
-          const prevText = await window.api.readProject(clmcPath)
-          const prev = JSON.parse(prevText) as ProjectFileV1
-          createdAt = prev.createdAt
+          const prev = await window.api.readProject(clmcPath)
+          if (prev.kind === 'v2-zip' && prev.projectJson) {
+            const prevData = JSON.parse(prev.projectJson) as ProjectFileV2
+            createdAt = prevData.createdAt
+          }
         } catch {
-          // file may not exist yet; fall through — snapshotProject will use "now"
+          /* file may not exist yet or be readable; ignore */
         }
       }
 
       const snap = snapshotProject({
-        pdfAbsolutePath: pdfPath,
-        pdfRelativePath: relativePath,
+        pdfOriginalFilename: fileName,
         pdfSha256,
         pdfTotalPages: totalPages,
         perPageDimensions: perPageDims,
         createdAt
       })
 
-      await window.api.writeProject(clmcPath, JSON.stringify(snap, null, 2))
+      await window.api.writeProject(clmcPath, JSON.stringify(snap), pdfBytes)
       useProjectStore.getState().setSaved(clmcPath)
       return 'ok'
     } catch (err) {
       console.error('[useProject] save failed:', err)
       return 'error'
+    } finally {
+      setSaving(false)  // T-4.1-04-01: ALWAYS reset, even on error
     }
   }
 
-  /**
-   * Main entry for opening a .clmc project. See Research Pattern 2 step order.
-   * Returns one of ProjectOpenResult's kinds. Caller (App.tsx) mounts the
-   * matching modal for missing-pdf / page-count-mismatch / hash-mismatch /
-   * dimension-mismatch; non-terminal kinds are resolved by a follow-up call
-   * to relinkPdf() / applyHashMismatchProceed() / applyDimensionMismatchProceed().
-   */
+  // ===== OPEN =====
+
   const openClmcFromPath = useCallback(
     async (clmcPath: string): Promise<ProjectOpenResult> => {
       try {
-        const text = await window.api.readProject(clmcPath)
-        const raw = JSON.parse(text) as unknown
-        const version =
-          raw && typeof raw === 'object' && 'formatVersion' in (raw as Record<string, unknown>)
-            ? (raw as { formatVersion: number }).formatVersion
-            : 0
-        const data = migrate(raw, version)
-
-        const resolved = await window.api.resolvePdfPath(
-          clmcPath,
-          data.pdf.absolutePath,
-          data.pdf.relativePath
-        )
-        if (!resolved) {
-          return {
-            kind: 'missing-pdf',
-            expectedPath: data.pdf.absolutePath,
-            expectedName: basename(data.pdf.absolutePath),
-            data,
-            clmcPath
-          }
+        const result = await window.api.readProject(clmcPath)
+        if (result.kind === 'unknown') {
+          return { kind: 'error', message: `Cannot open .clmc file: ${result.reason ?? 'unknown'}` }
         }
-
-        // Hash compare BEFORE loading bytes fully — hash is its own IPC streaming call.
-        // ENOENT guard: file can vanish between resolvePdfPath and hashPdf (e.g. file locked,
-        // deleted, or on a network drive that disconnects). Treat as missing-pdf, not generic error.
-        let actualHash: string
-        try {
-          actualHash = await window.api.hashPdf(resolved.resolvedPath)
-        } catch (hashErr) {
-          const msg = hashErr instanceof Error ? hashErr.message : String(hashErr)
-          console.error('[useProject] hashPdf failed after resolvePdfPath succeeded — treating as missing-pdf:', msg)
-          return {
-            kind: 'missing-pdf',
-            expectedPath: data.pdf.absolutePath,
-            expectedName: basename(data.pdf.absolutePath),
-            data,
-            clmcPath
-          }
+        if (result.kind === 'v1-json') {
+          return await openV1Silent(result.text!, clmcPath)
         }
-        if (actualHash !== data.pdf.sha256) {
-          // Defer proceed decision to caller — return a result they can resolve.
-          return { kind: 'hash-mismatch', resolvedPdfPath: resolved.resolvedPath, data, clmcPath }
-        }
-
-        return await finishOpen(resolved.resolvedPath, data, clmcPath)
+        // result.kind === 'v2-zip' — main has pre-hashed pdfBytes
+        return await openV2(result.projectJson!, result.pdfBytes!, result.computedSha256!, clmcPath)
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err)
-        console.error('[useProject] openClmcFromPath failed — kind: error will surface to user via OpenErrorModal. Error:', msg)
+        console.error('[useProject] openClmcFromPath failed:', msg)
         return { kind: 'error', message: msg }
       }
     },
-    [loadPdfFromPath]
+    [loadPdfFromBytes, loadPdfFromPath]
   )
 
-  /**
-   * After all pre-checks pass (or user clicks Open Anyway on hash mismatch),
-   * load the PDF and hydrate. Returns 'dimension-mismatch' BEFORE hydrate —
-   * caller must use applyDimensionMismatchProceed to hydrate post-confirmation.
-   */
-  async function finishOpen(
-    resolvedPdfPath: string,
-    data: ProjectFileV1,
+  async function openV2(
+    projectJson: string,
+    pdfBytes: Uint8Array,
+    computedSha256: string,
     clmcPath: string
   ): Promise<ProjectOpenResult> {
-    try {
-      const doc = await loadPdfFromPath(resolvedPdfPath)
+    const raw = JSON.parse(projectJson) as unknown
+    const version =
+      raw && typeof raw === 'object' && 'formatVersion' in (raw as Record<string, unknown>)
+        ? (raw as { formatVersion: number }).formatVersion
+        : 0
+    const { data: validated } = migrate(raw, version)  // wasMigrated=false for v2
 
-      if (doc.numPages !== data.pdf.totalPages) {
-        return {
-          kind: 'page-count-mismatch',
-          expected: data.pdf.totalPages,
-          actual: doc.numPages,
-          data,
-          clmcPath
-        }
-      }
-
-      // Dimension compare (D-27 / Pitfall 7)
-      const dims = await perPageDimensions(doc)
-      const dimMismatch = data.pages.some((p) => {
-        const actual = dims[p.pageIndex]
-        if (!actual) return false
-        return (
-          Math.abs(actual.width - p.dimensions.width) > 0.5 ||
-          Math.abs(actual.height - p.dimensions.height) > 0.5
-        )
-      })
-      if (dimMismatch) {
-        // Return BEFORE hydrate — user must confirm via applyDimensionMismatchProceed.
-        return { kind: 'dimension-mismatch', resolvedPdfPath, data, clmcPath }
-      }
-
-      // All clear — hydrate stores and mark clean
-      hydrateStores(data)
-      useProjectStore.getState().setCurrentFilePath(clmcPath)
-      useProjectStore.setState({ isDirty: false, lastSavedAt: Date.now() })
-      return { kind: 'ok' }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      console.error('[useProject] finishOpen failed — kind: error will surface to user via OpenErrorModal. Error:', msg)
-      return { kind: 'error', message: msg }
+    // D-07: compare main-supplied computedSha256 (no renderer-side hashing per review).
+    if (computedSha256 !== validated.pdf.sha256) {
+      console.warn(
+        '[useProject] embedded PDF sha256 mismatch — expected',
+        validated.pdf.sha256,
+        'got',
+        computedSha256
+      )
+      return { kind: 'archive-corrupted', validated, pdfBytes, clmcPath }
     }
+
+    await loadPdfFromBytes(pdfBytes, validated.pdf.originalFilename)
+    hydrateStores(validated)
+    useProjectStore.getState().setCurrentFilePath(clmcPath)
+    useProjectStore.setState({ isDirty: false, lastSavedAt: Date.now() })
+    return { kind: 'ok' }
   }
 
   /**
-   * Called by App.tsx after user clicks [Open anyway] on hash mismatch.
-   * Re-runs finishOpen (which performs the dimension check + hydrate path).
+   * D-06 silent migration: v1 plain-JSON file. Parse, **read PDF from v1.absolutePath**,
+   * call setPdfBytes BEFORE calling migrate (which discards absolutePath), then
+   * load PDF, hydrate stores, and mark dirty.
+   *
+   * **CRITICAL ORDERING (HIGH consensus review concern):**
+   *   1. Parse v1 raw JSON
+   *   2. Extract v1.pdf.absolutePath (still present in raw)
+   *   3. Call window.api.readPdfBytes(absolutePath) — populate Uint8Array
+   *   4. Call useViewerStore.setPdfBytes(bytes) — cache for next save
+   *   5. Call migrate(raw, 1) — drops absolutePath/relativePath
+   *   6. loadPdfFromBytes (renders PDF; also re-caches bytes via the loadPdf path)
+   *   7. hydrateStores + setCurrentFilePath + markDirty
+   *
+   * Without steps 3–4 BEFORE step 5, the next saveProject call would see
+   * pdfBytes === null and either crash or produce a corrupt save.
+   *
+   * If readPdfBytes fails (PDF moved/missing), return kind: 'error' — v1 files
+   * were Phase 04 dev-testing artifacts only, no missing-PDF recovery flow in v2.
    */
-  const applyHashMismatchProceed = useCallback(
-    (resolvedPdfPath: string, data: ProjectFileV1, clmcPath: string): Promise<ProjectOpenResult> =>
-      finishOpen(resolvedPdfPath, data, clmcPath),
-    [loadPdfFromPath]
-  )
+  async function openV1Silent(text: string, clmcPath: string): Promise<ProjectOpenResult> {
+    const raw = JSON.parse(text) as unknown
+
+    // Step 2: Extract absolutePath from raw v1 BEFORE migrate discards it.
+    const v1pdf = (raw as { pdf: { absolutePath: string } }).pdf
+    const absPath = v1pdf.absolutePath
+
+    // Step 3: Read PDF bytes from v1.pdf.absolutePath.
+    let pdfArrayBuf: ArrayBuffer
+    try {
+      pdfArrayBuf = await window.api.readPdfBytes(absPath)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      return {
+        kind: 'error',
+        message: `v1 .clmc file references a PDF at "${absPath}" which cannot be read (${msg}). v1 .clmc files are dev-only — re-create the project from the PDF to get a v2 archive.`
+      }
+    }
+    const pdfBytes = new Uint8Array(pdfArrayBuf)
+
+    // Step 4: Cache bytes in viewerStore BEFORE migrate (HIGH review concern).
+    useViewerStore.getState().setPdfBytes(pdfBytes)
+
+    // Step 5: Migrate (drops absolutePath/relativePath; bytes already cached).
+    const { data: validated, wasMigrated } = migrate(raw, 1)
+
+    // Step 6: Load PDF for rendering. loadPdfFromBytes ALSO calls setPdfBytes,
+    // which is intentionally redundant — Step 4 above is the load-bearing call
+    // for the test, this one is the standard PDF-load housekeeping.
+    await loadPdfFromBytes(pdfBytes, validated.pdf.originalFilename)
+
+    // Step 7: hydrate, set current path, mark dirty.
+    hydrateStores(validated)
+    useProjectStore.getState().setCurrentFilePath(clmcPath)
+    if (wasMigrated) {
+      useProjectStore.setState({ isDirty: true, lastSavedAt: null })
+    }
+    return { kind: 'ok' }
+  }
 
   /**
-   * Called by App.tsx after user clicks [Open anyway] on dimension mismatch.
-   * Skips both hash and dimension checks (both already implicitly passed — we
-   * only got here because the user explicitly accepted the risk). Hydrates
-   * stores, marks clean, writes currentFilePath. Mirrors applyHashMismatchProceed
-   * semantics except it does NOT re-run finishOpen (which would re-raise the
-   * dimension-mismatch result and loop).
-   *
-   * Signature ordering (data, resolvedPdfPath, clmcPath) matches the checker's
-   * spec. The PDF was loaded in the prior finishOpen call, so pdfDocument is
-   * already in viewerStore — we only need to hydrate the other stores.
+   * D-07: user clicked "Open anyway" on archive-corrupted modal.
+   * Bypass the hash check; proceed to load + hydrate.
    */
-  const applyDimensionMismatchProceed = useCallback(
-    async (data: ProjectFileV1, resolvedPdfPath: string, clmcPath: string): Promise<void> => {
-      void resolvedPdfPath // PDF is already loaded in viewerStore from prior finishOpen call
-      // Just hydrate + flag clean.
-      hydrateStores(data)
+  const applyArchiveCorruptedProceed = useCallback(
+    async (validated: ProjectFileV2, pdfBytes: Uint8Array, clmcPath: string): Promise<void> => {
+      await loadPdfFromBytes(pdfBytes, validated.pdf.originalFilename)
+      hydrateStores(validated)
       useProjectStore.getState().setCurrentFilePath(clmcPath)
       useProjectStore.setState({ isDirty: false, lastSavedAt: Date.now() })
     },
-    []
+    [loadPdfFromBytes]
   )
 
-  /**
-   * D-25 Re-link: caller already invoked window.api.openPdf() via Browse button.
-   * This function runs the remaining checks (page count, dimensions, hash) and
-   * completes the open. D-26 page-count is hard-abort (no proceed option exposed).
-   */
-  const relinkPdf = useCallback(
-    async (newPdfPath: string, data: ProjectFileV1, clmcPath: string): Promise<ProjectOpenResult> => {
-      const actualHash = await window.api.hashPdf(newPdfPath)
-      const updatedData: ProjectFileV1 = {
-        ...data,
-        pdf: { ...data.pdf, absolutePath: newPdfPath, relativePath: null, sha256: actualHash }
+  // ===== REPLACE PLAN PDF =====
+
+  const replacePlanPdf = useCallback(
+    async (newBytes: Uint8Array, pickedPath: string): Promise<ReplacePlanPdfResult> => {
+      try {
+        const { totalPages: expectedPages, pdfDocument: currentDoc } = useViewerStore.getState()
+        const currentDocProxy = currentDoc as PDFDocumentProxy | null
+
+        const { pdfjsLib } = await import('../lib/pdf-setup')
+        const tempDoc = (await pdfjsLib.getDocument({ data: newBytes }).promise) as PDFDocumentProxy
+
+        // D-09 hard abort: page count mismatch
+        if (tempDoc.numPages !== expectedPages) {
+          const actual = tempDoc.numPages
+          await tempDoc.destroy()
+          return { kind: 'page-count-mismatch', expected: expectedPages, actual }
+        }
+
+        // D-09 warn-and-allow: dimension mismatch
+        if (currentDocProxy) {
+          const oldDims = await perPageDimensions(currentDocProxy)
+          const newDims = await perPageDimensions(tempDoc)
+          const dimMismatch = Object.keys(oldDims).some((k) => {
+            const i = Number(k)
+            const a = oldDims[i]
+            const b = newDims[i]
+            if (!a || !b) return false
+            return Math.abs(a.width - b.width) > 0.5 || Math.abs(a.height - b.height) > 0.5
+          })
+          if (dimMismatch) {
+            await tempDoc.destroy()
+            return {
+              kind: 'dimension-mismatch',
+              pendingBytes: newBytes,
+              pendingFilename: basenameAny(pickedPath)
+            }
+          }
+        }
+        await tempDoc.destroy()
+
+        // All clear — apply (D-10)
+        await applyReplacePlanPdf(newBytes, pickedPath)
+        return { kind: 'ok' }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        console.error('[useProject] replacePlanPdf failed:', msg)
+        return { kind: 'error', message: msg }
       }
-      // Don't enforce hash match on re-link; caller already chose this file explicitly.
-      // Still emit dimension warning if it applies.
-      const result = await finishOpen(newPdfPath, updatedData, clmcPath)
-      if (result.kind === 'ok') {
-        // D-25: re-link updates the pdf reference in memory; dirty MUST be true
-        // so user can Ctrl+S to persist the new path.
-        useProjectStore.setState({ isDirty: true })
-      }
-      return result
     },
-    [loadPdfFromPath]
+    [loadPdfFromBytes]
   )
 
-  /**
-   * Top-level open entry: show file picker, sniff extension, route.
-   * Caller is responsible for going through the close-guard first if currentFilePath is dirty (D-21).
-   */
+  const applyReplacePlanPdf = useCallback(
+    async (newBytes: Uint8Array, pickedPath: string): Promise<void> => {
+      const filename = basenameAny(pickedPath)
+      await loadPdfFromBytes(newBytes, filename)
+      // loadPdfFromBytes already updated viewerStore.pdfBytes, pdfDocument, fileName, totalPages.
+      useProjectStore.getState().markDirty()
+    },
+    [loadPdfFromBytes]
+  )
+
+  // ===== TOP-LEVEL OPEN ENTRY =====
+
   const openProjectDialog = useCallback(async (): Promise<ProjectOpenResult | null> => {
     const picked = await window.api.openProject()
     if (!picked) return { kind: 'canceled' }
@@ -328,7 +349,6 @@ export function useProject() {
       const route = routeOpenByExtension(extension)
       if (route === 'pdf') {
         try {
-          // Fresh project: reset stores first so no stale data carries over
           newProject()
           await loadPdfFromPath(filePath)
           return { kind: 'ok' }
@@ -350,8 +370,8 @@ export function useProject() {
     saveProjectAs,
     openByExtension,
     openProjectDialog,
-    relinkPdf,
-    applyHashMismatchProceed,
-    applyDimensionMismatchProceed
+    replacePlanPdf,
+    applyReplacePlanPdf,
+    applyArchiveCorruptedProceed
   }
 }

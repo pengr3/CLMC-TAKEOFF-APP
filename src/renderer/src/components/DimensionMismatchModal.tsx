@@ -43,6 +43,10 @@ export function DimensionMismatchModal({
         <div>
           PDF dimensions don&apos;t match the original. Markup positions may look wrong.
         </div>
+        <div style={{ fontSize: 12, color: '#aaaaaa', fontStyle: 'italic' }}>
+          Note: your scale calibration may need to be re-verified or reset after opening — different
+          page sizes can change the pixels-per-millimeter ratio.
+        </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button
             type="button"
