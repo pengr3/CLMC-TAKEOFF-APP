@@ -10,6 +10,7 @@ import { useScaleStore } from '@renderer/stores/scaleStore'
 import { useViewerStore } from '@renderer/stores/viewerStore'
 import { hydrateStores } from '@renderer/lib/project-serialize'
 import type { CountMarkup } from '@renderer/types/markup'
+import type { ProjectFileV2 } from '@renderer/lib/project-schema'
 
 const sampleMarkup: CountMarkup = {
   id: 'm1',
@@ -67,13 +68,13 @@ describe('projectStore', () => {
   })
 
   it('stays clean on hydrate — hydrating stores does NOT flip isDirty', () => {
-    // Build a minimal ProjectFileV1 to hydrate from
-    const snap = {
-      formatVersion: 1 as const,
+    // Build a minimal ProjectFileV2 to hydrate from
+    const snap: ProjectFileV2 = {
+      formatVersion: 2,
       createdAt: '2026-04-21T00:00:00.000Z',
       updatedAt: '2026-04-21T00:00:00.000Z',
-      pdf: { absolutePath: 'C:/plans.pdf', relativePath: null, totalPages: 1, sha256: 'x' },
-      globalUnit: 'm' as const,
+      pdf: { originalFilename: 'plans.pdf', sha256: 'x', totalPages: 1 },
+      globalUnit: 'm',
       categories: {},
       categoryOrder: [],
       currentPage: 1,

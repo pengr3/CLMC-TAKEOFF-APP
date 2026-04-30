@@ -21,9 +21,10 @@ describe('project-schema', () => {
     expect(validated).toEqual(VALID_V1)
   })
 
-  // FIXME(Wave 1): migrate signature changes to { data, wasMigrated } — Wave 1 plan rewrites this assertion.
-  it('migrate v1 identity returns the same object shape', () => {
-    expect(migrate(VALID_V1, 1)).toEqual(VALID_V1)
+  it('migrate v1 returns wasMigrated=true with upgraded v2 data', () => {
+    const result = migrate(VALID_V1, 1)
+    expect(result.wasMigrated).toBe(true)
+    expect(result.data.formatVersion).toBe(2)
   })
 
   it('migrate unknown version throws descriptive error', () => {
