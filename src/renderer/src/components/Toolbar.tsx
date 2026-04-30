@@ -12,10 +12,12 @@ import {
   Square,
   Hexagon,
   Save,
-  SaveAll
+  SaveAll,
+  Replace
 } from 'lucide-react'
 import { useViewerStore } from '../stores/viewerStore'
 import { useScaleStore } from '../stores/scaleStore'
+import { useProjectStore } from '../stores/projectStore'
 import { useProject } from '../hooks/useProject'
 import { getCanvasControls, getCalibrationControls } from './CanvasViewport'
 import { ScaleContextMenu } from './ScaleContextMenu'
@@ -28,6 +30,7 @@ function IconButton({
   disabled = false,
   active = false,
   title,
+  ariaLabel,
   onContextMenu,
   children
 }: {
@@ -37,6 +40,7 @@ function IconButton({
   disabled?: boolean
   active?: boolean
   title: string
+  ariaLabel?: string
   onContextMenu?: (e: React.MouseEvent<HTMLButtonElement>) => void
   children?: React.ReactNode
 }): React.JSX.Element {
@@ -46,7 +50,7 @@ function IconButton({
       onClick={disabled ? undefined : onClick}
       onContextMenu={onContextMenu}
       title={title}
-      aria-label={title}
+      aria-label={ariaLabel ?? title}
       aria-pressed={active}
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : 0}
@@ -65,6 +69,7 @@ function IconButton({
         fontWeight: 600,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.4 : 1,
+        pointerEvents: disabled ? 'none' : 'auto',
         lineHeight: 1.4
       }}
       onMouseEnter={(e) => {
@@ -90,15 +95,20 @@ function IconButton({
 export interface ToolbarProps {
   /**
    * Called when the user clicks the Open button. Owned by App.tsx so the
-   * dirty-guard + result-routing through handleOpenResult (which mounts
-   * MissingPdfModal/HashMismatchModal/etc.) stays in one place. Toolbar must
-   * NOT call useProject().openProjectDialog directly — that path discards the
-   * ProjectOpenResult and recovery modals never appear.
+   * dirty-guard + result-routing through handleOpenResult stays in one place.
+   * Toolbar must NOT call useProject().openProjectDialog directly — that path
+   * discards the ProjectOpenResult and recovery modals never appear.
    */
   onOpenClick: () => void | Promise<void>
+  /**
+   * Called when the user clicks the Replace Plan PDF button. Owned by App.tsx
+   * so the result-routing to PageCountAbortModal / DimensionMismatchModal
+   * stays in one place. (D-08)
+   */
+  onReplaceClick: () => void | Promise<void>
 }
 
-export function Toolbar({ onOpenClick }: ToolbarProps): React.JSX.Element {
+export function Toolbar({ onOpenClick, onReplaceClick }: ToolbarProps): React.JSX.Element {
   const { totalPages, currentPage, nextPage, prevPage } = useViewerStore()
   const getViewport = useViewerStore((s) => s.getViewport)
   const activeTool = useViewerStore((s) => s.activeTool)
@@ -109,13 +119,15 @@ export function Toolbar({ onOpenClick }: ToolbarProps): React.JSX.Element {
   // useProject called ONCE per render; save callbacks destructured for buttons.
   // Open is routed via the onOpenClick prop (owned by App.tsx) — see ToolbarProps.
   const { saveProject, saveProjectAs } = useProject()
+  const isSaving = useProjectStore((s) => s.isSaving)
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
 
   const pageScale = totalPages > 0 ? getScale(currentPage) : null
   const setScaleDisabled = totalPages === 0
   const isCalibrating = calibMode !== 'idle'
-  const saveDisabled = totalPages === 0
+  const saveDisabled = totalPages === 0 || isSaving
+  const replaceDisabled = totalPages === 0 || isSaving
 
   const currentZoom = totalPages > 0 ? getViewport(currentPage).zoom : 1
   const zoomPct = Math.round(currentZoom * 100)
@@ -243,6 +255,14 @@ export function Toolbar({ onOpenClick }: ToolbarProps): React.JSX.Element {
             disabled={saveDisabled}
             onClick={() => { void saveProjectAs() }}
             title="Save As (Ctrl+Shift+S)"
+          />
+          <IconButton
+            icon={Replace}
+            label="Replace Plan PDF"
+            disabled={replaceDisabled}
+            onClick={() => { void onReplaceClick() }}
+            title="Replace Plan PDF — markups preserved, save (Ctrl+S) to persist"
+            ariaLabel="Replace Plan PDF"
           />
         </div>
       </div>
