@@ -66,18 +66,32 @@ async function atomicWriteFile(finalPath: string, data: Buffer): Promise<void> {
   try {
     await rename(tmpPath, finalPath)
     return
-  } catch (err) {
-    if (isLockedDestError(err)) {
+  } catch (firstErr) {
+    if (isLockedDestError(firstErr)) {
+      // Step 1: try to release the destination. ENOENT means it never existed —
+      // benign; proceed to retry rename. Other errors mean we cannot remove
+      // the lock, so surface the original rename error after .tmp cleanup.
       try {
         await unlink(finalPath)
+      } catch (unlinkErr) {
+        const code = (unlinkErr as NodeJS.ErrnoException | undefined)?.code
+        if (code !== 'ENOENT') {
+          try { await unlink(tmpPath) } catch { /* ignore */ }
+          throw firstErr
+        }
+      }
+      // Step 2: retry rename. If this still fails, surface the SECOND error
+      // for diagnostics — the original EPERM is no longer the proximate cause.
+      try {
         await rename(tmpPath, finalPath)
         return
-      } catch {
-        // Both attempts failed — fall through to cleanup + rethrow original error.
+      } catch (retryErr) {
+        try { await unlink(tmpPath) } catch { /* ignore */ }
+        throw retryErr
       }
     }
     try { await unlink(tmpPath) } catch { /* ignore */ }
-    throw err
+    throw firstErr
   }
 }
 

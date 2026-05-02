@@ -119,4 +119,13 @@ describe('useExport — D-06 / D-21 / D-24 / EXPRT-01', () => {
     expect(r.kind).toBe('canceled')
     expect(mockSaveExportDialog).not.toHaveBeenCalled()
   })
+
+  it('holds isExporting=true across the needs-uncalibrated-confirmation modal window (BL-02 race fix)', async () => {
+    // Page 1 has linear markup but no scale → uncalibrated → confirmation kind.
+    // After exportBoq returns this kind, isExporting MUST stay true so a second
+    // Ctrl+Shift+E press hits the race guard and bails.
+    const r = await callExport()
+    expect(r.kind).toBe('needs-uncalibrated-confirmation')
+    expect(useProjectStore.getState().isExporting).toBe(true)
+  })
 })

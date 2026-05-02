@@ -74,10 +74,15 @@ function hexToArgb(hex: string): string {
  * character is preserved in the underlying data, which is acceptable for a
  * BOQ deliverable (and far better than letting `=cmd|/c calc!A1` execute).
  */
+// CSV/XLSX formula-injection guard — Excel/Sheets ignore leading whitespace
+// and tabs before formula triggers, so the regex strips those before checking.
+// Reference: OWASP CSV Injection cheatsheet; documented bypass for first-char-only
+// guards. Matches space, tab, vertical tab, form feed, and other Unicode whitespace.
+const FORMULA_TRIGGER_RE = /^\s*[=+\-@]/
+
 function safeText(s: string): string {
   if (s.length === 0) return s
-  const first = s[0]
-  if (first === '=' || first === '+' || first === '-' || first === '@') return `'${s}`
+  if (FORMULA_TRIGGER_RE.test(s)) return `'${s}`
   return s
 }
 

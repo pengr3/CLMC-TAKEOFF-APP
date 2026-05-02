@@ -165,6 +165,12 @@ function App(): React.JSX.Element {
 
   // Phase 5: Export click handler — routes ExportResult kinds to UI state
   const handleExportClick = useCallback(async () => {
+    // BL-04: reject Ctrl+Shift+E repeats while an export is already in flight.
+    // Toolbar disables the button visually, but the keyboard path bypasses
+    // that prop. The hook's race guard catches it too, but rejecting here
+    // avoids the function call entirely.
+    const { isExporting, isSaving } = useProjectStore.getState()
+    if (isExporting || isSaving) return
     const fileBasename = (p: string): string => {
       const i = Math.max(p.lastIndexOf('/'), p.lastIndexOf('\\'))
       return i >= 0 ? p.slice(i + 1) : p
@@ -294,7 +300,12 @@ function App(): React.JSX.Element {
               setExportToast(`Exported: ${fileBasename(r.filePath)}`)
             }
           }}
-          onCancel={() => setUncalibratedWarning(null)}
+          onCancel={() => {
+            setUncalibratedWarning(null)
+            // exportBoq holds isExporting=true across the modal-open window
+            // (per the BL-02 race fix). Releasing here closes the flow on Cancel.
+            useProjectStore.getState().setExporting(false)
+          }}
         />
       )}
 

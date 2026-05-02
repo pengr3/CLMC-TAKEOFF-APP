@@ -57,6 +57,26 @@ describe('buildBoqCsv — D-14 / EXPRT-02', () => {
     expect(csv).toContain('"Wire ""red"""')
   })
 
+  it('safeText neutralises leading-whitespace formula-injection bypass (BL-01)', () => {
+    // Excel/Sheets ignore leading spaces and tabs before formula triggers.
+    // safeText must catch '\t=cmd|/c calc' and ' =SUM()' even though s[0] !== '='.
+    const cases = [
+      { label: ' =cmd|/c calc!A1', expectedPrefix: "' =cmd" },
+      { label: '\t=SUM(A:A)', expectedPrefix: "'\t=SUM" },
+      { label: '  +1+2', expectedPrefix: "'  +1+2" },
+      { label: '   @cell', expectedPrefix: "'   @cell" }
+    ]
+    for (const c of cases) {
+      const s = structure()
+      s.categories[0].items[0].label = c.label
+      const csv = buildBoqCsv(s)
+      // The injected label must appear with a leading apostrophe in the CSV.
+      // csv-stringify quotes fields containing whitespace or commas, so we
+      // search for the apostrophe-prefixed form anywhere in the output.
+      expect(csv).toContain(`'${c.label}`)
+    }
+  })
+
   it('mirrors XLSX row order: metadata block → blank → title → category heading → items → subtotals → grand totals', () => {
     const csv = buildBoqCsv(structure())
     // Strip the UTF-8 BOM before line-splitting so row-zero assertions stay clean.
