@@ -141,5 +141,28 @@ describe('projectStore isSaving (D-12)', () => {
   })
 })
 
+describe('useProjectStore — isExporting (D-19 race guard)', () => {
+  beforeEach(() => {
+    useProjectStore.getState().reset()
+  })
+
+  it('isExporting defaults to false', () => {
+    expect(useProjectStore.getState().isExporting).toBe(false)
+  })
+
+  it('setExporting(true) flips to true; setExporting(false) flips back', () => {
+    useProjectStore.getState().setExporting(true)
+    expect(useProjectStore.getState().isExporting).toBe(true)
+    useProjectStore.getState().setExporting(false)
+    expect(useProjectStore.getState().isExporting).toBe(false)
+  })
+
+  it('reset() zeroes isExporting back to false', () => {
+    useProjectStore.getState().setExporting(true)
+    useProjectStore.getState().reset()
+    expect(useProjectStore.getState().isExporting).toBe(false)
+  })
+})
+
 // Re-export for potential external use in test verification
 export { suspendDirtyTracking, resumeDirtyTracking }
