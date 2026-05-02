@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Phase 4.1 planned — 7 plans in 7 waves, review feedback incorporated (v1 pdfBytes gap, atomic write, sha256 IPC, scale warning)
-last_updated: "2026-04-30T16:20:00.000Z"
-last_activity: 2026-04-30
+status: Ready to plan
+stopped_at: Phase 5 context gathered — BOQ Export decisions captured (aggregation by (name,type), globalUnit, perimeter as two rows, full XLSX polish, single Toolbar Export + Ctrl+Shift+E)
+last_updated: "2026-05-02T00:00:00.000Z"
+last_activity: 2026-05-02
 progress:
   total_phases: 8
   completed_phases: 5
@@ -161,14 +161,14 @@ None.
 
 ## Session Continuity
 
-**Last activity:** 2026-04-30
+**Last activity:** 2026-05-02
 
-**Last session:** 2026-04-30
+**Last session:** 2026-05-02
 
-**Stopped at:** Phase 04 complete — Phase 4.1 context gathered (CONTEXT.md written, ROADMAP.md updated)
+**Stopped at:** Phase 5 context gathered — `.planning/phases/05-boq-export/05-CONTEXT.md` written.
 
-**Next action:** Execute Phase 4.1 — ZIP-embedded .clmc format (`/gsd-execute-phase 4.1`).
+**Next action:** Plan Phase 5 — BOQ Export (`/gsd-plan-phase 5`).
 
 ---
 *State initialized: 2026-03-25*
-*Last updated: 2026-03-28 after completing Phase 01 Plan 03*
+*Last updated: 2026-05-02 after Phase 5 context gathering*
