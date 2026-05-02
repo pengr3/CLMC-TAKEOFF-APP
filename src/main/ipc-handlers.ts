@@ -44,14 +44,38 @@ function u8ToBuf(u8: Uint8Array): Buffer {
  *
  * Per consensus review feedback (MEDIUM concern): protects an estimator's
  * irreplaceable work from partial-write corruption.
+ *
+ * Windows / OneDrive recovery: rename can fail with EPERM/EEXIST/EBUSY when
+ * the destination is held by sync software (OneDrive, Dropbox), antivirus,
+ * or another process briefly. On those error codes we unlink the destination
+ * then retry rename once. The retry path is non-atomic (the original file
+ * is briefly absent), but the alternative is a hard failure for every
+ * OneDrive user — unacceptable on Windows.
  */
+function isLockedDestError(err: unknown): boolean {
+  if (err instanceof Error && 'code' in err) {
+    const code = (err as NodeJS.ErrnoException).code
+    return code === 'EPERM' || code === 'EEXIST' || code === 'EBUSY'
+  }
+  return false
+}
+
 async function atomicWriteFile(finalPath: string, data: Buffer): Promise<void> {
   const tmpPath = `${finalPath}.tmp`
   await writeFile(tmpPath, data)
   try {
     await rename(tmpPath, finalPath)
+    return
   } catch (err) {
-    // Best-effort cleanup; ignore unlink errors (e.g., file already gone).
+    if (isLockedDestError(err)) {
+      try {
+        await unlink(finalPath)
+        await rename(tmpPath, finalPath)
+        return
+      } catch {
+        // Both attempts failed — fall through to cleanup + rethrow original error.
+      }
+    }
     try { await unlink(tmpPath) } catch { /* ignore */ }
     throw err
   }

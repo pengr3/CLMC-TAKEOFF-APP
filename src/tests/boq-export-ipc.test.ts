@@ -90,13 +90,14 @@ describe('Phase 5 IPC handlers — D-21 / D-24 / EXPRT-01 / EXPRT-02', () => {
   })
 
   it('file:writeBoqCsv returns { ok: false, reason } on rename failure and cleans up .tmp', async () => {
-    ;(fsP.rename as unknown as { mockRejectedValueOnce: (e: Error) => void }).mockRejectedValueOnce(new Error('EBUSY'))
+    // atomicWriteFile retries rename once after unlinking the destination on EBUSY/EPERM.
+    // Both attempts must fail to surface the underlying error to the caller.
+    const renameErr = Object.assign(new Error('EBUSY'), { code: 'EBUSY' })
+    ;(fsP.rename as unknown as { mockRejectedValue: (e: Error) => void }).mockRejectedValue(renameErr)
     const finalPath = 'C:/exports/x.csv'
     const r = await handlers['file:writeBoqCsv']({}, finalPath, STUB_STRUCT) as { ok: boolean; reason?: string }
     expect(r.ok).toBe(false)
     expect(r.reason).toContain('EBUSY')
-    // Pins the specific .tmp path that atomicWriteFile cleans up after a rename failure.
-    // If atomicWriteFile's internal cleanup contract changes, this assertion correctly fails.
     expect(fsP.unlink).toHaveBeenCalledWith(`${finalPath}.tmp`)
   })
 })

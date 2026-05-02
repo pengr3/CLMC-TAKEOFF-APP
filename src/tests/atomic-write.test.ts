@@ -61,16 +61,37 @@ describe('file:writeProject — atomic write (MEDIUM review concern)', () => {
     expect(writeOrder).toBeLessThan(renameOrder)
   })
 
-  it('cleans up .tmp file via unlink when rename fails', async () => {
+  it('recovers from EPERM on rename by unlinking destination then retrying (OneDrive lock workaround)', async () => {
+    const finalPath = 'C:/projects/locked.clmc'
+    const tmpPath = `${finalPath}.tmp`
+    // First rename rejects with EPERM (OneDrive holds the dest); second succeeds.
+    const epermErr = Object.assign(new Error('EPERM: operation not permitted, rename'), { code: 'EPERM' })
+    ;(fsP.rename as ReturnType<typeof vi.fn>)
+      .mockRejectedValueOnce(epermErr)
+      .mockResolvedValueOnce(undefined)
+
+    await expect(
+      handlers['file:writeProject']({}, finalPath, '{}', new Uint8Array())
+    ).resolves.toEqual({ ok: true })
+
+    // Recovery sequence: unlink(finalPath) then rename(tmpPath, finalPath)
+    expect(fsP.unlink).toHaveBeenCalledWith(finalPath)
+    expect((fsP.rename as ReturnType<typeof vi.fn>).mock.calls.length).toBe(2)
+    expect((fsP.rename as ReturnType<typeof vi.fn>).mock.calls[1]).toEqual([tmpPath, finalPath])
+  })
+
+  it('cleans up .tmp file via unlink when rename fails (both initial + recovery)', async () => {
     const finalPath = 'C:/projects/myplan.clmc'
     const tmpPath = `${finalPath}.tmp`
-    ;(fsP.rename as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('EPERM: rename failed'))
+    // atomicWriteFile retries rename once after unlinking the destination on EPERM.
+    // Both attempts must fail to surface the underlying error.
+    const renameErr = Object.assign(new Error('EPERM: rename failed'), { code: 'EPERM' })
+    ;(fsP.rename as ReturnType<typeof vi.fn>).mockRejectedValue(renameErr)
 
     await expect(
       handlers['file:writeProject']({}, finalPath, '{}', new Uint8Array())
     ).rejects.toThrow(/rename failed/)
 
-    // unlink must be called to clean up the orphaned .tmp file
     expect(fsP.unlink).toHaveBeenCalledWith(tmpPath)
   })
 })
