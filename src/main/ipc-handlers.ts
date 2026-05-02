@@ -3,11 +3,14 @@ import { readFile, writeFile, rename, unlink } from 'fs/promises'
 import { extname, basename } from 'path'
 import {
   enforceClmcExtension,
+  enforceXlsxExtension,
+  enforceCsvExtension,
   detectClmcFormat,
   extractClmcZip,
   assembleClmcZip,
   sha256Buffer
 } from './project-io'
+import { buildBoqXlsx, buildBoqCsv, type BoqStructure } from './boq-writers'
 
 /**
  * Discriminated union returned by file:readProject.
@@ -165,6 +168,73 @@ export function registerIpcHandlers(): void {
     const data = await readFile(pdfPath)
     return new Uint8Array(data).buffer
   })
+
+  // -------- Phase 5: BOQ Export — D-16 / D-24 --------
+  // Save dialog with .xlsx and .csv filters; detects format from chosen extension
+  // (Pitfall 7: showSaveDialog does NOT return filterIndex).
+  ipcMain.handle(
+    'dialog:saveExport',
+    async (
+      event,
+      defaultPath: string,
+      format: 'xlsx' | 'csv'
+    ): Promise<{ filePath: string; format: 'xlsx' | 'csv' } | null> => {
+      const win = BrowserWindow.fromWebContents(event.sender)!
+      const xlsxFilter = { name: 'Excel Workbook', extensions: ['xlsx'] }
+      const csvFilter = { name: 'CSV', extensions: ['csv'] }
+      const filters =
+        format === 'csv' ? [csvFilter, xlsxFilter] : [xlsxFilter, csvFilter]
+      const result = await dialog.showSaveDialog(win, {
+        title: 'Export BOQ',
+        defaultPath,
+        filters
+      })
+      if (result.canceled || !result.filePath) return null
+      const lowered = result.filePath.toLowerCase()
+      if (lowered.endsWith('.csv')) {
+        return { filePath: enforceCsvExtension(result.filePath), format: 'csv' }
+      }
+      return { filePath: enforceXlsxExtension(result.filePath), format: 'xlsx' }
+    }
+  )
+
+  // Atomic XLSX write: build buffer via ExcelJS, write to .tmp + rename.
+  ipcMain.handle(
+    'file:writeBoqXlsx',
+    async (
+      _event,
+      filePath: string,
+      structure: BoqStructure
+    ): Promise<{ ok: true } | { ok: false; reason: string }> => {
+      try {
+        const buf = await buildBoqXlsx(structure)
+        await atomicWriteFile(filePath, buf)
+        return { ok: true }
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err)
+        return { ok: false, reason }
+      }
+    }
+  )
+
+  // Atomic CSV write: build text via csv-stringify, wrap in UTF-8 Buffer, atomic write.
+  ipcMain.handle(
+    'file:writeBoqCsv',
+    async (
+      _event,
+      filePath: string,
+      structure: BoqStructure
+    ): Promise<{ ok: true } | { ok: false; reason: string }> => {
+      try {
+        const csvText = buildBoqCsv(structure)
+        await atomicWriteFile(filePath, Buffer.from(csvText, 'utf-8'))
+        return { ok: true }
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err)
+        return { ok: false, reason }
+      }
+    }
+  )
 
   // NOTE: Removed channels (Wave 2 deletion):
   //   - file:hashPdf       — replaced by sha256Buffer (in extract path) and file:hashBuffer (renderer-driven)

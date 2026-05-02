@@ -9,8 +9,12 @@ vi.mock('fs/promises', () => ({
   access: vi.fn().mockResolvedValue(undefined)
 }))
 
-const handlers: Record<string, (...args: unknown[]) => Promise<unknown>> = {}
-const mockShowSaveDialog = vi.fn()
+// vi.mock factories run BEFORE top-level const initialization. Using vi.hoisted
+// to share state between the factory and the test body.
+const { handlers, mockShowSaveDialog } = vi.hoisted(() => ({
+  handlers: {} as Record<string, (...args: unknown[]) => Promise<unknown>>,
+  mockShowSaveDialog: vi.fn()
+}))
 
 vi.mock('electron', () => ({
   ipcMain: {
