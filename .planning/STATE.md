@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Phase 5 context gathered — BOQ Export decisions captured (aggregation by (name,type), globalUnit, perimeter as two rows, full XLSX polish, single Toolbar Export + Ctrl+Shift+E)
+status: Ready to execute
+stopped_at: Phase 5 planned — BOQ Export plans created (7 plans across 6 waves; ExcelJS 4.4.0 compatibility verified; 24 D-decisions covered, both EXPRT-01/02 mapped)
 last_updated: "2026-05-02T00:00:00.000Z"
 last_activity: 2026-05-02
 progress:
@@ -141,7 +141,7 @@ Plan: 2 of 8
 ### Open Questions / Todos
 
 - Verify Chromium 134 (bundled with Electron 35) canvas size limit -- may affect tiled rendering decision
-- Verify ExcelJS 4.4.0 compatibility with Node 22 (bundled with Electron 35) before Phase 5
+- ~~Verify ExcelJS 4.4.0 compatibility with Node 22 (bundled with Electron 35) before Phase 5~~ — **RESOLVED** in 05-RESEARCH.md (round-trip smoke test confirmed: workbook + native-number cells with numFmt + ARGB fills + merged cells + frozen views all work; SUM() works because cells stay native numbers)
 
 ### Blockers
 
@@ -165,10 +165,10 @@ None.
 
 **Last session:** 2026-05-02
 
-**Stopped at:** Phase 5 context gathered — `.planning/phases/05-boq-export/05-CONTEXT.md` written.
+**Stopped at:** Phase 5 planned — 7 PLAN.md files written across 6 waves; checker passed iteration 2 with 0 blockers, 0 warnings; VALIDATION.md `nyquist_compliant: true`.
 
-**Next action:** Plan Phase 5 — BOQ Export (`/gsd-plan-phase 5`).
+**Next action:** Execute Phase 5 — BOQ Export (`/gsd-execute-phase 5`).
 
 ---
 *State initialized: 2026-03-25*
-*Last updated: 2026-05-02 after Phase 5 context gathering*
+*Last updated: 2026-05-02 after Phase 5 planning*
