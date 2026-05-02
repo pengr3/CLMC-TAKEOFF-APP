@@ -143,7 +143,7 @@ export async function buildBoqXlsx(b: BoqStructure): Promise<Buffer> {
 
   // writeBuffer — TS declares Promise<ExcelJS.Buffer> but runtime is Node Buffer.
   // Cast for IPC consistency. Pitfall 10.
-  const buf = (await wb.xlsx.writeBuffer()) as Buffer
+  const buf = (await wb.xlsx.writeBuffer()) as unknown as Buffer
   return buf
 }
 
