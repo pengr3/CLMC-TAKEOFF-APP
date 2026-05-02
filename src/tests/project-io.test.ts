@@ -5,6 +5,8 @@ import JSZip from 'jszip'
 import {
   sha256File,
   enforceClmcExtension,
+  enforceXlsxExtension,
+  enforceCsvExtension,
   sha256Buffer,
   verifySha256,
   detectClmcFormat,
@@ -27,6 +29,18 @@ describe('project-io', () => {
     expect(enforceClmcExtension('C:/proj/plans')).toBe('C:/proj/plans.clmc')
     expect(enforceClmcExtension('C:/proj/plans.clmc')).toBe('C:/proj/plans.clmc')
     expect(enforceClmcExtension('C:/proj/PLANS.CLMC')).toBe('C:/proj/PLANS.CLMC')
+  })
+
+  it('enforces .xlsx extension — appends when missing, idempotent, case-insensitive', () => {
+    expect(enforceXlsxExtension('C:/proj/plans')).toBe('C:/proj/plans.xlsx')
+    expect(enforceXlsxExtension('C:/proj/plans.xlsx')).toBe('C:/proj/plans.xlsx')
+    expect(enforceXlsxExtension('C:/proj/PLANS.XLSX')).toBe('C:/proj/PLANS.XLSX')
+  })
+
+  it('enforces .csv extension — appends when missing, idempotent, case-insensitive', () => {
+    expect(enforceCsvExtension('C:/proj/plans')).toBe('C:/proj/plans.csv')
+    expect(enforceCsvExtension('C:/proj/plans.csv')).toBe('C:/proj/plans.csv')
+    expect(enforceCsvExtension('C:/proj/PLANS.CSV')).toBe('C:/proj/PLANS.CSV')
   })
 })
 

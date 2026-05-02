@@ -49,6 +49,27 @@ export function enforceClmcExtension(filePath: string): string {
   return extname(filePath).toLowerCase() === '.clmc' ? filePath : filePath + '.clmc'
 }
 
+/**
+ * Ensure the given file path ends with the .xlsx extension (case-insensitive).
+ * Mirror of enforceClmcExtension for the BOQ Excel export path.
+ *
+ * Note: if the user types a wrong extension under the .xlsx filter (e.g., 'plan.xls'),
+ * this appends '.xlsx' producing 'plan.xls.xlsx' — same behavior as enforceClmcExtension
+ * already exhibits. Native Save dialog usually pre-populates the right extension, so
+ * this is the rare edge case path.
+ */
+export function enforceXlsxExtension(filePath: string): string {
+  return extname(filePath).toLowerCase() === '.xlsx' ? filePath : filePath + '.xlsx'
+}
+
+/**
+ * Ensure the given file path ends with the .csv extension (case-insensitive).
+ * Mirror of enforceClmcExtension for the BOQ CSV export path.
+ */
+export function enforceCsvExtension(filePath: string): string {
+  return extname(filePath).toLowerCase() === '.csv' ? filePath : filePath + '.csv'
+}
+
 // ----- v2 ZIP-embedded .clmc format (Phase 4.1) -----
 
 export type ClmcFormat = 'v2-zip' | 'v1-json' | 'unknown'
