@@ -42,8 +42,8 @@
 
 ### Project Persistence
 
-- [x] **PERS-01**: User can save the current project (PDF file reference + all markup positions + per-page scale) to a .clmc project file
-- [x] **PERS-02**: User can reopen a .clmc project file and continue marking up where they left off
+- [x] **PERS-01**: User can save the current project (PDF file reference + all markup positions + per-page scale) to a .clmc project file — **revised by Phase 04.1 (2026-05-02): the .clmc file is now a ZIP archive embedding the PDF, making it fully self-contained. Save uses atomic .tmp+rename pattern. See `.planning/phases/04.1-zip-embedded-clmc/04.1-CONTEXT.md`.**
+- [x] **PERS-02**: User can reopen a .clmc project file and continue marking up where they left off — **revised by Phase 04.1 (2026-05-02): self-contained v2 archive eliminates path-resolution and missing-PDF recovery. v1 plain-JSON files migrate silently to v2 on first save with explicit pdfBytes population in the migration path.**
 
 ### Export
 
@@ -111,8 +111,8 @@
 | MARK-08 | Phase 3 (revised by 03.1) | Complete |
 | MARK-09 | Phase 3 | Complete |
 | MARK-10 | Phase 3 | Complete |
-| PERS-01 | Phase 4 | Complete |
-| PERS-02 | Phase 4 | Complete |
+| PERS-01 | Phase 4 (revised by 04.1) | Complete |
+| PERS-02 | Phase 4 (revised by 04.1) | Complete |
 | EXPRT-01 | Phase 5 | Pending |
 | EXPRT-02 | Phase 5 | Pending |
 | VIEW-01 | Phase 6 | Pending |

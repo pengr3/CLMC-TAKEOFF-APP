@@ -12,7 +12,7 @@
 - [x] **Phase 2: Scale Calibration** - Per-page scale calibration by drawn line, measurement unit system, and scale display — the math layer that all markup measurements depend on (completed 2026-04-20)
 - [x] **Phase 3: Markup Tools and Editing** - All four markup types (count, linear, area, perimeter) with freehand naming, category assignment, color-coding, labels, and full undo/redo (completed 2026-04-21 via Phase 03.1 gap-closure)
 - [x] **Phase 4: Project Persistence** - Save and load .clmc project files so work survives across sessions (completed 2026-04-29)
-- [ ] **Phase 4.1: ZIP-Embedded .clmc Format** - Upgrade .clmc to a self-contained ZIP archive that embeds the PDF, eliminating path-dependency and enabling true portability
+- [x] **Phase 4.1: ZIP-Embedded .clmc Format** - Upgrade .clmc to a self-contained ZIP archive that embeds the PDF, eliminating path-dependency and enabling true portability (completed 2026-05-02)
 - [ ] **Phase 5: BOQ Export** - Export takeoff sheet to Excel and CSV, grouped by category
 - [ ] **Phase 6: Live View and UI Polish** - Running totals panel, thumbnail strip navigation, and page/scale status indicators that complete the day-to-day estimating workflow
 
@@ -118,29 +118,18 @@ Plans:
   2. User can open an old v1 plain-JSON `.clmc` file; it loads correctly and the app marks it dirty, prompting the user to re-save in the v2 format
   3. User can use "Replace Plan PDF" in the Toolbar to swap the embedded PDF for a revised architect drawing, with page-count validation, while preserving all markups
   4. Save shows a "Saving..." indicator in the title bar while the ZIP is being written, and Save/SaveAs buttons are disabled during the write
-**Plans**: 7 plans
+**Plans**: 8 plans (7 originally + 1 gap-closure inserted from UAT Test 3)
 Plans:
+- [x] 04.1-00-PLAN.md — Wave 0 RED tests + jszip install (v1-migration-pdfbytes, atomic-write)
+- [x] 04.1-01-PLAN.md — project-io v2 primitives + project-schema v2 + serialize + atomic write
+- [x] 04.1-02-PLAN.md — IPC handlers + preload (readProject discriminated union, writeProject atomic, computedSha256)
+- [x] 04.1-03-PLAN.md — projectStore.isSaving + viewerStore.pdfBytes
+- [x] 04.1-04-PLAN.md — useProject rewrite (v2 save/open + replacePlanPdf, v1 pdfBytes population, scale warning) + ArchiveCorruptedModal
+- [x] 04.1-05-PLAN.md — TitleBar Saving... + Toolbar Replace Plan PDF + App.tsx wiring
+- [x] 04.1-06-PLAN.md — Manual UAT + roadmap closure
+- [x] 04.1-07-PLAN.md — Gap closure: cloneForPdfWorker helper closes UAT Test 3 detached-buffer blocker (replacePlanPdf probe was an unprotected second caller of pdfjs-dist getDocument)
 
-**Wave 1 (independent)**
-- [ ] 04.1-00-PLAN.md — Wave 0 RED tests + jszip install (v1-migration-pdfbytes, atomic-write)
-
-**Wave 2 *(blocked on Wave 1 completion)***
-- [ ] 04.1-01-PLAN.md — project-io v2 primitives + project-schema v2 + serialize + atomic write
-
-**Wave 3 *(blocked on Wave 2 completion)***
-- [ ] 04.1-02-PLAN.md — IPC handlers + preload (readProject discriminated union, writeProject atomic, computedSha256)
-- [ ] 04.1-03-PLAN.md — projectStore.isSaving + viewerStore.pdfBytes
-
-**Wave 5 *(blocked on Waves 3 + 4 completion)***
-- [ ] 04.1-04-PLAN.md — useProject rewrite (v2 save/open + replacePlanPdf, v1 pdfBytes population, scale warning) + ArchiveCorruptedModal
-
-**Wave 6 *(blocked on Wave 5 completion)***
-- [ ] 04.1-05-PLAN.md — TitleBar Saving... + Toolbar Replace Plan PDF + App.tsx wiring
-
-**Wave 7 *(blocked on Wave 6 completion)***
-- [ ] 04.1-06-PLAN.md — Manual UAT + roadmap closure
-
-**Cross-cutting constraints:** jszip STORE compression (all IO plans); Uint8Array over IPC boundary (Plans 02, 03, 04); write-then-rename atomic save (Plans 01, 02, 06)
+**Cross-cutting constraints:** jszip STORE compression (all IO plans); Uint8Array over IPC boundary (Plans 02, 03, 04); write-then-rename atomic save (Plans 01, 02, 06); cloneForPdfWorker discipline at every pdfjsLib.getDocument({ data }) call site (Plan 07)
 
 ### Phase 5: BOQ Export
 **Goal**: Estimators can export the complete quantity takeoff to an Excel or CSV file that is ready to paste into a bid sheet, with items grouped by trade category
@@ -173,7 +162,8 @@ Plans:
 | 2. Scale Calibration | 3/3 | Complete   | 2026-04-20 |
 | 3. Markup Tools and Editing | 5/5 | Complete | 2026-04-21 |
 | 3.1. Markup Gap Closure and Visual Redesign | 6/6 | Complete | 2026-04-21 |
-| 4. Project Persistence | 7/8 | In Progress|  |
+| 4. Project Persistence | 8/8 | Complete | 2026-04-29 |
+| 4.1. ZIP-Embedded .clmc Format | 8/8 | Complete | 2026-05-02 |
 | 5. BOQ Export | 0/0 | Not started | - |
 | 6. Live View and UI Polish | 0/0 | Not started | - |
 
@@ -216,3 +206,4 @@ Plans:
 ---
 *Created: 2026-03-25*
 *Updated: 2026-04-21 — Phase 03.1 plans finalized (6 plans across 4 waves)*
+*Updated: 2026-05-02 — Phase 4.1 closed (8 plans incl. 04.1-07 gap closure for UAT Test 3 detached-buffer blocker)*
