@@ -233,6 +233,11 @@ export function buildBoqCsv(b: BoqStructure): string {
     ])
   }
 
-  // Pitfall 4: explicit \r\n; Pitfall 5 (CSV → Excel) not relevant here.
-  return stringify(rows, { record_delimiter: '\r\n', bom: false })
+  // UTF-8 BOM (﻿ → bytes 0xEF 0xBB 0xBF) so Excel on Windows
+  // auto-detects UTF-8 instead of falling back to Windows-1252 and
+  // rendering 'm²' as 'mÂ²'. Reverses original D-14 decision after
+  // Phase 5 UAT scenario 2 GAP — Excel is the primary target tool and
+  // BOM-stripping behavior is universal in modern parsers (csv-parse,
+  // Sheets, Numbers all transparently handle the BOM).
+  return '﻿' + stringify(rows, { record_delimiter: '\r\n', bom: false })
 }

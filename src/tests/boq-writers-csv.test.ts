@@ -30,9 +30,9 @@ describe('buildBoqCsv — D-14 / EXPRT-02', () => {
     expect(csv.charCodeAt(firstNewline)).toBe(0x0a) // LF
   })
 
-  it('does NOT emit a UTF-8 BOM — D-14', () => {
+  it('emits a UTF-8 BOM at byte 0 so Excel renders m² correctly (reverses D-14 after UAT GAP)', () => {
     const csv = buildBoqCsv(structure())
-    expect(csv.charCodeAt(0)).not.toBe(0xfeff)
+    expect(csv.charCodeAt(0)).toBe(0xfeff)
   })
 
   it('counts written as integers (no decimal); length/area at 2dp', () => {
@@ -59,7 +59,8 @@ describe('buildBoqCsv — D-14 / EXPRT-02', () => {
 
   it('mirrors XLSX row order: metadata block → blank → title → category heading → items → subtotals → grand totals', () => {
     const csv = buildBoqCsv(structure())
-    const lines = csv.split('\r\n')
+    // Strip the UTF-8 BOM before line-splitting so row-zero assertions stay clean.
+    const lines = csv.replace(/^﻿/, '').split('\r\n')
     // First five rows are metadata
     expect(lines[0]).toMatch(/^Project: /)
     expect(lines[1]).toMatch(/^Plan: /)
