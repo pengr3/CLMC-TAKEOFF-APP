@@ -21,7 +21,12 @@ export function usePdfDocument() {
         await prevDoc.destroy()
       }
       const u8: Uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data)
-      const doc = await pdfjsLib.getDocument({ data: u8 }).promise
+      // pdfjsLib.getDocument({ data }) transfers the underlying ArrayBuffer to its
+      // worker — after this call the original `u8` is detached (byteLength=0) and
+      // any structured-clone (e.g. ipcRenderer.invoke for save) will throw "An
+      // object could not be cloned". Pass a throwaway copy so `u8` stays intact
+      // for setPdfBytes → save flow.
+      const doc = await pdfjsLib.getDocument({ data: new Uint8Array(u8) }).promise
       const fileName = filePath.split(/[\\/]/).pop() ?? 'Unknown'
       setPdfDocument(doc)
       setPdfBytes(u8)              // cache bytes for save (Phase 4.1)
