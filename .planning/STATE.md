@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Phase 5 planned — BOQ Export plans created (7 plans across 6 waves; ExcelJS 4.4.0 compatibility verified; 24 D-decisions covered, both EXPRT-01/02 mapped)
-last_updated: "2026-05-02T00:00:00.000Z"
-last_activity: 2026-05-02
+status: Phase 5 complete — ready for Phase 6 planning
+stopped_at: "Phase 5 complete — BOQ Export shipped (XLSX + CSV with grouped categories, item-cell colors, native-number SUM-ready cells, atomic write with OneDrive retry, Ctrl+Shift+E shortcut, uncalibrated-page warning, error modal). Human UAT all 6 scenarios PASS. UTF-8 BOM added to CSV (reverses D-14 after UAT GAP). EPERM/EEXIST/EBUSY recovery added to atomicWriteFile."
+last_updated: "2026-05-03T00:00:00.000Z"
+last_activity: 2026-05-03
 progress:
   total_phases: 8
-  completed_phases: 5
-  total_plans: 40
-  completed_plans: 26
-  percent: 79
+  completed_phases: 7
+  total_plans: 41
+  completed_plans: 41
+  percent: 88
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,22 +26,22 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 04.1 — ZIP-embedded .clmc format
+**Current Focus:** Phase 06 — Live View and UI Polish (NOT STARTED)
 
 ---
 
 ## Current Position
 
-Phase: 04 (project-persistence) — EXECUTING
-Plan: 2 of 8
+Phase: 06 (live-view-ui-polish) — NOT STARTED
+Plan: n/a — phase planning pending
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
-| Phases complete | 1 / 6 |
-| Plans complete | 6 |
-| Requirements delivered | 9 / 25 |
+| Phases complete | 7 / 8 |
+| Plans complete | 41 |
+| Requirements delivered | 11 / 25 |
 | Session count | 3 |
 
 ---

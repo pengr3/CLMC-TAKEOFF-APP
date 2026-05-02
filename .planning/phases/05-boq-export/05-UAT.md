@@ -1,9 +1,9 @@
 ---
-status: partial
+status: resolved
 phase: 05-boq-export
 source: [05-06-PLAN.md]
 started: 2026-05-02
-updated: 2026-05-02
+updated: 2026-05-03
 ---
 
 # Phase 5 BOQ Export — User Acceptance Test
@@ -46,8 +46,8 @@ updated: 2026-05-02
 - [ ] Grand Total row(s) at the bottom, slightly darker gray fill (`#CCCCCC`) + bold.
 - [ ] Column widths look readable — Item ~36 chars, Quantity ~12, UoM ~8.
 
-**Outcome:** PASS / FAIL / GAP — _________
-**Notes:** _____________________________________
+**Outcome:** PASS
+**Notes:** Approved by user 2026-05-03
 
 ## Scenario 2 — CSV export structural mirror (EXPRT-02)
 
@@ -64,8 +64,8 @@ updated: 2026-05-02
 - [ ] Counts are integers (no `.00`); lengths/areas show 2 decimal places.
 - [ ] Open the same .csv in Notepad — line endings are `\r\n` (no spurious blank lines), no UTF-8 BOM at the start (file should not start with `ï»¿`).
 
-**Outcome:** PASS / FAIL / GAP — _________
-**Notes:** _____________________________________
+**Outcome:** PASS
+**Notes:** Approved by user 2026-05-03
 
 ## Scenario 3 — Cross-tool CSV fidelity (Sheets / Numbers — EXPRT-02 stretch)
 
@@ -77,8 +77,8 @@ updated: 2026-05-02
 - [ ] Quantity columns import as numbers in each tool.
 - [ ] Apostrophe-prefixed labels (none expected in this fixture, but if any item name happens to start with `=`, `+`, `-`, `@`, the leading apostrophe is invisible; the cell renders as text).
 
-**Outcome:** PASS / FAIL / GAP / SKIPPED — _________ (skip if no Sheets/Numbers access)
-**Notes:** _____________________________________
+**Outcome:** PASS
+**Notes:** Approved by user 2026-05-03
 
 ## Scenario 4 — D-06 uncalibrated-pages warning
 
@@ -98,8 +98,8 @@ updated: 2026-05-02
 - [ ] Confirm save → toast appears.
 - [ ] Open the .xlsx — `Conduit` row is NOT in the BOQ (length excluded). `Switch` (count) IS in the BOQ (counts have no scale dependency).
 
-**Outcome:** PASS / FAIL / GAP — _________
-**Notes:** _____________________________________
+**Outcome:** PASS
+**Notes:** Approved by user 2026-05-03
 
 ## Scenario 5 — D-18 keyboard shortcut + isTextInputActive guard
 
@@ -117,8 +117,8 @@ updated: 2026-05-02
 **Expected:**
 - [ ] Save dialog does NOT open. The Ctrl+Shift+E is suppressed by `isTextInputActive`.
 
-**Outcome:** PASS / FAIL / GAP — _________
-**Notes:** _____________________________________
+**Outcome:** PASS
+**Notes:** Approved by user 2026-05-03
 
 ## Scenario 6 — D-21 error surface (file-lock)
 
@@ -136,8 +136,8 @@ updated: 2026-05-02
 - [ ] Click Export → save → confirm overwrite.
 - [ ] Toast appears: `Exported: phase5-uat-BOQ.xlsx`.
 
-**Outcome:** PASS / FAIL / GAP — _________
-**Notes:** _____________________________________
+**Outcome:** PASS
+**Notes:** Approved by user 2026-05-03
 
 ---
 
@@ -145,13 +145,17 @@ updated: 2026-05-02
 
 | Scenario | Outcome |
 |----------|---------|
-| 1. XLSX full flow | _____ |
-| 2. CSV structural mirror | _____ |
-| 3. Cross-tool CSV fidelity | _____ |
-| 4. D-06 uncalibrated warning | _____ |
-| 5. D-18 keyboard + guard | _____ |
-| 6. D-21 error surface | _____ |
+| 1. XLSX full flow | PASS |
+| 2. CSV structural mirror | PASS (after UTF-8 BOM fix `ed743c9`) |
+| 3. Cross-tool CSV fidelity | PASS |
+| 4. D-06 uncalibrated warning | PASS |
+| 5. D-18 keyboard + guard | PASS |
+| 6. D-21 error surface | PASS (after OneDrive overwrite fix `1e1df50`) |
 
-**Phase 5 verdict:** PASS / GAP / FAIL — _________
+**Phase 5 verdict:** PASS
 
-If any scenario is GAP or FAIL, the phase is NOT closed. The next plan (e.g., `05-07-PLAN.md` gap-closure) addresses each failing case before REQUIREMENTS / ROADMAP / STATE are updated.
+## Gaps closed during UAT
+
+1. **CSV mojibake in Excel** — UoM column rendered `mÂ²` instead of `m²` because the CSV had no UTF-8 BOM. Fix: prepend `﻿` to CSV output. Reverses original D-14 decision (no BOM) since modern parsers strip BOMs transparently and Excel is the dominant target tool. Commit `ed743c9`.
+
+2. **OneDrive overwrite EPERM** — Saving a CSV/XLSX into a OneDrive-synced folder over an existing file failed with `EPERM: operation not permitted, rename` because OneDrive holds transient file handles during sync. Fix: on EPERM/EEXIST/EBUSY, `unlink(finalPath)` then retry `rename(tmpPath, finalPath)` once. Affects all atomic writes (CSV, XLSX, .clmc save). Commit `1e1df50`.

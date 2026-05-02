@@ -13,7 +13,7 @@
 - [x] **Phase 3: Markup Tools and Editing** - All four markup types (count, linear, area, perimeter) with freehand naming, category assignment, color-coding, labels, and full undo/redo (completed 2026-04-21 via Phase 03.1 gap-closure)
 - [x] **Phase 4: Project Persistence** - Save and load .clmc project files so work survives across sessions (completed 2026-04-29)
 - [x] **Phase 4.1: ZIP-Embedded .clmc Format** - Upgrade .clmc to a self-contained ZIP archive that embeds the PDF, eliminating path-dependency and enabling true portability (completed 2026-05-02)
-- [ ] **Phase 5: BOQ Export** - Export takeoff sheet to Excel and CSV, grouped by category
+- [x] **Phase 5: BOQ Export** - Export takeoff sheet to Excel and CSV, grouped by category (completed 2026-05-03)
 - [ ] **Phase 6: Live View and UI Polish** - Running totals panel, thumbnail strip navigation, and page/scale status indicators that complete the day-to-day estimating workflow
 
 ---
@@ -143,23 +143,23 @@ Plans:
 Plans:
 
 **Wave 0 *(prerequisite — RED tests + types + dep install)*:**
-- [ ] 05-00-PLAN.md — Wave 0 RED tests + boq-types.ts + projectStore.isExporting + exceljs/csv-stringify install
+- [x] 05-00-PLAN.md — Wave 0 RED tests + boq-types.ts + projectStore.isExporting + exceljs/csv-stringify install
 
 **Wave 1 *(parallel-safe; both blocked on Wave 0 completion)*:**
-- [ ] 05-01-PLAN.md — boq-aggregator.ts (renderer pure: BoqStructure builder, findUncalibratedMarkupPages)
-- [ ] 05-02-PLAN.md — boq-writers.ts (main pure: buildBoqXlsx + buildBoqCsv) + project-io extension enforcers + safeText formula-injection guard
+- [x] 05-01-PLAN.md — boq-aggregator.ts (renderer pure: BoqStructure builder, findUncalibratedMarkupPages)
+- [x] 05-02-PLAN.md — boq-writers.ts (main pure: buildBoqXlsx + buildBoqCsv) + project-io extension enforcers + safeText formula-injection guard
 
 **Wave 2 *(blocked on 05-02)*:**
-- [ ] 05-03-PLAN.md — IPC triad: dialog:saveExport + file:writeBoqXlsx + file:writeBoqCsv (handler + preload bridge + d.ts)
+- [x] 05-03-PLAN.md — IPC triad: dialog:saveExport + file:writeBoqXlsx + file:writeBoqCsv (handler + preload bridge + d.ts)
 
 **Wave 3 *(blocked on 05-01 + 05-03)*:**
-- [ ] 05-04-PLAN.md — useExport hook + UncalibratedExportWarningModal (D-06)
+- [x] 05-04-PLAN.md — useExport hook + UncalibratedExportWarningModal (D-06)
 
 **Wave 4 *(blocked on 05-04)*:**
-- [ ] 05-05-PLAN.md — Toolbar Export IconButton + Ctrl+Shift+E + App.tsx wiring (handleExportClick + exportToast + uncalibratedWarning + exportError modal)
+- [x] 05-05-PLAN.md — Toolbar Export IconButton + Ctrl+Shift+E + App.tsx wiring (handleExportClick + exportToast + uncalibratedWarning + exportError modal)
 
 **Wave 5 *(blocked on 05-05 — manual UAT and doc closure)*:**
-- [ ] 05-06-PLAN.md — Manual UAT (6 scenarios) + REQUIREMENTS/ROADMAP/STATE closure
+- [x] 05-06-PLAN.md — Manual UAT (6 scenarios — all PASS) + REQUIREMENTS/ROADMAP/STATE closure
 
 **Cross-cutting constraints:** ExcelJS 4.4.0 native-number cells with `numFmt` (Plans 00, 02 — preserves SUM()); inline-duplicated `BoqStructure` type at renderer/main/preload boundaries (Plans 00, 01, 02, 03 — mirror of `ReadProjectResult`); write-then-rename atomic save via existing `atomicWriteFile` (Plan 03); discriminated-union IPC results `{ ok: true } | { ok: false, reason }` (Plan 03); `isTextInputActive()` guard on every global Ctrl+ shortcut (Plan 05); `safeText` apostrophe-prefix on cells starting with `=`, `+`, `-`, `@` to neutralize Excel-formula injection (Plan 02 — applies to user-supplied Item names and category names); `isExporting` race guard mirrored on `isSaving` pattern (Plans 00, 04, 05 — Toolbar disable + try/finally reset).
 
@@ -186,7 +186,7 @@ Plans:
 | 3.1. Markup Gap Closure and Visual Redesign | 6/6 | Complete | 2026-04-21 |
 | 4. Project Persistence | 8/8 | Complete | 2026-04-29 |
 | 4.1. ZIP-Embedded .clmc Format | 8/8 | Complete | 2026-05-02 |
-| 5. BOQ Export | 0/0 | Not started | - |
+| 5. BOQ Export | 7/7 | Complete | 2026-05-03 |
 | 6. Live View and UI Polish | 0/0 | Not started | - |
 
 ---

@@ -47,8 +47,8 @@
 
 ### Export
 
-- [ ] **EXPRT-01**: User can export the takeoff sheet to Excel (.xlsx) with columns: item name, quantity, unit of measure — rows grouped by category
-- [ ] **EXPRT-02**: User can export the takeoff sheet to CSV with the same structure as the Excel export
+- [x] **EXPRT-01**: User can export the takeoff sheet to Excel (.xlsx) with columns: item name, quantity, unit of measure — rows grouped by category — **completed Phase 5 (2026-05-03), human UAT scenarios 1, 4, 5, 6 passed**
+- [x] **EXPRT-02**: User can export the takeoff sheet to CSV with the same structure as the Excel export — **completed Phase 5 (2026-05-03), human UAT scenarios 2-3 passed (UTF-8 BOM added for Excel compatibility; OneDrive overwrite fixed via atomicWriteFile recovery)**
 
 ### Live View
 
@@ -113,8 +113,8 @@
 | MARK-10 | Phase 3 | Complete |
 | PERS-01 | Phase 4 (revised by 04.1) | Complete |
 | PERS-02 | Phase 4 (revised by 04.1) | Complete |
-| EXPRT-01 | Phase 5 | Pending |
-| EXPRT-02 | Phase 5 | Pending |
+| EXPRT-01 | Phase 5 | Complete |
+| EXPRT-02 | Phase 5 | Complete |
 | VIEW-01 | Phase 6 | Pending |
 
 **Coverage:**
