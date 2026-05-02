@@ -139,7 +139,15 @@ Plans:
   1. User can export to .xlsx and the resulting file opens in Excel with columns for item name, quantity (as a number, not text), and unit of measure — rows grouped under category headings
   2. User can export to .csv with the same column structure and category grouping as the Excel export
   3. Exported quantities are numeric values (not strings) so formulas and SUM() work immediately in Excel without data cleanup
-**Plans**: TBD
+**Plans**: 7 plans
+Plans:
+- [ ] 05-00-PLAN.md — Wave 0 RED tests + boq-types.ts + projectStore.isExporting + exceljs/csv-stringify install
+- [ ] 05-01-PLAN.md — boq-aggregator.ts (renderer pure: BoqStructure builder, findUncalibratedMarkupPages)
+- [ ] 05-02-PLAN.md — boq-writers.ts (main pure: buildBoqXlsx + buildBoqCsv) + project-io extension enforcers + safeText formula-injection guard
+- [ ] 05-03-PLAN.md — IPC triad: dialog:saveExport + file:writeBoqXlsx + file:writeBoqCsv (handler + preload bridge + d.ts)
+- [ ] 05-04-PLAN.md — useExport hook + UncalibratedExportWarningModal (D-06)
+- [ ] 05-05-PLAN.md — Toolbar Export IconButton + Ctrl+Shift+E + App.tsx wiring (handleExportClick + exportToast + uncalibratedWarning + exportError modal)
+- [ ] 05-06-PLAN.md — Manual UAT (6 scenarios) + REQUIREMENTS/ROADMAP/STATE closure
 
 ### Phase 6: Live View and UI Polish
 **Goal**: Estimators can see their running totals update live as they work and navigate large plan sets efficiently, completing the full day-to-day workflow without needing to export just to check quantities
