@@ -11,6 +11,8 @@ interface KeyboardShortcutHandlers {
   zoomIn: () => void
   zoomOut: () => void
   fitToWindow: () => void
+  /** D-18: Export BOQ — Ctrl+Shift+E. App.tsx wires to handleExportClick. */
+  exportBoq: () => void
 }
 
 /**
@@ -64,6 +66,14 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
         if (isTextInputActive()) return
         e.preventDefault()
         handlers.saveProjectAs()
+        return
+      }
+
+      // Ctrl+Shift+E: Export BOQ (D-18)
+      if (e.ctrlKey && e.shiftKey && (e.key === 'e' || e.key === 'E')) {
+        if (isTextInputActive()) return
+        e.preventDefault()
+        handlers.exportBoq()
         return
       }
 
