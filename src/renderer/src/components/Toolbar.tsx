@@ -13,11 +13,13 @@ import {
   Hexagon,
   Save,
   SaveAll,
-  Replace
+  Replace,
+  Download
 } from 'lucide-react'
 import { useViewerStore } from '../stores/viewerStore'
 import { useScaleStore } from '../stores/scaleStore'
 import { useProjectStore } from '../stores/projectStore'
+import { useMarkupStore } from '../stores/markupStore'
 import { useProject } from '../hooks/useProject'
 import { getCanvasControls, getCalibrationControls } from './CanvasViewport'
 import { ScaleContextMenu } from './ScaleContextMenu'
@@ -106,9 +108,15 @@ export interface ToolbarProps {
    * stays in one place. (D-08)
    */
   onReplaceClick: () => void | Promise<void>
+  /**
+   * D-15: Export BOQ — App.tsx owns routing of the ExportResult discriminated
+   * union (ok/needs-uncalibrated-confirmation/canceled/error). Toolbar must NOT
+   * call useExport().exportBoq directly.
+   */
+  onExportClick: () => void | Promise<void>
 }
 
-export function Toolbar({ onOpenClick, onReplaceClick }: ToolbarProps): React.JSX.Element {
+export function Toolbar({ onOpenClick, onReplaceClick, onExportClick }: ToolbarProps): React.JSX.Element {
   const { totalPages, currentPage, nextPage, prevPage } = useViewerStore()
   const getViewport = useViewerStore((s) => s.getViewport)
   const activeTool = useViewerStore((s) => s.activeTool)
@@ -128,6 +136,13 @@ export function Toolbar({ onOpenClick, onReplaceClick }: ToolbarProps): React.JS
   const isCalibrating = calibMode !== 'idle'
   const saveDisabled = totalPages === 0 || isSaving
   const replaceDisabled = totalPages === 0 || isSaving
+
+  // D-19: Export disabled when no PDF / save in flight / export in flight / zero markups (D-07).
+  const isExporting = useProjectStore((s) => s.isExporting)
+  const hasMarkups = useMarkupStore((s) =>
+    Object.values(s.pageMarkups).some((arr) => arr.length > 0)
+  )
+  const exportDisabled = totalPages === 0 || isSaving || isExporting || !hasMarkups
 
   const currentZoom = totalPages > 0 ? getViewport(currentPage).zoom : 1
   const zoomPct = Math.round(currentZoom * 100)
@@ -263,6 +278,14 @@ export function Toolbar({ onOpenClick, onReplaceClick }: ToolbarProps): React.JS
             onClick={() => { void onReplaceClick() }}
             title="Replace Plan PDF — markups preserved, save (Ctrl+S) to persist"
             ariaLabel="Replace Plan PDF"
+          />
+          <IconButton
+            icon={Download}
+            label="Export"
+            disabled={exportDisabled}
+            onClick={() => { void onExportClick() }}
+            title="Export BOQ to Excel or CSV (Ctrl+Shift+E)"
+            ariaLabel="Export"
           />
         </div>
       </div>

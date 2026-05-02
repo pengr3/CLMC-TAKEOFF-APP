@@ -61,7 +61,7 @@ describe('Toolbar Open button — onOpenClick prop wiring (regression: missing-p
   it('Open button click invokes onOpenClick prop', () => {
     const onOpenClick = vi.fn()
     act(() => {
-      root.render(React.createElement(Toolbar, { onOpenClick }))
+      root.render(React.createElement(Toolbar, { onOpenClick, onReplaceClick: vi.fn(), onExportClick: vi.fn() }))
     })
 
     // Find by aria-label set on the Open button (Toolbar.tsx)
@@ -81,7 +81,7 @@ describe('Toolbar Open button — onOpenClick prop wiring (regression: missing-p
     // immediately if that happens.
     const onOpenClick = vi.fn()
     act(() => {
-      root.render(React.createElement(Toolbar, { onOpenClick }))
+      root.render(React.createElement(Toolbar, { onOpenClick, onReplaceClick: vi.fn(), onExportClick: vi.fn() }))
     })
 
     const openBtn = container.querySelector('[aria-label="Open project or PDF (Ctrl+O)"]') as HTMLButtonElement | null

@@ -44,7 +44,7 @@ describe('Toolbar — Replace Plan PDF button (D-08)', () => {
     const onOpenClick = vi.fn()
     const onReplaceClick = vi.fn()
     act(() => {
-      root.render(React.createElement(Toolbar, { onOpenClick, onReplaceClick }))
+      root.render(React.createElement(Toolbar, { onOpenClick, onReplaceClick, onExportClick: vi.fn() }))
     })
     const btn = container.querySelector('[aria-label="Replace Plan PDF"]')
     expect(btn).not.toBeNull()
@@ -54,7 +54,7 @@ describe('Toolbar — Replace Plan PDF button (D-08)', () => {
     const onOpenClick = vi.fn()
     const onReplaceClick = vi.fn()
     act(() => {
-      root.render(React.createElement(Toolbar, { onOpenClick, onReplaceClick }))
+      root.render(React.createElement(Toolbar, { onOpenClick, onReplaceClick, onExportClick: vi.fn() }))
     })
     const btn = container.querySelector('[aria-label="Replace Plan PDF"]') as HTMLButtonElement | null
     expect(btn).not.toBeNull()

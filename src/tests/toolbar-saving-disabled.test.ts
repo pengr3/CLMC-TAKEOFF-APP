@@ -43,7 +43,7 @@ describe('Toolbar — save buttons disabled while isSaving (D-11)', () => {
   it('Save / Save As / Replace Plan PDF buttons all have aria-disabled=true when isSaving=true', () => {
     act(() => { useProjectStore.setState({ isSaving: true }) })
     act(() => {
-      root.render(React.createElement(Toolbar, { onOpenClick: vi.fn(), onReplaceClick: vi.fn() }))
+      root.render(React.createElement(Toolbar, { onOpenClick: vi.fn(), onReplaceClick: vi.fn(), onExportClick: vi.fn() }))
     })
     const save = container.querySelector('[aria-label="Save (Ctrl+S)"]')
     const saveAs = container.querySelector('[aria-label="Save As (Ctrl+Shift+S)"]')
@@ -56,7 +56,7 @@ describe('Toolbar — save buttons disabled while isSaving (D-11)', () => {
   it('Save / Save As / Replace are enabled when isSaving=false and totalPages>0', () => {
     act(() => { useProjectStore.setState({ isSaving: false }) })
     act(() => {
-      root.render(React.createElement(Toolbar, { onOpenClick: vi.fn(), onReplaceClick: vi.fn() }))
+      root.render(React.createElement(Toolbar, { onOpenClick: vi.fn(), onReplaceClick: vi.fn(), onExportClick: vi.fn() }))
     })
     const save = container.querySelector('[aria-label="Save (Ctrl+S)"]')
     const replace = container.querySelector('[aria-label="Replace Plan PDF"]')
