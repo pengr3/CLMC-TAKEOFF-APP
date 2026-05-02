@@ -9,13 +9,16 @@ import { DimensionMismatchModal } from './components/DimensionMismatchModal'
 import { PageCountAbortModal } from './components/PageCountAbortModal'
 import { SaveCloseModal } from './components/SaveCloseModal'
 import { OpenErrorModal } from './components/OpenErrorModal'
+import { UncalibratedExportWarningModal } from './components/UncalibratedExportWarningModal'
 import { useViewerStore } from './stores/viewerStore'
 import { attachDirtyTracking, useProjectStore } from './stores/projectStore'
 import { useProject, type ProjectOpenResult } from './hooks/useProject'
+import { useExport } from './hooks/useExport'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useCloseGuard } from './hooks/useCloseGuard'
 import { getCanvasControls } from './components/CanvasViewport'
 import type { ProjectFileV2 } from './lib/project-schema'
+import type { BoqStructure } from './lib/boq-types'
 
 function App(): React.JSX.Element {
   const totalPages = useViewerStore((s) => s.totalPages)
@@ -29,6 +32,7 @@ function App(): React.JSX.Element {
     applyReplacePlanPdf,
     applyArchiveCorruptedProceed
   } = useProject()
+  const { exportBoq, applyExportAfterConfirm } = useExport()
 
   // Open-flow state (slimmed for v2)
   const [archiveCorrupted, setArchiveCorrupted] =
@@ -43,6 +47,14 @@ function App(): React.JSX.Element {
     useState<{ expected: number; actual: number } | null>(null)
   const [replaceDimMiss, setReplaceDimMiss] =
     useState<{ pendingBytes: Uint8Array; pendingFilename: string } | null>(null)
+
+  // Phase 5: BOQ Export state
+  const [exportToast, setExportToast] = useState<string | null>(null)
+  const [uncalibratedWarning, setUncalibratedWarning] = useState<{
+    pages: number[]
+    structure: BoqStructure
+  } | null>(null)
+  const [exportError, setExportError] = useState<string | null>(null)
 
   const displayFilename = currentFilePath
     ? (currentFilePath.split(/[\\/]/).pop() ?? 'project')
@@ -71,6 +83,12 @@ function App(): React.JSX.Element {
     const t = window.setTimeout(() => setSaveToast(null), 2000)
     return () => window.clearTimeout(t)
   }, [saveToast])
+
+  useEffect(() => {
+    if (!exportToast) return
+    const t = window.setTimeout(() => setExportToast(null), 2000)
+    return () => window.clearTimeout(t)
+  }, [exportToast])
 
   useCloseGuard(() => {
     if (!useProjectStore.getState().isDirty) {
@@ -145,6 +163,27 @@ function App(): React.JSX.Element {
     // r.kind === 'ok' — replacePlanPdf already updated viewerStore + marked dirty.
   }, [replacePlanPdf])
 
+  // Phase 5: Export click handler — routes ExportResult kinds to UI state
+  const handleExportClick = useCallback(async () => {
+    const fileBasename = (p: string): string => {
+      const i = Math.max(p.lastIndexOf('/'), p.lastIndexOf('\\'))
+      return i >= 0 ? p.slice(i + 1) : p
+    }
+    const r = await exportBoq()
+    if (r.kind === 'needs-uncalibrated-confirmation') {
+      setUncalibratedWarning({ pages: r.uncalibratedPages, structure: r.structure })
+      return
+    }
+    if (r.kind === 'error') {
+      setExportError(`Export failed: ${r.message}`)
+      return
+    }
+    if (r.kind === 'ok') {
+      setExportToast(`Exported: ${fileBasename(r.filePath)}`)
+    }
+    // r.kind === 'canceled' → no-op
+  }, [exportBoq])
+
   useKeyboardShortcuts({
     openPdf: handleOpenClick,
     openProject: handleOpenClick,
@@ -152,13 +191,18 @@ function App(): React.JSX.Element {
     saveProjectAs: handleSaveAsClick,
     zoomIn: () => getCanvasControls()?.zoomIn(),
     zoomOut: () => getCanvasControls()?.zoomOut(),
-    fitToWindow: () => getCanvasControls()?.fitToWindow()
+    fitToWindow: () => getCanvasControls()?.fitToWindow(),
+    exportBoq: handleExportClick
   })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
       <TitleBar />
-      <Toolbar onOpenClick={handleOpenClick} onReplaceClick={handleReplaceClick} />
+      <Toolbar
+        onOpenClick={handleOpenClick}
+        onReplaceClick={handleReplaceClick}
+        onExportClick={handleExportClick}
+      />
       <main
         style={{
           flex: 1,
@@ -192,6 +236,30 @@ function App(): React.JSX.Element {
             </button>
           </div>
         )}
+
+        {exportToast !== null && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              position: 'absolute', bottom: 60, left: '50%', transform: 'translateX(-50%)',
+              padding: '8px 16px', background: '#252526', border: '1px solid #3c3c3c',
+              borderRadius: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.4)', zIndex: 15,
+              display: 'flex', gap: 16, fontSize: 13, color: '#cccccc'
+            }}
+          >
+            <span>{exportToast}</span>
+            <button
+              onClick={() => setExportToast(null)}
+              style={{
+                background: 'transparent', border: 'none',
+                color: '#888', cursor: 'pointer', fontSize: 13
+              }}
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
       </main>
       <StatusBar />
 
@@ -199,6 +267,34 @@ function App(): React.JSX.Element {
         <OpenErrorModal
           message={openError}
           onClose={() => setOpenError(null)}
+        />
+      )}
+
+      {exportError !== null && (
+        <OpenErrorModal
+          message={exportError}
+          onClose={() => setExportError(null)}
+        />
+      )}
+
+      {uncalibratedWarning && (
+        <UncalibratedExportWarningModal
+          uncalibratedPages={uncalibratedWarning.pages}
+          onContinue={async () => {
+            const captured = uncalibratedWarning.structure
+            setUncalibratedWarning(null)
+            const r = await applyExportAfterConfirm(captured)
+            if (r.kind === 'error') {
+              setExportError(`Export failed: ${r.message}`)
+            } else if (r.kind === 'ok') {
+              const fileBasename = (p: string): string => {
+                const i = Math.max(p.lastIndexOf('/'), p.lastIndexOf('\\'))
+                return i >= 0 ? p.slice(i + 1) : p
+              }
+              setExportToast(`Exported: ${fileBasename(r.filePath)}`)
+            }
+          }}
+          onCancel={() => setUncalibratedWarning(null)}
         />
       )}
 

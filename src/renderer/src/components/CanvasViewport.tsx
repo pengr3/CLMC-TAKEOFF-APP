@@ -359,7 +359,8 @@ export function CanvasViewport() {
     saveProjectAs: () => {},
     zoomIn,
     zoomOut,
-    fitToWindow
+    fitToWindow,
+    exportBoq: () => {}
   })
 
   // Handle Stage click — routes to calibration or markup tool as appropriate
