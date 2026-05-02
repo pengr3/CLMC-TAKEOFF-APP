@@ -1537,47 +1537,55 @@ interface ElectronAPI {
 
 ---
 
-## Open Questions for Planner
+## Open Questions for Planner (RESOLVED)
 
 1. **Subtotal/grand-total fill color (CONTEXT D-13 Claude's discretion).**
    - CONTEXT says "subtle gray fill (`COLORS.secondary` or similar)". `COLORS.secondary === '#252526'` — this is the renderer dark theme; against Excel's default white sheet background, it would render near-black and harsh.
    - Recommendation: in `buildBoqXlsx`, use a much lighter ARGB for subtotal/grand-total fills, e.g. `FFEFEFEF` (light gray) or `FFE7E7E7`. Distinct from the canvas color theme.
    - Decision needed: confirm light-gray ARGB choice (`FFEFEFEF` recommended) or accept dark `FF252526`.
+   - **RESOLVED:** Use light gray `FFEFEFEF` for both subtotal and grand-total fills in the XLSX writer. Reject the dark `#252526` (renderer-theme) value — it would render near-black on Excel's default white sheet.
 
 2. **CSV byte assembly location (CONTEXT D-23 Claude's discretion).**
    - CONTEXT D-23 is explicit: "CSV byte assembly may live in either main or renderer". Researcher recommends MAIN (co-located with XLSX writer in `src/main/boq-writers.ts`) for symmetry of testing.
    - Decision needed: confirm MAIN, or split (CSV in renderer, XLSX in main).
+   - **RESOLVED:** Build CSV bytes in the MAIN process, co-located with the XLSX writer in `src/main/boq-writers.ts`. The IPC contract is `file:writeBoqCsv(filePath, structure: BoqStructure)` — main receives the structured BOQ and produces the bytes.
 
 3. **Subtotal granularity for mixed-UoM categories (CONTEXT D-12 + Claude's discretion).**
    - CONTEXT recommends multiple subtotal rows, one per UoM. The aggregator implements that.
    - Alternative considered: a single subtotal row with multi-line cell content (`5 ea\\n12 m`).
    - Recommendation: stick with multiple subtotal rows (SUMIF-friendly in CSV mirror; cleaner downstream tooling).
    - Decision needed: confirm multiple subtotal rows.
+   - **RESOLVED:** Multiple subtotal rows — one per UoM within a category. Reject the single-row multi-line cell alternative (less SUMIF-friendly, harder for downstream estimating tools to parse).
 
 4. **Where `BoqStructure` types live.**
    - Cross-process: aggregator (renderer) produces, IPC carries, writers (main) consume.
    - Options: (a) `src/shared/boq-types.ts` new dir, (b) `src/renderer/src/lib/boq-aggregator.ts` and import from main via project-relative path, (c) duplicate at both ends.
    - Recommendation: (a) `src/shared/boq-types.ts` — cleanest, mirrors the shared-types pattern that future phases may want.
    - Decision needed: confirm shared-types location.
+   - **RESOLVED:** Do NOT create a new shared module. Duplicate the `BoqStructure` type inline in renderer (aggregator), main (writers), and preload (bridge), mirroring the existing `ReadProjectResult` pattern. This avoids introducing a new `src/shared/` directory just for one type and keeps each process self-contained.
 
 5. **Refactor `atomicWriteFile` to `project-io.ts` exports?**
    - Currently private in `ipc-handlers.ts:45`. Two writers in `boq-writers.ts` plus the existing `file:writeProject` handler need it.
    - Recommendation: extract + export. One Wave 0 task.
    - Decision needed: confirm refactor.
+   - **RESOLVED:** Do NOT refactor. Keep using the existing internal `atomicWriteFile` helper inside `ipc-handlers.ts` from the BOQ writer call sites. The refactor adds risk to a stable file-IO path for marginal cleanup gain; defer until a third consumer materializes.
 
 6. **`useExport` hook vs fold into `useProject`?**
    - CONTEXT canonical_refs: "a separate `useExport` keeps export concerns isolated; folding into `useProject` keeps all file-IO in one hook."
    - `useProject.ts` is currently 392 lines and Save/Open/Replace-heavy. Adding ~80 lines of export orchestration would push it past 500.
    - Recommendation: separate `useExport.ts` for clarity.
    - Decision needed: confirm separate hook.
+   - **RESOLVED:** Create a SEPARATE `useExport.ts` hook. `useProject.ts` is already 392 LOC and Save/Open/Replace-heavy; adding ~80 lines of export orchestration would push it past the readability threshold.
 
 7. **Should Wave 0 install `exceljs` and `csv-stringify` immediately, or in Wave 1?**
    - Tests can't compile without the deps (`import ExcelJS from 'exceljs'` would TS-error in test files).
    - Recommendation: Wave 0 task = `npm install exceljs csv-stringify` + commit `package.json` + `package-lock.json`. Then RED tests can be written.
    - Decision needed: confirm Wave 0 install timing.
+   - **RESOLVED:** No new packages need to be installed — both `exceljs` and `csv-stringify` are already present in `package.json`. Wave 0 only creates test scaffolds (RED test files); no `npm install` step is required.
 
 8. **`Markup.color` field for `count` markups created BEFORE Phase 03.1 (none exist in production but theoretically possible during dev migration)?**
    - Out of scope. Phase 03.1 closed; all live markup data has color. Defensive null-coalescing in aggregator is sufficient.
+   - **RESOLVED:** Apply defensive null-coalescing inside the aggregator (e.g. `markup.color ?? '#888888'`). Out-of-scope to scan/migrate legacy data; the defensive read keeps the aggregator robust to any pre-03.1 fixture or test artifact.
 
 ---
 

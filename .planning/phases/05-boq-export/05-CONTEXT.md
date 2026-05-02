@@ -81,7 +81,7 @@ Convert the in-memory takeoff (per-page markups + categories + per-page scales) 
 - **D-24:** New IPC channels:
   - `dialog:saveExport(defaultPath, format)` → `string | null` — opens the save dialog with `.xlsx` / `.csv` filters; returns the chosen path with the correct extension enforced, or `null` on cancel.
   - `file:writeBoqXlsx(filePath, boqStructure)` → `{ ok: true } | { ok: false, reason }` — main builds the ExcelJS workbook from the BOQ structure and atomic-writes the bytes.
-  - `file:writeBoqCsv(filePath, csvText)` → `{ ok: true } | { ok: false, reason }` — main atomic-writes the CSV string (UTF-8, no BOM).
+  - `file:writeBoqCsv(filePath, boqStructure)` → `{ ok: true } | { ok: false, reason }` — main builds the CSV from the BOQ structure and atomic-writes the bytes (UTF-8, no BOM).
   Triad-pattern updates required in `src/preload/index.ts` and `src/preload/index.d.ts`.
 
 ### Claude's Discretion
