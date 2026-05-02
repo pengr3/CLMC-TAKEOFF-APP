@@ -282,8 +282,18 @@ export function useProject() {
         const { totalPages: expectedPages, pdfDocument: currentDoc } = useViewerStore.getState()
         const currentDocProxy = currentDoc as PDFDocumentProxy | null
 
-        const { pdfjsLib } = await import('../lib/pdf-setup')
-        const tempDoc = (await pdfjsLib.getDocument({ data: newBytes }).promise) as PDFDocumentProxy
+        // pdfjsLib.getDocument transfers the underlying ArrayBuffer to its worker,
+        // leaving the source Uint8Array detached. We must NOT pass `newBytes` directly
+        // — both the probe below AND the downstream applyReplacePlanPdf / pendingBytes
+        // paths need a live buffer afterwards. Take ONE clone for the probe, and a
+        // SECOND clone (also from the still-live `newBytes`) only if we need to hand
+        // bytes to a downstream consumer. That keeps `newBytes` itself live for the
+        // happy-path call to applyReplacePlanPdf below. See pdf-setup.cloneForPdfWorker
+        // for the full hazard explanation. (Closes UAT Test 3 — 04.1-UAT.md)
+        const { pdfjsLib, cloneForPdfWorker } = await import('../lib/pdf-setup')
+        const tempDoc = (await pdfjsLib.getDocument({
+          data: cloneForPdfWorker(newBytes)
+        }).promise) as PDFDocumentProxy
 
         // D-09 hard abort: page count mismatch
         if (tempDoc.numPages !== expectedPages) {
@@ -305,16 +315,21 @@ export function useProject() {
           })
           if (dimMismatch) {
             await tempDoc.destroy()
+            // Hand the caller a live, independent copy — `newBytes` is still live here
+            // (only the clone was transferred to the worker), but defensively cloning
+            // again insulates the Use-anyway flow from any caller that might recycle
+            // the original Uint8Array.
             return {
               kind: 'dimension-mismatch',
-              pendingBytes: newBytes,
+              pendingBytes: cloneForPdfWorker(newBytes),
               pendingFilename: basenameAny(pickedPath)
             }
           }
         }
         await tempDoc.destroy()
 
-        // All clear — apply (D-10)
+        // All clear — apply (D-10). `newBytes` is still live; loadPdf's own
+        // cloneForPdfWorker call will protect its internal getDocument transfer.
         await applyReplacePlanPdf(newBytes, pickedPath)
         return { kind: 'ok' }
       } catch (err) {

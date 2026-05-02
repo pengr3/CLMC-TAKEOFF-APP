@@ -31,6 +31,7 @@ vi.mock('@renderer/lib/pdf-setup', () => ({
       }
     })
   },
+  cloneForPdfWorker: (bytes: Uint8Array): Uint8Array => new Uint8Array(bytes),
   PDFDocumentProxy: class {}
 }))
 

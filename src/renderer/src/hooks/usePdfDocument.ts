@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { pdfjsLib, PDFDocumentProxy } from '../lib/pdf-setup'
+import { pdfjsLib, PDFDocumentProxy, cloneForPdfWorker } from '../lib/pdf-setup'
 import { useViewerStore } from '../stores/viewerStore'
 
 export function usePdfDocument() {
@@ -26,7 +26,7 @@ export function usePdfDocument() {
       // any structured-clone (e.g. ipcRenderer.invoke for save) will throw "An
       // object could not be cloned". Pass a throwaway copy so `u8` stays intact
       // for setPdfBytes → save flow.
-      const doc = await pdfjsLib.getDocument({ data: new Uint8Array(u8) }).promise
+      const doc = await pdfjsLib.getDocument({ data: cloneForPdfWorker(u8) }).promise
       const fileName = filePath.split(/[\\/]/).pop() ?? 'Unknown'
       setPdfDocument(doc)
       setPdfBytes(u8)              // cache bytes for save (Phase 4.1)

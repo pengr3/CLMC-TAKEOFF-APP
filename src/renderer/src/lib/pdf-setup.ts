@@ -143,5 +143,27 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = blobWorkerUrl
 
 console.log('[PDF] workerSrc set to blob wrapper; real worker:', workerUrl)
 
+/**
+ * Defensive copy for any Uint8Array about to be passed to pdfjsLib.getDocument({ data }).
+ *
+ * pdfjs-dist 5.x transfers the underlying ArrayBuffer to its worker via postMessage
+ * (structured clone with transfer list). After getDocument is called, the source
+ * Uint8Array is DETACHED — its byteLength reports 0 and any subsequent
+ * `new Uint8Array(source)`, structuredClone, or IPC postMessage on it throws
+ * "Cannot perform Construct on a detached ArrayBuffer" / "An object could not be cloned".
+ *
+ * The fix is a one-line allocation: `new Uint8Array(bytes)` builds a fresh copy
+ * over a fresh ArrayBuffer. The COPY is the one transferred away; the caller's
+ * `bytes` stays live for caching in viewerStore.pdfBytes, IPC writeProject, etc.
+ *
+ * MUST be called at every site that hands a Uint8Array to pdfjsLib.getDocument
+ * AND wants the original buffer to remain readable afterwards. Failing to clone
+ * is the root cause of the Phase 4.1 UAT Test 3 blocker (replacePlanPdf:286 +
+ * pendingBytes:310). See `.planning/phases/04.1-zip-embedded-clmc/04.1-UAT.md`.
+ */
+export function cloneForPdfWorker(bytes: Uint8Array): Uint8Array {
+  return new Uint8Array(bytes)
+}
+
 export { pdfjsLib }
 export type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist'
