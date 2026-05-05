@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 6 in progress — Wave 1 complete (06-01 + 06-02 both landed)
-stopped_at: Phase 6 Wave 1 complete (06-01 hook foundations + 06-02 glue primitives); Wave 2 (06-03 PulseHighlight + HoverRing) ready to start
-last_updated: "2026-05-05T16:50:00.000Z"
+status: Phase 6 in progress — Wave 2 complete (06-03 transient overlays both GREEN)
+stopped_at: Phase 6 Wave 2 complete (06-03 HoverRing + PulseHighlight); Wave 3 (06-04 TotalsPanel + 06-05 TotalsRow) ready to start
+last_updated: "2026-05-05T22:30:00.000Z"
 last_activity: 2026-05-05
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 59
-  completed_plans: 44
-  percent: 75
+  completed_plans: 45
+  percent: 76
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 06 — Live View and UI Polish (IN PROGRESS — Wave 1 complete; Wave 2 next)
+**Current Focus:** Phase 06 — Live View and UI Polish (IN PROGRESS — Wave 2 complete; Wave 3 next)
 
 ---
 
 ## Current Position
 
-Phase: 06 (live-view-and-ui-polish) — Wave 1 complete (06-01 + 06-02); Wave 2 (06-03) ready
-Plan: 3/9 complete; 11 RED test files remain (1 flipped GREEN this plan: canvas-header-bar); Nyquist feedback loop active for Waves 2-6
+Phase: 06 (live-view-and-ui-polish) — Wave 2 complete (06-03); Wave 3 (06-04 TotalsPanel + 06-05 TotalsRow) ready
+Plan: 4/9 complete; 9 RED test files remain (2 flipped GREEN this plan: highlight-overlay-listening + pulse-highlight-animation); Nyquist feedback loop active for Waves 3-6
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Plan: 3/9 complete; 11 RED test files remain (1 flipped GREEN this plan: canvas-
 | Phase 06 P00 | 6min | 2 tasks | 15 files |
 | Phase 06 P01 | 18min | 2 tasks (TDD RED+GREEN paired commits) | 6 files |
 | Phase 06 P02 | 12min | 2 tasks (Task 1 single feat; Task 2 TDD RED+GREEN) | 4 files |
+| Phase 06 P03 | spans 2 sessions (PC restart between Task 1 GREEN + Task 2 GREEN) | 2 tasks (both TDD RED+GREEN) | 4 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,11 @@ Plan: 3/9 complete; 11 RED test files remain (1 flipped GREEN this plan: canvas-
 | Splitter calls onDragWidth on every pointermove but onCommit only on pointerup | Splits live-render (driven by parent local state on every frame) from persistence write (driven by useUiPanels' localStorage commit on pointerup only). Avoids 60-120 localStorage writes/sec during a single drag. Width clamp range mitigates T-06-02-01 (raw clientX tampering) |
 | CanvasHeaderBar uses inline conditional render rather than StatusBar's flat scaleText/scaleColor variables | The third D-20 branch contains a clickable inline link element, not just text — a flat string variable doesn't fit cleanly. Three-way ternary at render keeps each branch's structure visible at a glance. Diverges from StatusBar pattern intentionally because the decision tree shape is different |
 | CanvasHeaderBar reuses getCalibrationControls()?.activate() — does NOT duplicate the trigger code | Toolbar.tsx:173-181 establishes the canonical Set Scale entry point via the module-level ref. CanvasHeaderBar's inline link onClick uses the same callsite shape — exactly one functional invocation in the file. D-20 cross-cutting constraint, asserted by the canvas-header-bar.test.ts spy on getCalibrationControls |
+| HoverRing uses single fat envelope-stroke for linear/area/perimeter (strokeWidth = (2+8)/zoom at 40% opacity) | Visually identical to two stacked inner+outer strokes but halves the Konva node count. Underlying markup's normal stroke shows through the 40% alpha as the implicit "inner" ring |
+| PulseHighlight uses useState(progress) + rAF, NOT direct Konva node attr mutation via refs | Pure-React keeps it trivially testable through the existing react-konva mock pattern (Circle/Line stub renders as `<div data-opacity=...>` so jsdom reads live frame values). ~90 ticks per 1500ms fade are within React 19's render budget for the small render tree |
+| PulseHighlight calls onComplete() inside the rAF callback at t=1 (not in a useEffect watching progress) | rAF loop runs inside React.act in tests; placing the callback there guarantees the parent's unmount lands on the same render cycle as the t=1 frame. A useEffect path would have introduced a one-frame stale-overlay flash |
+| pulse-highlight-animation.test.ts sets globalThis.IS_REACT_ACT_ENVIRONMENT = true at module scope | Without it, React 19 emits "act environment not configured" warning that the unmount-cleanup test's console.error spy catches as a false positive. Per-test-file flag mirrors markup-tool-pop-last-point.test.ts:66 + markup-tool-strictmode.test.ts:91. Parallel-executor-safe — no vitest.config.ts change |
+| HoverRing + PulseHighlight outer offsets diverge (4/zoom vs 8/zoom) | Allows the two overlays to render simultaneously over the same markup without visual overlap — hover ring sits inside, pulse ring sits outside |
 
 ### Critical Pitfalls to Watch
 
@@ -176,12 +182,12 @@ None.
 
 **Last activity:** 2026-05-05
 
-**Last session:** 2026-05-05T16:50:00.000Z
+**Last session:** 2026-05-05T22:30:00.000Z
 
-**Stopped at:** Phase 6 Plan 02 complete — 3 glue primitives landed (useMarkupHighlight, Splitter, CanvasHeaderBar). Commits fc9cbae, afb0651, 19fbf49. Full suite 364/364 (358 prior + 6 new from canvas-header-bar.test.ts flipping GREEN); 11 Wave 0 RED stubs remain for plans 06-03..06-08. Wave 1 of Phase 6 now complete.
+**Stopped at:** Phase 6 Plan 03 complete — 2 transient Konva overlay components landed (HoverRing + PulseHighlight). Commits 88a9ab7, 51ab85e, 66c4217, dfb3855. Full suite 380/380 actual tests (364 prior + 16 new = 380); 9 Wave 0 RED stubs remain for plans 06-04 (TotalsPanel × 5) and 06-08 (Thumbnails × 3) plus 1 TotalsRow stub. Wave 2 of Phase 6 now complete. Stale HANDOFF.json (Phase 4.1 from 2026-04-30) deleted during this close-out — Phase 4.1 has been fully closed since.
 
-**Next action:** Execute Phase 6 Plan 06-03 (Wave 2 — PulseHighlight + HoverRing transient Konva overlays on Layer 2, listening=false, zoom-compensated stroke widths, 1500ms rAF fade). Depends on 06-01 + 06-02 (both now landed). Will turn pulse-highlight-animation.test.ts and highlight-overlay-listening.test.ts GREEN.
+**Next action:** Execute Phase 6 Plan 06-04 (Wave 3 — TotalsPanel: aggregator-driven panel shell with category collapse + empty states + render contract). Depends on 06-01 (useBoqLive hook) + 06-02 (Splitter, useMarkupHighlight, CanvasHeaderBar). Will turn totals-panel-render.test.ts, totals-panel-empty-states.test.ts, totals-panel-category-collapse.test.ts GREEN. After 06-04, Wave 3 closes with 06-05 (TotalsRow hover/click handlers wired to useMarkupHighlight).
 
 ---
 *State initialized: 2026-03-25*
-*Last updated: 2026-05-05 after Phase 6 Plan 02 completion (Wave 1 glue primitives: useMarkupHighlight + Splitter + CanvasHeaderBar — Wave 1 of Phase 6 now complete)*
+*Last updated: 2026-05-05 after Phase 6 Plan 03 completion (Wave 2 transient overlays: HoverRing + PulseHighlight — Wave 2 of Phase 6 now complete)*
