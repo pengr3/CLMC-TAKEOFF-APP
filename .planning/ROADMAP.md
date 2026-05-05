@@ -171,7 +171,17 @@ Plans:
   1. User can see a live totals panel that shows current quantities for every named item, grouped by category, updating immediately when a markup is placed or removed — without leaving the markup canvas
   2. User can navigate between pages by clicking a thumbnail in a sidebar strip rather than using next/previous buttons only
   3. The totals panel remains visible and usable alongside the markup canvas without obstructing the plan view on a standard 1080p monitor
-**Plans**: TBD
+**Plans**: 9 plans
+Plans:
+- [ ] 06-00-PLAN.md — Wave 0 RED test scaffolds (15 test files)
+- [ ] 06-01-PLAN.md — useBoqLive + usePageLabels + useUiPanels hooks
+- [ ] 06-02-PLAN.md — useMarkupHighlight + Splitter + CanvasHeaderBar
+- [ ] 06-03-PLAN.md — HoverRing + PulseHighlight Konva overlay components
+- [ ] 06-04-PLAN.md — TotalsPanel + TotalsPanelHeader + TotalsCategoryBlock + TotalsRow
+- [ ] 06-05-PLAN.md — TotalsRowContextMenu + row interaction wiring (hover/click/right-click)
+- [ ] 06-06-PLAN.md — useThumbnailRender + Thumbnail + ThumbnailStrip
+- [ ] 06-07-PLAN.md — App.tsx three-column shell + CanvasViewport Layer 2 wiring
+- [ ] 06-08-PLAN.md — Manual UAT + phase closure
 **UI hint**: yes
 
 ---
@@ -187,7 +197,7 @@ Plans:
 | 4. Project Persistence | 8/8 | Complete | 2026-04-29 |
 | 4.1. ZIP-Embedded .clmc Format | 8/8 | Complete | 2026-05-02 |
 | 5. BOQ Export | 7/7 | Complete | 2026-05-03 |
-| 6. Live View and UI Polish | 0/0 | Not started | - |
+| 6. Live View and UI Polish | 0/9 | Not started | - |
 
 ---
 
