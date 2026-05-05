@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 6 in progress — Wave 2 complete (06-03 transient overlays both GREEN)
-stopped_at: Phase 6 Wave 2 complete (06-03 HoverRing + PulseHighlight); Wave 3 (06-04 TotalsPanel + 06-05 TotalsRow) ready to start
-last_updated: "2026-05-05T22:30:00.000Z"
+status: Ready to execute
+stopped_at: Phase 6 Plan 03 complete — 2 transient Konva overlay components landed (HoverRing + PulseHighlight). Commits 88a9ab7, 51ab85e, 66c4217, dfb3855. Full suite 380/380 actual tests (364 prior + 16 new = 380); 9 Wave 0 RED stubs remain for plans 06-04 (TotalsPanel × 5) and 06-08 (Thumbnails × 3) plus 1 TotalsRow stub. Wave 2 of Phase 6 now complete. Stale HANDOFF.json (Phase 4.1 from 2026-04-30) deleted during this close-out — Phase 4.1 has been fully closed since.
+last_updated: "2026-05-05T15:12:59.587Z"
 last_activity: 2026-05-05
 progress:
   total_phases: 8
   completed_phases: 7
-  total_plans: 59
-  completed_plans: 45
-  percent: 76
+  total_plans: 50
+  completed_plans: 46
+  percent: 92
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 06 — Live View and UI Polish (IN PROGRESS — Wave 2 complete; Wave 3 next)
+**Current Focus:** Phase 06 — live-view-and-ui-polish
 
 ---
 
 ## Current Position
 
-Phase: 06 (live-view-and-ui-polish) — Wave 2 complete (06-03); Wave 3 (06-04 TotalsPanel + 06-05 TotalsRow) ready
-Plan: 4/9 complete; 9 RED test files remain (2 flipped GREEN this plan: highlight-overlay-listening + pulse-highlight-animation); Nyquist feedback loop active for Waves 3-6
+Phase: 06 (live-view-and-ui-polish) — EXECUTING
+Plan: 2 of 9
 
 ## Performance Metrics
 

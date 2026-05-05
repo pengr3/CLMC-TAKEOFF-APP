@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-05-05T21:04:02Z",
+  "phase": "06",
+  "phase_name": "live-view-and-ui-polish",
+  "phase_dir": ".planning/phases/06-live-view-and-ui-polish",
+  "plan": "05",
+  "task": 2,
+  "total_tasks": 3,
+  "status": "paused",
+  "pause_reason": "org_monthly_usage_limit",
+  "completed_plans_in_phase": ["06-00", "06-01", "06-02", "06-03", "06-04"],
+  "completed_tasks": [
+    {"id": 1, "name": "RED — TotalsRowContextMenu + cycle navigation + hover test assertions", "status": "done", "commit": "90ca3ab"},
+    {"id": 2, "name": "GREEN — TotalsRowContextMenu component + TotalsRow handler wiring", "status": "in_progress", "progress": "Code written and committed as WIP at e8e7e67 but UNTESTED — usage limit hit before executor could run vitest to confirm GREEN"}
+  ],
+  "remaining_tasks": [
+    {"id": 2, "name": "Verify GREEN by running vitest on totals-row-context-menu, totals-row-cycle, totals-row-hover; iterate until all 17 assertions pass", "status": "in_progress"},
+    {"id": 3, "name": "Write 06-05-SUMMARY.md and commit as docs(06-05): complete Wave 3b plan", "status": "not_started"}
+  ],
+  "blockers": [
+    {"description": "Org monthly Claude API usage limit hit mid-execution of plan 06-05 GREEN phase", "type": "external", "workaround": "Resume in next billing cycle or different account"}
+  ],
+  "human_actions_pending": [],
+  "decisions": [
+    {"decision": "Wave 3 split into 3a (06-04) and 3b (06-05) sequentially", "rationale": "06-05 explicitly depends_on 06-04 even though both tagged Wave 3 in frontmatter; serializing avoids file-edit races on TotalsRow.tsx", "phase": "06"},
+    {"decision": "WIP-committed paused GREEN code rather than discarding the worktree", "rationale": "Preserves ~135 lines of TotalsRowContextMenu component + ~98 lines of TotalsRow handler wiring; resumer iterates from this baseline rather than rewriting", "phase": "06"}
+  ],
+  "uncommitted_files": [],
+  "remaining_phase_plans": [
+    {"plan": "06-05", "wave": "3b", "status": "in_progress_paused", "next": "Run vitest, fix failing assertions, write SUMMARY.md"},
+    {"plan": "06-06", "wave": "4", "status": "not_started", "scope": "Thumbnail strip (useThumbnailRender + Thumbnail + ThumbnailStrip)"},
+    {"plan": "06-07", "wave": "5", "status": "not_started", "scope": "App.tsx three-column shell + CanvasViewport Layer 2 wiring"},
+    {"plan": "06-08", "wave": "6", "status": "not_started", "autonomous": false, "scope": "Manual UAT (scenarios A-F) + phase closure (ROADMAP/REQUIREMENTS/STATE/VALIDATION)"}
+  ],
+  "next_action": "Resume plan 06-05 mid-GREEN: run `npm test -- totals-row-context-menu totals-row-cycle totals-row-hover`, identify failing assertions in the WIP commit (e8e7e67), iterate fixes on TotalsRowContextMenu.tsx and TotalsRow.tsx until all 17 assertions are GREEN, then commit follow-up fixes (feat(06-05): GREEN — ...) and write 06-05-SUMMARY.md.",
+  "context_notes": "Phase 6 is the final phase of milestone v1.0 before completion. 06-04 just landed cleanly in master (4dad6fc merge) — TotalsPanel render tree GREEN with 15/15 assertions. 06-05 wires row interactions (hover/click-cycle/right-click) and adds the context menu. After 06-05, Wave 4 (06-06 Thumbnail strip) is independent of Wave 3 and can run in parallel with finishing 06-05 if desired. The orchestrator (this session) was running serial waves and using worktree isolation."
+}
