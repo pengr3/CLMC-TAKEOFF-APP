@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 6 planned — ready for Phase 6 execution
-stopped_at: Phase 6 plans created (06-00 through 06-08)
-last_updated: "2026-05-05T15:45:00.000Z"
+status: Phase 6 in progress — Wave 0 RED stubs complete (06-00)
+stopped_at: Phase 6 Plan 00 complete; ready for Wave 1 (06-01 + 06-02 parallel-safe)
+last_updated: "2026-05-05T16:08:00.000Z"
 last_activity: 2026-05-05
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 59
-  completed_plans: 41
-  percent: 69
+  completed_plans: 42
+  percent: 71
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,23 +26,23 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 06 — Live View and UI Polish (NOT STARTED)
+**Current Focus:** Phase 06 — Live View and UI Polish (IN PROGRESS — Wave 0 complete)
 
 ---
 
 ## Current Position
 
-Phase: 06 (live-view-and-ui-polish) — READY TO EXECUTE
-Plan: 9 plans created (06-00 through 06-08) across 7 waves; verification PASSED on first iteration
+Phase: 06 (live-view-and-ui-polish) — Wave 0 (06-00) complete; Wave 1 ready (06-01 + 06-02 parallel-safe)
+Plan: 1/9 complete; 15 RED test files in place; Nyquist feedback loop established for Waves 1-6
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
 | Phases complete | 7 / 8 |
-| Plans complete | 41 |
+| Plans complete | 42 |
 | Requirements delivered | 11 / 25 |
-| Session count | 3 |
+| Session count | 4 |
 
 ---
 | Phase 01 P01 | 9min | 3 tasks | 19 files |
@@ -69,6 +69,7 @@ Plan: 9 plans created (06-00 through 06-08) across 7 waves; verification PASSED 
 | Phase 04 P04 | 11min | 3 tasks | 9 files |
 | Phase 04 P05 | 5min | 3 tasks | 6 files |
 | Phase 04 P07 | 4min | 3 tasks | 4 files |
+| Phase 06 P00 | 6min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -161,14 +162,14 @@ None.
 
 ## Session Continuity
 
-**Last activity:** 2026-05-02
+**Last activity:** 2026-05-05
 
-**Last session:** 2026-05-05T05:45:19.969Z
+**Last session:** 2026-05-05T16:08:00.000Z
 
-**Stopped at:** Phase 6 UI-SPEC approved
+**Stopped at:** Phase 6 Plan 00 complete — 15 Wave 0 RED stubs landed (commits f59af5d, 41c50b2)
 
-**Next action:** Execute Phase 5 — BOQ Export (`/gsd-execute-phase 5`).
+**Next action:** Execute Phase 6 Wave 1 — Plans 06-01 (useBoqLive + usePageLabels + useUiPanels) and 06-02 (useMarkupHighlight + Splitter + CanvasHeaderBar) are parallel-safe.
 
 ---
 *State initialized: 2026-03-25*
-*Last updated: 2026-05-02 after Phase 5 planning*
+*Last updated: 2026-05-05 after Phase 6 Plan 00 completion (Wave 0 RED scaffold)*

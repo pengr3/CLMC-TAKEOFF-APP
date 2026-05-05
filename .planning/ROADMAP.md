@@ -175,7 +175,7 @@ Plans:
 Plans:
 
 **Wave 0 *(prerequisite — RED test scaffolds)*:**
-- [ ] 06-00-PLAN.md — 15 Wave 0 RED test stubs (totals, thumbnails, hooks, highlights, header bar)
+- [x] 06-00-PLAN.md — 15 Wave 0 RED test stubs (totals, thumbnails, hooks, highlights, header bar)
 
 **Wave 1 *(parallel-safe; both blocked on Wave 0 — pure hooks + simple chrome)*:**
 - [ ] 06-01-PLAN.md — useBoqLive (8 primitive selectors over aggregateBoq) + usePageLabels + useUiPanels (localStorage clmc.ui with silent-reset)
@@ -214,7 +214,7 @@ Plans:
 | 4. Project Persistence | 8/8 | Complete | 2026-04-29 |
 | 4.1. ZIP-Embedded .clmc Format | 8/8 | Complete | 2026-05-02 |
 | 5. BOQ Export | 7/7 | Complete | 2026-05-03 |
-| 6. Live View and UI Polish | 0/9 | Planned | - |
+| 6. Live View and UI Polish | 1/9 | In Progress | - |
 
 ---
 
@@ -257,3 +257,4 @@ Plans:
 *Updated: 2026-04-21 — Phase 03.1 plans finalized (6 plans across 4 waves)*
 *Updated: 2026-05-02 — Phase 4.1 closed (8 plans incl. 04.1-07 gap closure for UAT Test 3 detached-buffer blocker)*
 *Updated: 2026-05-05 — Phase 6 plans finalized (9 plans across 7 waves)*
+*Updated: 2026-05-05 — Phase 6 Plan 00 complete (Wave 0 RED scaffold, 15 stubs)*
