@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { PDFDocumentProxy } from '../lib/pdf-setup'
 import { useViewerStore } from '../stores/viewerStore'
 
 /**
@@ -21,7 +22,10 @@ import { useViewerStore } from '../stores/viewerStore'
  * label at index `currentPage - 1` and gate on `labels && labels[i]`.
  */
 export function usePageLabels(): string[] | null {
-  const pdfDocument = useViewerStore((s) => s.pdfDocument)
+  // viewerStore types pdfDocument as `unknown | null` to avoid bleeding pdfjs
+  // types into the store contract. Mirror the cast pattern used by
+  // usePdfRenderer.ts (line 68).
+  const pdfDocument = useViewerStore((s) => s.pdfDocument) as PDFDocumentProxy | null
   const [labels, setLabels] = useState<string[] | null>(null)
 
   useEffect(() => {

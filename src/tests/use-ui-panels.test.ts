@@ -34,10 +34,16 @@ function installLocalStoragePolyfill(): void {
 }
 
 async function callHook(): Promise<{ current: () => UseUiPanelsApi; cleanup: () => void }> {
-  let captured: UseUiPanelsApi | null = null
+  // Mutable holder, written via useLayoutEffect (post-render commit) so the
+  // assignment is not a render-time side effect — keeps eslint-plugin-
+  // react-hooks v7 (react-hooks/immutability) quiet.
+  const holder: { value: UseUiPanelsApi | null } = { value: null }
 
   function Harness(): null {
-    captured = useUiPanels()
+    const v = useUiPanels()
+    React.useLayoutEffect(() => {
+      holder.value = v
+    })
     return null
   }
 
@@ -52,8 +58,8 @@ async function callHook(): Promise<{ current: () => UseUiPanelsApi; cleanup: () 
 
   return {
     current: () => {
-      if (!captured) throw new Error('useUiPanels harness — no value captured yet')
-      return captured
+      if (!holder.value) throw new Error('useUiPanels harness — no value captured yet')
+      return holder.value
     },
     cleanup: () => {
       act(() => root.unmount())

@@ -20,10 +20,16 @@ function fakePdfDoc(labels: string[] | null): { getPageLabels: () => Promise<str
 }
 
 async function callHook(): Promise<{ current: () => string[] | null; cleanup: () => void }> {
-  let captured: string[] | null = null
+  // Mutable holder, written via useLayoutEffect (post-render commit) so the
+  // assignment is not a render-time side effect — keeps eslint-plugin-
+  // react-hooks v7 (react-hooks/immutability) quiet.
+  const holder: { value: string[] | null } = { value: null }
 
   function Harness(): null {
-    captured = usePageLabels()
+    const v = usePageLabels()
+    React.useLayoutEffect(() => {
+      holder.value = v
+    })
     return null
   }
 
@@ -39,7 +45,7 @@ async function callHook(): Promise<{ current: () => string[] | null; cleanup: ()
   })
 
   return {
-    current: () => captured,
+    current: () => holder.value,
     cleanup: () => {
       act(() => root.unmount())
       container.remove()

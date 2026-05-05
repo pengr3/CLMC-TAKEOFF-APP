@@ -17,10 +17,16 @@ import type { CountMarkup, LinearMarkup } from '@renderer/types/markup'
 // returns the value captured during the most-recent render — pulling the
 // value via a getter avoids stale snapshots when the test re-renders.
 async function callHook(): Promise<{ current: () => BoqStructure; cleanup: () => void }> {
-  let captured: BoqStructure | null = null
+  // Mutable holder, written via useLayoutEffect (post-render commit) so the
+  // assignment is not a render-time side effect — keeps eslint-plugin-
+  // react-hooks v7 (react-hooks/immutability) quiet.
+  const holder: { value: BoqStructure | null } = { value: null }
 
   function Harness(): null {
-    captured = useBoqLive()
+    const v = useBoqLive()
+    React.useLayoutEffect(() => {
+      holder.value = v
+    })
     return null
   }
 
@@ -35,8 +41,8 @@ async function callHook(): Promise<{ current: () => BoqStructure; cleanup: () =>
 
   return {
     current: () => {
-      if (!captured) throw new Error('useBoqLive harness — no value captured yet')
-      return captured
+      if (!holder.value) throw new Error('useBoqLive harness — no value captured yet')
+      return holder.value
     },
     cleanup: () => {
       act(() => root.unmount())
