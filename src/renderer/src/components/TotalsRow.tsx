@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type React from 'react'
 import { COLORS } from '../lib/constants'
-import type { BoqItemRow } from '../lib/boq-types'
-import type { Markup } from '../types/markup'
+import type { BoqItemRow, BoqRowType } from '../lib/boq-types'
+import type { Markup, MarkupType } from '../types/markup'
+import { useViewerStore } from '../stores/viewerStore'
+import { useMarkupStore } from '../stores/markupStore'
 
 /**
  * TotalsRow — single BOQ item row in the right TotalsPanel.
@@ -13,21 +15,35 @@ import type { Markup } from '../types/markup'
  * Color discipline (D-06): chip ONLY on item-name cell. Heading rows, subtotals,
  * and the grand-total bar carry no color.
  *
- * Event triplet pattern mirrored from CountPinMarkup.tsx:46-58 (Konva analog) —
- * here lifted into HTML: hover surface highlight on enter, cycle on click,
- * context menu on right-click. Plan 06-04 wires types/payloads only; the
- * concrete handlers (hover ring, pulse, navigation) come from App.tsx in
- * Plan 06-05.
+ * Cycle navigation (D-10, plan 06-05): on click, the row navigates the viewer
+ * to the next page in `pagesWithMatches` (sorted ascending) and fires
+ * `onTriggerPulse(matches, color)` so the parent can flash a PulseHighlight
+ * over each matching markup on the destination page. Internal `cycleIndex`
+ * tracks the next slot in `pagesWithMatches`; mouse-leave resets it (D-10
+ * "until row-leave or category-collapse"). The row also retains the legacy
+ * `onClick(item)` callback for callers who want to observe clicks externally.
+ *
+ * Hover (D-11): mouse-enter calls `onHover(currentPageMatches)` with the
+ * caller-resolved current-page matches; mouse-leave calls `onHover([])`.
+ * Hover never navigates pages.
+ *
+ * Right-click (D-14): contextmenu fires `onContextMenu(x, y)`; the parent
+ * mounts `TotalsRowContextMenu` at the cursor position.
  */
 export interface TotalsRowProps {
   item: BoqItemRow
-  /** 0 → no cycle indicator; >0 → leading accent dot in fixed-width slot. */
+  /** 0 → no cycle indicator; >0 (legacy parent-driven) → leading accent dot in fixed-width slot.
+   *  When the row owns its own internal cycle (default), the dot is driven by internal state
+   *  and this prop is treated as a starting nudge only. */
   cycleIndex: number
   /** Pre-resolved current-page matches (caller filters BoqStructure → Markup[]). */
   currentPageMatches: Markup[]
   onHover: (matches: Markup[]) => void
+  /** Legacy "click observed" callback. The actual page navigation is done internally. */
   onClick: (item: BoqItemRow) => void
   onContextMenu: (x: number, y: number) => void
+  /** Fired after a click navigates to a new page — caller can flash PulseHighlight. */
+  onTriggerPulse?: (matches: Markup[], color: string) => void
 }
 
 function formatQuantity(item: BoqItemRow): string {
@@ -35,9 +51,61 @@ function formatQuantity(item: BoqItemRow): string {
   return item.quantity.toFixed(2)
 }
 
+/** D-02 disambiguation suffix stripper. "Outlet (count)" → "Outlet". */
+function labelToName(label: string): string {
+  return label.replace(/\s*\((count|linear|area|perimeter)\)\s*$/, '')
+}
+
+/** Map a BoqRowType (perimeter-length / perimeter-area split) back to underlying Markup.type. */
+function rowTypeToMarkupType(t: BoqRowType): MarkupType {
+  if (t === 'perimeter-length' || t === 'perimeter-area') return 'perimeter'
+  return t
+}
+
+/** Module-level helper: which markups on `pageMarkups` match (name, rowType)? */
+function matchMarkupsOnPage(
+  pageMarkups: Markup[],
+  itemName: string,
+  rowType: BoqRowType
+): Markup[] {
+  const underlying = rowTypeToMarkupType(rowType)
+  return pageMarkups.filter((m) => m.name === itemName && m.type === underlying)
+}
+
+/** Module-level helper: which pages contain ≥1 matching markup, ascending? */
+function findPagesWithMatches(
+  pageMarkupsAll: Record<number, Markup[]>,
+  itemName: string,
+  rowType: BoqRowType
+): number[] {
+  const out: number[] = []
+  for (const [pageStr, list] of Object.entries(pageMarkupsAll)) {
+    if (matchMarkupsOnPage(list, itemName, rowType).length > 0) out.push(Number(pageStr))
+  }
+  return out.sort((a, b) => a - b)
+}
+
 export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
-  const { item, cycleIndex, currentPageMatches, onHover, onClick, onContextMenu } = props
+  const { item, cycleIndex: cycleIndexProp, currentPageMatches, onHover, onClick, onContextMenu, onTriggerPulse } = props
   const [bg, setBg] = useState<string>('transparent')
+
+  // Internal cycle state. Reset on mouse-leave (D-10 "until row-leave").
+  const [internalCycleIndex, setInternalCycleIndex] = useState(0)
+
+  // Page navigation primitives — read directly from the stores so the row owns its own
+  // cycle navigation lifecycle (no need for parent-side cycleIndexByKey orchestration).
+  const setPage = useViewerStore((s) => s.setPage)
+  const pageMarkupsAll = useMarkupStore((s) => s.pageMarkups)
+
+  // Recompute pages-with-matches whenever the underlying markup store changes.
+  const itemName = useMemo(() => labelToName(item.label), [item.label])
+  const pagesWithMatches = useMemo(
+    () => findPagesWithMatches(pageMarkupsAll, itemName, item.type),
+    [pageMarkupsAll, itemName, item.type]
+  )
+
+  // The dot is driven by either the parent's prop (legacy) OR the internal cycle state.
+  const showCycleDot = internalCycleIndex > 0 || cycleIndexProp > 0
 
   const handleMouseEnter = (): void => {
     setBg(COLORS.hoverSurface)
@@ -46,6 +114,8 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
   const handleMouseLeave = (): void => {
     setBg('transparent')
     onHover([])
+    // Reset internal cycle on row-leave (D-10).
+    setInternalCycleIndex(0)
   }
   const handleMouseDown = (): void => {
     setBg(COLORS.activeSurface)
@@ -54,7 +124,24 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
     setBg(COLORS.hoverSurface)
   }
   const handleClick = (): void => {
+    // Always notify the legacy click observer.
     onClick(item)
+
+    // Cycle navigation: skip when no matches anywhere.
+    if (pagesWithMatches.length === 0) return
+
+    const slot = internalCycleIndex % pagesWithMatches.length
+    const targetPage = pagesWithMatches[slot]
+    setPage(targetPage)
+    const matchesOnTarget = matchMarkupsOnPage(
+      pageMarkupsAll[targetPage] ?? [],
+      itemName,
+      item.type
+    )
+    onTriggerPulse?.(matchesOnTarget, item.color ?? '#cccccc')
+
+    // Advance cycle index (wraps via modulo on next click).
+    setInternalCycleIndex((i) => (i + 1) % pagesWithMatches.length)
   }
   const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>): void => {
     e.preventDefault()
@@ -97,7 +184,7 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
           justifyContent: 'center'
         }}
       >
-        {cycleIndex > 0 && (
+        {showCycleDot && (
           <div
             data-testid="totals-row-cycle-dot"
             style={{
