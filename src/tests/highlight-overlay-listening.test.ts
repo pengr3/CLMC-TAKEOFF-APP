@@ -55,12 +55,7 @@ vi.mock('react-konva', () => {
 })
 
 import { HoverRing } from '@renderer/components/HoverRing'
-import type {
-  CountMarkup,
-  LinearMarkup,
-  AreaMarkup,
-  PerimeterMarkup
-} from '@renderer/types/markup'
+import type { CountMarkup, LinearMarkup, AreaMarkup, PerimeterMarkup } from '@renderer/types/markup'
 
 interface MountResult {
   container: HTMLElement
