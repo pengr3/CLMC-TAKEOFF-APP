@@ -179,7 +179,7 @@ Plans:
 
 **Wave 1 *(parallel-safe; both blocked on Wave 0 — pure hooks + simple chrome)*:**
 - [x] 06-01-PLAN.md — useBoqLive (8 primitive selectors over aggregateBoq) + usePageLabels + useUiPanels (localStorage clmc.ui with silent-reset)
-- [ ] 06-02-PLAN.md — useMarkupHighlight (parent-owned-lifecycle) + Splitter (4px hit area, commit-on-pointerup) + CanvasHeaderBar (28px, getCalibrationControls() reuse for Set Scale)
+- [x] 06-02-PLAN.md — useMarkupHighlight (parent-owned-lifecycle) + Splitter (4px hit area, commit-on-pointerup) + CanvasHeaderBar (28px, getCalibrationControls() reuse for Set Scale)
 
 **Wave 2 *(blocked on 06-01 + 06-02 — Konva transient overlays)*:**
 - [ ] 06-03-PLAN.md — HoverRing + PulseHighlight (Konva Layer 2, listening=false, zoom-compensated, rAF fade 0.85→0 over 1500ms)
@@ -214,7 +214,7 @@ Plans:
 | 4. Project Persistence | 8/8 | Complete | 2026-04-29 |
 | 4.1. ZIP-Embedded .clmc Format | 8/8 | Complete | 2026-05-02 |
 | 5. BOQ Export | 7/7 | Complete | 2026-05-03 |
-| 6. Live View and UI Polish | 2/9 | In Progress | - |
+| 6. Live View and UI Polish | 3/9 | In Progress | - |
 
 ---
 
@@ -258,3 +258,5 @@ Plans:
 *Updated: 2026-05-02 — Phase 4.1 closed (8 plans incl. 04.1-07 gap closure for UAT Test 3 detached-buffer blocker)*
 *Updated: 2026-05-05 — Phase 6 plans finalized (9 plans across 7 waves)*
 *Updated: 2026-05-05 — Phase 6 Plan 00 complete (Wave 0 RED scaffold, 15 stubs)*
+*Updated: 2026-05-05 — Phase 6 Plan 01 complete (Wave 1 hook foundations: useBoqLive + usePageLabels + useUiPanels)*
+*Updated: 2026-05-05 — Phase 6 Plan 02 complete (Wave 1 glue primitives: useMarkupHighlight + Splitter + CanvasHeaderBar — Wave 1 of Phase 6 now complete)*

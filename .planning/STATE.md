@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 6 in progress — Wave 1 hook foundations complete (06-01)
-stopped_at: Phase 6 Plan 01 complete; Wave 1 sibling 06-02 still parallel-safe (useMarkupHighlight + Splitter + CanvasHeaderBar)
-last_updated: "2026-05-05T16:30:00.000Z"
+status: Phase 6 in progress — Wave 1 complete (06-01 + 06-02 both landed)
+stopped_at: Phase 6 Wave 1 complete (06-01 hook foundations + 06-02 glue primitives); Wave 2 (06-03 PulseHighlight + HoverRing) ready to start
+last_updated: "2026-05-05T16:50:00.000Z"
 last_activity: 2026-05-05
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 59
-  completed_plans: 43
-  percent: 73
+  completed_plans: 44
+  percent: 75
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 06 — Live View and UI Polish (IN PROGRESS — Wave 1 hook foundations complete)
+**Current Focus:** Phase 06 — Live View and UI Polish (IN PROGRESS — Wave 1 complete; Wave 2 next)
 
 ---
 
 ## Current Position
 
-Phase: 06 (live-view-and-ui-polish) — Wave 1 partially complete (06-01 done; 06-02 still parallel-safe)
-Plan: 2/9 complete; 12 RED test files remain (3 flipped GREEN this plan); Nyquist feedback loop active for Waves 2-6
+Phase: 06 (live-view-and-ui-polish) — Wave 1 complete (06-01 + 06-02); Wave 2 (06-03) ready
+Plan: 3/9 complete; 11 RED test files remain (1 flipped GREEN this plan: canvas-header-bar); Nyquist feedback loop active for Waves 2-6
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Plan: 2/9 complete; 12 RED test files remain (3 flipped GREEN this plan); Nyquis
 | Phase 04 P07 | 4min | 3 tasks | 4 files |
 | Phase 06 P00 | 6min | 2 tasks | 15 files |
 | Phase 06 P01 | 18min | 2 tasks (TDD RED+GREEN paired commits) | 6 files |
+| Phase 06 P02 | 12min | 2 tasks (Task 1 single feat; Task 2 TDD RED+GREEN) | 4 files |
 
 ## Accumulated Context
 
@@ -131,6 +132,11 @@ Plan: 2/9 complete; 12 RED test files remain (3 flipped GREEN this plan); Nyquis
 | usePageLabels casts pdfDocument selector to PDFDocumentProxy at the callsite | viewerStore types pdfDocument as `unknown | null` to keep pdfjs out of the store contract — established in usePdfRenderer.ts:68 and re-applied here. One widening point per consumer |
 | Test harness writes captured hook value via useLayoutEffect into a holder object | eslint-plugin-react-hooks v7 forbids render-time reassignment of outer let-bindings (react-hooks/immutability + react-hooks/globals); useLayoutEffect runs after the render commit, satisfying the rule. Mirrors use-export-hook.test.ts useEffect-based assignment |
 | Test files install in-memory localStorage polyfill via Object.defineProperty in beforeEach | jsdom 29 in this project ships an experimental persistent localStorage that requires --localstorage-file with a valid path; without it, getItem/setItem are undefined. Polyfilling per-test-file is parallel-executor-safe (no vitest.config.ts change) and matches the CLAUDE.md "no test infra changes mid-wave" rule |
+| useMarkupHighlight passes setHoverMatches as the raw useState setter (not useCallback-wrapped) | useState setters are guaranteed-stable by React; wrapping is redundant ceremony. Only the three setters with non-trivial bodies (clearHover, triggerPulse, clearPulse) get useCallback. Matches the locked RESEARCH §3 lines 467-495 pattern verbatim |
+| Splitter registers pointermove + pointerup on window (not on the element) | Element-scoped listeners drop events when the cursor leaves the 4px hit strip during a fast drag. Window-level capture catches every event until pointerup; both listeners removed atomically in onUp. Mitigates T-06-02-02 (DOS — listener leak) by preventing the retain path |
+| Splitter calls onDragWidth on every pointermove but onCommit only on pointerup | Splits live-render (driven by parent local state on every frame) from persistence write (driven by useUiPanels' localStorage commit on pointerup only). Avoids 60-120 localStorage writes/sec during a single drag. Width clamp range mitigates T-06-02-01 (raw clientX tampering) |
+| CanvasHeaderBar uses inline conditional render rather than StatusBar's flat scaleText/scaleColor variables | The third D-20 branch contains a clickable inline link element, not just text — a flat string variable doesn't fit cleanly. Three-way ternary at render keeps each branch's structure visible at a glance. Diverges from StatusBar pattern intentionally because the decision tree shape is different |
+| CanvasHeaderBar reuses getCalibrationControls()?.activate() — does NOT duplicate the trigger code | Toolbar.tsx:173-181 establishes the canonical Set Scale entry point via the module-level ref. CanvasHeaderBar's inline link onClick uses the same callsite shape — exactly one functional invocation in the file. D-20 cross-cutting constraint, asserted by the canvas-header-bar.test.ts spy on getCalibrationControls |
 
 ### Critical Pitfalls to Watch
 
@@ -170,12 +176,12 @@ None.
 
 **Last activity:** 2026-05-05
 
-**Last session:** 2026-05-05T16:30:00.000Z
+**Last session:** 2026-05-05T16:50:00.000Z
 
-**Stopped at:** Phase 6 Plan 01 complete — 3 hook foundations landed (useBoqLive, usePageLabels, useUiPanels). Commits 4fcbb03, 2db3f0c, 1ce1c71, 2c87c2c, fdc35ce. Full suite 358/358; 12 Wave 0 RED stubs remain for plans 06-02..06-08.
+**Stopped at:** Phase 6 Plan 02 complete — 3 glue primitives landed (useMarkupHighlight, Splitter, CanvasHeaderBar). Commits fc9cbae, afb0651, 19fbf49. Full suite 364/364 (358 prior + 6 new from canvas-header-bar.test.ts flipping GREEN); 11 Wave 0 RED stubs remain for plans 06-03..06-08. Wave 1 of Phase 6 now complete.
 
-**Next action:** Execute Phase 6 Plan 06-02 (useMarkupHighlight parent-owned-lifecycle + Splitter 4px hit area + CanvasHeaderBar 28px with getCalibrationControls() reuse). Wave 1 sibling — independently parallel-safe with this plan's commits already on master.
+**Next action:** Execute Phase 6 Plan 06-03 (Wave 2 — PulseHighlight + HoverRing transient Konva overlays on Layer 2, listening=false, zoom-compensated stroke widths, 1500ms rAF fade). Depends on 06-01 + 06-02 (both now landed). Will turn pulse-highlight-animation.test.ts and highlight-overlay-listening.test.ts GREEN.
 
 ---
 *State initialized: 2026-03-25*
-*Last updated: 2026-05-05 after Phase 6 Plan 01 completion (Wave 1 hook foundations: useBoqLive + usePageLabels + useUiPanels)*
+*Last updated: 2026-05-05 after Phase 6 Plan 02 completion (Wave 1 glue primitives: useMarkupHighlight + Splitter + CanvasHeaderBar — Wave 1 of Phase 6 now complete)*
