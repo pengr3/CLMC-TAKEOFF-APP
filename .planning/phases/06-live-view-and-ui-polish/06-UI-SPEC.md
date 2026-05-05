@@ -1,10 +1,11 @@
 ---
 phase: 6
 slug: live-view-and-ui-polish
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-05-05
+reviewed_at: 2026-05-05
 ---
 
 # Phase 6 — UI Design Contract
