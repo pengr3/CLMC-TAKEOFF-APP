@@ -110,7 +110,9 @@ export function TotalsCategoryBlock(props: TotalsCategoryBlockProps): React.JSX.
         >
           {isCollapsed ? '▸' : '▾'}
         </span>
-        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span
+          style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+        >
           {category.name}
         </span>
       </div>
