@@ -167,6 +167,13 @@ function installRafController(): RafController {
   }
 }
 
+// @ts-expect-error — React's act() uses this flag to validate the test env.
+// Without it React 19 emits "The current testing environment is not configured
+// to support act(...)" which the unmount-cleanup test's errSpy would catch as
+// a false positive. Mirrors markup-tool-pop-last-point.test.ts:66 and
+// markup-tool-strictmode.test.ts:91.
+globalThis.IS_REACT_ACT_ENVIRONMENT = true
+
 beforeEach(() => {
   document.body.innerHTML = ''
 })
