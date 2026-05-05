@@ -171,17 +171,34 @@ Plans:
   1. User can see a live totals panel that shows current quantities for every named item, grouped by category, updating immediately when a markup is placed or removed — without leaving the markup canvas
   2. User can navigate between pages by clicking a thumbnail in a sidebar strip rather than using next/previous buttons only
   3. The totals panel remains visible and usable alongside the markup canvas without obstructing the plan view on a standard 1080p monitor
-**Plans**: 9 plans
+**Plans**: 9 plans across 7 waves
 Plans:
-- [ ] 06-00-PLAN.md — Wave 0 RED test scaffolds (15 test files)
-- [ ] 06-01-PLAN.md — useBoqLive + usePageLabels + useUiPanels hooks
-- [ ] 06-02-PLAN.md — useMarkupHighlight + Splitter + CanvasHeaderBar
-- [ ] 06-03-PLAN.md — HoverRing + PulseHighlight Konva overlay components
-- [ ] 06-04-PLAN.md — TotalsPanel + TotalsPanelHeader + TotalsCategoryBlock + TotalsRow
-- [ ] 06-05-PLAN.md — TotalsRowContextMenu + row interaction wiring (hover/click/right-click)
-- [ ] 06-06-PLAN.md — useThumbnailRender + Thumbnail + ThumbnailStrip
-- [ ] 06-07-PLAN.md — App.tsx three-column shell + CanvasViewport Layer 2 wiring
-- [ ] 06-08-PLAN.md — Manual UAT + phase closure
+
+**Wave 0 *(prerequisite — RED test scaffolds)*:**
+- [ ] 06-00-PLAN.md — 15 Wave 0 RED test stubs (totals, thumbnails, hooks, highlights, header bar)
+
+**Wave 1 *(parallel-safe; both blocked on Wave 0 — pure hooks + simple chrome)*:**
+- [ ] 06-01-PLAN.md — useBoqLive (8 primitive selectors over aggregateBoq) + usePageLabels + useUiPanels (localStorage clmc.ui with silent-reset)
+- [ ] 06-02-PLAN.md — useMarkupHighlight (parent-owned-lifecycle) + Splitter (4px hit area, commit-on-pointerup) + CanvasHeaderBar (28px, getCalibrationControls() reuse for Set Scale)
+
+**Wave 2 *(blocked on 06-01 + 06-02 — Konva transient overlays)*:**
+- [ ] 06-03-PLAN.md — HoverRing + PulseHighlight (Konva Layer 2, listening=false, zoom-compensated, rAF fade 0.85→0 over 1500ms)
+
+**Wave 3 *(parallel-safe with Wave 4; 06-04 blocked on Wave 1, 06-05 blocked on 06-03 + 06-04 — TotalsPanel render tree)*:**
+- [ ] 06-04-PLAN.md — TotalsPanel + TotalsPanelHeader + TotalsCategoryBlock + TotalsRow (color chip on item-name only, three D-09 empty states, grand-total bar)
+- [ ] 06-05-PLAN.md — TotalsRowContextMenu (defer-listener-registration, Copy as text TAB-separated payload, ConfirmationToast) + row hover/click wiring through useMarkupHighlight
+
+**Wave 4 *(parallel-safe with Waves 2 & 3; blocked on Wave 1 — Thumbnail rasterization pipeline)*:**
+- [ ] 06-06-PLAN.md — useThumbnailRender (PDF.js render at 48 dpi via existing pdfDocument proxy, two-canvas composite, 200ms debounced overlay refresh) + Thumbnail (4 badges D-16, IntersectionObserver lazy mount) + ThumbnailStrip
+
+**Wave 5 *(blocked on Waves 2 + 3 + 4 — App.tsx three-column shell)*:**
+- [ ] 06-07-PLAN.md — App.tsx three-column flex shell (minWidth:0 center column, toast relocation) + CanvasViewport Layer-2 mount points + useMarkupHighlight orchestration
+
+**Wave 6 *(blocked on Wave 5 — manual UAT and closure)*:**
+- [ ] 06-08-PLAN.md — Manual UAT (zoom-compensated visuals, persistence across reload, fade timing, performance, 1080p layout, thumbnail sync) + REQUIREMENTS/ROADMAP/STATE closure
+
+**Cross-cutting constraints:** ONE aggregator (`boq-aggregator.ts` reused via `useBoqLive` — D-04); per-name color travels canvas → row chip → pulse → BOQ export via `getColorForName(name)` (D-06 / D-12); `listening={false}` mandatory on every Konva shape inside HoverRing + PulseHighlight (Pitfall 1); zoom-compensated stroke widths (`/ currentZoom`) on transient overlays (Phase 03.1 discipline); reuse existing `viewerStore.pdfDocument.getPage(n)` for thumbnails — no new `pdfjsLib.getDocument({ data })` callsite (Phase 4.1 detached-buffer landmine, Pitfall 4); inline-style + `COLORS` tokens convention (no Tailwind in chrome path); UI panel state in `localStorage clmc.ui` namespace, NEVER in `.clmc` files (D-03); `getCalibrationControls()?.activate()` reuse — no duplicate Set Scale trigger code (D-20); defer-listener-registration via `setTimeout(0)` in TotalsRowContextMenu; localStorage parse failure → silent reset to defaults; tabular numbers via `font-variant-numeric: tabular-nums` only.
+
 **UI hint**: yes
 
 ---
@@ -197,7 +214,7 @@ Plans:
 | 4. Project Persistence | 8/8 | Complete | 2026-04-29 |
 | 4.1. ZIP-Embedded .clmc Format | 8/8 | Complete | 2026-05-02 |
 | 5. BOQ Export | 7/7 | Complete | 2026-05-03 |
-| 6. Live View and UI Polish | 0/9 | Not started | - |
+| 6. Live View and UI Polish | 0/9 | Planned | - |
 
 ---
 
@@ -239,3 +256,4 @@ Plans:
 *Created: 2026-03-25*
 *Updated: 2026-04-21 — Phase 03.1 plans finalized (6 plans across 4 waves)*
 *Updated: 2026-05-02 — Phase 4.1 closed (8 plans incl. 04.1-07 gap closure for UAT Test 3 detached-buffer blocker)*
+*Updated: 2026-05-05 — Phase 6 plans finalized (9 plans across 7 waves)*
