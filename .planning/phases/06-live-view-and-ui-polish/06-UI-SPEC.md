@@ -72,13 +72,13 @@ The Phase 6 chrome reuses StatusBar / Toolbar / MarkupTooltip type ramp verbatim
 | Role | Size | Weight | Line Height | Phase 6 Usage |
 |------|------|--------|-------------|---------------|
 | Body | 13px | 400 | 1.4 | TotalsPanel item rows; thumbnail page label; CanvasHeaderBar text; tooltip body — matches `StatusBar.tsx`, `MarkupTooltip.tsx`, `Toolbar.tsx` |
-| Label | 12px | 600 | 1.4 | Section labels inside `MarkupContextMenu` ("Recolor group"); reused for the Phase 6 right-click menu D-14 ("Copy as text" item label is **13/400**, the section header above it is **12/600**) |
+| Label | 12px | 600 | 1.4 | Section labels inside `MarkupContextMenu` ("Recolor group"); reused for the Phase 6 right-click menu D-14 ("Copy as text" item label is **13/400**, the section header above it is **12/600**) — **inherited from existing `MarkupContextMenu` — not a new Phase 6 size** |
 | Heading | 13px | 600 | 1.4 | TotalsPanel category-heading row text; metadata header field labels ("Project:", "Plan:") — same size/weight as Toolbar `IconButton` text |
-| Display | 16px | 700 | 1.3 | Grand-total bar quantity number — the only place in Phase 6 weight 700 appears; one display step above body to anchor the eye |
+| Display | 16px | 600 | 1.3 | Grand-total bar quantity number — one display step above body to anchor the eye; size alone (16px vs 13px) carries the visual weight, no extra font-weight tier needed |
 
 **Numeric column rendering:** quantities right-aligned, monospace via `font-variant-numeric: tabular-nums` (no font-family change — system numerics with tabular variant). Counts shown as integer; lengths/areas shown at 2dp — mirrors BOQ export D-22 / Phase 5 D-03.
 
-**Total declared sizes:** 4 (12, 13, 16) — within the 3-4-size budget. `12px` is a label-only size used in two narrow callouts; `13px` is the body workhorse. **Total declared weights:** 2 (400, 600) plus 700 reserved exclusively for the grand-total Display row — within the 2-weight budget when 700 is treated as a single-cell exception.
+**Total declared sizes:** 4 (12, 13, 16) — within the 3-4-size budget. `12px` is a label-only size **inherited from the existing `MarkupContextMenu` pattern** and reused for the Phase 6 context-menu section header — not a net-new Phase 6 size. `13px` is the body workhorse. **Total declared weights:** 2 — 400 (body) and 600 (emphasis & display). The grand-total Display row's larger 16px size already creates strong visual separation; no third weight tier is needed.
 
 ---
 
@@ -381,7 +381,7 @@ The implemented Phase 6 surfaces pass all six dimensions when:
 1. **Copywriting:** Every empty-state, error-state, tooltip, button, link, and accessible-label string in this contract appears verbatim in the implementation. No improvised "Click here to..." or "Loading..." strings.
 2. **Visuals:** TotalsPanel layout matches the column structure (color chip | item name | quantity right-aligned tabular-nums | UoM); Thumbnail tile shows all four badges in the declared positions; CanvasHeaderBar is 28px tall and matches StatusBar styling tokens; PulseHighlight and HoverRing visually distinguishable per the rules above.
 3. **Color:** Only the seven `COLORS.*` tokens + the per-name color (via `getColorForName`) are used. Per-name color is on the Item-name chip and pulse only. No new hex literals introduced in Phase 6 chrome.
-4. **Typography:** Body 13/400, headings 13/600, labels 12/600, display (grand-total) 16/700. Tabular-nums on quantity columns. No new font sizes outside this set.
+4. **Typography:** Body 13/400, headings 13/600, labels 12/600 (inherited from existing `MarkupContextMenu`), display (grand-total) 16/600. Tabular-nums on quantity columns. **2 weights total: 400 (body), 600 (emphasis & display).** No new font sizes outside this set.
 5. **Spacing:** All spacing values are multiples of 4 except the documented 4px splitter hit-area (which is itself a 4-multiple). Time tokens (1500ms pulse, 200ms debounce, 150ms transition) are unrestricted.
 6. **Registry Safety:** No third-party blocks introduced; no registry imports added; lockfile diff shows no new UI dependencies (the planner may add `lucide-react` icon imports — `Ruler`, `AlertTriangle`, chevrons — these are already in the bundle via existing Toolbar usage and require no new installs).
 
@@ -392,7 +392,7 @@ The implemented Phase 6 surfaces pass all six dimensions when:
 - [ ] Dimension 1 Copywriting: PASS
 - [ ] Dimension 2 Visuals: PASS
 - [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
+- [ ] Dimension 4 Typography: PASS — 2 weights: 400 (body), 600 (emphasis & display)
 - [ ] Dimension 5 Spacing: PASS
 - [ ] Dimension 6 Registry Safety: PASS
 
