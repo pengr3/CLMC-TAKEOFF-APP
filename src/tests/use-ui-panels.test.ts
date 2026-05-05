@@ -8,6 +8,31 @@ import { useUiPanels, type UseUiPanelsApi } from '@renderer/hooks/useUiPanels'
 
 const STORAGE_KEY = 'clmc.ui'
 
+// jsdom 29 in this project ships an experimental persistent localStorage that
+// requires `--localstorage-file` — without a valid path, getItem/setItem are
+// undefined. Replace with an in-memory polyfill scoped to this test file.
+function installLocalStoragePolyfill(): void {
+  const store = new Map<string, string>()
+  const ls: Storage = {
+    get length() {
+      return store.size
+    },
+    clear: () => store.clear(),
+    getItem: (k: string) => (store.has(k) ? store.get(k)! : null),
+    setItem: (k: string, v: string) => {
+      store.set(k, String(v))
+    },
+    removeItem: (k: string) => {
+      store.delete(k)
+    },
+    key: (i: number) => Array.from(store.keys())[i] ?? null
+  }
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: ls
+  })
+}
+
 async function callHook(): Promise<{ current: () => UseUiPanelsApi; cleanup: () => void }> {
   let captured: UseUiPanelsApi | null = null
 
@@ -39,7 +64,7 @@ async function callHook(): Promise<{ current: () => UseUiPanelsApi; cleanup: () 
 
 describe('useUiPanels — D-03 localStorage clmc.ui', () => {
   beforeEach(() => {
-    window.localStorage.clear()
+    installLocalStoragePolyfill()
   })
 
   it('reads localStorage clmc.ui on mount; returns stored values (D-03)', async () => {
