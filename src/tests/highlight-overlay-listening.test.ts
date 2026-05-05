@@ -55,6 +55,7 @@ vi.mock('react-konva', () => {
 })
 
 import { HoverRing } from '@renderer/components/HoverRing'
+import { PulseHighlight } from '@renderer/components/PulseHighlight'
 import type { CountMarkup, LinearMarkup, AreaMarkup, PerimeterMarkup } from '@renderer/types/markup'
 
 interface MountResult {
@@ -249,4 +250,89 @@ describe('HoverRing — listening={false} regression guard (D-11)', () => {
   })
 })
 
-// PulseHighlight regression guard — added in Task 2 once the component exists.
+describe('PulseHighlight — listening={false} regression guard (D-12)', () => {
+  it('every Konva shape inside PulseHighlight has listening={false}', () => {
+    const markups = [makeCount(), makeLinear(), makeArea(), makePerimeter()]
+    const onComplete = (): void => {}
+    const { container, unmount } = mount(
+      React.createElement(PulseHighlight, {
+        markups,
+        color: '#0078d4',
+        currentZoom: 1,
+        onComplete
+      })
+    )
+    try {
+      const shapes = container.querySelectorAll('[data-konva-role]')
+      // One shape per markup (4 total — 1 Circle + 3 Lines).
+      expect(shapes.length).toBe(4)
+      shapes.forEach((node) => {
+        expect(node.getAttribute('data-listening')).toBe('false')
+      })
+    } finally {
+      unmount()
+    }
+  })
+
+  it('uses zoom-compensated peak stroke (6/currentZoom at t=0)', () => {
+    // At currentZoom = 2, the t=0 stroke (peak 6) should be 6/2 = 3.
+    const markups = [makeCount()]
+    const onComplete = (): void => {}
+    const { container, unmount } = mount(
+      React.createElement(PulseHighlight, {
+        markups,
+        color: '#0078d4',
+        currentZoom: 2,
+        onComplete
+      })
+    )
+    try {
+      const circle = container.querySelector('[data-konva-role="circle"]')!
+      // First-render strokeWidth is 6/zoom (peak) since rAF hasn't ticked yet.
+      const strokeWidth = parseFloat(circle.getAttribute('data-strokewidth')!)
+      expect(strokeWidth).toBeCloseTo(3, 5)
+    } finally {
+      unmount()
+    }
+  })
+
+  it('uses per-name-group color from props (not hardcoded white)', () => {
+    const markups = [makeCount()]
+    const onComplete = (): void => {}
+    const { container, unmount } = mount(
+      React.createElement(PulseHighlight, {
+        markups,
+        color: '#bf6900',
+        currentZoom: 1,
+        onComplete
+      })
+    )
+    try {
+      const circle = container.querySelector('[data-konva-role="circle"]')!
+      expect(circle.getAttribute('data-stroke')).toBe('#bf6900')
+    } finally {
+      unmount()
+    }
+  })
+
+  it('count markup ring radius = PIN_RADIUS_WORLD + (8 / currentZoom)', () => {
+    // currentZoom=2 → radius = 10 + 8/2 = 14 (sits OUTSIDE HoverRing's 12).
+    const markups = [makeCount()]
+    const onComplete = (): void => {}
+    const { container, unmount } = mount(
+      React.createElement(PulseHighlight, {
+        markups,
+        color: '#0078d4',
+        currentZoom: 2,
+        onComplete
+      })
+    )
+    try {
+      const circle = container.querySelector('[data-konva-role="circle"]')!
+      const radius = parseFloat(circle.getAttribute('data-radius')!)
+      expect(radius).toBeCloseTo(14, 5)
+    } finally {
+      unmount()
+    }
+  })
+})
