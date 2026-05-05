@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 6 in progress — Wave 0 RED stubs complete (06-00)
-stopped_at: Phase 6 Plan 00 complete; ready for Wave 1 (06-01 + 06-02 parallel-safe)
-last_updated: "2026-05-05T16:08:00.000Z"
+status: Phase 6 in progress — Wave 1 hook foundations complete (06-01)
+stopped_at: Phase 6 Plan 01 complete; Wave 1 sibling 06-02 still parallel-safe (useMarkupHighlight + Splitter + CanvasHeaderBar)
+last_updated: "2026-05-05T16:30:00.000Z"
 last_activity: 2026-05-05
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 59
-  completed_plans: 42
-  percent: 71
+  completed_plans: 43
+  percent: 73
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,21 +26,21 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 06 — Live View and UI Polish (IN PROGRESS — Wave 0 complete)
+**Current Focus:** Phase 06 — Live View and UI Polish (IN PROGRESS — Wave 1 hook foundations complete)
 
 ---
 
 ## Current Position
 
-Phase: 06 (live-view-and-ui-polish) — Wave 0 (06-00) complete; Wave 1 ready (06-01 + 06-02 parallel-safe)
-Plan: 1/9 complete; 15 RED test files in place; Nyquist feedback loop established for Waves 1-6
+Phase: 06 (live-view-and-ui-polish) — Wave 1 partially complete (06-01 done; 06-02 still parallel-safe)
+Plan: 2/9 complete; 12 RED test files remain (3 flipped GREEN this plan); Nyquist feedback loop active for Waves 2-6
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
 | Phases complete | 7 / 8 |
-| Plans complete | 42 |
+| Plans complete | 43 |
 | Requirements delivered | 11 / 25 |
 | Session count | 4 |
 
@@ -70,6 +70,7 @@ Plan: 1/9 complete; 15 RED test files in place; Nyquist feedback loop establishe
 | Phase 04 P05 | 5min | 3 tasks | 6 files |
 | Phase 04 P07 | 4min | 3 tasks | 4 files |
 | Phase 06 P00 | 6min | 2 tasks | 15 files |
+| Phase 06 P01 | 18min | 2 tasks (TDD RED+GREEN paired commits) | 6 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,11 @@ Plan: 1/9 complete; 15 RED test files in place; Nyquist feedback loop establishe
 | Hover tooltip debounce owned by CanvasViewport not MarkupTooltip | MarkupTooltip stays pure presentational; parent holds the 200ms window.setTimeout ref and cancels on leave/context-open. Mirrors ConfirmationToast parent-owns-lifecycle pattern |
 | MarkupContextMenu currentColor wired to contextMarkup.color (not getColorForName) | The pin the user right-clicked is authoritative — avoids UI surprise if name-group has drifted colors. recolorGroup still flips the whole name-group per D-29 |
 | Konva onContextMenu handlers translate event via stage.getPointerPosition() then call e.evt.preventDefault() | Screen-space pointer is correct at any zoom because getPointerPosition reads raw mouse coords (unaffected by Stage transform); preventDefault suppresses the browser's native right-click menu on the canvas |
+| useBoqLive uses 8 primitive Zustand selectors over a single useMemo wrapping aggregateBoq | Pitfall 2 in 06-RESEARCH §2 — `(s) => s` would re-render on every store change; primitive selectors trigger only on actual input changes. getColorForName captured via getState() inside the memo so identity doesn't churn. Same `categories as Record<...>` cast as boq-aggregator.ts:86 |
+| useUiPanels persists to localStorage clmc.ui (NEVER inside .clmc) with defensive 5-field shape check on read | Estimator panel preferences follow the workstation, not the project file. T-06-01-01 mitigated: any parse failure or schema drift silently resets to DEFAULTS — no thrown errors, no console noise |
+| usePageLabels casts pdfDocument selector to PDFDocumentProxy at the callsite | viewerStore types pdfDocument as `unknown | null` to keep pdfjs out of the store contract — established in usePdfRenderer.ts:68 and re-applied here. One widening point per consumer |
+| Test harness writes captured hook value via useLayoutEffect into a holder object | eslint-plugin-react-hooks v7 forbids render-time reassignment of outer let-bindings (react-hooks/immutability + react-hooks/globals); useLayoutEffect runs after the render commit, satisfying the rule. Mirrors use-export-hook.test.ts useEffect-based assignment |
+| Test files install in-memory localStorage polyfill via Object.defineProperty in beforeEach | jsdom 29 in this project ships an experimental persistent localStorage that requires --localstorage-file with a valid path; without it, getItem/setItem are undefined. Polyfilling per-test-file is parallel-executor-safe (no vitest.config.ts change) and matches the CLAUDE.md "no test infra changes mid-wave" rule |
 
 ### Critical Pitfalls to Watch
 
@@ -164,12 +170,12 @@ None.
 
 **Last activity:** 2026-05-05
 
-**Last session:** 2026-05-05T16:08:00.000Z
+**Last session:** 2026-05-05T16:30:00.000Z
 
-**Stopped at:** Phase 6 Plan 00 complete — 15 Wave 0 RED stubs landed (commits f59af5d, 41c50b2)
+**Stopped at:** Phase 6 Plan 01 complete — 3 hook foundations landed (useBoqLive, usePageLabels, useUiPanels). Commits 4fcbb03, 2db3f0c, 1ce1c71, 2c87c2c, fdc35ce. Full suite 358/358; 12 Wave 0 RED stubs remain for plans 06-02..06-08.
 
-**Next action:** Execute Phase 6 Wave 1 — Plans 06-01 (useBoqLive + usePageLabels + useUiPanels) and 06-02 (useMarkupHighlight + Splitter + CanvasHeaderBar) are parallel-safe.
+**Next action:** Execute Phase 6 Plan 06-02 (useMarkupHighlight parent-owned-lifecycle + Splitter 4px hit area + CanvasHeaderBar 28px with getCalibrationControls() reuse). Wave 1 sibling — independently parallel-safe with this plan's commits already on master.
 
 ---
 *State initialized: 2026-03-25*
-*Last updated: 2026-05-05 after Phase 6 Plan 00 completion (Wave 0 RED scaffold)*
+*Last updated: 2026-05-05 after Phase 6 Plan 01 completion (Wave 1 hook foundations: useBoqLive + usePageLabels + useUiPanels)*

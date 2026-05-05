@@ -178,7 +178,7 @@ Plans:
 - [x] 06-00-PLAN.md — 15 Wave 0 RED test stubs (totals, thumbnails, hooks, highlights, header bar)
 
 **Wave 1 *(parallel-safe; both blocked on Wave 0 — pure hooks + simple chrome)*:**
-- [ ] 06-01-PLAN.md — useBoqLive (8 primitive selectors over aggregateBoq) + usePageLabels + useUiPanels (localStorage clmc.ui with silent-reset)
+- [x] 06-01-PLAN.md — useBoqLive (8 primitive selectors over aggregateBoq) + usePageLabels + useUiPanels (localStorage clmc.ui with silent-reset)
 - [ ] 06-02-PLAN.md — useMarkupHighlight (parent-owned-lifecycle) + Splitter (4px hit area, commit-on-pointerup) + CanvasHeaderBar (28px, getCalibrationControls() reuse for Set Scale)
 
 **Wave 2 *(blocked on 06-01 + 06-02 — Konva transient overlays)*:**
@@ -214,7 +214,7 @@ Plans:
 | 4. Project Persistence | 8/8 | Complete | 2026-04-29 |
 | 4.1. ZIP-Embedded .clmc Format | 8/8 | Complete | 2026-05-02 |
 | 5. BOQ Export | 7/7 | Complete | 2026-05-03 |
-| 6. Live View and UI Polish | 1/9 | In Progress | - |
+| 6. Live View and UI Polish | 2/9 | In Progress | - |
 
 ---
 
