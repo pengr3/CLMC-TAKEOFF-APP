@@ -13,14 +13,13 @@ import { useProjectStore } from '@renderer/stores/projectStore'
 import type { BoqStructure } from '@renderer/lib/boq-types'
 import type { CountMarkup, LinearMarkup } from '@renderer/types/markup'
 
-// Render the hook into a tiny harness component, capture the latest value.
-async function callHook(): Promise<{ value: BoqStructure; rerender: () => Promise<void>; cleanup: () => void }> {
-  let captured: BoqStructure = { metadata: { projectName: '', planFilename: '', exportedDate: '', totalPages: 0, totalMarkups: 0 }, categories: [], grandTotals: [] }
-  let rerenderTrigger: ((n: number) => void) | null = null
+// Render the hook into a tiny harness component. `current()` always
+// returns the value captured during the most-recent render — pulling the
+// value via a getter avoids stale snapshots when the test re-renders.
+async function callHook(): Promise<{ current: () => BoqStructure; cleanup: () => void }> {
+  let captured: BoqStructure | null = null
 
   function Harness(): null {
-    const [, setN] = React.useState(0)
-    rerenderTrigger = setN
     captured = useBoqLive()
     return null
   }
@@ -35,12 +34,9 @@ async function callHook(): Promise<{ value: BoqStructure; rerender: () => Promis
   })
 
   return {
-    value: captured,
-    rerender: async () => {
-      await act(async () => {
-        if (rerenderTrigger) rerenderTrigger((n) => n + 1)
-        await new Promise<void>((res) => setTimeout(res, 0))
-      })
+    current: () => {
+      if (!captured) throw new Error('useBoqLive harness — no value captured yet')
+      return captured
     },
     cleanup: () => {
       act(() => root.unmount())
@@ -106,18 +102,19 @@ describe('useBoqLive — VIEW-01 live aggregator subscription', () => {
     try {
       // Compare against direct aggregator call with the same inputs.
       const expected = aggregateBoq()
+      const live = harness.current()
       // Defensive — both readings should have identical category structure.
-      expect(harness.value.categories).toEqual(expected.categories)
-      expect(harness.value.grandTotals).toEqual(expected.grandTotals)
+      expect(live.categories).toEqual(expected.categories)
+      expect(live.grandTotals).toEqual(expected.grandTotals)
       // Specific assertions — single category with two rows (Outlet, Wire).
-      expect(harness.value.categories).toHaveLength(1)
-      expect(harness.value.categories[0].name).toBe('Electrical')
-      const labels = harness.value.categories[0].items.map((r) => r.label).sort()
+      expect(live.categories).toHaveLength(1)
+      expect(live.categories[0].name).toBe('Electrical')
+      const labels = live.categories[0].items.map((r) => r.label).sort()
       expect(labels).toEqual(['Outlet', 'Wire'])
       // Metadata propagation — fileName flowed through.
-      expect(harness.value.metadata.planFilename).toBe('demo.pdf')
-      expect(harness.value.metadata.totalMarkups).toBe(2)
-      expect(harness.value.metadata.totalPages).toBe(1)
+      expect(live.metadata.planFilename).toBe('demo.pdf')
+      expect(live.metadata.totalMarkups).toBe(2)
+      expect(live.metadata.totalPages).toBe(1)
     } finally {
       harness.cleanup()
     }
@@ -137,7 +134,7 @@ describe('useBoqLive — VIEW-01 live aggregator subscription', () => {
     const harness = await callHook()
     try {
       // First render — single Outlet count.
-      expect(harness.value.categories[0].items[0].quantity).toBe(1)
+      expect(harness.current().categories[0].items[0].quantity).toBe(1)
 
       // Add a second Outlet on the same page. Direct setState produces a new
       // pageMarkups object reference — Zustand notifies subscribers.
@@ -154,7 +151,7 @@ describe('useBoqLive — VIEW-01 live aggregator subscription', () => {
         await new Promise<void>((res) => setTimeout(res, 0))
       })
 
-      expect(harness.value.categories[0].items[0].quantity).toBe(2)
+      expect(harness.current().categories[0].items[0].quantity).toBe(2)
     } finally {
       harness.cleanup()
     }
@@ -164,9 +161,10 @@ describe('useBoqLive — VIEW-01 live aggregator subscription', () => {
     // Fresh stores already empty after beforeEach reset.
     const harness = await callHook()
     try {
-      expect(harness.value.categories).toEqual([])
-      expect(harness.value.grandTotals).toEqual([])
-      expect(harness.value.metadata.totalMarkups).toBe(0)
+      const live = harness.current()
+      expect(live.categories).toEqual([])
+      expect(live.grandTotals).toEqual([])
+      expect(live.metadata.totalMarkups).toBe(0)
     } finally {
       harness.cleanup()
     }
