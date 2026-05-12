@@ -1,0 +1,44 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-05-12T10:20:17.911Z",
+  "phase": "07",
+  "phase_name": "canvas-workspace-ux-and-markup-fixes",
+  "phase_dir": ".planning/phases/07-canvas-workspace-ux-and-markup-fixes",
+  "plan": 0,
+  "task": 0,
+  "total_tasks": 0,
+  "status": "paused",
+  "completed_tasks": [
+    {
+      "id": 1,
+      "name": "Phase 7 UI-SPEC — gsd-ui-phase 7",
+      "status": "done",
+      "commit": "39b1e67",
+      "notes": "Researcher + checker cycle. One BLOCK on 'Cancel' CTAs; revised to 'Discard Changes' / 'Discard Scale'. All 6 dimensions approved on revision 1."
+    }
+  ],
+  "remaining_tasks": [
+    {
+      "id": 2,
+      "name": "Plan Phase 7 — /gsd-plan-phase 7",
+      "status": "not_started"
+    }
+  ],
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {
+      "decision": "MarkupNamePopup edit-mode secondary CTA is 'Discard Changes' (not 'Cancel')",
+      "rationale": "Generic 'Cancel' blocked by UI checker Dimension 1 copywriting rule",
+      "phase": "07"
+    },
+    {
+      "decision": "CalibrationDialog secondary CTA is 'Discard Scale' (not 'Cancel')",
+      "rationale": "Same block — specific verb+noun required for all CTAs",
+      "phase": "07"
+    }
+  ],
+  "uncommitted_files": [],
+  "next_action": "Run /gsd-plan-phase 7 to create the Phase 7 execution plan",
+  "context_notes": "Session was a clean UI-SPEC pass. UI-SPEC is fully approved and committed (39b1e67). Phase 7 has CONTEXT.md and UI-SPEC.md; no PLAN.md yet. All 5 fixes are well-specified in 07-CONTEXT.md. The plan phase should be straightforward — researcher has rich CONTEXT + UI-SPEC to draw from."
+}
