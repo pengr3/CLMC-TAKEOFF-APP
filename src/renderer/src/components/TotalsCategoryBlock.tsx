@@ -34,6 +34,8 @@ export interface TotalsCategoryBlockProps {
   onRowHover: (matches: Markup[]) => void
   onRowClick: (item: BoqItemRow, categoryName: string) => void
   onRowContextMenu: (item: BoqItemRow, x: number, y: number) => void
+  /** Phase 6 D-12: fired after row click navigates to page — triggers PulseHighlight. */
+  onTriggerPulse?: (matches: Markup[], color: string) => void
 }
 
 /**
@@ -59,7 +61,7 @@ function labelToName(label: string): string {
 }
 
 export function TotalsCategoryBlock(props: TotalsCategoryBlockProps): React.JSX.Element {
-  const { category, pageMarkups, cycleIndexByKey, onRowHover, onRowClick, onRowContextMenu } = props
+  const { category, pageMarkups, cycleIndexByKey, onRowHover, onRowClick, onRowContextMenu, onTriggerPulse } = props
   const { collapsedCategories, toggleCategoryCollapsed } = useUiPanels()
   const [hoverHeading, setHoverHeading] = useState(false)
 
@@ -132,6 +134,7 @@ export function TotalsCategoryBlock(props: TotalsCategoryBlockProps): React.JSX.
                 onHover={onRowHover}
                 onClick={(it) => onRowClick(it, category.name)}
                 onContextMenu={(x, y) => onRowContextMenu(item, x, y)}
+                onTriggerPulse={onTriggerPulse}
               />
             )
           })}
