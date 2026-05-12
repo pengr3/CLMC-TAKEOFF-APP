@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Phase 6 Plan 03 complete — 2 transient Konva overlay components landed (HoverRing + PulseHighlight). Commits 88a9ab7, 51ab85e, 66c4217, dfb3855. Full suite 380/380 actual tests (364 prior + 16 new = 380); 9 Wave 0 RED stubs remain for plans 06-04 (TotalsPanel × 5) and 06-08 (Thumbnails × 3) plus 1 TotalsRow stub. Wave 2 of Phase 6 now complete. Stale HANDOFF.json (Phase 4.1 from 2026-04-30) deleted during this close-out — Phase 4.1 has been fully closed since.
-last_updated: "2026-05-05T15:12:59.587Z"
-last_activity: 2026-05-05
+stopped_at: Phase 6 Plan 05 complete — TotalsRowContextMenu + TotalsRow interaction wiring (cycle nav D-10, hover D-11, right-click D-14). 18/18 assertions GREEN. Commit 98adc2a (SUMMARY). Wave 3b of Phase 6 now complete. 6/9 plans done in phase.
+last_updated: "2026-05-12T14:20:00.000Z"
+last_activity: 2026-05-12
 progress:
   total_phases: 8
   completed_phases: 7
@@ -33,7 +33,7 @@ progress:
 ## Current Position
 
 Phase: 06 (live-view-and-ui-polish) — EXECUTING
-Plan: 2 of 9
+Plan: 6 of 9
 
 ## Performance Metrics
 
@@ -180,13 +180,13 @@ None.
 
 ## Session Continuity
 
-**Last activity:** 2026-05-05
+**Last activity:** 2026-05-12
 
-**Last session:** 2026-05-05T22:30:00.000Z
+**Last session:** 2026-05-12T14:20:00.000Z
 
-**Stopped at:** Phase 6 Plan 03 complete — 2 transient Konva overlay components landed (HoverRing + PulseHighlight). Commits 88a9ab7, 51ab85e, 66c4217, dfb3855. Full suite 380/380 actual tests (364 prior + 16 new = 380); 9 Wave 0 RED stubs remain for plans 06-04 (TotalsPanel × 5) and 06-08 (Thumbnails × 3) plus 1 TotalsRow stub. Wave 2 of Phase 6 now complete. Stale HANDOFF.json (Phase 4.1 from 2026-04-30) deleted during this close-out — Phase 4.1 has been fully closed since.
+**Stopped at:** Phase 6 Plan 05 complete — TotalsRowContextMenu + TotalsRow interaction wiring landed. 18/18 assertions GREEN (totals-row-context-menu 9, totals-row-cycle 5, totals-row-hover 4). SUMMARY committed at 98adc2a. HANDOFF.json + .continue-here.md deleted. Wave 3b of Phase 6 complete. 6/9 plans done.
 
-**Next action:** Execute Phase 6 Plan 06-04 (Wave 3 — TotalsPanel: aggregator-driven panel shell with category collapse + empty states + render contract). Depends on 06-01 (useBoqLive hook) + 06-02 (Splitter, useMarkupHighlight, CanvasHeaderBar). Will turn totals-panel-render.test.ts, totals-panel-empty-states.test.ts, totals-panel-category-collapse.test.ts GREEN. After 06-04, Wave 3 closes with 06-05 (TotalsRow hover/click handlers wired to useMarkupHighlight).
+**Next action:** Execute Phase 6 Plan 06-06 (Wave 4 — Thumbnail strip: useThumbnailRender + Thumbnail + ThumbnailStrip). Depends on 06-01/06-02 (both done), independent of TotalsPanel stack. Will turn thumbnail-lazy-mount.test.ts, thumbnail-overlay-debounce.test.ts, thumbnail-strip-click.test.ts GREEN.
 
 ---
 *State initialized: 2026-03-25*
