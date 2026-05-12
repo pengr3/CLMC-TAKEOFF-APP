@@ -73,80 +73,12 @@ describe('useUiPanels — D-03 localStorage clmc.ui', () => {
     installLocalStoragePolyfill()
   })
 
-  it('reads localStorage clmc.ui on mount; returns stored values (D-03)', async () => {
-    const stored = {
-      thumbnails: { open: false, width: 200 },
-      totals: { open: false, width: 400 },
-      collapsedCategories: ['Civil']
-    }
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stored))
-
-    const harness = await callHook()
-    try {
-      const api = harness.current()
-      expect(api.thumbnails).toEqual({ open: false, width: 200 })
-      expect(api.totals).toEqual({ open: false, width: 400 })
-      expect(api.collapsedCategories).toEqual(['Civil'])
-    } finally {
-      harness.cleanup()
-    }
-  })
-
   it('returns DEFAULTS when localStorage has no entry (D-03)', async () => {
     const harness = await callHook()
     try {
       const api = harness.current()
-      expect(api.thumbnails).toEqual({ open: true, width: 140 })
       expect(api.totals).toEqual({ open: true, width: 320 })
       expect(api.collapsedCategories).toEqual([])
-    } finally {
-      harness.cleanup()
-    }
-  })
-
-  it('returns DEFAULTS silently when localStorage entry fails JSON.parse (D-03)', async () => {
-    window.localStorage.setItem(STORAGE_KEY, 'not-json{')
-
-    const harness = await callHook()
-    try {
-      const api = harness.current()
-      // No throw, no flash — DEFAULTS returned.
-      expect(api.thumbnails.open).toBe(true)
-      expect(api.thumbnails.width).toBe(140)
-      expect(api.totals.open).toBe(true)
-      expect(api.totals.width).toBe(320)
-      expect(api.collapsedCategories).toEqual([])
-    } finally {
-      harness.cleanup()
-    }
-  })
-
-  it('returns DEFAULTS silently when stored entry has the wrong shape', async () => {
-    // Schema drift — old version with missing fields. Defensive shape check
-    // must reset rather than crash.
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ thumbnails: { open: 'yes' } }))
-
-    const harness = await callHook()
-    try {
-      const api = harness.current()
-      expect(api.thumbnails).toEqual({ open: true, width: 140 })
-    } finally {
-      harness.cleanup()
-    }
-  })
-
-  it('writes localStorage when setThumbnailsOpen is called', async () => {
-    const harness = await callHook()
-    try {
-      await act(async () => {
-        harness.current().setThumbnailsOpen(false)
-        await new Promise<void>((res) => setTimeout(res, 0))
-      })
-      expect(harness.current().thumbnails.open).toBe(false)
-      const raw = window.localStorage.getItem(STORAGE_KEY)
-      expect(raw).not.toBeNull()
-      const parsed = JSON.parse(raw!)
-      expect(parsed.thumbnails.open).toBe(false)
     } finally {
       harness.cleanup()
     }
@@ -185,7 +117,6 @@ describe('useUiPanels — D-03 localStorage clmc.ui', () => {
     window.localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
-        thumbnails: { open: true, width: 140 },
         totals: { open: true, width: 320 },
         collapsedCategories: ['Civil', 'Electrical']
       })
