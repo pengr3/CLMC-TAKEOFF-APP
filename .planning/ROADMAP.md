@@ -207,10 +207,10 @@ Plans:
 **Goal:** Remove the left sidebar thumbnail strip panel. The page navigation arrows already cover all page switching needs, and the thumbnail panel consumes horizontal space that would be better used by the markup canvas.
 **Requirements**: UI-01 (quality-of-life improvement, no new v1 requirements)
 **Depends on:** Phase 6
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 06.1-01-PLAN.md — Delete thumbnail files + edit useUiPanels/App.tsx for two-column shell
+- [x] 06.1-01-PLAN.md — Delete thumbnail files + edit useUiPanels/App.tsx for two-column shell
 
 ---
 
