@@ -5,12 +5,17 @@
  * Uses React.createElement (not JSX) — mirrors markup-context-menu.test.ts
  * convention (vitest.config.ts glob captures only *.test.ts, not .tsx).
  */
+
+// Set act environment flag per pulse-highlight-animation.test.ts:66 and
+// markup-tool-strictmode.test.ts:91 patterns.
+globalThis.IS_REACT_ACT_ENVIRONMENT = true
+
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import React from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { act } from 'react'
 
-// Mock canvas + IntersectionObserver for jsdom
+// Mock useThumbnailRender to avoid PDF.js canvas issues in jsdom
 vi.mock('@renderer/hooks/useThumbnailRender', () => ({
   useThumbnailRender: vi.fn(() => ({
     pageCanvasRef: { current: null },
@@ -21,31 +26,31 @@ vi.mock('@renderer/hooks/useThumbnailRender', () => ({
   }))
 }))
 
-// Mock pdf-setup
+// Mock pdf-setup to prevent worker loading
 vi.mock('@renderer/lib/pdf-setup', () => ({
   pdfjsLib: { getDocument: vi.fn() },
   PDFDocumentProxy: class {}
 }))
 
-// Install IntersectionObserver mock globally
-let ioCallback: IntersectionObserverCallback | null = null
-const mockIOInstances: Array<{ observe: ReturnType<typeof vi.fn>; disconnect: ReturnType<typeof vi.fn>; callback: IntersectionObserverCallback }> = []
+// IntersectionObserver mock — must be a class (not arrow function) to support `new IO(...)`
+class MockIntersectionObserver {
+  static instances: MockIntersectionObserver[] = []
+  callback: IntersectionObserverCallback
+  observe = vi.fn()
+  disconnect = vi.fn()
 
-function setupIntersectionObserverMock(): void {
-  mockIOInstances.length = 0
-  ioCallback = null
+  constructor(callback: IntersectionObserverCallback) {
+    this.callback = callback
+    MockIntersectionObserver.instances.push(this)
+  }
+}
+
+function setupIOmock(): void {
+  MockIntersectionObserver.instances = []
   Object.defineProperty(window, 'IntersectionObserver', {
     writable: true,
-    value: vi.fn((callback: IntersectionObserverCallback) => {
-      ioCallback = callback
-      const instance = {
-        observe: vi.fn(),
-        disconnect: vi.fn(),
-        callback
-      }
-      mockIOInstances.push(instance)
-      return instance
-    })
+    configurable: true,
+    value: MockIntersectionObserver
   })
 }
 
@@ -77,7 +82,7 @@ function mount(element: React.ReactElement): MountResult {
 }
 
 beforeEach(() => {
-  setupIntersectionObserverMock()
+  setupIOmock()
 
   useViewerStore.setState({
     filePath: '/test.pdf',
@@ -110,8 +115,7 @@ describe('ThumbnailStrip', () => {
       })
     )
 
-    // With totalPages=3, there should be 3 tile wrappers
-    // Tiles are identified by data-thumbnail-page attribute
+    // With totalPages=3, there should be 3 tile wrappers with data-thumbnail-page
     const tiles = container.querySelectorAll('[data-thumbnail-page]')
     expect(tiles.length).toBe(3)
 
@@ -119,8 +123,6 @@ describe('ThumbnailStrip', () => {
   })
 
   it('clicking a tile calls viewerStore.setPage(N) (PDF-05)', () => {
-    const setPageSpy = vi.spyOn(useViewerStore.getState(), 'setPage')
-
     const { container, unmount } = mount(
       React.createElement(ThumbnailStrip, {
         open: true,
@@ -129,7 +131,7 @@ describe('ThumbnailStrip', () => {
       })
     )
 
-    // Click the tile for page 2
+    // Clicking tile 2 should call setPage(2)
     const tile2 = container.querySelector('[data-thumbnail-page="2"]') as HTMLElement
     expect(tile2).not.toBeNull()
 
@@ -137,7 +139,10 @@ describe('ThumbnailStrip', () => {
       tile2.click()
     })
 
-    expect(setPageSpy).toHaveBeenCalledWith(2)
+    // viewerStore.setPage(2) should have been called — verify via store state
+    // (setPage clamps to [1, totalPages] so with totalPages=3, page 2 is valid)
+    expect(useViewerStore.getState().currentPage).toBe(2)
+
     unmount()
   })
 
@@ -153,14 +158,11 @@ describe('ThumbnailStrip', () => {
 
     const tile1 = container.querySelector('[data-thumbnail-page="1"]') as HTMLElement
     expect(tile1).not.toBeNull()
-    // Active tile should have accent color border
-    const style = tile1.style
-    // Accept either outline or border with accent color
-    const hasAccentBorder =
-      style.outline?.includes('#0078d4') ||
-      style.border?.includes('#0078d4') ||
-      style.borderColor === '#0078d4'
+    // Active tile should have accent color border — check cssText for any variant jsdom expands to
+    const cssText = tile1.style.cssText
+    const hasAccentBorder = cssText.includes('#0078d4') || cssText.includes('rgb(0, 120, 212)')
     expect(hasAccentBorder).toBe(true)
+
     unmount()
   })
 
@@ -176,13 +178,11 @@ describe('ThumbnailStrip', () => {
 
     const tile2 = container.querySelector('[data-thumbnail-page="2"]') as HTMLElement
     expect(tile2).not.toBeNull()
-    // Idle tile should have border with COLORS.border (#3c3c3c)
-    const style = tile2.style
-    const hasIdleBorder =
-      style.outline?.includes('#3c3c3c') ||
-      style.border?.includes('#3c3c3c') ||
-      style.borderColor === '#3c3c3c'
+    // Idle tile should have border with COLORS.border (#3c3c3c) — check cssText
+    const cssText = tile2.style.cssText
+    const hasIdleBorder = cssText.includes('#3c3c3c') || cssText.includes('rgb(60, 60, 60)')
     expect(hasIdleBorder).toBe(true)
+
     unmount()
   })
 
@@ -199,7 +199,6 @@ describe('ThumbnailStrip', () => {
     const expandBtn = container.querySelector('[aria-label="Expand Thumbnails"]')
     expect(expandBtn).not.toBeNull()
 
-    // Click expand
     act(() => {
       ;(expandBtn as HTMLElement).click()
     })
