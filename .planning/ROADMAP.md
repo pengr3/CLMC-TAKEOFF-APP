@@ -182,17 +182,17 @@ Plans:
 - [x] 06-02-PLAN.md — useMarkupHighlight (parent-owned-lifecycle) + Splitter (4px hit area, commit-on-pointerup) + CanvasHeaderBar (28px, getCalibrationControls() reuse for Set Scale)
 
 **Wave 2 *(blocked on 06-01 + 06-02 — Konva transient overlays)*:**
-- [ ] 06-03-PLAN.md — HoverRing + PulseHighlight (Konva Layer 2, listening=false, zoom-compensated, rAF fade 0.85→0 over 1500ms)
+- [x] 06-03-PLAN.md — HoverRing + PulseHighlight (Konva Layer 2, listening=false, zoom-compensated, rAF fade 0.85→0 over 1500ms)
 
 **Wave 3 *(parallel-safe with Wave 4; 06-04 blocked on Wave 1, 06-05 blocked on 06-03 + 06-04 — TotalsPanel render tree)*:**
-- [ ] 06-04-PLAN.md — TotalsPanel + TotalsPanelHeader + TotalsCategoryBlock + TotalsRow (color chip on item-name only, three D-09 empty states, grand-total bar)
-- [ ] 06-05-PLAN.md — TotalsRowContextMenu (defer-listener-registration, Copy as text TAB-separated payload, ConfirmationToast) + row hover/click wiring through useMarkupHighlight
+- [x] 06-04-PLAN.md — TotalsPanel + TotalsPanelHeader + TotalsCategoryBlock + TotalsRow (color chip on item-name only, three D-09 empty states, grand-total bar)
+- [x] 06-05-PLAN.md — TotalsRowContextMenu (defer-listener-registration, Copy as text TAB-separated payload, ConfirmationToast) + row hover/click wiring through useMarkupHighlight
 
 **Wave 4 *(parallel-safe with Waves 2 & 3; blocked on Wave 1 — Thumbnail rasterization pipeline)*:**
-- [ ] 06-06-PLAN.md — useThumbnailRender (PDF.js render at 48 dpi via existing pdfDocument proxy, two-canvas composite, 200ms debounced overlay refresh) + Thumbnail (4 badges D-16, IntersectionObserver lazy mount) + ThumbnailStrip
+- [x] 06-06-PLAN.md — useThumbnailRender (PDF.js render at 48 dpi via existing pdfDocument proxy, two-canvas composite, 200ms debounced overlay refresh) + Thumbnail (4 badges D-16, IntersectionObserver lazy mount) + ThumbnailStrip
 
 **Wave 5 *(blocked on Waves 2 + 3 + 4 — App.tsx three-column shell)*:**
-- [ ] 06-07-PLAN.md — App.tsx three-column flex shell (minWidth:0 center column, toast relocation) + CanvasViewport Layer-2 mount points + useMarkupHighlight orchestration
+- [x] 06-07-PLAN.md — App.tsx three-column flex shell (minWidth:0 center column, toast relocation) + CanvasViewport Layer-2 mount points + useMarkupHighlight orchestration
 
 **Wave 6 *(blocked on Wave 5 — manual UAT and closure)*:**
 - [ ] 06-08-PLAN.md — Manual UAT (zoom-compensated visuals, persistence across reload, fade timing, performance, 1080p layout, thumbnail sync) + REQUIREMENTS/ROADMAP/STATE closure
