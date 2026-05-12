@@ -14,7 +14,7 @@
 - [x] **Phase 4: Project Persistence** - Save and load .clmc project files so work survives across sessions (completed 2026-04-29)
 - [x] **Phase 4.1: ZIP-Embedded .clmc Format** - Upgrade .clmc to a self-contained ZIP archive that embeds the PDF, eliminating path-dependency and enabling true portability (completed 2026-05-02)
 - [x] **Phase 5: BOQ Export** - Export takeoff sheet to Excel and CSV, grouped by category (completed 2026-05-03)
-- [ ] **Phase 6: Live View and UI Polish** - Running totals panel, thumbnail strip navigation, and page/scale status indicators that complete the day-to-day estimating workflow
+- [x] **Phase 6: Live View and UI Polish** - Running totals panel, thumbnail strip navigation, and page/scale status indicators that complete the day-to-day estimating workflow (completed 2026-05-12)
 
 ---
 
@@ -195,7 +195,7 @@ Plans:
 - [x] 06-07-PLAN.md — App.tsx three-column flex shell (minWidth:0 center column, toast relocation) + CanvasViewport Layer-2 mount points + useMarkupHighlight orchestration
 
 **Wave 6 *(blocked on Wave 5 — manual UAT and closure)*:**
-- [ ] 06-08-PLAN.md — Manual UAT (zoom-compensated visuals, persistence across reload, fade timing, performance, 1080p layout, thumbnail sync) + REQUIREMENTS/ROADMAP/STATE closure
+- [x] 06-08-PLAN.md — Manual UAT (zoom-compensated visuals, persistence across reload, fade timing, performance, 1080p layout, thumbnail sync) + REQUIREMENTS/ROADMAP/STATE closure
 
 **Cross-cutting constraints:** ONE aggregator (`boq-aggregator.ts` reused via `useBoqLive` — D-04); per-name color travels canvas → row chip → pulse → BOQ export via `getColorForName(name)` (D-06 / D-12); `listening={false}` mandatory on every Konva shape inside HoverRing + PulseHighlight (Pitfall 1); zoom-compensated stroke widths (`/ currentZoom`) on transient overlays (Phase 03.1 discipline); reuse existing `viewerStore.pdfDocument.getPage(n)` for thumbnails — no new `pdfjsLib.getDocument({ data })` callsite (Phase 4.1 detached-buffer landmine, Pitfall 4); inline-style + `COLORS` tokens convention (no Tailwind in chrome path); UI panel state in `localStorage clmc.ui` namespace, NEVER in `.clmc` files (D-03); `getCalibrationControls()?.activate()` reuse — no duplicate Set Scale trigger code (D-20); defer-listener-registration via `setTimeout(0)` in TotalsRowContextMenu; localStorage parse failure → silent reset to defaults; tabular numbers via `font-variant-numeric: tabular-nums` only.
 
@@ -214,7 +214,7 @@ Plans:
 | 4. Project Persistence | 8/8 | Complete | 2026-04-29 |
 | 4.1. ZIP-Embedded .clmc Format | 8/8 | Complete | 2026-05-02 |
 | 5. BOQ Export | 7/7 | Complete | 2026-05-03 |
-| 6. Live View and UI Polish | 3/9 | In Progress | - |
+| 6. Live View and UI Polish | 9/9 | Complete | 2026-05-12 |
 
 ---
 
@@ -260,3 +260,4 @@ Plans:
 *Updated: 2026-05-05 — Phase 6 Plan 00 complete (Wave 0 RED scaffold, 15 stubs)*
 *Updated: 2026-05-05 — Phase 6 Plan 01 complete (Wave 1 hook foundations: useBoqLive + usePageLabels + useUiPanels)*
 *Updated: 2026-05-05 — Phase 6 Plan 02 complete (Wave 1 glue primitives: useMarkupHighlight + Splitter + CanvasHeaderBar — Wave 1 of Phase 6 now complete)*
+*Updated: 2026-05-12 — Phase 6 complete (all 9 plans, UAT A–F passed, VIEW-01 + PDF-05 delivered — v1 milestone complete, 25/25 requirements)*

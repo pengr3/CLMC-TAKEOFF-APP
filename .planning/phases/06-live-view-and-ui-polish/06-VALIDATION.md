@@ -1,9 +1,9 @@
 ---
 phase: 6
 slug: live-view-and-ui-polish
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-05
 ---
 
@@ -38,28 +38,28 @@ created: 2026-05-05
 
 | # | Behavior | Requirement / Decision | Test Type | Automated Command | File Exists | Status |
 |---|----------|------------------------|-----------|-------------------|-------------|--------|
-| 1 | `useBoqLive()` returns `BoqStructure` matching `aggregateBoq()` snapshot | VIEW-01 | unit | `npx vitest run -- use-boq-live.test.ts` | ❌ W0 | ⬜ pending |
-| 2 | TotalsPanel renders from BoqStructure with correct row count + colors | VIEW-01 | component | `npx vitest run -- totals-panel-render.test.ts` | ❌ W0 | ⬜ pending |
-| 3 | TotalsRow row-click cycles through pages with matches | VIEW-01 / D-10 | component | `npx vitest run -- totals-row-cycle.test.ts` | ❌ W0 | ⬜ pending |
-| 4 | TotalsRow row-hover triggers HoverRing on current page only | VIEW-01 / D-11 | component | `npx vitest run -- totals-row-hover.test.ts` | ❌ W0 | ⬜ pending |
-| 5 | TotalsRow right-click → "Copy as text" emits `navigator.clipboard.writeText` | VIEW-01 / D-14 | component | `npx vitest run -- totals-row-context-menu.test.ts` | ❌ W0 | ⬜ pending |
-| 6 | TotalsPanel category-heading click toggles + persists to localStorage | VIEW-01 / D-13 | component | `npx vitest run -- totals-panel-category-collapse.test.ts` | ❌ W0 | ⬜ pending |
-| 7 | TotalsPanel renders all 3 empty-state variants per condition | VIEW-01 / D-09 | component | `npx vitest run -- totals-panel-empty-states.test.ts` | ❌ W0 | ⬜ pending |
-| 8 | ThumbnailStrip renders one tile per page; click → setPage(N) | PDF-05 | component | `npx vitest run -- thumbnail-strip-click.test.ts` | ❌ W0 | ⬜ pending |
-| 9 | Thumbnail tile lazy-mounts on IntersectionObserver intersection | PDF-05 / D-17 | component | `npx vitest run -- thumbnail-lazy-mount.test.ts` | ❌ W0 | ⬜ pending |
-| 10 | Thumbnail markup overlay refreshes within 200ms±50ms after markup commit | PDF-05 / D-19 | component | `npx vitest run -- thumbnail-overlay-debounce.test.ts` | ❌ W0 | ⬜ pending |
-| 11 | Thumbnail page-label resolves via `getPageLabels()`, fallback `Page N` | PDF-05 / D-16 | unit | `npx vitest run -- use-page-labels.test.ts` | ❌ W0 | ⬜ pending |
-| 12 | useUiPanels reads localStorage on mount; defaults on parse failure | D-03 | unit | `npx vitest run -- use-ui-panels.test.ts` | ❌ W0 | ⬜ pending |
-| 13 | useUiPanels writes localStorage on width/open change | D-03 | unit | included in `use-ui-panels.test.ts` | ❌ W0 | ⬜ pending |
-| 14 | PulseHighlight fades from opacity 0.85 → ~0 over 1500ms±50ms | D-12 | unit (fake timers) | `npx vitest run -- pulse-highlight-animation.test.ts` | ❌ W0 | ⬜ pending |
-| 15 | PulseHighlight cleanup cancels rAF on unmount (no React warning) | D-12 | unit | included in `pulse-highlight-animation.test.ts` | ❌ W0 | ⬜ pending |
-| 16 | HoverRing + PulseHighlight render with `listening={false}` (regression guard) | D-11 / D-12 | unit | `npx vitest run -- highlight-overlay-listening.test.ts` | ❌ W0 | ⬜ pending |
-| 17 | CanvasHeaderBar shows `Set Scale` link only when uncalibrated AND has non-count markups | D-20 | component | `npx vitest run -- canvas-header-bar.test.ts` | ❌ W0 | ⬜ pending |
-| 18 | CanvasHeaderBar `Set Scale` link click invokes `getCalibrationControls().activate()` | D-20 | component | included in `canvas-header-bar.test.ts` | ❌ W0 | ⬜ pending |
-| 19 | Aggregator silently excludes length/area/perimeter on uncalibrated pages — already covered | D-07 | unit | `npx vitest run -- boq-aggregator.test.ts` | ✅ EXISTS | ⬜ pending |
-| 20 | Aggregator emits metadata block (project, plan, pages, markups) — already covered | D-08 | unit | included in `boq-aggregator.test.ts` | ✅ EXISTS | ⬜ pending |
+| 1 | `useBoqLive()` returns `BoqStructure` matching `aggregateBoq()` snapshot | VIEW-01 | unit | `npx vitest run -- use-boq-live.test.ts` | ❌ W0 | ✅ green |
+| 2 | TotalsPanel renders from BoqStructure with correct row count + colors | VIEW-01 | component | `npx vitest run -- totals-panel-render.test.ts` | ❌ W0 | ✅ green |
+| 3 | TotalsRow row-click cycles through pages with matches | VIEW-01 / D-10 | component | `npx vitest run -- totals-row-cycle.test.ts` | ❌ W0 | ✅ green |
+| 4 | TotalsRow row-hover triggers HoverRing on current page only | VIEW-01 / D-11 | component | `npx vitest run -- totals-row-hover.test.ts` | ❌ W0 | ✅ green |
+| 5 | TotalsRow right-click → "Copy as text" emits `navigator.clipboard.writeText` | VIEW-01 / D-14 | component | `npx vitest run -- totals-row-context-menu.test.ts` | ❌ W0 | ✅ green |
+| 6 | TotalsPanel category-heading click toggles + persists to localStorage | VIEW-01 / D-13 | component | `npx vitest run -- totals-panel-category-collapse.test.ts` | ❌ W0 | ✅ green |
+| 7 | TotalsPanel renders all 3 empty-state variants per condition | VIEW-01 / D-09 | component | `npx vitest run -- totals-panel-empty-states.test.ts` | ❌ W0 | ✅ green |
+| 8 | ThumbnailStrip renders one tile per page; click → setPage(N) | PDF-05 | component | `npx vitest run -- thumbnail-strip-click.test.ts` | ❌ W0 | ✅ green |
+| 9 | Thumbnail tile lazy-mounts on IntersectionObserver intersection | PDF-05 / D-17 | component | `npx vitest run -- thumbnail-lazy-mount.test.ts` | ❌ W0 | ✅ green |
+| 10 | Thumbnail markup overlay refreshes within 200ms±50ms after markup commit | PDF-05 / D-19 | component | `npx vitest run -- thumbnail-overlay-debounce.test.ts` | ❌ W0 | ✅ green |
+| 11 | Thumbnail page-label resolves via `getPageLabels()`, fallback `Page N` | PDF-05 / D-16 | unit | `npx vitest run -- use-page-labels.test.ts` | ❌ W0 | ✅ green |
+| 12 | useUiPanels reads localStorage on mount; defaults on parse failure | D-03 | unit | `npx vitest run -- use-ui-panels.test.ts` | ❌ W0 | ✅ green |
+| 13 | useUiPanels writes localStorage on width/open change | D-03 | unit | included in `use-ui-panels.test.ts` | ❌ W0 | ✅ green |
+| 14 | PulseHighlight fades from opacity 0.85 → ~0 over 1500ms±50ms | D-12 | unit (fake timers) | `npx vitest run -- pulse-highlight-animation.test.ts` | ❌ W0 | ✅ green |
+| 15 | PulseHighlight cleanup cancels rAF on unmount (no React warning) | D-12 | unit | included in `pulse-highlight-animation.test.ts` | ❌ W0 | ✅ green |
+| 16 | HoverRing + PulseHighlight render with `listening={false}` (regression guard) | D-11 / D-12 | unit | `npx vitest run -- highlight-overlay-listening.test.ts` | ❌ W0 | ✅ green |
+| 17 | CanvasHeaderBar shows `Set Scale` link only when uncalibrated AND has non-count markups | D-20 | component | `npx vitest run -- canvas-header-bar.test.ts` | ❌ W0 | ✅ green |
+| 18 | CanvasHeaderBar `Set Scale` link click invokes `getCalibrationControls().activate()` | D-20 | component | included in `canvas-header-bar.test.ts` | ❌ W0 | ✅ green |
+| 19 | Aggregator silently excludes length/area/perimeter on uncalibrated pages — already covered | D-07 | unit | `npx vitest run -- boq-aggregator.test.ts` | ✅ EXISTS | ✅ green |
+| 20 | Aggregator emits metadata block (project, plan, pages, markups) — already covered | D-08 | unit | included in `boq-aggregator.test.ts` | ✅ EXISTS | ✅ green |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: ✅ green · ✅ green · ❌ red · ⚠️ flaky*
 
 ---
 
@@ -102,11 +102,11 @@ Test files to scaffold before implementation:
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references (15 new test files)
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 2s per quick run, < 30s per full suite
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (15 new test files)
+- [x] No watch-mode flags
+- [x] Feedback latency < 2s per quick run, < 30s per full suite
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** 2026-05-12 — UAT A–F all PASS. 412/412 tests green. Phase 6 complete.

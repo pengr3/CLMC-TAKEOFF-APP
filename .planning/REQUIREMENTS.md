@@ -11,7 +11,7 @@
 - [x] **PDF-02**: User can navigate between pages of a multi-page PDF
 - [x] **PDF-03**: User can zoom in and out while all markups remain pinned to their exact positions on the plan
 - [x] **PDF-04**: User can pan across the plan at any zoom level
-- [ ] **PDF-05**: User can navigate pages via a thumbnail strip sidebar
+- [x] **PDF-05**: User can navigate pages via a thumbnail strip sidebar — **completed Phase 6 (2026-05-12): thumbnail strip sidebar navigation, lazy-loaded via IntersectionObserver with live markup overlay, active-page 2px accent outline, page labels from getPageLabels()**
 - [x] **PDF-06**: User can see the current page number/label displayed in the viewer
 
 ### Scale Calibration
@@ -52,7 +52,7 @@
 
 ### Live View
 
-- [ ] **VIEW-01**: User can see a running totals panel that shows live quantities for all markups, grouped by category, updating as they work
+- [x] **VIEW-01**: User can see a running totals panel that shows live quantities for all markups, grouped by category, updating as they work — **completed Phase 6 (2026-05-12): live TotalsPanel reusing boq-aggregator.ts via useBoqLive with 8 primitive Zustand selectors, updating immediately on markup changes; row hover → HoverRing; row click → cycle navigation + PulseHighlight; right-click → Copy as text**
 
 ---
 
@@ -95,7 +95,7 @@
 | PDF-02 | Phase 1 | Complete |
 | PDF-03 | Phase 1 | Complete |
 | PDF-04 | Phase 1 | Complete |
-| PDF-05 | Phase 6 | Pending |
+| PDF-05 | Phase 6 | Complete |
 | PDF-06 | Phase 1 | Complete |
 | SCAL-01 | Phase 2 | Complete |
 | SCAL-02 | Phase 2 | Complete |
@@ -115,7 +115,7 @@
 | PERS-02 | Phase 4 (revised by 04.1) | Complete |
 | EXPRT-01 | Phase 5 | Complete |
 | EXPRT-02 | Phase 5 | Complete |
-| VIEW-01 | Phase 6 | Pending |
+| VIEW-01 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 25 total
@@ -124,4 +124,4 @@
 
 ---
 *Requirements defined: 2026-03-25*
-*Last updated: 2026-03-25 after roadmap creation — PDF-05 reassigned from Phase 1 to Phase 6 (thumbnail strip is a polish feature; basic prev/next navigation via PDF-02 satisfies Phase 1)*
+*Last updated: 2026-05-12 — Phase 6 complete: PDF-05 + VIEW-01 delivered. All 25 v1 requirements complete.*
