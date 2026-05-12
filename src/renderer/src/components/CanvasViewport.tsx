@@ -19,6 +19,8 @@ import { CountPinMarkup } from './markup/CountPinMarkup'
 import { LinearMarkup } from './markup/LinearMarkup'
 import { AreaMarkup } from './markup/AreaMarkup'
 import { PerimeterMarkup } from './markup/PerimeterMarkup'
+import { HoverRing } from './HoverRing'
+import { PulseHighlight } from './PulseHighlight'
 import { COLORS } from '../lib/constants'
 import { formatScaleRatio } from '../lib/scale-math'
 import { setMarkupUndoHandler } from '../lib/markup-undo-ref'
@@ -60,7 +62,16 @@ export function getCalibrationControls() {
 }
 
 
-export function CanvasViewport() {
+export interface CanvasViewportProps {
+  /** Phase 6 D-11: markups to show a steady white outer ring on (from TotalsRow hover). */
+  hoverMatches?: Markup[]
+  /** Phase 6 D-12: active click-pulse (color + markups) or null when none. */
+  pulse?: { matches: Markup[]; color: string } | null
+  /** Phase 6: called when the pulse animation completes OR page changes (clears pulse). */
+  onPulseComplete?: () => void
+}
+
+export function CanvasViewport(props: CanvasViewportProps = {}) {
   const stageRef = useRef<Konva.Stage>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerSize, setContainerSize] = useState({ width: 800, height: 600 })
@@ -225,6 +236,7 @@ export function CanvasViewport() {
   }, [currentPage])
 
   // Dismiss hover tooltip + context menu on page change (plan 03.1-05)
+  // Phase 6: also clear the panel-driven pulse on page change (T-06-07-02).
   useEffect(() => {
     setHoverState(null)
     setTooltipShown(false)
@@ -233,6 +245,10 @@ export function CanvasViewport() {
       window.clearTimeout(hoverTimerRef.current)
       hoverTimerRef.current = null
     }
+    // Phase 6: clear pulse on page change so stale HoverRing/PulseHighlight don't
+    // persist across navigation. clearHover is handled by App.tsx via setHoverMatches([])
+    // through TotalsPanel's onRowHover when the mouse leaves the row.
+    props.onPulseComplete?.()
   }, [currentPage])
 
   // Dismiss toast when a new calibration run starts (MEDIUM #3)
@@ -703,6 +719,26 @@ export function CanvasViewport() {
             )
           })}
         </Layer>
+
+        {/* Phase 6: Layer 2 transient — panel-driven highlights (D-11 HoverRing + D-12 PulseHighlight).
+            listening={false} on both the Layer and every shape inside so these overlays NEVER
+            steal hover events from the underlying committed-markup Layer 1b shapes.
+            Guarded by highlight-overlay-listening.test.ts regression check. */}
+        {((props.hoverMatches?.length ?? 0) > 0 || (props.pulse != null)) && (
+          <Layer listening={false}>
+            {(props.hoverMatches?.length ?? 0) > 0 && (
+              <HoverRing markups={props.hoverMatches!} currentZoom={currentZoom} />
+            )}
+            {props.pulse != null && (
+              <PulseHighlight
+                markups={props.pulse.matches}
+                color={props.pulse.color}
+                currentZoom={currentZoom}
+                onComplete={props.onPulseComplete ?? (() => {})}
+              />
+            )}
+          </Layer>
+        )}
 
         {/* Layer 2: Transient interactive polygon drawing (only mounted while drawing area/perimeter) */}
         {(markupState.toolType === 'area' || markupState.toolType === 'perimeter') &&
