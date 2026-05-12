@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { COLORS } from '../lib/constants'
@@ -6,6 +7,7 @@ import { useViewerStore } from '../stores/viewerStore'
 import { useMarkupStore } from '../stores/markupStore'
 import { TotalsPanelHeader } from './TotalsPanelHeader'
 import { TotalsCategoryBlock } from './TotalsCategoryBlock'
+import { TotalsRowContextMenu } from './TotalsRowContextMenu'
 import type { BoqItemRow } from '../lib/boq-types'
 import type { Markup } from '../types/markup'
 
@@ -53,6 +55,12 @@ export interface TotalsPanelProps {
   onRowContextMenu?: (item: BoqItemRow, x: number, y: number) => void
   /** Cycle indices keyed by `${categoryName}|${itemLabel}` → 1-based cycle position. */
   cycleIndexByKey?: Record<string, number>
+  /** Phase 6 D-12: fired after row click navigates to a page, to trigger PulseHighlight. */
+  onTriggerPulse?: (matches: Markup[], color: string) => void
+  /** Phase 6 D-14: fired on successful clipboard copy with "Copied {label}" message. */
+  onCopy?: (msg: string) => void
+  /** Phase 6 D-14: fired on clipboard write failure. */
+  onCopyError?: () => void
 }
 
 const RAIL_WIDTH = 28
@@ -64,8 +72,19 @@ const SPLITTER_ANIM_MS = 150
 const EMPTY_MARKUPS: Markup[] = []
 
 export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
-  const { open, width, onSetOpen, onRowHover, onRowClick, onRowContextMenu, cycleIndexByKey } =
-    props
+  const {
+    open, width, onSetOpen,
+    onRowHover, onRowClick, onRowContextMenu, cycleIndexByKey,
+    onTriggerPulse, onCopy, onCopyError
+  } = props
+
+  // Context menu state — mounted inside the panel, owned here so position +
+  // item are co-located with the copy toast callbacks (parent-owned-lifecycle).
+  const [contextMenuState, setContextMenuState] = useState<{
+    item: BoqItemRow
+    x: number
+    y: number
+  } | null>(null)
 
   const boq = useBoqLive()
   const totalPages = useViewerStore((s) => s.totalPages)
@@ -131,7 +150,11 @@ export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
   // Default no-op handlers when caller hasn't wired interactions yet (Plan 06-05 binds these).
   const handleRowHover = onRowHover ?? (() => {})
   const handleRowClick = onRowClick ?? (() => {})
-  const handleRowContextMenu = onRowContextMenu ?? (() => {})
+  // Route context menu to internal state so TotalsRowContextMenu is mounted inside the panel.
+  const handleRowContextMenu = (item: BoqItemRow, x: number, y: number): void => {
+    setContextMenuState({ item, x, y })
+    onRowContextMenu?.(item, x, y)
+  }
 
   return (
     <div
@@ -231,9 +254,29 @@ export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
               onRowHover={handleRowHover}
               onRowClick={handleRowClick}
               onRowContextMenu={handleRowContextMenu}
+              onTriggerPulse={onTriggerPulse}
             />
           ))}
         </div>
+      )}
+
+      {/* Phase 6 D-14: TotalsRowContextMenu — mounted when a row is right-clicked.
+          Uses portal-style fixed positioning (matches MarkupContextMenu pattern).
+          Dismiss: outside-click, Escape, or copy action (onCopy/onCopyError fire then menu closes). */}
+      {contextMenuState !== null && (
+        <TotalsRowContextMenu
+          screenPos={{ x: contextMenuState.x, y: contextMenuState.y }}
+          item={contextMenuState.item}
+          onClose={() => setContextMenuState(null)}
+          onCopy={(msg) => {
+            setContextMenuState(null)
+            onCopy?.(msg)
+          }}
+          onCopyError={() => {
+            setContextMenuState(null)
+            onCopyError?.()
+          }}
+        />
       )}
 
       {/* Pinned grand-total bar (rendered only when there is a real BoqStructure to summarize). */}

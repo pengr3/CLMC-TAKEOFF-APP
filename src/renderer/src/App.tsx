@@ -1,9 +1,13 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { TitleBar } from './components/TitleBar'
 import { Toolbar } from './components/Toolbar'
 import { StatusBar } from './components/StatusBar'
 import { EmptyState } from './components/EmptyState'
 import { CanvasViewport } from './components/CanvasViewport'
+import { ThumbnailStrip } from './components/ThumbnailStrip'
+import { TotalsPanel } from './components/TotalsPanel'
+import { CanvasHeaderBar } from './components/CanvasHeaderBar'
+import { Splitter } from './components/Splitter'
 import { ArchiveCorruptedModal } from './components/ArchiveCorruptedModal'
 import { DimensionMismatchModal } from './components/DimensionMismatchModal'
 import { PageCountAbortModal } from './components/PageCountAbortModal'
@@ -16,7 +20,10 @@ import { useProject, type ProjectOpenResult } from './hooks/useProject'
 import { useExport } from './hooks/useExport'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useCloseGuard } from './hooks/useCloseGuard'
+import { useUiPanels } from './hooks/useUiPanels'
+import { useMarkupHighlight } from './hooks/useMarkupHighlight'
 import { getCanvasControls } from './components/CanvasViewport'
+import { COLORS } from './lib/constants'
 import type { ProjectFileV2 } from './lib/project-schema'
 import type { BoqStructure } from './lib/boq-types'
 
@@ -33,6 +40,39 @@ function App(): React.JSX.Element {
     applyArchiveCorruptedProceed
   } = useProject()
   const { exportBoq, applyExportAfterConfirm } = useExport()
+
+  // Phase 6: Panel layout state (localStorage-backed widths + open/closed).
+  const { thumbnails, totals, setThumbnailsOpen, setThumbnailsWidth, setTotalsOpen, setTotalsWidth } = useUiPanels()
+
+  // Phase 6: Transient highlight state (hover ring + click pulse).
+  const { hoverMatches, setHoverMatches, pulse, triggerPulse, clearPulse } = useMarkupHighlight()
+
+  // Phase 6: Live drag-width for Splitter (held in local state; only committed to
+  // useUiPanels on pointerup so localStorage isn't written 60-120x/sec during drag).
+  const [thumbnailsDragWidth, setThumbnailsDragWidth] = useState<number | null>(null)
+  const [totalsDragWidth, setTotalsDragWidth] = useState<number | null>(null)
+  const effectiveThumbnailWidth = thumbnailsDragWidth ?? thumbnails.width
+  const effectiveTotalsWidth = totalsDragWidth ?? totals.width
+
+  // Phase 6: Container width for Splitter max-width (50% cap) calculation.
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [containerWidth, setContainerWidth] = useState(window.innerWidth)
+  useEffect(() => {
+    const update = (): void => {
+      setContainerWidth(containerRef.current?.offsetWidth ?? window.innerWidth)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
+
+  // Phase 6 D-14: Copy toast ("Copied {label}" or "Copy failed.") — 2000ms parent-owned dismiss.
+  const [copyToast, setCopyToast] = useState<string | null>(null)
+  useEffect(() => {
+    if (!copyToast) return
+    const t = window.setTimeout(() => setCopyToast(null), 2000)
+    return () => window.clearTimeout(t)
+  }, [copyToast])
 
   // Open-flow state (slimmed for v2)
   const [archiveCorrupted, setArchiveCorrupted] =
@@ -210,62 +250,144 @@ function App(): React.JSX.Element {
         onExportClick={handleExportClick}
       />
       <main
+        ref={containerRef}
         style={{
           flex: 1,
           overflow: 'hidden',
           position: 'relative',
-          background: '#1a1a1a'
+          background: COLORS.dominant,
+          display: 'flex',
+          flexDirection: 'row'
         }}
       >
-        {totalPages === 0 ? <EmptyState /> : <CanvasViewport />}
+        {/* Left: Thumbnail strip — collapsible page navigation panel */}
+        <ThumbnailStrip
+          open={thumbnails.open}
+          width={effectiveThumbnailWidth}
+          onSetOpen={setThumbnailsOpen}
+        />
+        <Splitter
+          side="left"
+          panelWidth={effectiveThumbnailWidth}
+          containerWidth={containerWidth}
+          minWidth={28}
+          onDragWidth={setThumbnailsDragWidth}
+          onCommit={(w) => { setThumbnailsWidth(w); setThumbnailsDragWidth(null) }}
+          ariaLabel="Resize Thumbnails panel"
+        />
 
-        {saveToast !== null && (
-          <div
-            role="status"
-            aria-live="polite"
-            style={{
-              position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
-              padding: '8px 16px', background: '#252526', border: '1px solid #3c3c3c',
-              borderRadius: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.4)', zIndex: 15,
-              display: 'flex', gap: 16, fontSize: 13, color: '#cccccc'
-            }}
-          >
-            <span>{saveToast}</span>
-            <button
-              onClick={() => setSaveToast(null)}
-              style={{
-                background: 'transparent', border: 'none',
-                color: '#888', cursor: 'pointer', fontSize: 13
-              }}
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
+        {/* Center: CanvasHeaderBar + CanvasViewport + toasts.
+            CRITICAL: minWidth: 0 prevents the canvas's intrinsic content from blocking
+            shrinking when both panels are open (flex-child needs explicit 0 floor). */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          {totalPages > 0 && <CanvasHeaderBar />}
+          <div style={{ flex: 1, position: 'relative' }}>
+            {totalPages === 0
+              ? <EmptyState />
+              : <CanvasViewport
+                  hoverMatches={hoverMatches}
+                  pulse={pulse}
+                  onPulseComplete={clearPulse}
+                />
+            }
 
-        {exportToast !== null && (
-          <div
-            role="status"
-            aria-live="polite"
-            style={{
-              position: 'absolute', bottom: 60, left: '50%', transform: 'translateX(-50%)',
-              padding: '8px 16px', background: '#252526', border: '1px solid #3c3c3c',
-              borderRadius: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.4)', zIndex: 15,
-              display: 'flex', gap: 16, fontSize: 13, color: '#cccccc'
-            }}
-          >
-            <span>{exportToast}</span>
-            <button
-              onClick={() => setExportToast(null)}
-              style={{
-                background: 'transparent', border: 'none',
-                color: '#888', cursor: 'pointer', fontSize: 13
-              }}
-            >
-              Dismiss
-            </button>
+            {/* Toasts relocated inside center column so they don't bleed across side panels */}
+            {saveToast !== null && (
+              <div
+                role="status"
+                aria-live="polite"
+                style={{
+                  position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
+                  padding: '8px 16px', background: '#252526', border: '1px solid #3c3c3c',
+                  borderRadius: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.4)', zIndex: 15,
+                  display: 'flex', gap: 16, fontSize: 13, color: '#cccccc'
+                }}
+              >
+                <span>{saveToast}</span>
+                <button
+                  onClick={() => setSaveToast(null)}
+                  style={{
+                    background: 'transparent', border: 'none',
+                    color: '#888', cursor: 'pointer', fontSize: 13
+                  }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+
+            {exportToast !== null && (
+              <div
+                role="status"
+                aria-live="polite"
+                style={{
+                  position: 'absolute', bottom: 60, left: '50%', transform: 'translateX(-50%)',
+                  padding: '8px 16px', background: '#252526', border: '1px solid #3c3c3c',
+                  borderRadius: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.4)', zIndex: 15,
+                  display: 'flex', gap: 16, fontSize: 13, color: '#cccccc'
+                }}
+              >
+                <span>{exportToast}</span>
+                <button
+                  onClick={() => setExportToast(null)}
+                  style={{
+                    background: 'transparent', border: 'none',
+                    color: '#888', cursor: 'pointer', fontSize: 13
+                  }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+
+            {/* Phase 6 D-14: Copy toast — 2000ms parent-owned dismiss */}
+            {copyToast !== null && (
+              <div
+                role="status"
+                aria-live="polite"
+                style={{
+                  position: 'absolute', bottom: 104, left: '50%', transform: 'translateX(-50%)',
+                  padding: '8px 16px', background: '#252526', border: '1px solid #3c3c3c',
+                  borderRadius: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.4)', zIndex: 15,
+                  display: 'flex', gap: 16, fontSize: 13, color: '#cccccc'
+                }}
+              >
+                <span>{copyToast}</span>
+                <button
+                  onClick={() => setCopyToast(null)}
+                  style={{
+                    background: 'transparent', border: 'none',
+                    color: '#888', cursor: 'pointer', fontSize: 13
+                  }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
+
+        <Splitter
+          side="right"
+          panelWidth={effectiveTotalsWidth}
+          containerWidth={containerWidth}
+          minWidth={28}
+          onDragWidth={setTotalsDragWidth}
+          onCommit={(w) => { setTotalsWidth(w); setTotalsDragWidth(null) }}
+          ariaLabel="Resize Totals panel"
+        />
+
+        {/* Right: Totals panel — collapsible BOQ summary */}
+        <TotalsPanel
+          open={totals.open}
+          width={effectiveTotalsWidth}
+          onSetOpen={setTotalsOpen}
+          onSetWidth={setTotalsWidth}
+          onRowHover={setHoverMatches}
+          onTriggerPulse={triggerPulse}
+          onCopy={(msg) => setCopyToast(msg)}
+          onCopyError={() => setCopyToast('Copy failed.')}
+        />
       </main>
       <StatusBar />
 
