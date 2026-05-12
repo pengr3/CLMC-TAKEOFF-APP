@@ -106,7 +106,7 @@ Phase 7 introduces **zero new color tokens.** Every fix reads from existing `COL
 |---------|------|
 | Primary CTA — `MarkupContextMenu` Edit row | `Edit` |
 | Primary CTA — `MarkupNamePopup` (edit mode) confirm button | `Save Changes` |
-| Secondary CTA — `MarkupNamePopup` (edit mode) cancel button | `Cancel` |
+| Secondary CTA — `MarkupNamePopup` (edit mode) abandon button | `Discard Changes` |
 | Section header inside `MarkupContextMenu` (existing pattern, reused above Edit) | `Item` (matches Phase 6 `TotalsRowContextMenu` and existing `MarkupContextMenu` "Recolor group" treatment — terse, one-word noun) |
 | `MarkupContextMenu` action ordering (top → bottom) | `Edit` → divider → `Recolor group` (existing label, unchanged) → divider → `Delete` |
 | `MarkupNamePopup` (edit mode) header | `Edit Markup` (h2-equivalent; reuses existing popup header slot — see Visuals) |
@@ -115,12 +115,18 @@ Phase 7 introduces **zero new color tokens.** Every fix reads from existing `COL
 | `MarkupNamePopup` (edit mode) color-row label | `Color` (matches existing modes — Phase 03.1 D-26) |
 | `MarkupNamePopup` (edit mode) empty-name error | `Enter an item name` (matches existing `setNameError` copy, verbatim) |
 | `CategoryAutocomplete` create-new row (existing, unchanged) | `Create new: {query}` |
-| `CalibrationDialog` (unchanged — verified for completeness) | Header `Set Scale`; label `Real-world distance`; preview line `Scale: 1px = {N} {unit}` or `—`; primary `Accept Scale`; secondary `Cancel` |
+| `CalibrationDialog` header | `Set Scale` (unchanged) |
+| `CalibrationDialog` distance-field label | `Real-world distance` (unchanged) |
+| `CalibrationDialog` preview line | `Scale: 1px = {N} {unit}` or `—` (unchanged) |
+| `CalibrationDialog` primary confirm button | `Accept Scale` (unchanged) |
+| `CalibrationDialog` secondary abandon button | `Discard Scale` |
 | `TotalsPanel` empty states (unchanged from Phase 6) | `Open a PDF to begin.` / `Place markups to see totals.` / `Place markups on a calibrated page to see length and area totals.` |
 | `TotalsPanel` — grand-total bar label | **REMOVED** (D-08) — no grand-total bar renders at all in Phase 7. |
 | `TotalsPanel` — subtotal row label | **REMOVED FROM RENDER** (D-09) — `Subtotal` string no longer appears on screen. The `subtotals` field stays in `BoqStructure` for the BOQ export pathway. |
 
 **Voice:** terse, declarative. No exclamation marks, no friendly preamble, no marketing voice. Matches existing convention.
+
+**Why specific verb + noun for abandon buttons:** Generic `Cancel` is on the explicit block list — it doesn't tell the user what they're abandoning. `Discard Changes` (edit popup) makes it clear that any name/category/color edits the user has made will be thrown away. `Discard Scale` (calibration dialog) makes it clear that the unsaved scale calibration (any in-progress line, unit, or distance entry) will be thrown away. Both labels follow the established verb-noun convention from `Save Changes`, `Accept Scale`, `Start Count`, `Save Markup`.
 
 **Destructive actions in this phase:**
 
@@ -128,6 +134,8 @@ Phase 7 introduces **zero new color tokens.** Every fix reads from existing `COL
 |--------|---------------|-----------|
 | `MarkupContextMenu` → `Delete` (existing — unchanged in Phase 7) | None | Undoable via Ctrl+Z (`MarkupCommand` already supports `RemoveMarkupCommand`). Confirmation friction outweighs typo-recovery cost. |
 | `MarkupContextMenu` → `Edit` → `Save Changes` (NEW) | None | Undoable via Ctrl+Z (`EditMarkupCommand`, D-07). Estimator workflow values speed; the undo stack is the safety net. |
+| `MarkupNamePopup` (edit mode) → `Discard Changes` | None | Discards only in-popup state (name/category/color edits). The underlying markup is not mutated until `Save Changes` is clicked. No-cost reversal. |
+| `CalibrationDialog` → `Discard Scale` | None | Discards only in-dialog state (the scale line, unit selection, distance entry). The page's stored scale (if any) is not mutated until `Accept Scale` is clicked. No-cost reversal. |
 
 **No new destructive-confirmation dialogs are introduced.**
 
@@ -219,7 +227,7 @@ Result: Stage fills the entire center column; PDF page centered using the existi
 3. **Option C — Custom dropdown (last resort, only if A and B fail):**
    - Replace the native `<select>` with a button-triggered list styled to match the existing inline-style dark theme. Button styling matches the existing inputs (`COLORS.dominant` background, `COLORS.border` 1px, `COLORS.textPrimary` text). Open state shows a popover at the button's position with `COLORS.secondary` background, `COLORS.border` 1px, `boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)'`, max-height 200px, scroll, each row at `autocompleteRowHeight` (24px). Selected row gets a 2px `COLORS.accent` left border. Mirrors the `CategoryAutocomplete` interaction pattern.
 
-**The CalibrationDialog modal itself does not change shape, size, or copy.** Only the dropdown rendering is touched.
+**The CalibrationDialog modal itself does not change shape, size, or copy** — except the secondary button label, which moves from generic `Cancel` to the specific `Discard Scale` (see Copywriting Contract). Only the dropdown rendering and the secondary button label are touched.
 
 ---
 
@@ -237,11 +245,11 @@ Result: Stage fills the entire center column; PDF page centered using the existi
 |-----------|--------------|----------------|
 | `CanvasViewport.tsx` | Root `containerRef` div CSS changes from `width: '100%', height: '100%'` to `position: 'absolute', inset: 0`. ResizeObserver effect unchanged; Stage sizing math unchanged. New `onEdit` callback wiring to mount `MarkupNamePopup` in `mode='edit'` at the right-click position. | D-02, D-04 |
 | `MarkupContextMenu.tsx` | Adds `Edit` action as the **first item** (before Recolor group). Edit row matches existing `Delete` row treatment: button, 28px height, body 13/400, hover `COLORS.hoverSurface`, no icon (text-only consistency with Delete). New prop `onEdit: () => void`. | D-04, D-06 |
-| `MarkupNamePopup.tsx` | Extends `mode` union to `'count-pre' \| 'save-after' \| 'edit'`. Primary button label switches to `Save Changes` for `mode='edit'`. Header reads `Edit Markup` for `mode='edit'`. No `measurementPreview` rendered in edit mode (D-06). All other props (`initialName`, `initialCategoryName`, `initialColor`, `onConfirm`, `onCancel`) are reused verbatim; no new props needed. | D-06 |
+| `MarkupNamePopup.tsx` | Extends `mode` union to `'count-pre' \| 'save-after' \| 'edit'`. Primary button label switches to `Save Changes` for `mode='edit'`. Secondary button label switches to `Discard Changes` for `mode='edit'`. Header reads `Edit Markup` for `mode='edit'`. No `measurementPreview` rendered in edit mode (D-06). All other props (`initialName`, `initialCategoryName`, `initialColor`, `onConfirm`, `onCancel`) are reused verbatim; no new props needed. | D-06 |
 | `markupStore.ts` | Adds `EditMarkupCommand` (implements `MarkupCommand` interface). Stores `{ markupId, page, oldName, oldCategoryName, oldColor, newName, newCategoryName, newColor }`. `execute()` calls `findCategoryByName(newCategoryName) ?? getOrCreateCategory(newCategoryName)` and applies the new name/category/color to the markup. `undo()` reverses to the old triple. Pushes to undo stack via existing `executeCommand` mechanism. | D-07 |
 | `TotalsPanel.tsx` | **Removes** the `data-testid="totals-panel-grand-total"` block (lines 282–323). The scrollable category list now extends to the panel's bottom border. No new props, no shape changes. | D-08 |
 | `TotalsCategoryBlock.tsx` | **Removes** the `category.subtotals.map(...)` block (lines 142–188 rendering `data-testid="totals-subtotal-row"`). The category heading and its item rows render with no trailing subtotal rows. | D-09 |
-| `CalibrationDialog.tsx` | Adds `isolation: isolate` to outer overlay div. Optionally `position: relative; zIndex: 11` on the dialog frame, and `position: relative; zIndex: 1` on the `<select>` element if Option A alone doesn't resolve clipping. If both fail, swap native `<select>` for a custom dropdown styled per the "Custom Dropdown" pattern above. | D-11 |
+| `CalibrationDialog.tsx` | Adds `isolation: isolate` to outer overlay div. Optionally `position: relative; zIndex: 11` on the dialog frame, and `position: relative; zIndex: 1` on the `<select>` element if Option A alone doesn't resolve clipping. If both fail, swap native `<select>` for a custom dropdown styled per the "Custom Dropdown" pattern above. **Also:** secondary button label changes from `Cancel` to `Discard Scale`. | D-11 |
 | `CategoryAutocomplete.tsx` | Adds keyboard navigation: a `highlightedIndex` state (or controlled via a prop pair `highlightedIndex` + `onHighlightChange` so `MarkupNamePopup` owns the index — planner picks). `ArrowDown`/`ArrowUp` move the index through `filtered` + (if shown) the "Create new" row. `Enter` selects the highlighted item via the existing `onSelect` callback. The highlighted row is rendered with `background: COLORS.hoverSurface` AND a 2px left border in `COLORS.accent` to disambiguate from mouse-hover (which uses `hoverSurface` only). The highlighted row auto-scrolls into view (`scrollIntoView({ block: 'nearest' })`). The `onMouseEnter`/`onMouseLeave` mouse-hover behavior is preserved unchanged. | D-12 |
 | `MarkupNamePopup.tsx` (additional, D-13) | `handleConfirm` calls `findCategoryByName(categoryName.trim())` before invoking `onConfirm`. If the case-insensitive match returns a stored `Category`, substitute its canonical `name` into the `onConfirm` payload. If `null`, pass the trimmed user-typed string verbatim (existing behavior). This canonicalisation applies to **all three modes** (`'count-pre'`, `'save-after'`, `'edit'`) so a user editing a markup also benefits from the dedup. | D-13 |
 
@@ -289,7 +297,7 @@ Result: Stage fills the entire center column; PDF page centered using the existi
 - Category field: same `CategoryAutocomplete` integration as other modes. Keyboard navigation (D-12) and canonical-name substitution (D-13) both apply.
 - Color row: the same `MARKUP_PALETTE` 10-swatch row used in other modes. The current color is shown selected (Phase 03.1 D-28). Clicking a swatch sets `userOverrodeColor.current = true` so name-change auto-inheritance (D-25) doesn't override the user's pick.
 - Primary button `Save Changes` (13/600, `COLORS.accent` background, `COLORS.textOnAccent` text).
-- Secondary button `Cancel` (13/600, transparent background, `COLORS.border` outline, `COLORS.textPrimary` text).
+- Secondary button `Discard Changes` (13/600, transparent background, `COLORS.border` outline, `COLORS.textPrimary` text).
 
 **Click `Save Changes`:**
 - The popup confirms with payload `{ name, categoryName, color }`.
@@ -304,8 +312,8 @@ Result: Stage fills the entire center column; PDF page centered using the existi
   - **Per-name color travel:** if the user renamed the markup AND changed its color, the new (name, color) pair becomes the source of truth for `getColorForName(newName)`. Other markups sharing the new name take this color on their next render (Phase 03.1 D-29 cascade).
 - **Edit scope:** per-markup only. Other markups sharing the **old** name are NOT renamed. Other markups sharing the **new** name still keep their existing color attributes (the markupStore stores `color` per-markup; the cascade applies via `getColorForName` resolution, which returns the most-recently-set color for that name — Phase 03.1 STATE pattern).
 
-**Click `Cancel` (or Escape, or click outside):**
-- The popup unmounts. No `EditMarkupCommand` is dispatched. The markup is unchanged.
+**Click `Discard Changes` (or Escape, or click outside):**
+- The popup unmounts. No `EditMarkupCommand` is dispatched. The markup is unchanged. All in-popup edits to name/category/color are thrown away.
 
 **Right-click another markup while edit popup is open:**
 - The existing popup must close before the new context menu opens — this is the same rule the placement popup follows. Planner: enforce in `CanvasViewport` by guarding the right-click handler against an open popup state.
@@ -324,7 +332,9 @@ Result: Stage fills the entire center column; PDF page centered using the existi
 - Apply Option A (`isolation: isolate` on the overlay div). Re-test.
 - If Option A insufficient, layer in Option B (`zIndex` hardening on the dialog frame and select). Re-test.
 - If both fail, implement Option C (custom dropdown) per the "Custom Dropdown" pattern in the Layout Contract. Functional acceptance: all 5 `UNIT_OPTIONS` (`m`, `ft`, `mm`, `cm`, `in`) are visible, selectable, and the modal's other controls remain functional during dropdown open state.
-- **No copy changes:** the dialog header (`Set Scale`), label (`Real-world distance`), preview line, and button labels (`Accept Scale`, `Cancel`) are unchanged.
+- **Copy changes:** the dialog header (`Set Scale`), label (`Real-world distance`), preview line, and primary confirm button (`Accept Scale`) are unchanged. The secondary button label changes from `Cancel` to `Discard Scale` (see Copywriting Contract — generic `Cancel` is blocked; the new label names what is abandoned).
+- **Click `Discard Scale` (or Escape, or click backdrop):**
+  - The dialog unmounts. No scale state is committed. The page's previously-stored scale (if any) is unchanged. Any in-progress scale line, unit selection, or distance entry is thrown away.
 
 ### Category Deduplication UX (D-12, D-13)
 
@@ -411,7 +421,7 @@ Phase 7 introduces **zero new error-state surfaces.** Existing error handling is
 | `CalibrationDialog` (Option A/B fix) | `isolation: isolate` not supported (extremely rare on Chromium 134 in Electron 35 — supported since Chromium 87) | n/a — feature is universally available. No fallback needed. |
 | `CalibrationDialog` (Option C custom dropdown) | Click outside the open dropdown | Closes the dropdown without selecting (mirrors `CategoryAutocomplete` blur-close pattern). No error UI. |
 
-**Destructive-action error handling:** Phase 7 introduces no destructive actions beyond the existing `Delete` row (unchanged) and the new `Save Changes` (undoable — no error path required).
+**Destructive-action error handling:** Phase 7 introduces no destructive actions beyond the existing `Delete` row (unchanged) and the new `Save Changes` (undoable — no error path required). The `Discard Changes` and `Discard Scale` secondary buttons throw away in-popup/in-dialog state only; no error path exists because no underlying data is mutated.
 
 ---
 
@@ -435,12 +445,23 @@ Phase 7 introduces **zero new error-state surfaces.** Existing error handling is
 
 The implemented Phase 7 surfaces pass all six dimensions when:
 
-1. **Copywriting:** Every label, button, and helper-text string declared above appears verbatim in the implementation. `Edit`, `Save Changes`, `Cancel`, `Edit Markup`, `Item name`, `Category`, `Color`, `Enter an item name`, `Create new: {query}`. No improvised "Save markup edits" or "Update markup" alternates. The Phase 6 `TotalsPanel` empty-state copy is preserved unchanged.
-2. **Visuals:** `MarkupContextMenu` shows `Edit` as the first row, separator, then existing Recolor + Delete sections. `MarkupNamePopup` in edit mode shows Name + Category + Color sections with no measurement preview, primary `Save Changes` button in `COLORS.accent`. `TotalsPanel` shows the metadata header followed by the category list with no grand-total bar and no subtotal rows. `CalibrationDialog` dropdown popout is fully visible on click. `CategoryAutocomplete` highlighted row shows the `hoverSurface` background + 2px `COLORS.accent` left border.
+1. **Copywriting:** Every label, button, and helper-text string declared above appears verbatim in the implementation. `Edit`, `Save Changes`, `Discard Changes`, `Edit Markup`, `Item name`, `Category`, `Color`, `Enter an item name`, `Create new: {query}`, `Set Scale`, `Real-world distance`, `Accept Scale`, `Discard Scale`. **No `Cancel` strings remain on Phase 7 secondary CTAs** — `MarkupNamePopup` edit-mode secondary reads `Discard Changes`; `CalibrationDialog` secondary reads `Discard Scale`. No improvised "Save markup edits" or "Update markup" alternates. The Phase 6 `TotalsPanel` empty-state copy is preserved unchanged.
+2. **Visuals:** `MarkupContextMenu` shows `Edit` as the first row, separator, then existing Recolor + Delete sections. `MarkupNamePopup` in edit mode shows Name + Category + Color sections with no measurement preview, primary `Save Changes` button in `COLORS.accent`, secondary `Discard Changes` button with transparent background and `COLORS.border` outline. `CalibrationDialog` shows primary `Accept Scale` and secondary `Discard Scale` buttons. `TotalsPanel` shows the metadata header followed by the category list with no grand-total bar and no subtotal rows. `CalibrationDialog` dropdown popout is fully visible on click. `CategoryAutocomplete` highlighted row shows the `hoverSurface` background + 2px `COLORS.accent` left border.
 3. **Color:** Only the eight `COLORS.*` tokens are used. Per-name color (via `getColorForName`) is preserved on Item-name chips and pulse rings post-edit. No new hex literals introduced in Phase 7 chrome.
 4. **Typography:** Body 13/400, headings 13/600, labels 12/600, display 15/600 (existing CalibrationDialog header). All Phase 7 surfaces use these inherited roles. **2 weights total: 400 (body), 600 (emphasis & display).** No new font sizes.
 5. **Spacing:** All spacing values are multiples of 4 (4, 8, 16, 24). No new tokens. Existing component-internal constants (`POPUP_MIN_WIDTH=260`, `POPUP_MAX_WIDTH=320`) are preserved.
 6. **Registry Safety:** No third-party blocks introduced; no registry imports added; lockfile diff shows no new UI dependencies. `lucide-react` icon imports are unchanged from Phase 6 (no new icons added in Phase 7).
+
+---
+
+## Accessibility
+
+Phase 7 secondary CTAs are reachable by keyboard:
+
+- **`MarkupNamePopup` (edit mode) `Discard Changes`** — focusable via Tab from the Save Changes button (or Shift+Tab back from elsewhere). Pressing Escape inside the popup also triggers the same discard path (existing `onCancel` callback wiring). The button's accessible name is its visible label `Discard Changes` — no additional `aria-label` needed.
+- **`CalibrationDialog` `Discard Scale`** — focusable via Tab through the dialog's form controls. Pressing Escape on the dialog also triggers the same discard path. The button's accessible name is its visible label `Discard Scale`.
+
+Both labels are screen-reader unambiguous: a reader announces "Discard Changes, button" or "Discard Scale, button" — the user knows exactly what is being abandoned, not just that an abstract "Cancel" exists.
 
 ---
 
