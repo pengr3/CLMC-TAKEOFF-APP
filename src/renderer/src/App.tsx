@@ -4,7 +4,6 @@ import { Toolbar } from './components/Toolbar'
 import { StatusBar } from './components/StatusBar'
 import { EmptyState } from './components/EmptyState'
 import { CanvasViewport } from './components/CanvasViewport'
-import { ThumbnailStrip } from './components/ThumbnailStrip'
 import { TotalsPanel } from './components/TotalsPanel'
 import { CanvasHeaderBar } from './components/CanvasHeaderBar'
 import { Splitter } from './components/Splitter'
@@ -42,16 +41,14 @@ function App(): React.JSX.Element {
   const { exportBoq, applyExportAfterConfirm } = useExport()
 
   // Phase 6: Panel layout state (localStorage-backed widths + open/closed).
-  const { thumbnails, totals, setThumbnailsOpen, setThumbnailsWidth, setTotalsOpen, setTotalsWidth } = useUiPanels()
+  const { totals, setTotalsOpen, setTotalsWidth } = useUiPanels()
 
   // Phase 6: Transient highlight state (hover ring + click pulse).
   const { hoverMatches, setHoverMatches, pulse, triggerPulse, clearPulse } = useMarkupHighlight()
 
   // Phase 6: Live drag-width for Splitter (held in local state; only committed to
   // useUiPanels on pointerup so localStorage isn't written 60-120x/sec during drag).
-  const [thumbnailsDragWidth, setThumbnailsDragWidth] = useState<number | null>(null)
   const [totalsDragWidth, setTotalsDragWidth] = useState<number | null>(null)
-  const effectiveThumbnailWidth = thumbnailsDragWidth ?? thumbnails.width
   const effectiveTotalsWidth = totalsDragWidth ?? totals.width
 
   // Phase 6: Container width for Splitter max-width (50% cap) calculation.
@@ -260,22 +257,6 @@ function App(): React.JSX.Element {
           flexDirection: 'row'
         }}
       >
-        {/* Left: Thumbnail strip — collapsible page navigation panel */}
-        <ThumbnailStrip
-          open={thumbnails.open}
-          width={effectiveThumbnailWidth}
-          onSetOpen={setThumbnailsOpen}
-        />
-        <Splitter
-          side="left"
-          panelWidth={effectiveThumbnailWidth}
-          containerWidth={containerWidth}
-          minWidth={28}
-          onDragWidth={setThumbnailsDragWidth}
-          onCommit={(w) => { setThumbnailsWidth(w); setThumbnailsDragWidth(null) }}
-          ariaLabel="Resize Thumbnails panel"
-        />
-
         {/* Center: CanvasHeaderBar + CanvasViewport + toasts.
             CRITICAL: minWidth: 0 prevents the canvas's intrinsic content from blocking
             shrinking when both panels are open (flex-child needs explicit 0 floor). */}
