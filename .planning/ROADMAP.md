@@ -15,6 +15,7 @@
 - [x] **Phase 4.1: ZIP-Embedded .clmc Format** - Upgrade .clmc to a self-contained ZIP archive that embeds the PDF, eliminating path-dependency and enabling true portability (completed 2026-05-02)
 - [x] **Phase 5: BOQ Export** - Export takeoff sheet to Excel and CSV, grouped by category (completed 2026-05-03)
 - [x] **Phase 6: Live View and UI Polish** - Running totals panel, thumbnail strip navigation, and page/scale status indicators that complete the day-to-day estimating workflow (completed 2026-05-12)
+- [ ] **Phase 6.1: Remove Left Thumbnail Strip Panel** (INSERTED) - Remove the left sidebar thumbnail strip; page navigation arrows are sufficient and the panel wastes horizontal canvas space
 
 ---
 
@@ -201,6 +202,16 @@ Plans:
 
 **UI hint**: yes
 
+### Phase 06.1: Remove Left Thumbnail Strip Panel (INSERTED)
+
+**Goal:** Remove the left sidebar thumbnail strip panel. The page navigation arrows already cover all page switching needs, and the thumbnail panel consumes horizontal space that would be better used by the markup canvas.
+**Requirements**: UI-01 (quality-of-life improvement, no new v1 requirements)
+**Depends on:** Phase 6
+**Plans:** 1 plan
+
+Plans:
+- [ ] 06.1-01-PLAN.md — Delete thumbnail files + edit useUiPanels/App.tsx for two-column shell
+
 ---
 
 ## Progress
@@ -215,6 +226,7 @@ Plans:
 | 4.1. ZIP-Embedded .clmc Format | 8/8 | Complete | 2026-05-02 |
 | 5. BOQ Export | 7/7 | Complete | 2026-05-03 |
 | 6. Live View and UI Polish | 9/9 | Complete | 2026-05-12 |
+| 6.1. Remove Left Thumbnail Strip Panel | 0/1 | In progress | — |
 
 ---
 
@@ -261,3 +273,4 @@ Plans:
 *Updated: 2026-05-05 — Phase 6 Plan 01 complete (Wave 1 hook foundations: useBoqLive + usePageLabels + useUiPanels)*
 *Updated: 2026-05-05 — Phase 6 Plan 02 complete (Wave 1 glue primitives: useMarkupHighlight + Splitter + CanvasHeaderBar — Wave 1 of Phase 6 now complete)*
 *Updated: 2026-05-12 — Phase 6 complete (all 9 plans, UAT A–F passed, VIEW-01 + PDF-05 delivered — v1 milestone complete, 25/25 requirements)*
+
