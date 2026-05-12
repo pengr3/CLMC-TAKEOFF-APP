@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: v1 milestone complete
-stopped_at: Phase 6 UAT passed (A–F all PASS, 2026-05-12). All 9 plans done. VIEW-01 + PDF-05 delivered. 25/25 v1 requirements complete.
-last_updated: "2026-05-12T15:00:00.000Z"
+status: ready to execute
+stopped_at: Phase 06.1 planned — 2026-05-12. 1 plan ready to execute.
+last_updated: "2026-05-12T00:00:00.000Z"
 last_activity: 2026-05-12
 progress:
-  total_phases: 8
+  total_phases: 9
   completed_phases: 8
-  total_plans: 50
+  total_plans: 51
   completed_plans: 50
-  percent: 100
+  percent: 98
 ---
 
 # Project State: CLMC Takeoff App
@@ -175,8 +175,7 @@ None.
 ### Roadmap Evolution
 
 - Phase 03.1 inserted after Phase 3: Markup Gap Closure and Visual Redesign (URGENT) — supersedes MARK-08 per-category-color must-have, revises UI-SPEC D-04/D-13 count pin label format, closes 4 bugs surfaced in Plan 03-05 human verification (spacebar blocked in text inputs, Linear/Area label legibility, stale currentZoom after zoom)
-
----
+- Phase 06.1 inserted after Phase 6: Remove Left Thumbnail Strip Panel — navigation arrows cover page switching, panel wastes horizontal space (URGENT)
 
 ## Session Continuity
 
@@ -186,7 +185,7 @@ None.
 
 **Stopped at:** Phase 6 UAT PASS (all 6 scenarios A–F) — 2026-05-12. Phase 6 complete. v1 milestone complete. 25/25 requirements delivered.
 
-**Next action:** v1 milestone complete. No further planned phases.
+**Next action:** Plan Phase 6.1 — remove left thumbnail strip panel. Run `/gsd-plan-phase 06.1`.
 
 ---
 *State initialized: 2026-03-25*
