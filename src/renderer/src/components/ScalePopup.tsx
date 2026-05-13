@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { COLORS } from '../lib/constants'
 import { computePixelsPerMm, formatScaleRatio, pixelsToRealWorld, MIN_CALIBRATION_PIXELS } from '../lib/scale-math'
 import type { ScaleUnit, PageScale } from '../types/scale'
@@ -42,6 +42,19 @@ export function ScalePopup({
 }: ScalePopupProps): React.JSX.Element {
   const [distanceText, setDistanceText] = useState('')
   const [unit, setUnit] = useState<ScaleUnit>('m')
+  const [unitOpen, setUnitOpen] = useState(false)
+  const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null)
+  const unitButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!unitOpen) return
+    const close = (e: MouseEvent): void => {
+      if (unitButtonRef.current?.contains(e.target as Node)) return
+      setUnitOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [unitOpen])
 
   const parsedDistance = parseFloat(distanceText)
   const isValidDistance = !isNaN(parsedDistance) && parsedDistance > 0
@@ -184,39 +197,91 @@ export function ScalePopup({
         />
       </div>
 
-      {/* Unit toggle buttons — all 5 visible, no dropdown */}
+      {/* Unit dropdown — position:fixed list escapes overflow:hidden ancestors */}
       <div>
         <label
           style={{ display: 'block', fontSize: 12, color: COLORS.textSecondary, marginBottom: 6 }}
         >
           Unit
         </label>
-        <div style={{ display: 'flex', gap: 4 }}>
-          {UNIT_OPTIONS.map((u) => {
-            const selected = u === unit
-            return (
-              <button
+        <button
+          ref={unitButtonRef}
+          type="button"
+          onClick={() => {
+            if (unitButtonRef.current) {
+              setDropdownRect(unitButtonRef.current.getBoundingClientRect())
+            }
+            setUnitOpen((prev) => !prev)
+          }}
+          style={{
+            width: '100%',
+            height: 32,
+            padding: '4px 10px',
+            background: COLORS.dominant,
+            border: `1px solid ${unitOpen ? COLORS.accent : COLORS.border}`,
+            borderRadius: 4,
+            color: COLORS.textPrimary,
+            fontSize: 13,
+            outline: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <span>{UNIT_LABELS[unit]}</span>
+          <span style={{
+            display: 'inline-block',
+            width: 0,
+            height: 0,
+            borderLeft: '4px solid transparent',
+            borderRight: '4px solid transparent',
+            borderTop: `5px solid ${COLORS.textPrimary}`,
+            opacity: 0.5,
+            transition: 'transform 0.1s',
+            transform: unitOpen ? 'rotate(180deg)' : 'none'
+          }} />
+        </button>
+        {unitOpen && dropdownRect && (
+          <div
+            onMouseDown={(e) => e.stopPropagation()}
+            style={{
+              position: 'fixed',
+              top: dropdownRect.bottom + 2,
+              left: dropdownRect.left,
+              width: dropdownRect.width,
+              background: COLORS.secondary,
+              border: `1px solid ${COLORS.border}`,
+              borderRadius: 4,
+              zIndex: 9999,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+              overflow: 'hidden'
+            }}
+          >
+            {UNIT_OPTIONS.map((u) => (
+              <div
                 key={u}
-                type="button"
-                onClick={() => setUnit(u)}
+                onClick={() => { setUnit(u); setUnitOpen(false) }}
                 style={{
-                  flex: 1,
-                  height: 28,
-                  padding: '0 4px',
-                  background: selected ? COLORS.accent : COLORS.dominant,
-                  border: `1px solid ${selected ? COLORS.accent : COLORS.border}`,
-                  borderRadius: 4,
-                  color: selected ? COLORS.textOnAccent : COLORS.textPrimary,
-                  fontSize: 12,
-                  fontWeight: selected ? 600 : 400,
-                  cursor: 'pointer'
+                  padding: '7px 10px',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  color: COLORS.textPrimary,
+                  background: u === unit ? COLORS.accent : 'transparent',
+                  fontWeight: u === unit ? 600 : 400
+                }}
+                onMouseEnter={(e) => {
+                  if (u !== unit) e.currentTarget.style.background = COLORS.hoverSurface
+                }}
+                onMouseLeave={(e) => {
+                  if (u !== unit) e.currentTarget.style.background = 'transparent'
                 }}
               >
                 {UNIT_LABELS[u]}
-              </button>
-            )
-          })}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Scale preview or error */}
