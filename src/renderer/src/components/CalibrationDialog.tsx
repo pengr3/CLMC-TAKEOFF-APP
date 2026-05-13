@@ -57,7 +57,8 @@ export function CalibrationDialog({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 10
+        zIndex: 10,
+        isolation: 'isolate'
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onCancel()
@@ -172,7 +173,7 @@ export function CalibrationDialog({
               cursor: 'pointer'
             }}
           >
-            Cancel
+            Discard Scale
           </button>
           <button
             onClick={handleSubmit}
