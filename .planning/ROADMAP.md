@@ -224,7 +224,7 @@ Plans:
 Plans:
 
 **Wave 0 *(prerequisite — RED stubs + assertion inversions)*:**
-- [ ] 07-00-PLAN.md — Wave 0 RED test stubs: EditMarkupCommand suite, MarkupNamePopup mode='edit' suite, MarkupContextMenu Edit item suite, totals assertion inversions
+- [x] 07-00-PLAN.md — Wave 0 RED test stubs: EditMarkupCommand suite, MarkupNamePopup mode='edit' suite, MarkupContextMenu Edit item suite, totals assertion inversions
 
 **Wave 1 *(parallel-safe; blocked on Wave 0)*:**
 - [ ] 07-01-PLAN.md — Wave 1 parallel fixes: canvas gutter (D-02), totals panel cleanup (D-08/D-09), CalibrationDialog dropdown + Discard Scale (D-11)
