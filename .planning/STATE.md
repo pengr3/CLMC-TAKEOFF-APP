@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Phase 7 planned — 5 plans ready
-last_updated: "2026-05-13T00:00:00.000Z"
+status: Complete
+stopped_at: Phase 7 complete (2026-05-13)
+last_updated: "2026-05-13T12:00:00.000Z"
 last_activity: 2026-05-13
 progress:
   total_phases: 10
   completed_phases: 9
   total_plans: 56
-  completed_plans: 51
-  percent: 91
+  completed_plans: 55
+  percent: 90
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,23 +26,23 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** v1 milestone complete â€” all phases delivered
+**Current Focus:** v1 milestone complete — all phases delivered, all UX fixes shipped
 
 ---
 
 ## Current Position
 
-Phase: 07 (canvas-workspace-ux-and-markup-fixes) — PLANNED, ready to execute
-Plan: 0 of 5 — 5 plans across 4 waves
+Phase: 07 (canvas-workspace-ux-and-markup-fixes) — COMPLETE
+Plan: 5 of 5 — all plans executed, UAT A–F approved
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
-| Phases complete | 7 / 8 |
-| Plans complete | 43 |
+| Phases complete | 10 / 10 |
+| Plans complete | 56 |
 | Requirements delivered | 25 / 25 |
-| Session count | 4 |
+| Session count | 5 |
 
 ---
 | Phase 01 P01 | 9min | 3 tasks | 19 files |
@@ -177,17 +177,17 @@ None.
 
 - Phase 03.1 inserted after Phase 3: Markup Gap Closure and Visual Redesign (URGENT) â€” supersedes MARK-08 per-category-color must-have, revises UI-SPEC D-04/D-13 count pin label format, closes 4 bugs surfaced in Plan 03-05 human verification (spacebar blocked in text inputs, Linear/Area label legibility, stale currentZoom after zoom)
 - Phase 06.1 inserted after Phase 6: Remove Left Thumbnail Strip Panel â€” navigation arrows cover page switching, panel wastes horizontal space (URGENT)
-- Phase 7 added: Canvas Workspace UX and Markup Editing Fixes — five live-use delinquencies: full-screen canvas, post-commit markup editing, totals panel redesign, Set Scale modal overflow fix, smart category deduplication
+- Phase 7 added: Canvas Workspace UX and Markup Editing Fixes — five live-use delinquencies: full-screen canvas, post-commit markup editing, totals panel redesign, Set Scale modal overflow fix, smart category deduplication (completed 2026-05-13)
 
 ## Session Continuity
 
-**Last activity:** 2026-05-12
+**Last activity:** 2026-05-13
 
-**Last session:** 2026-05-12T10:18:01.842Z
+**Last session:** 2026-05-13T12:00:00.000Z
 
-**Stopped at:** Phase 7 UI-SPEC approved
+**Stopped at:** Phase 7 complete (2026-05-13) — v1 fully shipped
 
-**Next action:** Execute Phase 7 — canvas workspace UX and markup editing fixes. Run `/gsd-execute-phase 7`.
+**Next action:** All v1 phases complete. Consider `/gsd-new-milestone` to start v1.1 or run `/gsd-complete-milestone` to archive.
 
 ---
 *State initialized: 2026-03-25*

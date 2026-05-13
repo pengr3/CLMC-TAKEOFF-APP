@@ -17,7 +17,7 @@
 - [x] **Phase 6: Live View and UI Polish** - Running totals panel, thumbnail strip navigation, and page/scale status indicators that complete the day-to-day estimating workflow (completed 2026-05-12)
 - [x] **Phase 6.1: Remove Left Thumbnail Strip Panel** (INSERTED) - Remove the left sidebar thumbnail strip; page navigation arrows are sufficient and the panel wastes horizontal canvas space
  (completed 2026-05-12)
-- [ ] **Phase 7: Canvas Workspace UX and Markup Editing Fixes** - Fix five live-use delinquencies: full-screen canvas workspace, post-commit markup editing, totals panel quantity list redesign, Set Scale modal dropdown overflow, and smart category deduplication
+- [x] **Phase 7: Canvas Workspace UX and Markup Editing Fixes** - Fix five live-use delinquencies: full-screen canvas workspace, post-commit markup editing, totals panel quantity list redesign, Set Scale modal dropdown overflow, and smart category deduplication (completed 2026-05-13)
 
 ---
 
@@ -236,7 +236,7 @@ Plans:
 - [x] 07-03-PLAN.md — Wave 3 post-commit editing: EditMarkupCommand types + store action + MarkupContextMenu Edit item + CanvasViewport wiring
 
 **Wave 4 *(blocked on Wave 3 — manual UAT and closure)*:**
-- [ ] 07-04-PLAN.md — Wave 4 manual UAT checkpoint and phase closure
+- [x] 07-04-PLAN.md — Wave 4 manual UAT checkpoint and phase closure
 
 **Cross-cutting constraints:** No new libraries or IPC channels (renderer-layer only); `COLORS.*` inline tokens only (no new hex literals, no Tailwind); `EditMarkupCommand` stores old/new category names as strings (not IDs); `getOrCreateCategory` called before `set()` updater; undo/redo explicit `'edit-markup'` branch before `cmd.markup.page` fallthrough; `e.stopPropagation()` on Enter in category input when `highlightedIndex >= 0`; subtract `containerRef.current.getBoundingClientRect()` when converting context-menu coords for popup.
 
@@ -262,7 +262,7 @@ Plans:
 | 5. BOQ Export | 7/7 | Complete | 2026-05-03 |
 | 6. Live View and UI Polish | 9/9 | Complete | 2026-05-12 |
 | 6.1. Remove Left Thumbnail Strip Panel | 1/1 | Complete   | 2026-05-12 |
-| 7. Canvas Workspace UX and Markup Editing Fixes | 0/5 | In progress | — |
+| 7. Canvas Workspace UX and Markup Editing Fixes | 5/5 | Complete | 2026-05-13 |
 
 ---
 
@@ -308,5 +308,6 @@ Plans:
 *Updated: 2026-05-05 â€” Phase 6 Plan 00 complete (Wave 0 RED scaffold, 15 stubs)*
 *Updated: 2026-05-05 â€” Phase 6 Plan 01 complete (Wave 1 hook foundations: useBoqLive + usePageLabels + useUiPanels)*
 *Updated: 2026-05-05 â€” Phase 6 Plan 02 complete (Wave 1 glue primitives: useMarkupHighlight + Splitter + CanvasHeaderBar â€” Wave 1 of Phase 6 now complete)*
-*Updated: 2026-05-12 â€” Phase 6 complete (all 9 plans, UAT Aâ€“F passed, VIEW-01 + PDF-05 delivered â€” v1 milestone complete, 25/25 requirements)*
+*Updated: 2026-05-12 â€” Phase 6 complete (all 9 plans, UAT Aâ€”F passed, VIEW-01 + PDF-05 delivered â€” v1 milestone complete, 25/25 requirements)*
+*Updated: 2026-05-13 â€” Phase 7 complete (5 plans, UAT Aâ€”F passed â€” all five live-use delinquencies resolved)*
 
