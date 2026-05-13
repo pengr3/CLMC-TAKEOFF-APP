@@ -139,53 +139,6 @@ export function TotalsCategoryBlock(props: TotalsCategoryBlockProps): React.JSX.
             )
           })}
 
-          {/* Subtotal rows — one per distinct UoM in this category (D-12). */}
-          {category.subtotals.map((sub) => (
-            <div
-              key={sub.uom}
-              role="row"
-              data-testid="totals-subtotal-row"
-              data-subtotal-uom={sub.uom}
-              style={{
-                height: 28,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                padding: '0 16px',
-                background: COLORS.secondary,
-                fontSize: 13,
-                fontWeight: 400,
-                color: COLORS.textPrimary,
-                flexShrink: 0
-              }}
-            >
-              {/* Empty cycle slot + empty chip slot to align with item rows. */}
-              <div style={{ width: 6, flexShrink: 0 }} />
-              <div style={{ width: 10, flexShrink: 0 }} />
-              <span style={{ flex: 1 }}>Subtotal</span>
-              <span
-                data-testid="totals-subtotal-quantity"
-                style={{
-                  fontVariantNumeric: 'tabular-nums',
-                  minWidth: 60,
-                  textAlign: 'right',
-                  flexShrink: 0
-                }}
-              >
-                {sub.total.toFixed(2)}
-              </span>
-              <span
-                style={{
-                  width: 40,
-                  textAlign: 'left',
-                  color: COLORS.textSecondary,
-                  flexShrink: 0
-                }}
-              >
-                {sub.uom}
-              </span>
-            </div>
-          ))}
         </>
       )}
     </div>

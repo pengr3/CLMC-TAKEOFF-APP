@@ -279,48 +279,6 @@ export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
         />
       )}
 
-      {/* Pinned grand-total bar (rendered only when there is a real BoqStructure to summarize). */}
-      {emptyMsg === null && (
-        <div
-          data-testid="totals-panel-grand-total"
-          style={{
-            height: 28,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 16px',
-            background: COLORS.secondary,
-            borderTop: `1px solid ${COLORS.border}`,
-            flexShrink: 0
-          }}
-        >
-          <span
-            style={{
-              fontSize: 13,
-              fontWeight: 400,
-              color: COLORS.textPrimary
-            }}
-          >
-            Total
-          </span>
-          <span
-            style={{
-              display: 'flex',
-              gap: 12,
-              fontSize: 16,
-              fontWeight: 600,
-              color: COLORS.textPrimary,
-              fontVariantNumeric: 'tabular-nums'
-            }}
-          >
-            {boq.grandTotals.map((g) => (
-              <span key={g.uom} data-testid="totals-panel-grand-total-entry">
-                {g.total.toFixed(2)} {g.uom}
-              </span>
-            ))}
-          </span>
-        </div>
-      )}
     </div>
   )
 }
