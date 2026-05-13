@@ -259,3 +259,88 @@ describe('category persistence across undo (Pitfall 4)', () => {
     expect(useMarkupStore.getState().getCategory(cat.id)).not.toBeNull()
   })
 })
+
+// RED stubs — Wave 0: editMarkup action does not exist yet; all tests below must FAIL
+describe('editMarkup/undo symmetry', () => {
+  it('editMarkup changes name/categoryId/color and pushes cmd to undoStack', () => {
+    const cat = useMarkupStore.getState().getOrCreateCategory('Electrical')
+    const m = makeCount(1, 'OldName', 1, cat.id)
+    useMarkupStore.getState().placeMarkup(m)
+    const newCat = useMarkupStore.getState().getOrCreateCategory('Plumbing')
+    useMarkupStore.getState().editMarkup(m.id, 1, 'OldName', 'Electrical', '#dc2626', 'NewName', 'Plumbing', '#2563eb')
+    const markups = useMarkupStore.getState().getMarkups(1)
+    expect(markups[0].name).toBe('NewName')
+    expect(markups[0].color).toBe('#2563eb')
+    expect(markups[0].categoryId).toBe(newCat.id)
+    expect(useMarkupStore.getState().undoStack).toHaveLength(2)
+  })
+
+  it('undo() reverts to oldName/oldCategory/oldColor; redoStack has one entry', () => {
+    const cat = useMarkupStore.getState().getOrCreateCategory('Electrical')
+    const m = makeCount(1, 'OldName', 1, cat.id)
+    useMarkupStore.getState().placeMarkup(m)
+    useMarkupStore.getState().editMarkup(m.id, 1, 'OldName', 'Electrical', '#dc2626', 'NewName', 'Plumbing', '#2563eb')
+    useMarkupStore.getState().undo()
+    const markups = useMarkupStore.getState().getMarkups(1)
+    expect(markups[0].name).toBe('OldName')
+    expect(markups[0].color).toBe('#dc2626')
+    expect(markups[0].categoryId).toBe(cat.id)
+    expect(useMarkupStore.getState().redoStack).toHaveLength(1)
+  })
+
+  it('redo() re-applies newName/newCategory/newColor', () => {
+    const cat = useMarkupStore.getState().getOrCreateCategory('Electrical')
+    const m = makeCount(1, 'OldName', 1, cat.id)
+    useMarkupStore.getState().placeMarkup(m)
+    useMarkupStore.getState().editMarkup(m.id, 1, 'OldName', 'Electrical', '#dc2626', 'NewName', 'Plumbing', '#2563eb')
+    useMarkupStore.getState().undo()
+    useMarkupStore.getState().redo()
+    const markups = useMarkupStore.getState().getMarkups(1)
+    expect(markups[0].name).toBe('NewName')
+    expect(markups[0].color).toBe('#2563eb')
+    expect(useMarkupStore.getState().undoStack).toHaveLength(2)
+  })
+
+  it('editMarkup clears redoStack', () => {
+    const cat = useMarkupStore.getState().getOrCreateCategory('Electrical')
+    const m = makeCount(1, 'OldName', 1, cat.id)
+    useMarkupStore.getState().placeMarkup(m)
+    useMarkupStore.getState().undo()
+    useMarkupStore.getState().redo()
+    // Pre-seed redoStack by undoing the redo
+    useMarkupStore.getState().undo()
+    expect(useMarkupStore.getState().redoStack).toHaveLength(1)
+    // editMarkup must clear redoStack
+    useMarkupStore.getState().redo()
+    useMarkupStore.getState().editMarkup(m.id, 1, 'OldName', 'Electrical', '#dc2626', 'NewName', 'Plumbing', '#2563eb')
+    expect(useMarkupStore.getState().redoStack).toHaveLength(0)
+  })
+
+  it('editMarkup on nonexistent markupId is a no-op', () => {
+    useMarkupStore.getState().editMarkup('nonexistent-id', 1, 'OldName', 'Electrical', '#dc2626', 'NewName', 'Plumbing', '#2563eb')
+    expect(useMarkupStore.getState().undoStack).toHaveLength(0)
+  })
+})
+
+// RED stubs — Wave 0: D-13 canonical category substitution in store
+describe('editMarkup canonical category (D-13 store side)', () => {
+  it('edit to existing category name reuses the category (no duplicate created)', () => {
+    useMarkupStore.getState().getOrCreateCategory('Electrical')
+    const initialCategoryCount = Object.keys(useMarkupStore.getState().categories).length
+    const cat = useMarkupStore.getState().getOrCreateCategory('Electrical')
+    const m = makeCount(1, 'Test', 1, cat.id)
+    useMarkupStore.getState().placeMarkup(m)
+    // Use lowercase 'electrical' — D-13 canonical substitution should reuse 'Electrical'
+    useMarkupStore.getState().editMarkup(m.id, 1, 'Test', 'Electrical', '#dc2626', 'Test', 'electrical', '#dc2626')
+    expect(Object.keys(useMarkupStore.getState().categories).length).toBe(initialCategoryCount)
+  })
+
+  it('edit to new category name creates the category', () => {
+    const cat = useMarkupStore.getState().getOrCreateCategory('Electrical')
+    const m = makeCount(1, 'Test', 1, cat.id)
+    useMarkupStore.getState().placeMarkup(m)
+    const initialCategoryCount = Object.keys(useMarkupStore.getState().categories).length
+    useMarkupStore.getState().editMarkup(m.id, 1, 'Test', 'Electrical', '#dc2626', 'Test', 'BrandNewCategory', '#dc2626')
+    expect(Object.keys(useMarkupStore.getState().categories).length).toBe(initialCategoryCount + 1)
+  })
+})

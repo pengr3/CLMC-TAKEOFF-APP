@@ -55,7 +55,8 @@ function makeCount(page: number, name: string, color: string, createdAt: number)
 
 const baseProps = {
   screenPos: { x: 50, y: 50 },
-  currentColor: MARKUP_PALETTE[0]
+  currentColor: MARKUP_PALETTE[0],
+  onEdit: vi.fn()
 }
 
 beforeEach(() => {
@@ -173,6 +174,47 @@ describe('MarkupContextMenu — structure + swatch contract (D-28)', () => {
     expect(onClose).toHaveBeenCalled()
     expect(onRecolor).not.toHaveBeenCalled()
     expect(onDelete).not.toHaveBeenCalled()
+    unmount()
+  })
+})
+
+// RED stubs — Wave 0: onEdit prop and Edit menuitem do not exist yet in MarkupContextMenu
+describe('MarkupContextMenu — Edit menuitem (D-06)', () => {
+  it('renders Edit button as first menuitem before Delete', () => {
+    const { container, unmount } = mount(
+      React.createElement(MarkupContextMenu, {
+        ...baseProps,
+        onRecolor: vi.fn(),
+        onDelete: vi.fn(),
+        onClose: vi.fn()
+      })
+    )
+    const menuitems = container.querySelectorAll('[role="menuitem"]')
+    expect(menuitems.length).toBeGreaterThan(0)
+    expect(menuitems[0].textContent).toBe('Edit')
+    unmount()
+  })
+
+  it('clicking Edit calls onEdit then onClose', () => {
+    const onEdit = vi.fn()
+    const onClose = vi.fn()
+    const { container, unmount } = mount(
+      React.createElement(MarkupContextMenu, {
+        ...baseProps,
+        onEdit,
+        onRecolor: vi.fn(),
+        onDelete: vi.fn(),
+        onClose
+      })
+    )
+    const editBtn = Array.from(container.querySelectorAll('button')).find(
+      (b) => b.textContent === 'Edit'
+    ) as HTMLButtonElement
+    act(() => {
+      editBtn.click()
+    })
+    expect(onEdit).toHaveBeenCalled()
+    expect(onClose).toHaveBeenCalled()
     unmount()
   })
 })
