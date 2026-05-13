@@ -121,8 +121,7 @@ describe('TotalsCategoryBlock — D-13 collapse contract', () => {
       expect(itemRows[1].textContent).toContain('Switch')
 
       const subtotal = container.querySelector('[data-testid="totals-subtotal-row"]')
-      expect(subtotal).not.toBeNull()
-      expect(subtotal!.textContent).toContain('Subtotal')
+      expect(subtotal).toBeNull()
     } finally {
       unmount()
     }
@@ -164,9 +163,9 @@ describe('TotalsCategoryBlock — D-13 collapse contract', () => {
       })
     )
     try {
-      // Initially expanded → 2 item rows + 1 subtotal in DOM.
+      // Initially expanded → 2 item rows; subtotal absent (D-09 cleanup).
       expect(container.querySelectorAll('[data-testid="totals-row"]').length).toBe(2)
-      expect(container.querySelector('[data-testid="totals-subtotal-row"]')).not.toBeNull()
+      expect(container.querySelector('[data-testid="totals-subtotal-row"]')).toBeNull()
 
       const heading = container.querySelector(
         '[data-testid="totals-category-heading"]'
@@ -184,9 +183,9 @@ describe('TotalsCategoryBlock — D-13 collapse contract', () => {
         heading.click()
       })
 
-      // Expanded again → rows return.
+      // Expanded again → rows return; subtotal absent (D-09 cleanup).
       expect(container.querySelectorAll('[data-testid="totals-row"]').length).toBe(2)
-      expect(container.querySelector('[data-testid="totals-subtotal-row"]')).not.toBeNull()
+      expect(container.querySelector('[data-testid="totals-subtotal-row"]')).toBeNull()
     } finally {
       unmount()
     }

@@ -234,7 +234,7 @@ describe('TotalsPanel — VIEW-01 render', () => {
     }
   })
 
-  it('grand-total bar shows per-UoM totals at the bottom', () => {
+  it('grand-total bar is absent (D-08 cleanup)', () => {
     useViewerStore.setState({
       filePath: '/test.pdf',
       fileName: 'test.pdf',
@@ -258,11 +258,7 @@ describe('TotalsPanel — VIEW-01 render', () => {
     const { container, unmount } = mount(React.createElement(TotalsPanel, baseProps))
     try {
       const bar = container.querySelector('[data-testid="totals-panel-grand-total"]')
-      expect(bar).not.toBeNull()
-      expect(bar!.textContent).toContain('Total')
-      // 2 outlets → grand total per uom 'ea' = 2.00
-      expect(bar!.textContent).toContain('2.00')
-      expect(bar!.textContent).toContain('ea')
+      expect(bar).toBeNull()
     } finally {
       unmount()
     }

@@ -254,3 +254,134 @@ describe('MarkupNamePopup — D-25 color inheritance', () => {
     unmount()
   })
 })
+
+// RED stubs — Wave 0: mode='edit' does not exist in MarkupNamePopup yet
+describe("MarkupNamePopup — mode='edit' labels (D-06)", () => {
+  it("renders 'Edit markup' aria-label in edit mode", () => {
+    const { container, unmount } = mount(
+      React.createElement(MarkupNamePopup, {
+        mode: 'edit' as const,
+        screenPos: { x: 100, y: 100 },
+        containerSize: { width: 1000, height: 800 },
+        initialName: 'Switch',
+        initialCategoryName: 'Electrical',
+        initialColor: MARKUP_PALETTE[3],
+        onConfirm: vi.fn(),
+        onCancel: vi.fn()
+      })
+    )
+    const dialog = container.querySelector('[role="dialog"]')
+    expect(dialog).not.toBeNull()
+    expect(dialog!.getAttribute('aria-label')).toBe('Edit markup')
+    unmount()
+  })
+
+  it("primary button reads 'Save Changes' in edit mode", () => {
+    const { container, unmount } = mount(
+      React.createElement(MarkupNamePopup, {
+        mode: 'edit' as const,
+        screenPos: { x: 100, y: 100 },
+        containerSize: { width: 1000, height: 800 },
+        initialName: 'Switch',
+        initialCategoryName: 'Electrical',
+        initialColor: MARKUP_PALETTE[3],
+        onConfirm: vi.fn(),
+        onCancel: vi.fn()
+      })
+    )
+    const buttons = Array.from(container.querySelectorAll('button'))
+    const primaryBtn = buttons.find((b) => b.textContent?.includes('Save Changes'))
+    expect(primaryBtn).toBeDefined()
+    unmount()
+  })
+
+  it("cancel button reads 'Discard Changes' in edit mode", () => {
+    const { container, unmount } = mount(
+      React.createElement(MarkupNamePopup, {
+        mode: 'edit' as const,
+        screenPos: { x: 100, y: 100 },
+        containerSize: { width: 1000, height: 800 },
+        initialName: 'Switch',
+        initialCategoryName: 'Electrical',
+        initialColor: MARKUP_PALETTE[3],
+        onConfirm: vi.fn(),
+        onCancel: vi.fn()
+      })
+    )
+    const buttons = Array.from(container.querySelectorAll('button'))
+    const cancelBtn = buttons.find((b) => b.textContent?.includes('Discard Changes'))
+    expect(cancelBtn).toBeDefined()
+    unmount()
+  })
+
+  it('pre-fills name/categoryName/color from initialName/initialCategoryName/initialColor props', () => {
+    const { container, unmount } = mount(
+      React.createElement(MarkupNamePopup, {
+        mode: 'edit' as const,
+        screenPos: { x: 100, y: 100 },
+        containerSize: { width: 1000, height: 800 },
+        initialName: 'Switch',
+        initialCategoryName: 'Electrical',
+        initialColor: MARKUP_PALETTE[3],
+        onConfirm: vi.fn(),
+        onCancel: vi.fn()
+      })
+    )
+    const nameInput = container.querySelector('input[placeholder*="Light"]') as HTMLInputElement
+    expect(nameInput).not.toBeNull()
+    expect(nameInput.value).toBe('Switch')
+    unmount()
+  })
+})
+
+// RED stubs — Wave 0: D-13 canonical substitution not yet wired into handleConfirm
+describe('MarkupNamePopup — D-13 canonical substitution', () => {
+  it('handleConfirm substitutes canonical name when findCategoryByName returns a match', () => {
+    useMarkupStore.getState().getOrCreateCategory('Electrical')
+    const onConfirm = vi.fn()
+    const { container, unmount } = mount(
+      React.createElement(MarkupNamePopup, {
+        mode: 'count-pre' as const,
+        screenPos: { x: 100, y: 100 },
+        containerSize: { width: 1000, height: 800 },
+        initialName: 'Switch',
+        initialCategoryName: 'electrical',
+        onConfirm,
+        onCancel: vi.fn()
+      })
+    )
+    const primaryBtn = Array.from(container.querySelectorAll('button')).find(
+      (b) => b.textContent === 'Start Count'
+    ) as HTMLButtonElement
+    act(() => {
+      primaryBtn.click()
+    })
+    expect(onConfirm).toHaveBeenCalled()
+    expect(onConfirm.mock.calls[0][0].categoryName).toBe('Electrical')
+    unmount()
+  })
+
+  it('handleConfirm uses typed name verbatim when no case-insensitive match exists', () => {
+    const onConfirm = vi.fn()
+    const { container, unmount } = mount(
+      React.createElement(MarkupNamePopup, {
+        mode: 'count-pre' as const,
+        screenPos: { x: 100, y: 100 },
+        containerSize: { width: 1000, height: 800 },
+        initialName: 'Switch',
+        initialCategoryName: 'Plumbing',
+        onConfirm,
+        onCancel: vi.fn()
+      })
+    )
+    const primaryBtn = Array.from(container.querySelectorAll('button')).find(
+      (b) => b.textContent === 'Start Count'
+    ) as HTMLButtonElement
+    act(() => {
+      primaryBtn.click()
+    })
+    expect(onConfirm).toHaveBeenCalled()
+    expect(onConfirm.mock.calls[0][0].categoryName).toBe('Plumbing')
+    unmount()
+  })
+})
