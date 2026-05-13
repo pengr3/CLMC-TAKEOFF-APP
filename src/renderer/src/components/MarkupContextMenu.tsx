@@ -7,6 +7,7 @@ export interface MarkupContextMenuProps {
   currentColor: string
   onRecolor: (hex: string) => void
   onDelete: () => void
+  onEdit: () => void
   onClose: () => void
 }
 
@@ -23,6 +24,7 @@ export function MarkupContextMenu({
   currentColor,
   onRecolor,
   onDelete,
+  onEdit,
   onClose
 }: MarkupContextMenuProps): React.JSX.Element {
   const menuRef = useRef<HTMLDivElement>(null)
@@ -74,6 +76,35 @@ export function MarkupContextMenu({
         color: COLORS.textPrimary
       }}
     >
+      <button
+        type="button"
+        role="menuitem"
+        onClick={() => {
+          onEdit()
+          onClose()
+        }}
+        style={{
+          width: '100%',
+          height: 28,
+          padding: '4px 8px',
+          background: 'transparent',
+          border: 'none',
+          borderRadius: 4,
+          color: COLORS.textPrimary,
+          fontSize: 13,
+          fontWeight: 400,
+          textAlign: 'left',
+          cursor: 'pointer'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = COLORS.hoverSurface
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent'
+        }}
+      >
+        Edit
+      </button>
       <div style={{ fontSize: 12, fontWeight: 600, color: COLORS.textSecondary }}>
         Recolor group
       </div>

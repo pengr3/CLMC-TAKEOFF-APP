@@ -196,6 +196,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   const hoverTimerRef = useRef<number | null>(null)
   const [tooltipShown, setTooltipShown] = useState(false)
   const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number } | null>(null)
+  const [editPopup, setEditPopup] = useState<{ id: string; x: number; y: number } | null>(null)
 
   const handleHoverEnter = useCallback((id: string, x: number, y: number) => {
     setHoverState({ id, x, y })
@@ -217,6 +218,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   }, [])
 
   const handleContextMenu = useCallback((id: string, x: number, y: number) => {
+    setEditPopup(null) // close any open edit popup before opening context menu
     setContextMenu({ id, x, y })
     // Hide any active tooltip when opening the menu
     setTooltipShown(false)
@@ -241,6 +243,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     setHoverState(null)
     setTooltipShown(false)
     setContextMenu(null)
+    setEditPopup(null)
     if (hoverTimerRef.current !== null) {
       window.clearTimeout(hoverTimerRef.current)
       hoverTimerRef.current = null
@@ -941,7 +944,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         />
       )}
 
-      {/* Right-click context menu — recolor (D-28/D-29) + delete */}
+      {/* Right-click context menu — recolor (D-28/D-29) + delete + edit (D-04) */}
       {contextMenu && contextMarkup && (
         <MarkupContextMenu
           screenPos={{ x: contextMenu.x, y: contextMenu.y }}
@@ -952,9 +955,49 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
           onDelete={() => {
             useMarkupStore.getState().deleteMarkup(contextMarkup.page, contextMarkup.id)
           }}
+          onEdit={() => {
+            const rect = containerRef.current!.getBoundingClientRect()
+            setEditPopup({
+              id: contextMenu.id,
+              x: contextMenu.x - rect.left,
+              y: contextMenu.y - rect.top
+            })
+            setContextMenu(null)
+          }}
           onClose={() => setContextMenu(null)}
         />
       )}
+
+      {/* Edit popup — mount MarkupNamePopup in mode='edit' at container-relative coords (D-04/Landmine 4) */}
+      {editPopup && (() => {
+        const target = pageMarkups.find((m) => m.id === editPopup.id)
+        const cat = target ? useMarkupStore.getState().getCategory(target.categoryId) : null
+        return target ? (
+          <MarkupNamePopup
+            mode="edit"
+            screenPos={{ x: editPopup.x, y: editPopup.y }}
+            containerSize={containerSize}
+            initialName={target.name}
+            initialCategoryName={cat?.name ?? ''}
+            initialColor={target.color}
+            onConfirm={({ name, categoryName, color }) => {
+              const cat2 = useMarkupStore.getState().getCategory(target.categoryId)
+              useMarkupStore.getState().editMarkup(
+                target.id,
+                target.page,
+                target.name,
+                cat2?.name ?? '',
+                target.color,
+                name,
+                categoryName,
+                color
+              )
+              setEditPopup(null)
+            }}
+            onCancel={() => setEditPopup(null)}
+          />
+        ) : null
+      })()}
 
     </div>
   )
