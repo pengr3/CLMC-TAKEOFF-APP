@@ -53,6 +53,17 @@ export type MarkupCommand =
       page?: number
       markupIdsAffected: string[]
     }
+  | {
+      type: 'edit-markup'
+      markupId: string
+      page: number
+      oldName: string
+      oldCategoryName: string
+      oldColor: string
+      newName: string
+      newCategoryName: string
+      newColor: string
+    }
 
 export const CATEGORY_PALETTE = [
   '#0078d4',

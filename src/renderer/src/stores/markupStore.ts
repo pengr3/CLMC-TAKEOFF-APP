@@ -20,6 +20,16 @@ interface MarkupStoreState {
   placeMarkup: (markup: Markup) => void
   deleteMarkup: (page: number, markupId: string) => void
   recolorGroup: (name: string, newColor: string, page?: number) => void
+  editMarkup: (
+    markupId: string,
+    page: number,
+    oldName: string,
+    oldCategoryName: string,
+    oldColor: string,
+    newName: string,
+    newCategoryName: string,
+    newColor: string
+  ) => void
   getColorForName: (name: string, page?: number) => string | null
 
   undo: () => void
@@ -148,6 +158,36 @@ export const useMarkupStore = create<MarkupStoreState>()(
       }
     }),
 
+  editMarkup: (markupId, page, oldName, oldCategoryName, oldColor, newName, newCategoryName, newColor) => {
+    // Resolve category BEFORE entering set() — avoids nested set() calls
+    const newCat = get().getOrCreateCategory(newCategoryName)
+    set((s) => {
+      const pageList = s.pageMarkups[page] ?? []
+      const target = pageList.find((m) => m.id === markupId)
+      if (!target) return s // defensive no-op (mirrors deleteMarkup pattern)
+
+      const updated: Markup = { ...target, name: newName, categoryId: newCat.id, color: newColor }
+      const nextPageList = pageList.map((m) => (m.id === markupId ? updated : m))
+
+      const cmd: MarkupCommand = {
+        type: 'edit-markup',
+        markupId,
+        page,
+        oldName,
+        oldCategoryName,
+        oldColor,
+        newName,
+        newCategoryName,
+        newColor
+      }
+      return {
+        pageMarkups: { ...s.pageMarkups, [page]: nextPageList },
+        undoStack: pushCommand(s.undoStack, cmd),
+        redoStack: []
+      }
+    })
+  },
+
   getColorForName: (name, page) => {
     const pagesToScan =
       page !== undefined ? [page] : Object.keys(get().pageMarkups).map(Number)
@@ -181,6 +221,21 @@ export const useMarkupStore = create<MarkupStoreState>()(
         }
         return {
           pageMarkups: nextPageMarkups,
+          undoStack: s.undoStack.slice(0, -1),
+          redoStack: [...s.redoStack, cmd]
+        }
+      }
+
+      if (cmd.type === 'edit-markup') {
+        const oldCat = get().getOrCreateCategory(cmd.oldCategoryName)
+        const pageList = s.pageMarkups[cmd.page] ?? []
+        const nextList = pageList.map((m) =>
+          m.id === cmd.markupId
+            ? ({ ...m, name: cmd.oldName, categoryId: oldCat.id, color: cmd.oldColor } as Markup)
+            : m
+        )
+        return {
+          pageMarkups: { ...s.pageMarkups, [cmd.page]: nextList },
           undoStack: s.undoStack.slice(0, -1),
           redoStack: [...s.redoStack, cmd]
         }
@@ -220,6 +275,21 @@ export const useMarkupStore = create<MarkupStoreState>()(
         }
         return {
           pageMarkups: nextPageMarkups,
+          undoStack: pushCommand(s.undoStack, cmd),
+          redoStack: s.redoStack.slice(0, -1)
+        }
+      }
+
+      if (cmd.type === 'edit-markup') {
+        const newCat = get().getOrCreateCategory(cmd.newCategoryName)
+        const pageList = s.pageMarkups[cmd.page] ?? []
+        const nextList = pageList.map((m) =>
+          m.id === cmd.markupId
+            ? ({ ...m, name: cmd.newName, categoryId: newCat.id, color: cmd.newColor } as Markup)
+            : m
+        )
+        return {
+          pageMarkups: { ...s.pageMarkups, [cmd.page]: nextList },
           undoStack: pushCommand(s.undoStack, cmd),
           redoStack: s.redoStack.slice(0, -1)
         }
