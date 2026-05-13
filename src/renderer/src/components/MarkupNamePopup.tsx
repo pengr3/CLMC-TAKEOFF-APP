@@ -8,9 +8,10 @@ const POPUP_MIN_WIDTH = 260
 const POPUP_MAX_WIDTH = 320
 
 export interface MarkupNamePopupProps {
-  mode: 'count-pre' | 'save-after'
+  mode: 'count-pre' | 'save-after' | 'edit'
   // 'count-pre': shown when Count tool activates — primary button reads "Start Count"
   // 'save-after': shown after Linear/Area/Perimeter shape drawn — primary button reads "Save Markup"
+  // 'edit': shown when editing an existing markup — primary button reads "Save Changes"
   screenPos: { x: number; y: number }
   containerSize: { width: number; height: number }
   initialName?: string
@@ -57,12 +58,14 @@ export function MarkupNamePopup({
   const [categoryName, setCategoryName] = useState(initialCategoryName)
   const [showCategoryList, setShowCategoryList] = useState(false)
   const [nameError, setNameError] = useState<string | null>(null)
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const nameRef = useRef<HTMLInputElement>(null)
 
   // Subscribe to store for inheritance lookups (primitive + selector pattern — NOT method-invoking selectors;
   // getColorForName is a stable function reference on the store, so subscribing to it is safe)
   const getColorForName = useMarkupStore((s) => s.getColorForName)
   const pageMarkups = useMarkupStore((s) => s.pageMarkups)
+  const findCategoryByName = useMarkupStore((s) => s.findCategoryByName)
 
   const [selectedColor, setSelectedColor] = useState<string>(
     () => initialColor ?? resolveDefaultColor(initialName, getColorForName, pageMarkups)
@@ -91,12 +94,15 @@ export function MarkupNamePopup({
       setNameError('Enter an item name')
       return
     }
+    // D-13 canonical substitution: replace typed category name with store-canonical version
+    const typed = categoryName.trim()
+    const canonical = typed === '' ? '' : (findCategoryByName(typed)?.name ?? typed)
     onConfirm({
       name: trimmedName,
-      categoryName: categoryName.trim(),
+      categoryName: canonical,
       color: selectedColor
     })
-  }, [name, categoryName, selectedColor, onConfirm])
+  }, [name, categoryName, selectedColor, onConfirm, findCategoryByName])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>): void => {
     if (e.key === 'Enter') {
@@ -108,8 +114,42 @@ export function MarkupNamePopup({
     }
   }
 
-  const primaryCta = mode === 'count-pre' ? 'Start Count' : 'Save Markup'
-  const cancelLabel = 'Discard'
+  // D-12 keyboard navigation for category autocomplete list
+  const handleCategoryKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (!showCategoryList) return
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      // optionCount is not directly available here — read from rendered DOM to count options
+      const listbox = document.querySelector('[role="listbox"]')
+      const options = listbox ? listbox.querySelectorAll('[role="option"]').length : 0
+      if (options === 0) return
+      setHighlightedIndex((prev) => (prev + 1) % options)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      const listbox = document.querySelector('[role="listbox"]')
+      const options = listbox ? listbox.querySelectorAll('[role="option"]').length : 0
+      if (options === 0) return
+      setHighlightedIndex((prev) => (prev <= 0 ? options - 1 : prev - 1))
+    } else if (e.key === 'Enter' && highlightedIndex >= 0) {
+      // Landmine 2 mitigation: stop propagation so wrapper div's handleKeyDown doesn't also fire handleConfirm
+      e.preventDefault()
+      e.stopPropagation()
+      // Get the highlighted item's text via data-highlighted attribute
+      const highlighted = document.querySelector('[data-highlighted="true"]') as HTMLElement | null
+      const text = highlighted?.textContent?.trim()
+      if (text) {
+        // Strip "Create new: " prefix if this is the create-new row
+        const selectedName = text.startsWith('Create new: ') ? text.slice('Create new: '.length) : text
+        setCategoryName(selectedName)
+        setShowCategoryList(false)
+        setHighlightedIndex(-1)
+      }
+    }
+  }
+
+  const primaryCta = mode === 'count-pre' ? 'Start Count' : mode === 'edit' ? 'Save Changes' : 'Save Markup'
+  const cancelLabel = mode === 'edit' ? 'Discard Changes' : 'Discard'
 
   const containerStyle: React.CSSProperties = {
     position: 'absolute',
@@ -148,7 +188,7 @@ export function MarkupNamePopup({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={mode === 'count-pre' ? 'Name count item' : 'Save markup'}
+      aria-label={mode === 'count-pre' ? 'Name count item' : mode === 'edit' ? 'Edit markup' : 'Save markup'}
       onKeyDown={handleKeyDown}
       style={containerStyle}
     >
@@ -176,14 +216,17 @@ export function MarkupNamePopup({
           value={categoryName}
           onChange={(e) => { setCategoryName(e.target.value); setShowCategoryList(true) }}
           onFocus={() => setShowCategoryList(true)}
-          onBlur={() => setTimeout(() => setShowCategoryList(false), 120)}
+          onBlur={() => setTimeout(() => { setShowCategoryList(false); setHighlightedIndex(-1) }, 120)}
+          onKeyDown={handleCategoryKeyDown}
           placeholder="e.g. Electrical"
           style={inputStyle}
         />
         {showCategoryList && (
           <CategoryAutocomplete
             query={categoryName}
-            onSelect={(selected) => { setCategoryName(selected); setShowCategoryList(false) }}
+            onSelect={(selected) => { setCategoryName(selected); setShowCategoryList(false); setHighlightedIndex(-1) }}
+            highlightedIndex={highlightedIndex}
+            onHighlightChange={setHighlightedIndex}
           />
         )}
       </div>
@@ -225,7 +268,7 @@ export function MarkupNamePopup({
         </div>
       </div>
 
-      {measurementPreview && (
+      {mode !== 'edit' && measurementPreview && (
         <div
           style={{
             fontWeight: 600,
