@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { COLORS } from '../lib/constants'
 import { computePixelsPerMm, formatScaleRatio, pixelsToRealWorld, MIN_CALIBRATION_PIXELS } from '../lib/scale-math'
 import type { ScaleUnit, PageScale } from '../types/scale'
@@ -42,6 +42,19 @@ export function ScalePopup({
 }: ScalePopupProps): React.JSX.Element {
   const [distanceText, setDistanceText] = useState('')
   const [unit, setUnit] = useState<ScaleUnit>('m')
+  const [unitOpen, setUnitOpen] = useState(false)
+  const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null)
+  const unitButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!unitOpen) return
+    const close = (e: MouseEvent): void => {
+      if (unitButtonRef.current?.contains(e.target as Node)) return
+      setUnitOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [unitOpen])
 
   const parsedDistance = parseFloat(distanceText)
   const isValidDistance = !isNaN(parsedDistance) && parsedDistance > 0
@@ -183,9 +196,15 @@ export function ScalePopup({
               outline: 'none'
             }}
           />
-          <select
-            value={unit}
-            onChange={(e) => setUnit(e.target.value as ScaleUnit)}
+          <button
+            ref={unitButtonRef}
+            type="button"
+            onClick={() => {
+              if (unitButtonRef.current) {
+                setDropdownRect(unitButtonRef.current.getBoundingClientRect())
+              }
+              setUnitOpen((prev) => !prev)
+            }}
             style={{
               height: 28,
               padding: '4px 8px',
@@ -195,15 +214,55 @@ export function ScalePopup({
               color: COLORS.textPrimary,
               fontSize: 13,
               outline: 'none',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              whiteSpace: 'nowrap'
             }}
           >
-            {UNIT_OPTIONS.map((u) => (
-              <option key={u} value={u}>
-                {UNIT_LABELS[u]}
-              </option>
-            ))}
-          </select>
+            {UNIT_LABELS[unit]}
+            <span style={{ fontSize: 10, opacity: 0.7 }}>▾</span>
+          </button>
+          {unitOpen && dropdownRect && (
+            <div
+              onMouseDown={(e) => e.stopPropagation()}
+              style={{
+                position: 'fixed',
+                top: dropdownRect.bottom + 2,
+                left: dropdownRect.left,
+                minWidth: dropdownRect.width,
+                background: COLORS.secondary,
+                border: `1px solid ${COLORS.border}`,
+                borderRadius: 4,
+                zIndex: 9999,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                overflow: 'hidden'
+              }}
+            >
+              {UNIT_OPTIONS.map((u) => (
+                <div
+                  key={u}
+                  onClick={() => { setUnit(u); setUnitOpen(false) }}
+                  style={{
+                    padding: '5px 10px',
+                    color: COLORS.textPrimary,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    background: u === unit ? COLORS.accent : 'transparent'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (u !== unit) e.currentTarget.style.background = COLORS.hoverSurface
+                  }}
+                  onMouseLeave={(e) => {
+                    if (u !== unit) e.currentTarget.style.background = 'transparent'
+                  }}
+                >
+                  {UNIT_LABELS[u]}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
