@@ -222,11 +222,23 @@ Plans:
 **Depends on:** Phase 6.1
 **Plans:** 5 plans
 Plans:
+
+**Wave 0 *(prerequisite — RED stubs + assertion inversions)*:**
 - [ ] 07-00-PLAN.md — Wave 0 RED test stubs: EditMarkupCommand suite, MarkupNamePopup mode='edit' suite, MarkupContextMenu Edit item suite, totals assertion inversions
+
+**Wave 1 *(parallel-safe; blocked on Wave 0)*:**
 - [ ] 07-01-PLAN.md — Wave 1 parallel fixes: canvas gutter (D-02), totals panel cleanup (D-08/D-09), CalibrationDialog dropdown + Discard Scale (D-11)
+
+**Wave 2 *(blocked on Wave 1)*:**
 - [ ] 07-02-PLAN.md — Wave 2 category dedup: CategoryAutocomplete keyboard nav + MarkupNamePopup mode='edit' + D-13 canonical substitution
+
+**Wave 3 *(blocked on Wave 2)*:**
 - [ ] 07-03-PLAN.md — Wave 3 post-commit editing: EditMarkupCommand types + store action + MarkupContextMenu Edit item + CanvasViewport wiring
+
+**Wave 4 *(blocked on Wave 3 — manual UAT and closure)*:**
 - [ ] 07-04-PLAN.md — Wave 4 manual UAT checkpoint and phase closure
+
+**Cross-cutting constraints:** No new libraries or IPC channels (renderer-layer only); `COLORS.*` inline tokens only (no new hex literals, no Tailwind); `EditMarkupCommand` stores old/new category names as strings (not IDs); `getOrCreateCategory` called before `set()` updater; undo/redo explicit `'edit-markup'` branch before `cmd.markup.page` fallthrough; `e.stopPropagation()` on Enter in category input when `highlightedIndex >= 0`; subtract `containerRef.current.getBoundingClientRect()` when converting context-menu coords for popup.
 
 **Success Criteria** (what must be TRUE):
   1. The PDF canvas area fills the full remaining horizontal and vertical space of the window — no blank gutters visible on a standard 1080p monitor at any zoom level
