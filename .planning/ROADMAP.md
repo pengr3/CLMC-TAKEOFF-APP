@@ -230,7 +230,7 @@ Plans:
 - [x] 07-01-PLAN.md — Wave 1 parallel fixes: canvas gutter (D-02), totals panel cleanup (D-08/D-09), CalibrationDialog dropdown + Discard Scale (D-11)
 
 **Wave 2 *(blocked on Wave 1)*:**
-- [ ] 07-02-PLAN.md — Wave 2 category dedup: CategoryAutocomplete keyboard nav + MarkupNamePopup mode='edit' + D-13 canonical substitution
+- [x] 07-02-PLAN.md — Wave 2 category dedup: CategoryAutocomplete keyboard nav + MarkupNamePopup mode='edit' + D-13 canonical substitution
 
 **Wave 3 *(blocked on Wave 2)*:**
 - [ ] 07-03-PLAN.md — Wave 3 post-commit editing: EditMarkupCommand types + store action + MarkupContextMenu Edit item + CanvasViewport wiring
