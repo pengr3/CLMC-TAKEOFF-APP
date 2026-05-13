@@ -233,7 +233,7 @@ Plans:
 - [x] 07-02-PLAN.md — Wave 2 category dedup: CategoryAutocomplete keyboard nav + MarkupNamePopup mode='edit' + D-13 canonical substitution
 
 **Wave 3 *(blocked on Wave 2)*:**
-- [ ] 07-03-PLAN.md — Wave 3 post-commit editing: EditMarkupCommand types + store action + MarkupContextMenu Edit item + CanvasViewport wiring
+- [x] 07-03-PLAN.md — Wave 3 post-commit editing: EditMarkupCommand types + store action + MarkupContextMenu Edit item + CanvasViewport wiring
 
 **Wave 4 *(blocked on Wave 3 — manual UAT and closure)*:**
 - [ ] 07-04-PLAN.md — Wave 4 manual UAT checkpoint and phase closure
