@@ -224,7 +224,16 @@ export function ScalePopup({
             }}
           >
             {UNIT_LABELS[unit]}
-            <span style={{ fontSize: 10, opacity: 0.7 }}>▾</span>
+            <span style={{
+              display: 'inline-block',
+              width: 0,
+              height: 0,
+              borderLeft: '4px solid transparent',
+              borderRight: '4px solid transparent',
+              borderTop: `5px solid ${COLORS.textPrimary}`,
+              opacity: 0.55,
+              flexShrink: 0
+            }} />
           </button>
           {unitOpen && dropdownRect && (
             <div
@@ -274,14 +283,15 @@ export function ScalePopup({
           Line too short — please draw again.
         </div>
       ) : (
-        <div
-          style={{
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 12, color: COLORS.textSecondary }}>Scale</span>
+          <span style={{
             fontWeight: 600,
-            color: previewRatio ? COLORS.accent : COLORS.textSecondary,
-            fontFamily: 'monospace'
-          }}
-        >
-          {previewRatio ? `Scale: ${previewRatio}` : 'Scale: \u2014'}
+            fontSize: 13,
+            color: previewRatio ? COLORS.accent : COLORS.textSecondary
+          }}>
+            {previewRatio ?? '\u2014'}
+          </span>
         </div>
       )}
 
