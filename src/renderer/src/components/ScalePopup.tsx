@@ -3,8 +3,8 @@ import { COLORS } from '../lib/constants'
 import { computePixelsPerMm, formatScaleRatio, pixelsToRealWorld, MIN_CALIBRATION_PIXELS } from '../lib/scale-math'
 import type { ScaleUnit, PageScale } from '../types/scale'
 
-const POPUP_MIN_WIDTH = 220
-const POPUP_MAX_WIDTH = 260
+const POPUP_MIN_WIDTH = 240
+const POPUP_MAX_WIDTH = 280
 
 const UNIT_OPTIONS: ScaleUnit[] = ['mm', 'cm', 'm', 'in', 'ft']
 const UNIT_LABELS: Record<ScaleUnit, string> = {
@@ -73,7 +73,7 @@ export function ScalePopup({
     )
     const top = Math.min(
       Math.max(screenPos.y, 0),
-      containerSize.height - 160
+      containerSize.height - 190
     )
     return { left, top }
   }, [screenPos, containerSize])
@@ -97,7 +97,7 @@ export function ScalePopup({
     top: popupStyle.top,
     minWidth: POPUP_MIN_WIDTH,
     maxWidth: POPUP_MAX_WIDTH,
-    padding: 16,
+    padding: '16px 20px 20px',
     background: COLORS.secondary,
     border: `1px solid ${COLORS.border}`,
     borderRadius: 8,
@@ -105,7 +105,7 @@ export function ScalePopup({
     zIndex: 10,
     display: 'flex',
     flexDirection: 'column',
-    gap: 8,
+    gap: 12,
     fontSize: 13,
     lineHeight: 1.4,
     color: COLORS.textPrimary
@@ -164,17 +164,17 @@ export function ScalePopup({
       onKeyDown={handleKeyDown}
       style={containerStyle}
     >
-      {/* Helper hint */}
-      <div style={{ color: COLORS.textSecondary }}>
-        Enter real-world distance
+      {/* Title */}
+      <div style={{ fontWeight: 700, fontSize: 14, color: COLORS.textPrimary }}>
+        Set Scale
       </div>
 
       {/* Distance input + unit dropdown */}
       <div>
         <label
-          style={{ display: 'block', fontWeight: 600, marginBottom: 4, color: COLORS.textPrimary }}
+          style={{ display: 'block', fontSize: 12, color: COLORS.textSecondary, marginBottom: 6 }}
         >
-          Distance
+          Real-world distance
         </label>
         <div style={{ display: 'flex', gap: 8 }}>
           <input
@@ -186,8 +186,8 @@ export function ScalePopup({
             autoFocus
             style={{
               flex: 1,
-              height: 28,
-              padding: '4px 8px',
+              height: 32,
+              padding: '4px 10px',
               background: COLORS.dominant,
               border: `1px solid ${COLORS.border}`,
               borderRadius: 4,
@@ -206,8 +206,9 @@ export function ScalePopup({
               setUnitOpen((prev) => !prev)
             }}
             style={{
-              height: 28,
-              padding: '4px 8px',
+              height: 32,
+              minWidth: 62,
+              padding: '4px 10px',
               background: COLORS.dominant,
               border: `1px solid ${COLORS.border}`,
               borderRadius: 4,
@@ -217,7 +218,8 @@ export function ScalePopup({
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: 4,
+              justifyContent: 'space-between',
+              gap: 6,
               whiteSpace: 'nowrap'
             }}
           >
@@ -284,13 +286,13 @@ export function ScalePopup({
       )}
 
       {/* Action row */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
         <button
           type="button"
           onClick={onCancel}
           style={{
-            height: 28,
-            padding: '4px 8px',
+            height: 32,
+            padding: '6px 14px',
             background: 'transparent',
             border: `1px solid ${COLORS.border}`,
             borderRadius: 4,
@@ -309,8 +311,8 @@ export function ScalePopup({
           onClick={handleConfirmClick}
           disabled={!canConfirm}
           style={{
-            height: 28,
-            padding: '4px 8px',
+            height: 32,
+            padding: '6px 14px',
             background: canConfirm ? COLORS.accent : COLORS.border,
             border: 'none',
             borderRadius: 4,
