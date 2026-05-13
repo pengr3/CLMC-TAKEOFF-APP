@@ -526,15 +526,14 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     <div
       ref={containerRef}
       style={{
-        width: '100%',
-        height: '100%',
+        position: 'absolute',
+        inset: 0,
         backgroundColor: '#141414',
         backgroundImage:
           'radial-gradient(circle, #1e1e1e 1px, transparent 1px)',
         backgroundSize: '20px 20px',
         overflow: 'hidden',
-        cursor: getCursor(),
-        position: 'relative'
+        cursor: getCursor()
       }}
     >
       <Stage
