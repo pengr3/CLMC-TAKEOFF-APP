@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Complete
-stopped_at: Phase 7 complete (2026-05-13)
-last_updated: "2026-05-13T12:00:00.000Z"
-last_activity: 2026-05-13
+status: In Progress
+stopped_at: Phase 8 context gathered
+last_updated: "2026-05-14T14:05:13.800Z"
+last_activity: 2026-05-14
 progress:
-  total_phases: 10
-  completed_phases: 9
+  total_phases: 11
+  completed_phases: 10
   total_plans: 56
-  completed_plans: 55
-  percent: 90
+  completed_plans: 56
+  percent: 100
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,20 +26,20 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** v1 milestone complete — all phases delivered, all UX fixes shipped
+**Current Focus:** Phase 8 — markup workflow acceleration (chain mode), new wall measurement tool, per-item show/hide toggle, in-app crosshair cursor
 
 ---
 
 ## Current Position
 
-Phase: 07 (canvas-workspace-ux-and-markup-fixes) — COMPLETE
-Plan: 5 of 5 — all plans executed, UAT A–F approved
+Phase: 08 (markup-workflow-and-wall-tool) — NOT PLANNED YET
+Plan: 0 of ? — awaiting `/gsd-discuss-phase 8` then `/gsd-plan-phase 8`
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
-| Phases complete | 10 / 10 |
+| Phases complete | 9 / 11 |
 | Plans complete | 56 |
 | Requirements delivered | 25 / 25 |
 | Session count | 5 |
@@ -178,16 +178,17 @@ None.
 - Phase 03.1 inserted after Phase 3: Markup Gap Closure and Visual Redesign (URGENT) â€” supersedes MARK-08 per-category-color must-have, revises UI-SPEC D-04/D-13 count pin label format, closes 4 bugs surfaced in Plan 03-05 human verification (spacebar blocked in text inputs, Linear/Area label legibility, stale currentZoom after zoom)
 - Phase 06.1 inserted after Phase 6: Remove Left Thumbnail Strip Panel â€” navigation arrows cover page switching, panel wastes horizontal space (URGENT)
 - Phase 7 added: Canvas Workspace UX and Markup Editing Fixes — five live-use delinquencies: full-screen canvas, post-commit markup editing, totals panel redesign, Set Scale modal overflow fix, smart category deduplication (completed 2026-05-13)
+- Phase 8 added (2026-05-14): Markup Workflow Acceleration and Wall Measurement Tool — bundles four post-v1 enhancements into a single phase: (1) per-item show/hide visibility toggle in the live totals panel, (2) continuous chain markup mode that keeps name/category/color armed across successive placements, (3) in-app crosshair cursor over the canvas, (4) new wall-area measurement tool (linear length × user-input wall height) reusing the chain pattern from item 2. v1.0 milestone reopened beyond original 25-requirement scope per user decision (chose "Extend v1.0 with Phase 8" over starting v1.1). Open design decisions reserved for `/gsd-discuss-phase 8`: chain-break trigger + visual affordance, varying-ceiling-height strategy, crosshair styling, visibility-state persistence scope.
 
 ## Session Continuity
 
-**Last activity:** 2026-05-13
+**Last activity:** 2026-05-14
 
-**Last session:** 2026-05-13T12:00:00.000Z
+**Last session:** 2026-05-14T14:05:13.791Z
 
-**Stopped at:** Phase 7 complete (2026-05-13) — v1 fully shipped
+**Stopped at:** Phase 8 context gathered
 
-**Next action:** All v1 phases complete. Consider `/gsd-new-milestone` to start v1.1 or run `/gsd-complete-milestone` to archive.
+**Next action:** Run `/gsd-discuss-phase 8` to resolve open design questions (chain-break trigger, varying ceiling height, crosshair styling, visibility persistence), then `/gsd-plan-phase 8`.
 
 ---
 *State initialized: 2026-03-25*
