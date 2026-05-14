@@ -84,7 +84,7 @@ describe('project-serialize', () => {
     expect(json).not.toMatch(/"activeTool"/)
   })
 
-  it('hydrate round-trip: snapshot -> JSON.stringify -> JSON.parse -> hydrate reproduces store state', () => {
+  it('hydrate round-trip: snapshot -> JSON.stringify -> JSON.parse -> hydrate reproduces markup + scale state', () => {
     const snap = snapshotProject({
       pdfOriginalFilename: 'plans.pdf',
       pdfSha256: 'abc',
@@ -105,7 +105,36 @@ describe('project-serialize', () => {
     hydrateStores(JSON.parse(text))
     expect(useMarkupStore.getState().pageMarkups[1][0].id).toBe('m1')
     expect(useScaleStore.getState().pageScales[1].pixelsPerMm).toBe(5)
-    expect(useViewerStore.getState().pageViewports[1].zoom).toBe(1.5)
+  })
+
+  it('hydrate intentionally DROPS pageViewports — every page refits to current canvas on open (see debug/pdf-not-fitting-on-open)', () => {
+    const snap = snapshotProject({
+      pdfOriginalFilename: 'plans.pdf',
+      pdfSha256: 'abc',
+      pdfTotalPages: 1,
+      perPageDimensions: { 1: { width: 595, height: 842 } }
+    })
+    // Snapshot still WRITES viewport (preserves forward compatibility / file format)
+    expect(snap.pages[0].viewport).toEqual({ zoom: 1.5, panX: 10, panY: 20 })
+
+    // Wipe state to a clean baseline
+    useMarkupStore.setState({
+      pageMarkups: {},
+      categories: {},
+      categoryOrder: [],
+      undoStack: [],
+      redoStack: []
+    })
+    useScaleStore.setState({ pageScales: {}, globalUnit: 'm', calibMode: 'idle' })
+    useViewerStore.setState({ currentPage: 1, pageViewports: {}, activeTool: 'select' })
+
+    hydrateStores(JSON.parse(JSON.stringify(snap)))
+
+    // Contract: pageViewports is NOT restored; CanvasViewport will auto-fit each
+    // page on first display against the current canvas size. This is intentional
+    // — saved viewports are absolute pixel transforms that don't survive a
+    // monitor / window-size change.
+    expect(useViewerStore.getState().pageViewports).toEqual({})
   })
 
   it('hydrate clears undo/redo stacks', () => {
