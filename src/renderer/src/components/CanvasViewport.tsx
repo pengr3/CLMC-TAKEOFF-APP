@@ -74,7 +74,30 @@ export interface CanvasViewportProps {
 export function CanvasViewport(props: CanvasViewportProps = {}) {
   const stageRef = useRef<Konva.Stage>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const resizeObserverRef = useRef<ResizeObserver | null>(null)
   const [containerSize, setContainerSize] = useState({ width: 800, height: 600 })
+
+  // Callback ref: attaches ResizeObserver whenever the div mounts. The early
+  // return at the bottom of this component (when displayCanvas is null) means
+  // the div may be null on first render and only mount after the PDF rasterizes.
+  // A useEffect with [] deps would run once at first mount (ref null) and never
+  // re-run, leaving containerSize stuck at the 800x600 default. Callback refs
+  // fire on every mount/unmount, so this catches the post-rasterize mount.
+  const containerCallbackRef = useCallback((el: HTMLDivElement | null) => {
+    containerRef.current = el
+    if (resizeObserverRef.current) {
+      resizeObserverRef.current.disconnect()
+      resizeObserverRef.current = null
+    }
+    if (el) {
+      const observer = new ResizeObserver((entries) => {
+        const { width, height } = entries[0].contentRect
+        setContainerSize({ width: Math.floor(width), height: Math.floor(height) })
+      })
+      observer.observe(el)
+      resizeObserverRef.current = observer
+    }
+  }, [])
   const { pageCanvas, pageSize } = usePdfRenderer()
 
   // Keep a ref to the last valid render so we never flash blank during transitions
@@ -105,18 +128,6 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   const pageScale = useScaleStore((s) => s.pageScales[currentPage] ?? null)
   const setScale = useScaleStore((s) => s.setScale)
   const calibMode = useScaleStore((s) => s.calibMode)
-
-  // Observe container resize
-  useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-    const observer = new ResizeObserver((entries) => {
-      const { width, height } = entries[0].contentRect
-      setContainerSize({ width: Math.floor(width), height: Math.floor(height) })
-    })
-    observer.observe(container)
-    return () => observer.disconnect()
-  }, [])
 
   // Calculate fit-to-window scale (must be defined before useViewportControls uses it)
   const calculateFitScale = useCallback(() => {
@@ -527,7 +538,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
 
   return (
     <div
-      ref={containerRef}
+      ref={containerCallbackRef}
       style={{
         position: 'absolute',
         inset: 0,
