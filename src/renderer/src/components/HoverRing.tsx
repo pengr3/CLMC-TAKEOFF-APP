@@ -79,6 +79,21 @@ export function HoverRing({ markups, currentZoom }: HoverRingProps): React.JSX.E
             />
           )
         }
+        // wall — open polyline (same shape as linear, NOT closed like area/perimeter).
+        if (m.type === 'wall') {
+          return (
+            <Line
+              key={m.id}
+              points={m.points.flatMap((p) => [p.x, p.y])}
+              stroke={RING_COLOR}
+              strokeWidth={stroke + offset * 2}
+              opacity={RING_OPACITY}
+              lineCap="round"
+              lineJoin="round"
+              listening={false}
+            />
+          )
+        }
         // area + perimeter — closed polygon outline (close by appending the
         // first point so Konva renders the closing segment).
         const closing = [...m.points, m.points[0]]

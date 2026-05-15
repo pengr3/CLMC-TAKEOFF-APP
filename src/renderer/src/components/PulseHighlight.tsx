@@ -119,6 +119,21 @@ export function PulseHighlight({
             />
           )
         }
+        // wall — open polyline (same shape as linear, NOT closed like area/perimeter).
+        if (m.type === 'wall') {
+          return (
+            <Line
+              key={m.id}
+              points={m.points.flatMap((p) => [p.x, p.y])}
+              stroke={color}
+              strokeWidth={stroke}
+              opacity={opacity}
+              lineCap="round"
+              lineJoin="round"
+              listening={false}
+            />
+          )
+        }
         // area + perimeter — close the polygon by appending the first point.
         const closing = [...m.points, m.points[0]]
         return (
