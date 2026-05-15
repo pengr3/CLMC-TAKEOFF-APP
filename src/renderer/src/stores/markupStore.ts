@@ -28,7 +28,9 @@ interface MarkupStoreState {
     oldColor: string,
     newName: string,
     newCategoryName: string,
-    newColor: string
+    newColor: string,
+    oldWallHeight?: number,
+    newWallHeight?: number
   ) => void
   getColorForName: (name: string, page?: number) => string | null
 
@@ -158,7 +160,7 @@ export const useMarkupStore = create<MarkupStoreState>()(
       }
     }),
 
-  editMarkup: (markupId, page, oldName, oldCategoryName, oldColor, newName, newCategoryName, newColor) => {
+  editMarkup: (markupId, page, oldName, oldCategoryName, oldColor, newName, newCategoryName, newColor, oldWallHeight?, newWallHeight?) => {
     // Resolve category BEFORE entering set() — avoids nested set() calls
     const newCat = get().getOrCreateCategory(newCategoryName)
     set((s) => {
@@ -166,7 +168,13 @@ export const useMarkupStore = create<MarkupStoreState>()(
       const target = pageList.find((m) => m.id === markupId)
       if (!target) return s // defensive no-op (mirrors deleteMarkup pattern)
 
-      const updated: Markup = { ...target, name: newName, categoryId: newCat.id, color: newColor }
+      const updated: Markup = {
+        ...target,
+        name: newName,
+        categoryId: newCat.id,
+        color: newColor,
+        ...(newWallHeight !== undefined ? { wallHeight: newWallHeight } : {})
+      }
       const nextPageList = pageList.map((m) => (m.id === markupId ? updated : m))
 
       const cmd: MarkupCommand = {
@@ -178,7 +186,8 @@ export const useMarkupStore = create<MarkupStoreState>()(
         oldColor,
         newName,
         newCategoryName,
-        newColor
+        newColor,
+        ...(oldWallHeight !== undefined ? { oldWallHeight, newWallHeight } : {})
       }
       return {
         pageMarkups: { ...s.pageMarkups, [page]: nextPageList },
@@ -231,7 +240,13 @@ export const useMarkupStore = create<MarkupStoreState>()(
         const pageList = s.pageMarkups[cmd.page] ?? []
         const nextList = pageList.map((m) =>
           m.id === cmd.markupId
-            ? ({ ...m, name: cmd.oldName, categoryId: oldCat.id, color: cmd.oldColor } as Markup)
+            ? ({
+                ...m,
+                name: cmd.oldName,
+                categoryId: oldCat.id,
+                color: cmd.oldColor,
+                ...(cmd.oldWallHeight !== undefined ? { wallHeight: cmd.oldWallHeight } : {})
+              } as Markup)
             : m
         )
         return {
@@ -285,7 +300,13 @@ export const useMarkupStore = create<MarkupStoreState>()(
         const pageList = s.pageMarkups[cmd.page] ?? []
         const nextList = pageList.map((m) =>
           m.id === cmd.markupId
-            ? ({ ...m, name: cmd.newName, categoryId: newCat.id, color: cmd.newColor } as Markup)
+            ? ({
+                ...m,
+                name: cmd.newName,
+                categoryId: newCat.id,
+                color: cmd.newColor,
+                ...(cmd.newWallHeight !== undefined ? { wallHeight: cmd.newWallHeight } : {})
+              } as Markup)
             : m
         )
         return {
