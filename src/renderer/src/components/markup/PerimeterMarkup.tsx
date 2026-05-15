@@ -8,6 +8,7 @@ import {
   pixelAreaToReal,
   pixelLengthToReal
 } from '../../lib/markup-math'
+import { useProjectStore } from '../../stores/projectStore'
 
 export interface PerimeterMarkupProps {
   markup: PerimeterMarkupType
@@ -42,7 +43,10 @@ export function PerimeterMarkup({
   onHoverEnter,
   onHoverLeave,
   onContextMenu
-}: PerimeterMarkupProps): React.JSX.Element {
+}: PerimeterMarkupProps): React.JSX.Element | null {
+  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(markup.name))
+  if (isHidden) return null
+
   const strokeWidth = STROKE_BASE_PX / currentZoom
 
   const flatPoints = markup.points.flatMap((p) => [p.x, p.y])

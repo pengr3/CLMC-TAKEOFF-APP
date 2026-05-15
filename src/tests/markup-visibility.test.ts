@@ -81,15 +81,14 @@ function mount(element: React.ReactElement): MountResult {
 beforeEach(() => {
   useMarkupStore.setState({ pageMarkups: {}, categories: {}, categoryOrder: [], undoStack: [], redoStack: [] })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ;(useProjectStore as any).setState({ currentFilePath: null, isDirty: false, isSaving: false, isExporting: false, lastSavedAt: null, hiddenItemNames: [] })
+  ;(useProjectStore as any).setState({ currentFilePath: null, isDirty: false, isSaving: false, isExporting: false, lastSavedAt: null, hiddenItemNames: [], hiddenItemSet: new Set<string>() })
   document.body.innerHTML = ''
 })
 
 describe('markup renderers — hidden-item skip', () => {
   it('CountPinMarkup returns null when markup.name is in hiddenItemNames', () => {
-    // MUST FAIL — hidden-item skip not yet implemented in CountPinMarkup
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(useProjectStore as any).setState({ hiddenItemNames: ['Hidden'] })
+    ;(useProjectStore as any).setState({ hiddenItemNames: ['Hidden'], hiddenItemSet: new Set(['Hidden']) })
 
     const { container, unmount } = mount(
       React.createElement(CountPinMarkup, { ...commonProps, markup: makeCount('Hidden') })
@@ -101,9 +100,8 @@ describe('markup renderers — hidden-item skip', () => {
   })
 
   it('LinearMarkup returns null when hidden', () => {
-    // MUST FAIL — hidden-item skip not yet implemented in LinearMarkup
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(useProjectStore as any).setState({ hiddenItemNames: ['Hidden'] })
+    ;(useProjectStore as any).setState({ hiddenItemNames: ['Hidden'], hiddenItemSet: new Set(['Hidden']) })
 
     const { container, unmount } = mount(
       React.createElement(LinearMarkup, { ...commonProps, markup: makeLinear('Hidden') })
@@ -114,9 +112,8 @@ describe('markup renderers — hidden-item skip', () => {
   })
 
   it('AreaMarkup returns null when hidden', () => {
-    // MUST FAIL — hidden-item skip not yet implemented in AreaMarkup
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(useProjectStore as any).setState({ hiddenItemNames: ['Hidden'] })
+    ;(useProjectStore as any).setState({ hiddenItemNames: ['Hidden'], hiddenItemSet: new Set(['Hidden']) })
 
     const { container, unmount } = mount(
       React.createElement(AreaMarkup, { ...commonProps, markup: makeArea('Hidden') })
@@ -127,9 +124,8 @@ describe('markup renderers — hidden-item skip', () => {
   })
 
   it('PerimeterMarkup returns null when hidden', () => {
-    // MUST FAIL — hidden-item skip not yet implemented in PerimeterMarkup
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(useProjectStore as any).setState({ hiddenItemNames: ['Hidden'] })
+    ;(useProjectStore as any).setState({ hiddenItemNames: ['Hidden'], hiddenItemSet: new Set(['Hidden']) })
 
     const { container, unmount } = mount(
       React.createElement(PerimeterMarkup, { ...commonProps, markup: makePerimeter('Hidden') })

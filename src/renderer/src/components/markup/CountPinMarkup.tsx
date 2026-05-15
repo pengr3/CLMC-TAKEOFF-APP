@@ -1,6 +1,7 @@
 import { Circle, Text, Group } from 'react-konva'
 import type { CountMarkup, Category } from '../../types/markup'
 import { getContrastingInk } from '../../lib/color-utils'
+import { useProjectStore } from '../../stores/projectStore'
 
 export interface CountPinMarkupProps {
   markup: CountMarkup
@@ -33,7 +34,10 @@ export function CountPinMarkup({
   onHoverEnter,
   onHoverLeave,
   onContextMenu
-}: CountPinMarkupProps): React.JSX.Element {
+}: CountPinMarkupProps): React.JSX.Element | null {
+  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(markup.name))
+  if (isHidden) return null
+
   const fill = markup.color
   const ink = getContrastingInk(fill)
   const label = String(markup.sequence)

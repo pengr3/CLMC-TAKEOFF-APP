@@ -6,6 +6,7 @@ import {
   pixelLengthToReal,
   polylineMidpointByArcLength
 } from '../../lib/markup-math'
+import { useProjectStore } from '../../stores/projectStore'
 
 export interface LinearMarkupProps {
   markup: LinearMarkupType
@@ -47,7 +48,10 @@ export function LinearMarkup({
   onHoverEnter,
   onHoverLeave,
   onContextMenu
-}: LinearMarkupProps): React.JSX.Element {
+}: LinearMarkupProps): React.JSX.Element | null {
+  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(markup.name))
+  if (isHidden) return null
+
   const strokeWidth = STROKE_BASE_PX / currentZoom
 
   const flatPoints = markup.points.flatMap((p) => [p.x, p.y])

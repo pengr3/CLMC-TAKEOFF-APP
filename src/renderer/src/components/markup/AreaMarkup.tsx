@@ -2,6 +2,7 @@ import { Line, Text, Rect, Group } from 'react-konva'
 import type { AreaMarkup as AreaMarkupType, Category } from '../../types/markup'
 import type { PageScale } from '../../types/scale'
 import { polygonArea, polygonCentroid, pixelAreaToReal } from '../../lib/markup-math'
+import { useProjectStore } from '../../stores/projectStore'
 
 export interface AreaMarkupProps {
   markup: AreaMarkupType
@@ -35,7 +36,10 @@ export function AreaMarkup({
   onHoverEnter,
   onHoverLeave,
   onContextMenu
-}: AreaMarkupProps): React.JSX.Element {
+}: AreaMarkupProps): React.JSX.Element | null {
+  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(markup.name))
+  if (isHidden) return null
+
   const strokeWidth = STROKE_BASE_PX / currentZoom
 
   const flatPoints = markup.points.flatMap((p) => [p.x, p.y])
