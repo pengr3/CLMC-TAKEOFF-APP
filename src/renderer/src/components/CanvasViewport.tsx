@@ -1073,7 +1073,9 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
             initialName={target.name}
             initialCategoryName={cat?.name ?? ''}
             initialColor={target.color}
-            onConfirm={({ name, categoryName, color }) => {
+            toolType={target.type as 'count' | 'linear' | 'area' | 'perimeter' | 'wall'}
+            initialWallHeight={target.type === 'wall' ? (target as WallMarkupType).wallHeight : undefined}
+            onConfirm={({ name, categoryName, color, wallHeight }) => {
               const cat2 = useMarkupStore.getState().getCategory(target.categoryId)
               useMarkupStore.getState().editMarkup(
                 target.id,
@@ -1083,7 +1085,9 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                 target.color,
                 name,
                 categoryName,
-                color
+                color,
+                target.type === 'wall' ? (target as WallMarkupType).wallHeight : undefined,
+                target.type === 'wall' ? wallHeight : undefined
               )
               setEditPopup(null)
             }}
