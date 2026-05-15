@@ -247,6 +247,38 @@ Plans:
   4. The Set Scale modal unit dropdown fits entirely within the modal frame at all standard window sizes
   5. When typing a category name during markup placement, existing categories are shown as suggestions — selecting a suggestion prevents typo-based duplicates and the input matches existing names exactly
 
+### Phase 8: Markup Workflow Acceleration and Wall Measurement Tool
+
+**Goal:** Four independent post-v1 enhancements that together accelerate placement and decluttering of the live takeoff: (1) continuous chain markup mode for all five tools, (2) new wall area measurement tool (length × height in m²), (3) per-item show/hide visibility toggle in the totals panel, (4) in-app crosshair cursor over the canvas.
+**Depends on:** Phase 7
+**Requirements:** No new v1 requirements (quality-of-life enhancements)
+**Success Criteria** (what must be TRUE):
+  1. After committing a markup, the active tool stays armed with the same name/category/color — successive placements don't re-prompt. Esc or re-clicking the tool button breaks the chain.
+  2. A "Wall" tool button is in the toolbar. User draws a polyline, enters wall height (mm), and the result appears in the totals panel as a m² quantity (length × height). Wall markups export to BOQ as a m² row.
+  3. Each item row in the totals panel has a Lightbulb/LightbulbOff icon. Clicking it hides/shows that item's markups on the canvas without affecting totals quantities or BOQ export. Hidden state persists in the .clmc project file.
+  4. A rifle-scope crosshair cursor (white crossed lines, gap at center) replaces the OS cursor over the canvas whenever a markup or scale tool is active.
+**Plans**: 8 plans in 5 waves
+
+**Wave 0 *(prerequisite — RED test stubs + type extensions)*:**
+- [ ] 08-00-PLAN.md — Type extensions (`markup.ts` WallMarkup + MarkupCommand wall fields, `viewer.ts` isMarkupTool + ActiveTool, `boq-types.ts` + `boq-writers.ts` inline dup `'wall'`) + 6 RED test stubs
+
+**Wave 1 *(parallel-safe; both blocked on Wave 0 — foundation)*:**
+- [ ] 08-01-PLAN.md — Chain mode refactor: `useMarkupTool.ts` chainArmed + pendingWallHeight + partial post-commit reset; `CanvasViewport.tsx` `getChainArmedItem()` module-ref
+- [ ] 08-02-PLAN.md — Schema + projectStore: `project-schema.ts` additive `hiddenItemNames?: string[]` (no formatVersion bump), `projectStore.ts` `toggleHiddenItem` + markDirty, serialize/hydrate
+
+**Wave 2 *(parallel-safe; both blocked on Wave 0 — wall core)*:**
+- [ ] 08-03-PLAN.md — Wall math + BOQ pipeline + markupStore wall support: `markup-math.ts` wallAreaM2, `boq-aggregator.ts` wall branch, `markupStore.ts` editMarkup wallHeight extension
+- [ ] 08-04-PLAN.md — Wall renderer + popup: `WallMarkup.tsx` (new, 2.5× stroke + parallel hairline, zoom-compensated, m² label), `MarkupNamePopup.tsx` conditional wall-height row
+
+**Wave 3 *(parallel-safe; both blocked on Waves 1 + 2 — UI integration)*:**
+- [ ] 08-05-PLAN.md — Toolbar BrickWall button + chain badge chips + crosshair cursor + CanvasViewport wall wiring
+- [ ] 08-06-PLAN.md — Visibility toggle UI: TotalsRow Lightbulb slot (e.stopPropagation) + skip-render in all 5 markup renderers + HoverRing/PulseHighlight review
+
+**Wave 4 *(blocked on Wave 3 — manual UAT and closure)*:**
+- [ ] 08-07-PLAN.md — Manual UAT (10 scenarios: wall tool, chain mode, show/hide, crosshair, persist) + ROADMAP/STATE closure
+
+**Cross-cutting constraints:** Zoom-compensated stroke widths (`/ currentZoom`) on all Konva shapes in WallMarkup (Pitfall 2); stateRef snapshot in commitShape wall branch (Pitfall 3); `e.stopPropagation()` on Lightbulb click (Pitfall 9); `boq-types.ts` + `boq-writers.ts` inline dup updated in lockstep in Wave 0 (Pitfall 10); `markDirty()` called explicitly in `toggleHiddenItem` (Pitfall 4); no formatVersion bump for additive `hiddenItemNames` field (Pitfall 11 note); COLORS tokens + inline styles only (no Tailwind in panel/canvas path).
+
 ---
 
 ## Progress
@@ -263,6 +295,7 @@ Plans:
 | 6. Live View and UI Polish | 9/9 | Complete | 2026-05-12 |
 | 6.1. Remove Left Thumbnail Strip Panel | 1/1 | Complete   | 2026-05-12 |
 | 7. Canvas Workspace UX and Markup Editing Fixes | 5/5 | Complete | 2026-05-13 |
+| 8. Markup Workflow Acceleration and Wall Measurement Tool | 0/8 | Planned | — |
 
 ---
 
