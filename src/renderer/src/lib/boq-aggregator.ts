@@ -7,7 +7,7 @@ import type {
   BoqCategoryGroup,
   AggregateOptions
 } from './boq-types'
-import type { AreaMarkup, LinearMarkup, PerimeterMarkup } from '../types/markup'
+import type { AreaMarkup, LinearMarkup, PerimeterMarkup, WallMarkup } from '../types/markup'
 import { polylineLength, polygonArea, pixelLengthToReal, pixelAreaToReal } from './markup-math'
 import { useMarkupStore } from '../stores/markupStore'
 import { useScaleStore } from '../stores/scaleStore'
@@ -35,6 +35,7 @@ function stripExt(s: string): string {
 function uomFor(t: BoqRowType, globalUnit: string): string {
   if (t === 'count') return 'ea'
   if (t === 'linear' || t === 'perimeter-length') return globalUnit
+  if (t === 'wall') return 'm²' // D-12: walls always produce m² regardless of project globalUnit
   return globalUnit + '²' // U+00B2 SUPERSCRIPT TWO — 'm²', 'ft²', etc.
 }
 
@@ -64,7 +65,7 @@ export function findUncalibratedMarkupPages(
     if (pageScales[p]) continue
     const list = pageMarkups[p] ?? []
     const hasMeasurement = list.some(
-      (m) => m.type === 'linear' || m.type === 'area' || m.type === 'perimeter'
+      (m) => m.type === 'linear' || m.type === 'area' || m.type === 'perimeter' || m.type === 'wall'
     )
     if (hasMeasurement) out.push(p)
   }
@@ -147,6 +148,15 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
         const pxA = polygonArea(pts)
         const realA = pixelAreaToReal(pxA, scale.pixelsPerMm, globalUnit)
         add(catId, m.name, 'perimeter-area', realA)
+      } else if (m.type === 'wall') {
+        // scale === null already filtered upstream (if (scale === null) continue above)
+        const wallM = m as WallMarkup
+        // Defensive guard — popup validates, but crafted .clmc could have 0/negative wallHeight
+        if (wallM.wallHeight <= 0) continue
+        const pixelLen = polylineLength(wallM.points)
+        const lengthM = pixelLen / scale.pixelsPerMm / 1000 // px → mm → m
+        const heightM = wallM.wallHeight / 1000
+        add(catId, m.name, 'wall', lengthM * heightM)
       }
     }
   }
