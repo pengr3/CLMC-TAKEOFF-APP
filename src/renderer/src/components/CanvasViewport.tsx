@@ -19,6 +19,7 @@ import { CountPinMarkup } from './markup/CountPinMarkup'
 import { LinearMarkup } from './markup/LinearMarkup'
 import { AreaMarkup } from './markup/AreaMarkup'
 import { PerimeterMarkup } from './markup/PerimeterMarkup'
+import { WallMarkup } from './WallMarkup'
 import { HoverRing } from './HoverRing'
 import { PulseHighlight } from './PulseHighlight'
 import { COLORS } from '../lib/constants'
@@ -32,7 +33,7 @@ import {
 } from '../lib/markup-math'
 import { isMarkupTool } from '../types/viewer'
 import type { ScaleUnit } from '../types/scale'
-import type { Markup, CountMarkup, LinearMarkup as LinearMarkupType, AreaMarkup as AreaMarkupType, PerimeterMarkup as PerimeterMarkupType } from '../types/markup'
+import type { Markup, CountMarkup, LinearMarkup as LinearMarkupType, AreaMarkup as AreaMarkupType, PerimeterMarkup as PerimeterMarkupType, WallMarkup as WallMarkupType } from '../types/markup'
 
 // Stable empty-array reference for the pageMarkups selector fallback.
 // A fresh `[]` literal inside a Zustand selector breaks useSyncExternalStore's
@@ -61,6 +62,34 @@ export function getCalibrationControls() {
   return _calibrationControls
 }
 
+// Module-level ref for chain-armed item (consumed by Toolbar via getChainArmedItem)
+let _chainArmedItem: { name: string; color: string } | null = null
+
+export function getChainArmedItem(): { name: string; color: string } | null {
+  return _chainArmedItem
+}
+
+// Crosshair SVG data-URL cursor with 4px center gap per D-17.
+// Computed ONCE at module load — never inside a component render path.
+// 8 line elements: 4 black outline (stroke-width 3) + 4 white foreground (stroke-width 1.5).
+// Horizontal arms: (0,12)→(10,12) and (14,12)→(24,12)
+// Vertical arms:   (12,0)→(12,10) and (12,14)→(12,24)
+// encodeURIComponent is mandatory (Pitfall 8) — single quotes inside SVG avoid
+// double-quote conflicts with the outer url("...") CSS value.
+const CROSSHAIR_CURSOR: string = (() => {
+  const svg =
+    `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'>` +
+    `<line x1='0' y1='12' x2='10' y2='12' stroke='black' stroke-width='3'/>` +
+    `<line x1='14' y1='12' x2='24' y2='12' stroke='black' stroke-width='3'/>` +
+    `<line x1='12' y1='0' x2='12' y2='10' stroke='black' stroke-width='3'/>` +
+    `<line x1='12' y1='14' x2='12' y2='24' stroke='black' stroke-width='3'/>` +
+    `<line x1='0' y1='12' x2='10' y2='12' stroke='white' stroke-width='1.5'/>` +
+    `<line x1='14' y1='12' x2='24' y2='12' stroke='white' stroke-width='1.5'/>` +
+    `<line x1='12' y1='0' x2='12' y2='10' stroke='white' stroke-width='1.5'/>` +
+    `<line x1='12' y1='14' x2='12' y2='24' stroke='white' stroke-width='1.5'/>` +
+    `</svg>`
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}") 12 12, crosshair`
+})()
 
 export interface CanvasViewportProps {
   /** Phase 6 D-11: markups to show a steady white outer ring on (from TotalsRow hover). */
@@ -378,6 +407,13 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     }
   }, [activate, activateVerify, cancel])
 
+  // Populate _chainArmedItem so Toolbar can render the chain badge chip without prop drilling
+  useEffect(() => {
+    _chainArmedItem = (markupState.chainArmed && markupState.pendingName)
+      ? { name: markupState.pendingName, color: markupState.pendingColor }
+      : null
+  }, [markupState.chainArmed, markupState.pendingName, markupState.pendingColor])
+
   // Keyboard shortcuts
   // Note: openProject, saveProject, saveProjectAs are wired in App.tsx (Plan 04-04 Task 3).
   // CanvasViewport passes no-op stubs here to satisfy the updated interface; App.tsx
@@ -447,10 +483,10 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     [calibState.mode, calibState.startPoint, markupState.mode, markupState.points.length, stageRef, updatePreview, updateMarkupPreview]
   )
 
-  // Handle Stage dblclick — finish linear polyline
+  // Handle Stage dblclick — finish linear or wall polyline (both are open polylines)
   const handleStageDblClick = useCallback(
     (_e: Konva.KonvaEventObject<MouseEvent>) => {
-      if (markupState.toolType === 'linear' && markupState.mode === 'drawing') {
+      if ((markupState.toolType === 'linear' || markupState.toolType === 'wall') && markupState.mode === 'drawing') {
         finishLinear()
       }
     },
@@ -463,7 +499,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // Otherwise default.
   const getCursor = (): string => {
     if (spaceHeld) return 'grab'
-    if (calibMode !== 'idle') return 'crosshair'
+    if (calibMode !== 'idle') return CROSSHAIR_CURSOR
     if (
       (markupState.toolType === 'area' || markupState.toolType === 'perimeter') &&
       markupState.mode === 'drawing' &&
@@ -472,8 +508,8 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     ) {
       return 'pointer'
     }
-    if (markupState.mode === 'drawing') return 'crosshair'
-    if (markupState.toolType === 'count' && markupState.mode === 'placing') return 'crosshair'
+    if (markupState.mode === 'drawing') return CROSSHAIR_CURSOR
+    if (markupState.toolType === 'count' && markupState.mode === 'placing') return CROSSHAIR_CURSOR
     return 'default'
   }
 
@@ -612,8 +648,8 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
           {/* Faint reference line for previously calibrated pages — only from legacy viewerStore */}
           {/* (new scaleStore doesn't persist line points; reference line deferred to Phase 4) */}
 
-          {/* In-progress linear preview */}
-          {markupState.toolType === 'linear' &&
+          {/* In-progress linear/wall preview — wall reuses linear preview (both are open polylines) */}
+          {(markupState.toolType === 'linear' || markupState.toolType === 'wall') &&
             markupState.mode === 'drawing' &&
             markupState.points.length > 0 && (
               <>
@@ -722,6 +758,24 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
               <PerimeterMarkup
                 key={m.id}
                 markup={m as PerimeterMarkupType}
+                category={category}
+                currentZoom={currentZoom}
+                pageScale={pageScale}
+                onHoverEnter={handleHoverEnter}
+                onHoverLeave={handleHoverLeave}
+                onContextMenu={handleContextMenu}
+              />
+            )
+          })}
+
+          {/* Committed wall markups */}
+          {pageMarkups.filter((m) => m.type === 'wall').map((m) => {
+            const category = getCategory(m.categoryId)
+            if (!category) return null
+            return (
+              <WallMarkup
+                key={m.id}
+                markup={m as WallMarkupType}
                 category={category}
                 currentZoom={currentZoom}
                 pageScale={pageScale}
@@ -857,12 +911,14 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
           />
         )}
 
-      {/* Linear/Area/Perimeter — save popup shown after shape is drawn (save-after mode) */}
+      {/* Linear/Area/Perimeter/Wall — save popup shown after shape is drawn (save-after mode) */}
       {markupState.mode === 'confirming' && markupState.popupScreenPos && (
         <MarkupNamePopup
           mode="save-after"
           screenPos={markupState.popupScreenPos}
           containerSize={containerSize}
+          toolType={markupState.toolType ?? undefined}
+          initialWallHeight={markupState.toolType === 'wall' ? markupState.pendingWallHeight : undefined}
           onConfirm={commitShape}
           onCancel={() => {
             cancelMarkup()
