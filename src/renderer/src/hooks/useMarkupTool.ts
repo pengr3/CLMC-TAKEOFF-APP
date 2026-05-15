@@ -3,7 +3,7 @@ import Konva from 'konva'
 import type { StagePoint } from './useCalibrationMode'
 import { useMarkupStore } from '../stores/markupStore'
 import { useViewerStore } from '../stores/viewerStore'
-import type { CountMarkup, LinearMarkup, AreaMarkup, PerimeterMarkup } from '../types/markup'
+import type { CountMarkup, LinearMarkup, AreaMarkup, PerimeterMarkup, WallMarkup } from '../types/markup'
 import { polygonCentroid } from '../lib/markup-math'
 import { MARKUP_PALETTE } from '../lib/markup-palette'
 
@@ -12,7 +12,7 @@ const DUPLICATE_POINT_EPSILON = 2 // stage-pixel threshold for de-duping dblclic
 
 export interface MarkupDrawState {
   mode: 'idle' | 'naming' | 'drawing' | 'confirming' | 'placing'
-  toolType: 'count' | 'linear' | 'area' | 'perimeter' | null
+  toolType: 'count' | 'linear' | 'area' | 'perimeter' | 'wall' | null
   points: StagePoint[]
   previewPoint: StagePoint | null
   popupScreenPos: { x: number; y: number } | null
@@ -21,6 +21,10 @@ export interface MarkupDrawState {
   pendingColor: string // D-28 — color chosen in popup before placement
   pendingPage: number | null
   errorToast: string | null
+  /** true after first commitShape/commitCountName; reset to false by cancel() */
+  chainArmed: boolean
+  /** millimetres; inherited across chain wall commits; default 2400 */
+  pendingWallHeight: number
 }
 
 const INITIAL_STATE: MarkupDrawState = {
@@ -33,7 +37,9 @@ const INITIAL_STATE: MarkupDrawState = {
   pendingCategoryName: '',
   pendingColor: MARKUP_PALETTE[0],
   pendingPage: null,
-  errorToast: null
+  errorToast: null,
+  chainArmed: false,
+  pendingWallHeight: 2400
 }
 
 function screenToStagePoint(stage: Konva.Stage, sx: number, sy: number): StagePoint {
@@ -54,14 +60,14 @@ function distanceSquared(a: StagePoint, b: StagePoint): number {
 
 export interface UseMarkupToolReturn {
   state: MarkupDrawState
-  activate: (tool: 'count' | 'linear' | 'area' | 'perimeter') => void
+  activate: (tool: 'count' | 'linear' | 'area' | 'perimeter' | 'wall') => void
   cancel: () => void
   recordClick: (screenPos: { x: number; y: number }) => void
   updatePreview: (screenPos: { x: number; y: number }) => void
   finishLinear: () => void
   finishPolygon: () => void
   commitCountName: (payload: { name: string; categoryName: string; color: string }) => void
-  commitShape: (payload: { name: string; categoryName: string; color: string }) => void
+  commitShape: (payload: { name: string; categoryName: string; color: string; wallHeight?: number }) => void
   dismissError: () => void
   // Pop the last vertex of the in-progress linear/area/perimeter draw.
   // Returns true if a point was actually popped (meaning the caller should
@@ -84,7 +90,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     stateRef.current = state
   }, [state])
 
-  const activate = useCallback((tool: 'count' | 'linear' | 'area' | 'perimeter') => {
+  const activate = useCallback((tool: 'count' | 'linear' | 'area' | 'perimeter' | 'wall') => {
     if (tool === 'count') {
       // Open naming popup immediately before any pin is placed (D-01)
       setState({
@@ -94,7 +100,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
         popupScreenPos: { x: 16, y: 16 }
       })
     } else {
-      // Linear, area, perimeter — start drawing immediately
+      // Linear, area, perimeter, wall — start drawing immediately
       setState({ ...INITIAL_STATE, mode: 'drawing', toolType: tool })
     }
   }, [])
