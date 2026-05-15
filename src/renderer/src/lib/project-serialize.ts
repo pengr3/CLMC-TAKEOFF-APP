@@ -56,7 +56,8 @@ export function snapshotProject(params: SnapshotParams): ProjectFileV2 {
     categories: markup.categories,
     categoryOrder: markup.categoryOrder,
     currentPage: viewer.currentPage,
-    pages
+    pages,
+    hiddenItemNames: useProjectStore.getState().hiddenItemNames
   }
 }
 
@@ -106,6 +107,14 @@ export function hydrateStores(data: ProjectFileV2): void {
     useViewerStore.getState().hydrate({
       currentPage: data.currentPage,
       pageViewports
+    })
+
+    // Hydrate visibility state — additive Phase 8 field.
+    // Array.isArray guard tolerates pre-Phase 8 files where the field is absent (defaults to []).
+    // MUST run inside the suspend/resume bracket so markDirty stays suppressed.
+    useProjectStore.setState({
+      hiddenItemNames: Array.isArray(data.hiddenItemNames) ? data.hiddenItemNames : [],
+      hiddenItemSet: new Set(Array.isArray(data.hiddenItemNames) ? data.hiddenItemNames : [])
     })
   } finally {
     resumeDirtyTracking()

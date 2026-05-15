@@ -9,6 +9,9 @@ interface ProjectStoreState {
   isSaving: boolean
   isExporting: boolean
   lastSavedAt: number | null
+  hiddenItemNames: string[]
+  /** Derived in-memory O(1) lookup — NOT persisted in .clmc. Kept in sync with hiddenItemNames. */
+  hiddenItemSet: Set<string>
 
   setSaved: (filePath: string) => void
   setSaving: (v: boolean) => void
@@ -16,6 +19,14 @@ interface ProjectStoreState {
   setCurrentFilePath: (filePath: string | null) => void
   markDirty: () => void
   reset: () => void
+  /**
+   * Flip a name in/out of hiddenItemNames and syncs hiddenItemSet for O(1) renderer lookups.
+   * Marks the project dirty so Save persists the change.
+   * D-16: visibility toggle is NOT undoable — direct projectStore action, no MarkupCommand.
+   */
+  toggleHiddenItem: (name: string) => void
+  /** Set hiddenItemNames + hiddenItemSet atomically. Used by hydrateStores during load — dirty tracking already suspended. */
+  setHiddenItemNames: (names: string[]) => void
 }
 
 // Module-level guard — Pitfall 1 protection.
@@ -40,6 +51,8 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
   isSaving: false,
   isExporting: false,
   lastSavedAt: null,
+  hiddenItemNames: [],
+  hiddenItemSet: new Set<string>(),
 
   setSaved: (filePath) =>
     set({ currentFilePath: filePath, isDirty: false, lastSavedAt: Date.now() }),
@@ -61,8 +74,25 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     isDirty: false,
     isSaving: false,
     isExporting: false,
-    lastSavedAt: null
-  })
+    lastSavedAt: null,
+    hiddenItemNames: [],
+    hiddenItemSet: new Set()
+  }),
+
+  toggleHiddenItem: (name) => {
+    set((s) => {
+      const idx = s.hiddenItemNames.indexOf(name)
+      const next = idx >= 0
+        ? s.hiddenItemNames.filter((n) => n !== name)
+        : [...s.hiddenItemNames, name]
+      return { hiddenItemNames: next, hiddenItemSet: new Set(next) }
+    })
+    get().markDirty()
+  },
+
+  setHiddenItemNames: (names) => {
+    set({ hiddenItemNames: names, hiddenItemSet: new Set(names) })
+  }
 }))
 
 // Shallow-equal for array-tuple selectors returned by subscribeWithSelector.
