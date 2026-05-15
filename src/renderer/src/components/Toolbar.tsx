@@ -11,6 +11,7 @@ import {
   Minus,
   Square,
   Hexagon,
+  BrickWall,
   Save,
   SaveAll,
   Replace,
@@ -21,7 +22,7 @@ import { useScaleStore } from '../stores/scaleStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useMarkupStore } from '../stores/markupStore'
 import { useProject } from '../hooks/useProject'
-import { getCanvasControls, getCalibrationControls } from './CanvasViewport'
+import { getCanvasControls, getCalibrationControls, getChainArmedItem } from './CanvasViewport'
 import { ScaleContextMenu } from './ScaleContextMenu'
 import { MIN_ZOOM, MAX_ZOOM, COLORS } from '../lib/constants'
 
@@ -186,7 +187,7 @@ export function Toolbar({ onOpenClick, onReplaceClick, onExportClick }: ToolbarP
     setContextMenu({ x: clientX, y: clientY })
   }
 
-  const handleMarkupToolClick = (tool: 'count' | 'linear' | 'area' | 'perimeter'): void => {
+  const handleMarkupToolClick = (tool: 'count' | 'linear' | 'area' | 'perimeter' | 'wall'): void => {
     if (activeTool === tool) {
       setActiveTool('select')
     } else {
@@ -353,7 +354,7 @@ export function Toolbar({ onOpenClick, onReplaceClick, onExportClick }: ToolbarP
         </div>
       )}
 
-      {/* Markup tools: Count, Linear, Area, Perimeter */}
+      {/* Markup tools: Count, Linear, Area, Perimeter, Wall */}
       {totalPages > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <IconButton
@@ -363,7 +364,21 @@ export function Toolbar({ onOpenClick, onReplaceClick, onExportClick }: ToolbarP
             disabled={setScaleDisabled}
             onClick={() => handleMarkupToolClick('count')}
             title="Count tool — place pins to tally items"
-          />
+          >
+            {activeTool === 'count' && getChainArmedItem() !== null && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 3,
+                marginLeft: 6, fontSize: 11, fontWeight: 600,
+                background: COLORS.activeSurface, borderRadius: 3,
+                padding: '1px 4px', maxWidth: 80, overflow: 'hidden',
+                textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+              }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%',
+                  background: getChainArmedItem()!.color, flexShrink: 0 }} />
+                {getChainArmedItem()!.name}
+              </span>
+            )}
+          </IconButton>
           <IconButton
             icon={Minus}
             label="Linear"
@@ -371,7 +386,21 @@ export function Toolbar({ onOpenClick, onReplaceClick, onExportClick }: ToolbarP
             disabled={setScaleDisabled}
             onClick={() => handleMarkupToolClick('linear')}
             title="Linear tool — draw polylines to measure lengths"
-          />
+          >
+            {activeTool === 'linear' && getChainArmedItem() !== null && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 3,
+                marginLeft: 6, fontSize: 11, fontWeight: 600,
+                background: COLORS.activeSurface, borderRadius: 3,
+                padding: '1px 4px', maxWidth: 80, overflow: 'hidden',
+                textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+              }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%',
+                  background: getChainArmedItem()!.color, flexShrink: 0 }} />
+                {getChainArmedItem()!.name}
+              </span>
+            )}
+          </IconButton>
           <IconButton
             icon={Square}
             label="Area"
@@ -379,7 +408,21 @@ export function Toolbar({ onOpenClick, onReplaceClick, onExportClick }: ToolbarP
             disabled={setScaleDisabled}
             onClick={() => handleMarkupToolClick('area')}
             title="Area tool — trace polygons to measure surface area"
-          />
+          >
+            {activeTool === 'area' && getChainArmedItem() !== null && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 3,
+                marginLeft: 6, fontSize: 11, fontWeight: 600,
+                background: COLORS.activeSurface, borderRadius: 3,
+                padding: '1px 4px', maxWidth: 80, overflow: 'hidden',
+                textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+              }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%',
+                  background: getChainArmedItem()!.color, flexShrink: 0 }} />
+                {getChainArmedItem()!.name}
+              </span>
+            )}
+          </IconButton>
           <IconButton
             icon={Hexagon}
             label="Perimeter"
@@ -387,7 +430,43 @@ export function Toolbar({ onOpenClick, onReplaceClick, onExportClick }: ToolbarP
             disabled={setScaleDisabled}
             onClick={() => handleMarkupToolClick('perimeter')}
             title="Perimeter tool — trace polygons for perimeter + area"
-          />
+          >
+            {activeTool === 'perimeter' && getChainArmedItem() !== null && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 3,
+                marginLeft: 6, fontSize: 11, fontWeight: 600,
+                background: COLORS.activeSurface, borderRadius: 3,
+                padding: '1px 4px', maxWidth: 80, overflow: 'hidden',
+                textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+              }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%',
+                  background: getChainArmedItem()!.color, flexShrink: 0 }} />
+                {getChainArmedItem()!.name}
+              </span>
+            )}
+          </IconButton>
+          <IconButton
+            icon={BrickWall}
+            label="Wall"
+            active={activeTool === 'wall'}
+            disabled={setScaleDisabled}
+            onClick={() => handleMarkupToolClick('wall')}
+            title="Wall tool — measure wall area (length × height) in m²"
+          >
+            {activeTool === 'wall' && getChainArmedItem() !== null && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 3,
+                marginLeft: 6, fontSize: 11, fontWeight: 600,
+                background: COLORS.activeSurface, borderRadius: 3,
+                padding: '1px 4px', maxWidth: 80, overflow: 'hidden',
+                textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+              }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%',
+                  background: getChainArmedItem()!.color, flexShrink: 0 }} />
+                {getChainArmedItem()!.name}
+              </span>
+            )}
+          </IconButton>
         </div>
       )}
 
