@@ -54,6 +54,25 @@ export function labelFontSize(currentZoom: number): number {
 }
 
 /**
+ * Wall area in square metres. Length = polyline arc length in mm; height = wallHeightMm.
+ * D-12: walls always produce m² regardless of project globalUnit.
+ * Uses inline mm→m conversion to avoid dependence on 'm' as a valid ScaleUnit (Assumption A1).
+ * Throws on non-positive inputs (mirrors pixelLengthToReal validation style).
+ */
+export function wallAreaM2(
+  points: StagePoint[],
+  wallHeightMm: number,
+  pixelsPerMm: number
+): number {
+  if (pixelsPerMm <= 0) throw new Error('pixelsPerMm must be positive')
+  if (wallHeightMm <= 0) throw new Error('wallHeightMm must be positive')
+  const pixelLen = polylineLength(points)
+  const lengthM = pixelLen / pixelsPerMm / 1000 // px → mm → m
+  const heightM = wallHeightMm / 1000
+  return lengthM * heightM
+}
+
+/**
  * Returns the point exactly half-way along the arc length of the polyline.
  * Walks cumulative segment distance, interpolates inside the segment containing
  * the half-distance mark. Fixes B2 — index-based midpoint landed on an arbitrary
