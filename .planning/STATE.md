@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: In Progress
-stopped_at: Phase 8 planned — ready to execute
-last_updated: "2026-05-15T00:00:00.000Z"
+status: Complete
+stopped_at: Phase 8 complete (2026-05-15)
+last_updated: "2026-05-15T06:00:00.000Z"
 last_activity: 2026-05-15
 progress:
   total_phases: 11
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 64
-  completed_plans: 56
-  percent: 88
+  completed_plans: 64
+  percent: 100
 ---
 
 # Project State: CLMC Takeoff App
@@ -32,17 +32,17 @@ progress:
 
 ## Current Position
 
-Phase: 08 (markup-workflow-and-wall-tool) — Ready to execute
-Plan: 0 of 8 — awaiting `/gsd-execute-phase 8`
+Phase: 08 (markup-workflow-and-wall-tool) — Complete (2026-05-15)
+Plan: 8 of 8 — all plans executed, UAT passed, phase closed
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
-| Phases complete | 9 / 11 |
-| Plans complete | 56 |
+| Phases complete | 11 / 11 |
+| Plans complete | 64 |
 | Requirements delivered | 25 / 25 |
-| Session count | 5 |
+| Session count | 6 |
 
 ---
 | Phase 01 P01 | 9min | 3 tasks | 19 files |
@@ -144,6 +144,13 @@ Plan: 0 of 8 — awaiting `/gsd-execute-phase 8`
 | PulseHighlight calls onComplete() inside the rAF callback at t=1 (not in a useEffect watching progress) | rAF loop runs inside React.act in tests; placing the callback there guarantees the parent's unmount lands on the same render cycle as the t=1 frame. A useEffect path would have introduced a one-frame stale-overlay flash |
 | pulse-highlight-animation.test.ts sets globalThis.IS_REACT_ACT_ENVIRONMENT = true at module scope | Without it, React 19 emits "act environment not configured" warning that the unmount-cleanup test's console.error spy catches as a false positive. Per-test-file flag mirrors markup-tool-pop-last-point.test.ts:66 + markup-tool-strictmode.test.ts:91. Parallel-executor-safe â€” no vitest.config.ts change |
 | HoverRing + PulseHighlight outer offsets diverge (4/zoom vs 8/zoom) | Allows the two overlays to render simultaneously over the same markup without visual overlap â€” hover ring sits inside, pulse ring sits outside |
+| chainArmed boolean on MarkupDrawState (D-05) | Runtime-only chain state; not persisted; reset by cancel() via INITIAL_STATE; survives PDF page navigation (D-04). The existing count tool's 'placing' mode was the prototype â€” generalizing to linear/area/perimeter/wall meant NOT calling INITIAL_STATE reset after commitShape when chainArmed is true |
+| pendingWallHeight default 2400 in INITIAL_STATE (D-08) | Chain inherits last wall height silently; Pitfall 7 â€” any partial reset that omits this field leaks stale height state into the next chain placement |
+| _chainArmedItem module-ref in CanvasViewport, getChainArmedItem() in Toolbar (D-03) | Mirrors _canvasControls / _calibrationControls pattern; using Zustand would couple runtime UX state to persistent store and cause unnecessary re-renders on every placement |
+| wallAreaM2 uses inline mm→m conversion (not pixelLengthToReal with 'm') | Avoids Assumption A1 risk about 'm' as ScaleUnit; D-12 walls always report m² regardless of project globalUnit |
+| hiddenItemNames additive optional field on ProjectFileV2; hiddenItemSet: Set<string> derived in-memory for O(1) lookups; NO formatVersion bump (D-13) | validateV2 cast accepts the new field silently; old files load with [] default; hiddenItemSet kept in sync by toggleHiddenItem and hydrateStores. O(1) Set lookup required because skip-render runs every frame for every visible markup |
+| CROSSHAIR_CURSOR module-scope IIFE computed once (D-18) | URI-encoded SVG data-URL avoids quote nesting (Pitfall 8); 24×24 SVG with hotspot 12 12 (center of cross gap); cursor fallback in CSS value chain |
+| Edit popup callsite must pass toolType + initialWallHeight for wall markups (UAT bug 08-07) | MarkupNamePopup wall-height row is conditional on toolType==='wall' â€” any edit callsite that omits toolType silently drops the row. Fixed in commit 224f867; pattern: always pass toolType when opening MarkupNamePopup in mode='edit' |
 
 ### Critical Pitfalls to Watch
 
@@ -179,17 +186,18 @@ None.
 - Phase 06.1 inserted after Phase 6: Remove Left Thumbnail Strip Panel â€” navigation arrows cover page switching, panel wastes horizontal space (URGENT)
 - Phase 7 added: Canvas Workspace UX and Markup Editing Fixes — five live-use delinquencies: full-screen canvas, post-commit markup editing, totals panel redesign, Set Scale modal overflow fix, smart category deduplication (completed 2026-05-13)
 - Phase 8 added (2026-05-14): Markup Workflow Acceleration and Wall Measurement Tool — bundles four post-v1 enhancements into a single phase: (1) per-item show/hide visibility toggle in the live totals panel, (2) continuous chain markup mode that keeps name/category/color armed across successive placements, (3) in-app crosshair cursor over the canvas, (4) new wall-area measurement tool (linear length × user-input wall height) reusing the chain pattern from item 2. v1.0 milestone reopened beyond original 25-requirement scope per user decision (chose "Extend v1.0 with Phase 8" over starting v1.1). Open design decisions reserved for `/gsd-discuss-phase 8`: chain-break trigger + visual affordance, varying-ceiling-height strategy, crosshair styling, visibility-state persistence scope.
+- Phase 8 completed (2026-05-15): chain markup mode, wall measurement tool, per-item show/hide visibility (hiddenItemSet O(1)), in-app crosshair cursor â€" 4 features across 8 plans, 5 waves. One UAT bug fixed: edit popup missing toolType/initialWallHeight for wall markups (commit 224f867). v1.0 milestone complete â€" all 11 phases done, 64 plans, 25/25 requirements delivered.
 
 ## Session Continuity
 
 **Last activity:** 2026-05-15
 
-**Last session:** 2026-05-15T00:00:00.000Z
+**Last session:** 2026-05-15T06:00:00.000Z
 
-**Stopped at:** Phase 8 planned — 8 plans in 5 waves, verification passed
+**Stopped at:** Phase 8 complete (2026-05-15)
 
-**Next action:** Run `/gsd-execute-phase 8` (run `/clear` first).
+**Next action:** v1.0 milestone complete. All 11 phases done. Run `/gsd-complete-milestone` to archive v1.0 and prepare for v1.1, or start a new phase with `/gsd-discuss-phase`.
 
 ---
 *State initialized: 2026-03-25*
-*Last updated: 2026-05-05 after Phase 6 Plan 03 completion (Wave 2 transient overlays: HoverRing + PulseHighlight â€” Wave 2 of Phase 6 now complete)*
+*Last updated: 2026-05-15 â€” Phase 8 complete (chain mode, wall tool, show/hide visibility, crosshair â€” v1.0 milestone done, 11/11 phases, 64/64 plans, 25/25 requirements)*

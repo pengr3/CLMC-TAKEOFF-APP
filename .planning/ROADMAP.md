@@ -18,6 +18,7 @@
 - [x] **Phase 6.1: Remove Left Thumbnail Strip Panel** (INSERTED) - Remove the left sidebar thumbnail strip; page navigation arrows are sufficient and the panel wastes horizontal canvas space
  (completed 2026-05-12)
 - [x] **Phase 7: Canvas Workspace UX and Markup Editing Fixes** - Fix five live-use delinquencies: full-screen canvas workspace, post-commit markup editing, totals panel quantity list redesign, Set Scale modal dropdown overflow, and smart category deduplication (completed 2026-05-13)
+- [x] **Phase 8: Markup Workflow Acceleration and Wall Measurement Tool** - Chain markup mode, wall area measurement tool, per-item show/hide visibility toggle, and rifle-scope crosshair cursor (completed 2026-05-15)
 
 ---
 
@@ -260,22 +261,22 @@ Plans:
 **Plans**: 8 plans in 5 waves
 
 **Wave 0 *(prerequisite — RED test stubs + type extensions)*:**
-- [ ] 08-00-PLAN.md — Type extensions (`markup.ts` WallMarkup + MarkupCommand wall fields, `viewer.ts` isMarkupTool + ActiveTool, `boq-types.ts` + `boq-writers.ts` inline dup `'wall'`) + 6 RED test stubs
+- [x] 08-00-PLAN.md — Type extensions (`markup.ts` WallMarkup + MarkupCommand wall fields, `viewer.ts` isMarkupTool + ActiveTool, `boq-types.ts` + `boq-writers.ts` inline dup `'wall'`) + 6 RED test stubs
 
 **Wave 1 *(parallel-safe; both blocked on Wave 0 — foundation)*:**
-- [ ] 08-01-PLAN.md — Chain mode refactor: `useMarkupTool.ts` chainArmed + pendingWallHeight + partial post-commit reset; `CanvasViewport.tsx` `getChainArmedItem()` module-ref
-- [ ] 08-02-PLAN.md — Schema + projectStore: `project-schema.ts` additive `hiddenItemNames?: string[]` (no formatVersion bump), `projectStore.ts` `toggleHiddenItem` + markDirty, serialize/hydrate
+- [x] 08-01-PLAN.md — Chain mode refactor: `useMarkupTool.ts` chainArmed + pendingWallHeight + partial post-commit reset; `CanvasViewport.tsx` `getChainArmedItem()` module-ref
+- [x] 08-02-PLAN.md — Schema + projectStore: `project-schema.ts` additive `hiddenItemNames?: string[]` (no formatVersion bump), `projectStore.ts` `toggleHiddenItem` + markDirty, serialize/hydrate
 
 **Wave 2 *(parallel-safe; both blocked on Wave 0 — wall core)*:**
-- [ ] 08-03-PLAN.md — Wall math + BOQ pipeline + markupStore wall support: `markup-math.ts` wallAreaM2, `boq-aggregator.ts` wall branch, `markupStore.ts` editMarkup wallHeight extension
-- [ ] 08-04-PLAN.md — Wall renderer + popup: `WallMarkup.tsx` (new, 2.5× stroke + parallel hairline, zoom-compensated, m² label), `MarkupNamePopup.tsx` conditional wall-height row
+- [x] 08-03-PLAN.md — Wall math + BOQ pipeline + markupStore wall support: `markup-math.ts` wallAreaM2, `boq-aggregator.ts` wall branch, `markupStore.ts` editMarkup wallHeight extension
+- [x] 08-04-PLAN.md — Wall renderer + popup: `WallMarkup.tsx` (new, 2.5× stroke + parallel hairline, zoom-compensated, m² label), `MarkupNamePopup.tsx` conditional wall-height row
 
 **Wave 3 *(parallel-safe; both blocked on Waves 1 + 2 — UI integration)*:**
-- [ ] 08-05-PLAN.md — Toolbar BrickWall button + chain badge chips + crosshair cursor + CanvasViewport wall wiring
-- [ ] 08-06-PLAN.md — Visibility toggle UI: TotalsRow Lightbulb slot (e.stopPropagation) + skip-render in all 5 markup renderers + HoverRing/PulseHighlight review
+- [x] 08-05-PLAN.md — Toolbar BrickWall button + chain badge chips + crosshair cursor + CanvasViewport wall wiring
+- [x] 08-06-PLAN.md — Visibility toggle UI: TotalsRow Lightbulb slot (e.stopPropagation) + skip-render in all 5 markup renderers + HoverRing/PulseHighlight review
 
 **Wave 4 *(blocked on Wave 3 — manual UAT and closure)*:**
-- [ ] 08-07-PLAN.md — Manual UAT (10 scenarios: wall tool, chain mode, show/hide, crosshair, persist) + ROADMAP/STATE closure
+- [x] 08-07-PLAN.md — Manual UAT (10 scenarios: wall tool, chain mode, show/hide, crosshair, persist) + ROADMAP/STATE closure
 
 **Cross-cutting constraints:** Zoom-compensated stroke widths (`/ currentZoom`) on all Konva shapes in WallMarkup (Pitfall 2); stateRef snapshot in commitShape wall branch (Pitfall 3); `e.stopPropagation()` on Lightbulb click (Pitfall 9); `boq-types.ts` + `boq-writers.ts` inline dup updated in lockstep in Wave 0 (Pitfall 10); `markDirty()` called explicitly in `toggleHiddenItem` (Pitfall 4); no formatVersion bump for additive `hiddenItemNames` field (Pitfall 11 note); COLORS tokens + inline styles only (no Tailwind in panel/canvas path).
 
@@ -295,7 +296,7 @@ Plans:
 | 6. Live View and UI Polish | 9/9 | Complete | 2026-05-12 |
 | 6.1. Remove Left Thumbnail Strip Panel | 1/1 | Complete   | 2026-05-12 |
 | 7. Canvas Workspace UX and Markup Editing Fixes | 5/5 | Complete | 2026-05-13 |
-| 8. Markup Workflow Acceleration and Wall Measurement Tool | 0/8 | Planned | — |
+| 8. Markup Workflow Acceleration and Wall Measurement Tool | 8/8 | Complete | 2026-05-15 |
 
 ---
 
@@ -343,4 +344,5 @@ Plans:
 *Updated: 2026-05-05 â€” Phase 6 Plan 02 complete (Wave 1 glue primitives: useMarkupHighlight + Splitter + CanvasHeaderBar â€” Wave 1 of Phase 6 now complete)*
 *Updated: 2026-05-12 â€” Phase 6 complete (all 9 plans, UAT Aâ€”F passed, VIEW-01 + PDF-05 delivered â€” v1 milestone complete, 25/25 requirements)*
 *Updated: 2026-05-13 â€” Phase 7 complete (5 plans, UAT Aâ€”F passed â€” all five live-use delinquencies resolved)*
+*Updated: 2026-05-15 â€” Phase 8 complete (8 plans, UAT 10/10 passed â€” chain mode, wall tool, show/hide visibility, crosshair cursor)*
 
