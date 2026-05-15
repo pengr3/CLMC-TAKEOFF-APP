@@ -70,9 +70,9 @@ beforeEach(() => {
   installLocalStoragePolyfill()
   useMarkupStore.setState({ pageMarkups: {}, categories: {}, categoryOrder: [], undoStack: [], redoStack: [] })
   useViewerStore.setState({ currentPage: 1, totalPages: 1, activeTool: 'select', pageViewports: {}, pageScales: {} } as never)
-  // Reset projectStore. hiddenItemNames does not yet exist; cast suppresses compile error.
+  // Reset projectStore — reset both hiddenItemNames and the derived hiddenItemSet.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ;(useProjectStore as any).setState({ currentFilePath: null, isDirty: false, isSaving: false, isExporting: false, lastSavedAt: null, hiddenItemNames: [] })
+  ;(useProjectStore as any).setState({ currentFilePath: null, isDirty: false, isSaving: false, isExporting: false, lastSavedAt: null, hiddenItemNames: [], hiddenItemSet: new Set<string>() })
   vi.clearAllMocks()
   document.body.innerHTML = ''
 })
@@ -91,9 +91,8 @@ describe('TotalsRow — lightbulb visibility toggle', () => {
   })
 
   it('renders LightbulbOff when item name is in hiddenItemNames', () => {
-    // MUST FAIL — lightbulb slot does not yet exist on TotalsRow
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(useProjectStore as any).setState({ hiddenItemNames: ['Outlet'] })
+    ;(useProjectStore as any).setState({ hiddenItemNames: ['Outlet'], hiddenItemSet: new Set(['Outlet']) })
 
     const item = makeCountItem('Outlet')
     const { container, unmount } = mount(React.createElement(TotalsRow, makeRowProps(item)))

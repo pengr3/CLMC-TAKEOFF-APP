@@ -1,16 +1,18 @@
 import { useMemo, useState } from 'react'
 import type React from 'react'
+import { Lightbulb, LightbulbOff } from 'lucide-react'
 import { COLORS } from '../lib/constants'
 import type { BoqItemRow, BoqRowType } from '../lib/boq-types'
 import type { Markup, MarkupType } from '../types/markup'
 import { useViewerStore } from '../stores/viewerStore'
 import { useMarkupStore } from '../stores/markupStore'
+import { useProjectStore } from '../stores/projectStore'
 
 /**
  * TotalsRow — single BOQ item row in the right TotalsPanel.
  *
  * Layout (UI-SPEC §"TotalsRow" — fixed-width slots so cycle dot doesn't reflow):
- *   [cycle-dot 6px slot][color chip 10x10][gap 4px][label flex:1][quantity right tabular-nums][gap 4px][uom 40px]
+ *   [cycle-dot 6px slot][lightbulb 16px][color chip 10x10][gap 4px][label flex:1][quantity right tabular-nums][gap 4px][uom 40px]
  *
  * Color discipline (D-06): chip ONLY on item-name cell. Heading rows, subtotals,
  * and the grand-total bar carry no color.
@@ -53,7 +55,7 @@ function formatQuantity(item: BoqItemRow): string {
 
 /** D-02 disambiguation suffix stripper. "Outlet (count)" → "Outlet". */
 function labelToName(label: string): string {
-  return label.replace(/\s*\((count|linear|area|perimeter)\)\s*$/, '')
+  return label.replace(/\s*\((count|linear|area|perimeter|wall)\)\s*$/, '')
 }
 
 /** Map a BoqRowType (perimeter-length / perimeter-area split) back to underlying Markup.type. */
@@ -103,6 +105,9 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
     () => findPagesWithMatches(pageMarkupsAll, itemName, item.type),
     [pageMarkupsAll, itemName, item.type]
   )
+
+  // O(1) Set lookup for hidden state — hiddenItemSet is derived from hiddenItemNames in projectStore.
+  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(itemName))
 
   // The dot is driven by either the parent's prop (legacy) OR the internal cycle state.
   const showCycleDot = internalCycleIndex > 0 || cycleIndexProp > 0
@@ -195,6 +200,21 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
             }}
           />
         )}
+      </div>
+
+      {/* Lightbulb visibility slot — 16px fixed width, always visible (D-14).
+           Click toggles item visibility via O(1) hiddenItemSet + e.stopPropagation()
+           prevents row cycle navigation from also firing (Pitfall 9 / T-08-06-01). */}
+      <div
+        data-testid="totals-row-lightbulb"
+        style={{ width: 16, flexShrink: 0, display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+        onClick={(e) => { e.stopPropagation(); useProjectStore.getState().toggleHiddenItem(itemName) }}
+        title={isHidden ? 'Show on canvas' : 'Hide from canvas'}
+      >
+        {isHidden
+          ? <LightbulbOff size={12} color={COLORS.textSecondary} />
+          : <Lightbulb size={12} color={COLORS.textSecondary} />
+        }
       </div>
 
       {/* Per-name color chip (D-06 — only on item-name cell). */}
