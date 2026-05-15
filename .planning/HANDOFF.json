@@ -1,145 +1,46 @@
 {
   "version": "1.0",
-  "timestamp": "2026-05-14T14:15:08.224Z",
+  "timestamp": "2026-05-15T06:15:00.000Z",
   "phase": "08",
   "phase_name": "markup-workflow-and-wall-tool",
   "phase_dir": ".planning/phases/08-markup-workflow-and-wall-tool",
-  "plan": null,
-  "task": null,
-  "total_tasks": null,
-  "status": "paused",
+  "plan": 7,
+  "task": 3,
+  "total_tasks": 3,
+  "status": "complete",
   "completed_tasks": [
-    {
-      "id": 1,
-      "name": "discuss-phase: gather Phase 8 context (chain mode, wall tool, show/hide, crosshair)",
-      "status": "done",
-      "commit": "8453470"
-    },
-    {
-      "id": 2,
-      "name": "STATE.md session record for Phase 8 context",
-      "status": "done",
-      "commit": "09f2431"
-    }
+    {"id": 1, "name": "Full automated regression suite (443/443 GREEN)", "status": "done", "commit": "276ef16"},
+    {"id": 2, "name": "Manual UAT — all 10 scenarios PASS (bug fixed mid-session)", "status": "done", "commit": "224f867"},
+    {"id": 3, "name": "ROADMAP.md + STATE.md phase closure", "status": "done", "commit": "276ef16"}
   ],
-  "remaining_tasks": [
-    {
-      "id": 3,
-      "name": "/gsd-plan-phase 8 — create PLAN.md(s) from 08-CONTEXT.md decisions",
-      "status": "not_started"
-    },
-    {
-      "id": 4,
-      "name": "/gsd-execute-phase 8 — implement plans (chain mode, wall tool, show/hide toggle, crosshair cursor)",
-      "status": "not_started"
-    },
-    {
-      "id": 5,
-      "name": "Manual UAT for Phase 8 features",
-      "status": "not_started"
-    },
-    {
-      "id": 6,
-      "name": "Phase 8 closure — update ROADMAP.md / REQUIREMENTS.md / STATE.md",
-      "status": "not_started"
-    }
-  ],
+  "remaining_tasks": [],
   "blockers": [],
-  "human_actions_pending": [],
+  "human_actions_pending": [
+    {
+      "action": "Investigate pre-existing uncommitted changes in src/main/index.ts and src/renderer/src/App.tsx",
+      "context": "These files were modified before this session. Their content is unknown. Check what changes are staged and decide whether to commit, discard, or carry forward.",
+      "blocking": false
+    }
+  ],
   "decisions": [
     {
-      "decision": "Chain mode break trigger = Esc OR re-click active tool button (tool-switch implicitly breaks)",
-      "rationale": "Reuses existing toolbar toggle affordance the user already knows",
-      "phase": "08"
-    },
-    {
-      "decision": "Chain mode visual = toolbar active style + name+color chip badge near button",
-      "rationale": "Indicator stays close to the affordance; not noisy on dense plans",
-      "phase": "08"
-    },
-    {
-      "decision": "Chain persists across PDF page navigation (does NOT auto-break on page change)",
-      "rationale": "Estimators place the same item across multiple pages — page-change break would defeat the productivity goal",
-      "phase": "08"
-    },
-    {
-      "decision": "Chain state lives inside useMarkupTool (renderer hook), not in store / .clmc / localStorage",
-      "rationale": "Chain is runtime UX state only; does not survive app restart",
-      "phase": "08"
-    },
-    {
-      "decision": "Wall = new 'wall' MarkupType (separate shape) with points + wallHeight (mm)",
-      "rationale": "Cleanest discriminated-union extension; aggregator branches on type, not on a field",
-      "phase": "08"
-    },
-    {
-      "decision": "Wall height: per-wall popup input on commit; chain inherits previous wall height; first wall default = 2400mm",
-      "rationale": "Fits the chain pattern exactly; 2400mm = typical residential ceiling",
-      "phase": "08"
-    },
-    {
-      "decision": "Wall popup = MarkupNamePopup with conditional 'Wall height: [___] mm' row when toolType === 'wall'",
-      "rationale": "One popup component handles all five markup tools; minimum new UI surface",
-      "phase": "08"
-    },
-    {
-      "decision": "Wall BOQ representation = single row per name in m² (length × height); UoM = 'm²'; matches area markup row shape",
-      "rationale": "Matches how walls are billed; estimator-friendly; no novel multi-row pattern",
-      "phase": "08"
-    },
-    {
-      "decision": "Show/hide visibility = per-project (.clmc additive field 'hiddenItemNames: string[]'), additive non-breaking schema bump",
-      "rationale": "Visibility is takeoff state (estimator's intentional working view), not a workstation preference like collapsedCategories",
-      "phase": "08"
-    },
-    {
-      "decision": "Visibility icon = lucide Lightbulb / LightbulbOff, left of color chip in TotalsRow, always visible",
-      "rationale": "User explicit preference over Eye/EyeOff — lightbulb metaphor reads as 'turn off the light over this item'",
-      "phase": "08"
-    },
-    {
-      "decision": "Hidden behavior = canvas markups skip render; row stays interactive; totals & BOQ export INCLUDE hidden items",
-      "rationale": "Pure visual decluttering; totals are the source of truth; export filtering deferred",
-      "phase": "08"
-    },
-    {
-      "decision": "Visibility toggle is NOT undoable",
-      "rationale": "View preference, not a takeoff action; flips a project-store field directly and marks dirty",
-      "phase": "08"
-    },
-    {
-      "decision": "Crosshair = rifle-scope style (1px crossed lines + circular gap at center, no dot, white with thin black outline)",
-      "rationale": "User explicit preference; the empty center reveals the underlying pixel exactly without obscuring it",
-      "phase": "08"
-    },
-    {
-      "decision": "Crosshair implementation = CSS cursor with SVG data-URL on CanvasViewport containerRef",
-      "rationale": "Zero render cost, no Konva node, no mousemove listener; OS handles hide/restore over chrome automatically",
-      "phase": "08"
-    },
-    {
-      "decision": "Crosshair scope = all markup tools (count/linear/area/perimeter/wall) + Set Scale + Verify Scale",
-      "rationale": "Any canvas-pointing tool benefits from precision pointing",
+      "decision": "Edit popup must pass toolType + initialWallHeight for wall markups",
+      "rationale": "MarkupNamePopup wall-height row is conditional on toolType==='wall' — any callsite omitting toolType silently drops the row. Fixed in 224f867. Pattern: always pass toolType when opening MarkupNamePopup in mode='edit'.",
       "phase": "08"
     }
   ],
   "uncommitted_files": [
     {
-      "path": ".planning/ROADMAP.md",
+      "path": "src/main/index.ts",
       "status": "modified",
-      "note": "Pre-existing modification from before this session — Phase 8 added to roadmap; not part of phase-8 discuss work"
+      "note": "Pre-existing modification from before this session — not touched during Phase 8 execution"
     },
     {
-      "path": ".planning/debug/count-tool-double-click.md",
-      "status": "untracked",
-      "note": "Pre-existing debug note from before this session"
-    },
-    {
-      "path": ".planning/phases/03.1-markup-gap-closure-and-visual-redesign/.gitkeep",
-      "status": "untracked",
-      "note": "Pre-existing .gitkeep from before this session"
+      "path": "src/renderer/src/App.tsx",
+      "status": "modified",
+      "note": "Pre-existing modification from before this session — not touched during Phase 8 execution"
     }
   ],
-  "next_action": "/clear then /gsd-plan-phase 8 — read .planning/phases/08-markup-workflow-and-wall-tool/08-CONTEXT.md and produce PLAN.md(s) with task breakdown for the four features (chain mode, wall tool, show/hide, crosshair).",
-  "context_notes": "Phase 8 context fully captured — 4 areas discussed (chain mode, wall tool, show/hide, crosshair), 20 numbered decisions in 08-CONTEXT.md, full audit trail in 08-DISCUSSION-LOG.md. No SPEC.md was created (discuss-phase only). Researcher should expect to investigate: (1) wall renderer affordance options (subtle stroke vs parallel offset hairline vs hatching), (2) wall toolbar lucide icon choice, (3) EditMarkupCommand wall-height extension shape (extend existing 'edit-markup' branch with optional oldHeight/newHeight, or sibling 'edit-wall' branch), (4) project-schema additive field migration policy (formatVersion bump vs per-field defaulting), (5) CSS cursor data-URL hotspot coords + Chromium 32x32 max image-size constraint. The chain mode design is the highest-leverage item — it touches all five markup tools and the wall tool reuses it. Hidden-item rendering must be wired into all five renderer components AND HoverRing/PulseHighlight."
+  "next_action": "Investigate src/main/index.ts and src/renderer/src/App.tsx uncommitted changes. Then run /gsd-complete-milestone to archive v1.0 milestone.",
+  "context_notes": "Phase 8 is fully complete. v1.0 milestone done: 11/11 phases, 64/64 plans, 25/25 requirements. Branch is 36 commits ahead of origin/master — consider git push before milestone archive. The two uncommitted files are pre-existing from a prior session and were deliberately NOT touched this session to avoid unintended scope."
 }
