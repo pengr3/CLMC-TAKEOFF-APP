@@ -64,9 +64,9 @@ export interface ScaleState {
   linePoints: [number, number, number, number] // [x1,y1,x2,y2] in page-space
 }
 
-export type ActiveTool = 'select' | 'scale' | 'verify-scale' | 'count' | 'linear' | 'area' | 'perimeter'
+export type ActiveTool = 'select' | 'scale' | 'verify-scale' | 'count' | 'linear' | 'area' | 'perimeter' | 'wall'
 
-export const MARKUP_TOOLS = ['count', 'linear', 'area', 'perimeter'] as const
+export const MARKUP_TOOLS = ['count', 'linear', 'area', 'perimeter', 'wall'] as const
 export type MarkupToolType = typeof MARKUP_TOOLS[number]
 
 export function isMarkupTool(tool: ActiveTool): tool is MarkupToolType {

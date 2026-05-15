@@ -22,6 +22,7 @@ export type BoqRowType =
   | 'area'
   | 'perimeter-length'
   | 'perimeter-area'
+  | 'wall'
 
 /**
  * One BOQ row. Quantity is a native number (full precision) — XLSX preserves it

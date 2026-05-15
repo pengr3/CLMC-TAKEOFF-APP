@@ -1,6 +1,6 @@
 import type { StagePoint } from '../hooks/useCalibrationMode'
 
-export type MarkupType = 'count' | 'linear' | 'area' | 'perimeter'
+export type MarkupType = 'count' | 'linear' | 'area' | 'perimeter' | 'wall'
 
 export interface BaseMarkup {
   id: string
@@ -33,7 +33,14 @@ export interface PerimeterMarkup extends BaseMarkup {
   points: StagePoint[]
 }
 
-export type Markup = CountMarkup | LinearMarkup | AreaMarkup | PerimeterMarkup
+export interface WallMarkup extends BaseMarkup {
+  type: 'wall'
+  points: StagePoint[]
+  /** millimetres */
+  wallHeight: number
+}
+
+export type Markup = CountMarkup | LinearMarkup | AreaMarkup | PerimeterMarkup | WallMarkup
 
 export interface Category {
   id: string
@@ -63,6 +70,10 @@ export type MarkupCommand =
       newName: string
       newCategoryName: string
       newColor: string
+      /** millimetres — present only when editing a WallMarkup */
+      oldWallHeight?: number
+      /** millimetres — present only when editing a WallMarkup */
+      newWallHeight?: number
     }
 
 export const CATEGORY_PALETTE = [

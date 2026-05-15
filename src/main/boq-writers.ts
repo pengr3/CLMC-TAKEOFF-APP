@@ -15,7 +15,7 @@ export interface BoqMetadata {
   totalPages: number
   totalMarkups: number
 }
-export type BoqRowType = 'count' | 'linear' | 'area' | 'perimeter-length' | 'perimeter-area'
+export type BoqRowType = 'count' | 'linear' | 'area' | 'perimeter-length' | 'perimeter-area' | 'wall'
 export interface BoqItemRow {
   label: string
   quantity: number
