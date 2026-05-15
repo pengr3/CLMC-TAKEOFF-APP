@@ -80,6 +80,11 @@ export interface ProjectFileV2 {
     viewport: ViewportState
     markups: Markup[]
   }>
+  /**
+   * Additive in Phase 8 — absent in pre-Phase 8 files; defaults to [] on load.
+   * Per-project visibility filter for canvas markup rendering (D-13).
+   */
+  hiddenItemNames?: string[]
 }
 
 export type ProjectFile = ProjectFileV2
