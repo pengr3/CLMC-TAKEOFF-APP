@@ -106,6 +106,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
   }, [])
 
   const cancel = useCallback(() => {
+    // INITIAL_STATE resets chainArmed and pendingWallHeight per Pitfall 7
     setState(INITIAL_STATE)
   }, [])
 
@@ -116,7 +117,8 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
       pendingName: payload.name,
       pendingCategoryName: payload.categoryName || UNCATEGORIZED,
       pendingColor: payload.color,
-      popupScreenPos: null
+      popupScreenPos: null,
+      chainArmed: true  // arm chain on first count commit (D-01)
     }))
   }, [])
 
@@ -158,13 +160,14 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
         return
       }
 
-      // Linear / area / perimeter — pure state update, safe inside setState updater
+      // Linear / area / perimeter / wall — pure state update, safe inside setState updater
       setState((prev) => {
         if (
           prev.mode === 'drawing' &&
           (prev.toolType === 'linear' ||
             prev.toolType === 'area' ||
-            prev.toolType === 'perimeter')
+            prev.toolType === 'perimeter' ||
+            prev.toolType === 'wall')
         ) {
           // De-duplicate consecutive same-position clicks (Pitfall 1 — dblclick fires two clicks)
           const last = prev.points[prev.points.length - 1]
@@ -204,7 +207,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
 
   const finishLinear = useCallback(() => {
     setState((prev) => {
-      if (prev.toolType !== 'linear' || prev.mode !== 'drawing') return prev
+      if ((prev.toolType !== 'linear' && prev.toolType !== 'wall') || prev.mode !== 'drawing') return prev
 
       // Drop the trailing duplicate click that preceded the dblclick (Pitfall 1)
       let finalPoints = prev.points
@@ -273,7 +276,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     })
   }, [stageRef])
 
-  const commitShape = useCallback((payload: { name: string; categoryName: string; color: string }) => {
+  const commitShape = useCallback((payload: { name: string; categoryName: string; color: string; wallHeight?: number }) => {
     // Read state from the ref snapshot, dispatch the side effect ONCE, then
     // reset state via setState. Doing the store.placeMarkup inside a setState
     // updater would double-fire under React StrictMode (same pattern as the
@@ -325,9 +328,35 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
         points: prev.points
       }
       store.placeMarkup(m)
+    } else if (prev.toolType === 'wall') {
+      const m: WallMarkup = {
+        id,
+        type: 'wall',
+        page,
+        name,
+        categoryId: category.id,
+        color,
+        createdAt,
+        points: prev.points,
+        wallHeight: payload.wallHeight ?? prev.pendingWallHeight
+      }
+      store.placeMarkup(m)
     }
 
-    setState(INITIAL_STATE)
+    // Chain-aware post-commit reset (Pitfall 3: dispatch store.placeMarkup OUTSIDE setState).
+    // Always arm chain after first commit; preserve name/category/color/toolType and reset to
+    // drawing mode so the user can place successive markups without re-prompting.
+    // INITIAL_STATE resets chainArmed and pendingWallHeight per Pitfall 7.
+    setState({
+      ...INITIAL_STATE,
+      toolType: prev.toolType,
+      mode: 'drawing',
+      pendingName: payload.name,
+      pendingCategoryName: payload.categoryName,
+      pendingColor: payload.color,
+      pendingWallHeight: payload.wallHeight ?? prev.pendingWallHeight,
+      chainArmed: true
+    })
   }, [])
 
   const dismissError = useCallback(() => {
