@@ -337,6 +337,32 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     return () => clearTimeout(id)
   }, [markupState.errorToast, dismissError])
 
+  // Chain auto-commit: when chain is armed and shape finishes (mode → 'confirming'),
+  // bypass the popup and commit immediately with the stored pending values.
+  // stateRef.current is updated before this effect fires (hook effects run first in declaration order).
+  useEffect(() => {
+    if (
+      markupState.mode === 'confirming' &&
+      markupState.chainArmed &&
+      markupState.pendingName
+    ) {
+      commitShape({
+        name: markupState.pendingName,
+        categoryName: markupState.pendingCategoryName,
+        color: markupState.pendingColor,
+        wallHeight: markupState.pendingWallHeight
+      })
+    }
+  }, [
+    markupState.mode,
+    markupState.chainArmed,
+    markupState.pendingName,
+    markupState.pendingCategoryName,
+    markupState.pendingColor,
+    markupState.pendingWallHeight,
+    commitShape
+  ])
+
   // Reset start-vertex hover when drawing ends or tool cancels
   useEffect(() => {
     if (markupState.mode !== 'drawing') {
