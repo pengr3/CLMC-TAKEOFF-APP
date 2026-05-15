@@ -21,8 +21,12 @@ export interface MarkupNamePopupProps {
   // Optional measurement preview shown under the inputs (e.g. "12.4 m" for Linear)
   // Rendered if provided; omitted for Count
   measurementPreview?: string
-  /** Payload widened (D-26, D-28): includes the chosen palette color. */
-  onConfirm: (payload: { name: string; categoryName: string; color: string }) => void
+  /** Active tool type — when 'wall', shows the wall-height input row (D-09). */
+  toolType?: 'count' | 'linear' | 'area' | 'perimeter' | 'wall'
+  /** Initial wall height in millimetres. Default 2400 (D-09). */
+  initialWallHeight?: number
+  /** Payload widened (D-26, D-28, D-09): includes the chosen palette color + optional wallHeight. */
+  onConfirm: (payload: { name: string; categoryName: string; color: string; wallHeight?: number }) => void
   onCancel: () => void
 }
 
@@ -52,7 +56,10 @@ export function MarkupNamePopup({
   mode, screenPos, containerSize,
   initialName = '', initialCategoryName = '',
   initialColor,
-  measurementPreview, onConfirm, onCancel
+  measurementPreview,
+  toolType,
+  initialWallHeight = 2400,
+  onConfirm, onCancel
 }: MarkupNamePopupProps): React.JSX.Element {
   const [name, setName] = useState(initialName)
   const [categoryName, setCategoryName] = useState(initialCategoryName)
@@ -60,6 +67,9 @@ export function MarkupNamePopup({
   const [nameError, setNameError] = useState<string | null>(null)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const nameRef = useRef<HTMLInputElement>(null)
+  // Wall-height state — only active when toolType === 'wall' (D-09)
+  const [wallHeight, setWallHeight] = useState<string>(String(initialWallHeight))
+  const [wallHeightError, setWallHeightError] = useState<string | null>(null)
 
   // Subscribe to store for inheritance lookups (primitive + selector pattern — NOT method-invoking selectors;
   // getColorForName is a stable function reference on the store, so subscribing to it is safe)
@@ -94,15 +104,24 @@ export function MarkupNamePopup({
       setNameError('Enter an item name')
       return
     }
+    // D-09 wall-height validation — must be a positive number
+    if (toolType === 'wall') {
+      const h = parseFloat(wallHeight)
+      if (isNaN(h) || h <= 0) {
+        setWallHeightError('Enter a positive height in mm')
+        return
+      }
+    }
     // D-13 canonical substitution: replace typed category name with store-canonical version
     const typed = categoryName.trim()
     const canonical = typed === '' ? '' : (findCategoryByName(typed)?.name ?? typed)
     onConfirm({
       name: trimmedName,
       categoryName: canonical,
-      color: selectedColor
+      color: selectedColor,
+      ...(toolType === 'wall' ? { wallHeight: parseFloat(wallHeight) } : {})
     })
-  }, [name, categoryName, selectedColor, onConfirm, findCategoryByName])
+  }, [name, categoryName, selectedColor, toolType, wallHeight, onConfirm, findCategoryByName])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>): void => {
     if (e.key === 'Enter') {
@@ -267,6 +286,26 @@ export function MarkupNamePopup({
           })}
         </div>
       </div>
+
+      {toolType === 'wall' && (
+        <div>
+          <label style={{ display: 'block', fontWeight: 600, marginBottom: 4 }}>Wall height (mm)</label>
+          <input
+            type="number"
+            min="1"
+            value={wallHeight}
+            onChange={(e) => { setWallHeight(e.target.value); if (wallHeightError) setWallHeightError(null) }}
+            onMouseDown={(e) => e.stopPropagation()}
+            placeholder="2400"
+            style={inputStyle}
+          />
+          {wallHeightError && (
+            <div style={{ color: COLORS.warning, fontSize: 13, marginTop: 4 }}>
+              {wallHeightError}
+            </div>
+          )}
+        </div>
+      )}
 
       {mode !== 'edit' && measurementPreview && (
         <div
