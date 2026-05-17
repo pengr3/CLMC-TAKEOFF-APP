@@ -3,7 +3,7 @@ type ReadProjectResult =
   | { kind: 'v1-json'; text: string }
   | { kind: 'unknown'; reason: string }
 
-type BoqRowType = 'count' | 'linear' | 'area' | 'perimeter-length' | 'perimeter-area'
+type BoqRowType = 'count' | 'linear' | 'area' | 'perimeter-length' | 'perimeter-area' | 'wall'
 interface BoqMetadata {
   projectName: string
   planFilename: string
