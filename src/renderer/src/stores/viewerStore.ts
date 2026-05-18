@@ -13,6 +13,7 @@ export const useViewerStore = create<ViewerState>()(
     pdfBytes: null,
     pageScales: {},
     activeTool: 'select' as ActiveTool,
+    selectedMarkupIds: [],
 
     setFile: (path, name, totalPages) =>
       set({
@@ -22,24 +23,26 @@ export const useViewerStore = create<ViewerState>()(
         currentPage: 1,
         pageViewports: {},
         pageScales: {},
-        activeTool: 'select' as ActiveTool
+        activeTool: 'select' as ActiveTool,
+        selectedMarkupIds: []
       }),
 
     setPage: (page) => {
       const { totalPages } = get()
       if (page >= 1 && page <= totalPages) {
-        set({ currentPage: page })
+        set({ currentPage: page, selectedMarkupIds: [] })
       }
     },
 
     nextPage: () => {
       const { currentPage, totalPages } = get()
-      if (currentPage < totalPages) set({ currentPage: currentPage + 1 })
+      if (currentPage < totalPages)
+        set({ currentPage: currentPage + 1, selectedMarkupIds: [] })
     },
 
     prevPage: () => {
       const { currentPage } = get()
-      if (currentPage > 1) set({ currentPage: currentPage - 1 })
+      if (currentPage > 1) set({ currentPage: currentPage - 1, selectedMarkupIds: [] })
     },
 
     setViewport: (page, viewport) =>
@@ -73,7 +76,8 @@ export const useViewerStore = create<ViewerState>()(
         pdfDocument: null,
         pdfBytes: null,
         pageScales: {},
-        activeTool: 'select' as ActiveTool
+        activeTool: 'select' as ActiveTool,
+        selectedMarkupIds: []
       }),
 
     setPageScale: (page, scale) =>
@@ -91,6 +95,10 @@ export const useViewerStore = create<ViewerState>()(
       }),
 
     setActiveTool: (tool) => set({ activeTool: tool }),
+
+    setSelectedMarkupIds: (ids) => set({ selectedMarkupIds: ids }),
+
+    clearSelection: () => set({ selectedMarkupIds: [] }),
 
     /**
      * Hydrate viewer state from a loaded project.
@@ -112,7 +120,8 @@ export const useViewerStore = create<ViewerState>()(
       set({
         currentPage: data.currentPage,
         pageViewports: {},
-        activeTool: 'select' as ActiveTool
+        activeTool: 'select' as ActiveTool,
+        selectedMarkupIds: []
       })
   }))
 )
