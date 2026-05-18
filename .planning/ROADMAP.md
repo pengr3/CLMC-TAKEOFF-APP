@@ -297,8 +297,8 @@ Plans:
 - [x] 09-00-PLAN.md — Type extensions + store additions (Wave 0)
 - [x] 09-01-PLAN.md — useDraggable hook + all 9 modals draggable (Wave 1)
 - [x] 09-02-PLAN.md — Click-to-select + selection ring + Delete/Ctrl+A (Wave 1)
-- [ ] 09-03-PLAN.md — Rubber-band multi-select + Enter key commit (Wave 2)
-- [ ] 09-04-PLAN.md — Ribbon toolbar RibbonButton + RibbonToolbar (Wave 2)
+- [x] 09-03-PLAN.md — Rubber-band multi-select + Enter key commit (Wave 2)
+- [x] 09-04-PLAN.md — Ribbon toolbar RibbonButton + RibbonToolbar (Wave 2)
 - [ ] 09-05-PLAN.md — Manual UAT and phase closure (Wave 3)
 
 ---
