@@ -12,6 +12,12 @@ export interface CountPinMarkupProps {
   onHoverEnter?: (id: string, screenX: number, screenY: number) => void
   onHoverLeave?: (id: string) => void
   onContextMenu?: (id: string, screenX: number, screenY: number) => void
+  /**
+   * Plan 09-02: single-click selection. Renderer simply forwards the markup id;
+   * the D-03 "placement-takes-priority" guard lives in CanvasViewport's
+   * handleMarkupClick, NOT here, so renderers stay policy-free.
+   */
+  onClick?: (id: string) => void
 }
 
 // D-22: pins are "stamps on the plan" - pure world-anchored.
@@ -36,7 +42,8 @@ export function CountPinMarkup({
   markup,
   onHoverEnter,
   onHoverLeave,
-  onContextMenu
+  onContextMenu,
+  onClick
 }: CountPinMarkupProps): React.JSX.Element | null {
   // Composite key: "name|categoryId" — matches the key used by TotalsRow toggleHiddenItem.
   const itemKey = `${markup.name}|${markup.categoryId ?? ''}`
@@ -65,6 +72,7 @@ export function CountPinMarkup({
         const p = stage?.getPointerPosition()
         if (p && onContextMenu) onContextMenu(markup.id, p.x, p.y)
       }}
+      onClick={() => onClick?.(markup.id)}
     >
       <Circle
         x={markup.point.x}
