@@ -3,7 +3,14 @@ status: complete
 phase: 09-selection-model-ribbon-toolbar-modal-polish-and-markup-completion
 source: 09-00-SUMMARY.md, 09-01-SUMMARY.md, 09-02-SUMMARY.md, 09-03-SUMMARY.md, 09-04-SUMMARY.md
 started: 2026-05-18T00:00:00Z
-updated: 2026-05-18T00:01:00Z
+updated: 2026-05-18T23:00:00Z
+fixed_in:
+  - quick_task: 260518-uat-fix-phase09-uat-gaps
+    commit: 4db36bb
+    addressed_tests: [9, 11]
+  - debug_session: lmb-hold-drops-markup-on-release
+    commit: 665835f
+    addressed: "UX follow-up exposed by Test 11 fix — LMB hold-and-release was dropping a markup on the canvas"
 ---
 
 ## Current Test
@@ -46,9 +53,8 @@ result: pass
 
 ### 9. Ctrl+A Select All and Delete
 expected: In Select mode with at least 2 markups on the current page, press Ctrl+A → ALL markups on the page should show selection rings simultaneously. Then press Delete → all selected markups are removed at once. Press Ctrl+Z → ALL deleted markups are restored in a single undo step (not one-at-a-time undo).
-result: issue
-reported: "does not work"
-severity: major
+result: pass
+note: "Originally reported as 'does not work' (selection rings absent after Ctrl+Z). Fixed in commit 4db36bb (quick task 260518-uat) by peeking undoStack before undo() and re-applying setSelectedMarkupIds() on delete/delete-group restoration. User-confirmed in live app 2026-05-18: 'okay'."
 
 ### 10. Rubber-band Multi-Select
 expected: In Select mode, click and drag on an empty area of the canvas (LMB drag). A blue rectangular rubber-band outline should appear while dragging. Release the mouse — any markups whose ENTIRE bounding box was inside the rectangle should now show selection rings. Markups only partially inside the rectangle should NOT be selected.
@@ -57,7 +63,7 @@ result: pass
 ### 11. Pan Not Broken in Select Mode
 expected: In Select mode, verify the two remaining pan gestures still work: (a) middle-mouse button drag → canvas pans normally; (b) hold Spacebar then LMB drag → canvas pans normally. LMB drag alone (without Spacebar) should NOT pan — it should start the rubber-band selection instead.
 result: pass
-note: "Bug discovered outside test scope: when a markup tool is active (non-select mode), LMB hold+drag activates pan. This should be suppressed — LMB must never pan during markup; only MMB and Spacebar+LMB should pan."
+note: "Out-of-scope bug discovered during this test: LMB hold+drag activated pan while a markup tool was active. Fixed in commit 4db36bb (quick task 260518-uat) by removing the `activeTool !== 'select'` branch from Konva.dragButtons so LMB never pans during markup. Exposed a UX follow-up — LMB hold-and-release was dropping a markup on the canvas because Konva fires click on every mouseup without a drag. Fixed in commit 665835f (debug session lmb-hold-drops-markup-on-release) via a 4px movement-threshold gate mirroring the rubber-band suppression pattern. Both fixes user-confirmed in live app 2026-05-18."
 
 ### 12. Enter to Commit Markup
 expected: Start drawing a Linear markup. Place 2 or more points (clicks) on the canvas. Instead of double-clicking to finish, press Enter → the MarkupNamePopup should appear exactly as it would after a double-click. Then try starting a new Linear and placing only 1 point — pressing Enter should do nothing (silent ignore). Also verify: while the MarkupNamePopup is open and the name input is focused, pressing Enter submits the name form and does NOT trigger a second markup commit.
@@ -66,16 +72,22 @@ result: pass
 ## Summary
 
 total: 12
-passed: 11
-issues: 2
+passed: 12
+issues: 0
 pending: 0
 skipped: 0
 blocked: 0
 
+closure_note: "All 12 UAT scenarios PASS. Two gaps (Tests 9 + 11) were
+diagnosed and fixed in quick task 260518-uat (commit 4db36bb). A UX
+follow-up surfaced by the Test 11 fix was resolved in debug session
+lmb-hold-drops-markup-on-release (commit 665835f). User-confirmed live
+re-verify on 2026-05-18."
+
 ## Gaps
 
 - truth: "Ctrl+A selects all markups on current page; Delete removes all selected in one step; Ctrl+Z restores all in one undo step"
-  status: fixed_pending_user_verify
+  status: fixed
   reason: "User reported: does not work"
   severity: major
   test: 9
@@ -92,7 +104,7 @@ blocked: 0
   debug_session: ""
 
 - truth: "LMB drag must never pan the canvas when a markup tool is active — only MMB and Spacebar+LMB should pan"
-  status: fixed_pending_user_verify
+  status: fixed
   reason: "User reported: when a markup tool is selected and LMB is held before initial click, it introduces drag/pan functionality. Unacceptable — interferes with markup placement."
   severity: major
   test: 11

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Complete
-stopped_at: context exhaustion at 76% (2026-05-18)
-last_updated: "2026-05-18T07:10:56.297Z"
+stopped_at: Phase 09 complete; v1.0-extended milestone delivered (12/12 phases, 70/70 plans)
+last_updated: "2026-05-18T23:30:00Z"
 last_activity: 2026-05-18
 progress:
   total_phases: 12
-  completed_phases: 11
+  completed_phases: 12
   total_plans: 70
-  completed_plans: 69
-  percent: 92
+  completed_plans: 70
+  percent: 100
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,23 +26,23 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 09 — selection-model-ribbon-toolbar-modal-polish-and-markup-completion
+**Current Focus:** v1.0-extended milestone COMPLETE — all 12 phases delivered. Awaiting milestone archive decision (`/gsd-complete-milestone`) or new-phase capture.
 
 ---
 
 ## Current Position
 
-Phase: 09 (selection-model-ribbon-toolbar-modal-polish-and-markup-completion) — EXECUTING
-Plan: 1 of 6
+Phase: 09 (selection-model-ribbon-toolbar-modal-polish-and-markup-completion) — COMPLETE (2026-05-18)
+Plan: 6 of 6
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
-| Phases complete | 11 / 11 |
-| Plans complete | 64 |
+| Phases complete | 12 / 12 |
+| Plans complete | 70 |
 | Requirements delivered | 25 / 25 |
-| Session count | 6 |
+| Session count | 7 |
 
 ---
 | Phase 01 P01 | 9min | 3 tasks | 19 files |
@@ -190,17 +190,18 @@ None.
 - Phase 7 added: Canvas Workspace UX and Markup Editing Fixes — five live-use delinquencies: full-screen canvas, post-commit markup editing, totals panel redesign, Set Scale modal overflow fix, smart category deduplication (completed 2026-05-13)
 - Phase 8 added (2026-05-14): Markup Workflow Acceleration and Wall Measurement Tool — bundles four post-v1 enhancements into a single phase: (1) per-item show/hide visibility toggle in the live totals panel, (2) continuous chain markup mode that keeps name/category/color armed across successive placements, (3) in-app crosshair cursor over the canvas, (4) new wall-area measurement tool (linear length × user-input wall height) reusing the chain pattern from item 2. v1.0 milestone reopened beyond original 25-requirement scope per user decision (chose "Extend v1.0 with Phase 8" over starting v1.1). Open design decisions reserved for `/gsd-discuss-phase 8`: chain-break trigger + visual affordance, varying-ceiling-height strategy, crosshair styling, visibility-state persistence scope.
 - Phase 8 completed (2026-05-15): chain markup mode, wall measurement tool, per-item show/hide visibility (hiddenItemSet O(1)), in-app crosshair cursor â€" 4 features across 8 plans, 5 waves. One UAT bug fixed: edit popup missing toolType/initialWallHeight for wall markups (commit 224f867). v1.0 milestone complete â€" all 11 phases done, 64 plans, 25/25 requirements delivered.
+- Phase 9 added (2026-05-15) and completed (2026-05-18): five UX improvements — click-to-select + Delete-key deletion, rubber-band multi-select with group delete, every modal centred + draggable, 7-tab Office-style ribbon (Home/Page/Tools/View/Estimating/Settings/Help) replacing the flat Toolbar, and Enter / double-click commit for in-progress linear / area / perimeter / wall markups. 6 plans across 3 waves; 12/12 UAT scenarios PASS after two fix loops — quick task 260518-uat (commit 4db36bb) addressed Ctrl+Z selection-restore + LMB-no-pan-during-markup, and debug session lmb-hold-drops-markup-on-release (commit 665835f) added a 4px movement-threshold click-vs-hold gate mirroring the rubber-band suppression pattern. No new v1 requirements (pure quality-of-life). v1.0-extended milestone now reads 12/12 phases, 70/70 plans, 25/25 requirements delivered.
 
 ## Session Continuity
 
-**Last activity:** 2026-05-18
+**Last activity:** 2026-05-18 — Phase 09 closed; v1.0-extended milestone complete
 
-**Last session:** 2026-05-18 — resumed; Phase 09 UAT gaps queued for fix
+**Last session:** 2026-05-18 — UAT walkthrough (11/12 PASS) → quick task 260518-uat fixed both gaps → debug session lmb-hold-drops-markup-on-release fixed UX follow-up → live re-verify confirmed → Phase 09 closed atomically (09-UAT.md, 09-05-SUMMARY.md, ROADMAP.md, STATE.md)
 
-**Stopped at:** Quick task 260518-uat applied both UAT fixes; commit 4db36bb; vitest 473/473 green; awaiting live UAT re-verification of tests 9 + 11
+**Stopped at:** Milestone v1.0-extended COMPLETE (12/12 phases, 70/70 plans, 25/25 requirements). Branch is ~42 commits ahead of origin/master.
 
-**Next action:** Launch `npm run dev` and re-run UAT Tests 9 (Ctrl+A → Delete → Ctrl+Z restores selection rings) + 11 (LMB drag does not pan during markup placement). On PASS, mark gaps as `status: fixed` in 09-UAT.md and close Plan 09-05 via Wave 3 closure (ROADMAP Phase 9 complete + STATE.md update).
+**Next action:** User-driven decision. Options: (a) `/gsd-complete-milestone` to archive v1.0-extended and start a new milestone; (b) `/gsd-phase add` to extend the current milestone with another phase; (c) `git push origin master` to land the in-flight work on the remote. No outstanding UAT, blockers, or partial work.
 
 ---
 *State initialized: 2026-03-25*
-*Last updated: 2026-05-15 â€” Phase 8 complete (chain mode, wall tool, show/hide visibility, crosshair â€” v1.0 milestone done, 11/11 phases, 64/64 plans, 25/25 requirements)*
+*Last updated: 2026-05-18 — Phase 9 complete (selection model, ribbon toolbar, modal polish, markup completion — v1.0-extended milestone done, 12/12 phases, 70/70 plans, 25/25 requirements)*

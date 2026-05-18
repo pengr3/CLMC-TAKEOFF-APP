@@ -19,7 +19,7 @@
  (completed 2026-05-12)
 - [x] **Phase 7: Canvas Workspace UX and Markup Editing Fixes** - Fix five live-use delinquencies: full-screen canvas workspace, post-commit markup editing, totals panel quantity list redesign, Set Scale modal dropdown overflow, and smart category deduplication (completed 2026-05-13)
 - [x] **Phase 8: Markup Workflow Acceleration and Wall Measurement Tool** - Chain markup mode, wall area measurement tool, per-item show/hide visibility toggle, and rifle-scope crosshair cursor (completed 2026-05-15)
-- [ ] **Phase 9: Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion** - Click-to-select + Delete-key deletion, drag-to-multi-select with group delete, all modals centered and draggable, ribbon-style tabbed toolbar (Home/Page/Tools/View/Estimating/Settings/Help), and Enter/double-click to finish in-progress markup
+- [x] **Phase 9: Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion** - Click-to-select + Delete-key deletion, drag-to-multi-select with group delete, all modals centered and draggable, ribbon-style tabbed toolbar (Home/Page/Tools/View/Estimating/Settings/Help), and Enter/double-click to finish in-progress markup (completed 2026-05-18)
 
 ---
 
@@ -299,7 +299,7 @@ Plans:
 - [x] 09-02-PLAN.md — Click-to-select + selection ring + Delete/Ctrl+A (Wave 1)
 - [x] 09-03-PLAN.md — Rubber-band multi-select + Enter key commit (Wave 2)
 - [x] 09-04-PLAN.md — Ribbon toolbar RibbonButton + RibbonToolbar (Wave 2)
-- [ ] 09-05-PLAN.md — Manual UAT and phase closure (Wave 3)
+- [x] 09-05-PLAN.md — Manual UAT and phase closure (Wave 3) — 12/12 PASS; gaps fixed via quick task 260518-uat (commit 4db36bb) and debug session lmb-hold-drops-markup-on-release (commit 665835f)
 
 ---
 
