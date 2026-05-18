@@ -191,6 +191,13 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // Markup tool interaction state machine
   const activeTool = useViewerStore((s) => s.activeTool)
 
+  // Plan 09-02: selection state for the click-to-select selection ring.
+  // Selectors return primitive/array references so Zustand's Object.is snapshot
+  // check stays stable (same pattern as currentZoom above).
+  const selectedMarkupIds = useViewerStore((s) => s.selectedMarkupIds)
+  const setSelectedMarkupIds = useViewerStore((s) => s.setSelectedMarkupIds)
+  const clearSelection = useViewerStore((s) => s.clearSelection)
+
   const {
     state: markupState,
     activate: activateMarkup,
@@ -269,6 +276,17 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     }
   }, [])
 
+  // Plan 09-02: single-click selection on any markup type.
+  // D-03 guard: placement always wins — clicks during a non-'select' tool are
+  // ignored here so placement/draw flows behave exactly as before.
+  const handleMarkupClick = useCallback(
+    (id: string) => {
+      if (activeTool !== 'select') return
+      setSelectedMarkupIds([id])
+    },
+    [activeTool, setSelectedMarkupIds]
+  )
+
   // Confirmation toast state
   const [toast, setToast] = useState<{ ratioText: string } | null>(null)
 
@@ -308,7 +326,10 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     }
   }, [containerSize, calibState.mode, recomputePopupPos])
 
-  // Escape key cancels active markup draw/place/name/confirm (D-07)
+  // Escape key cancels active markup draw/place/name/confirm (D-07).
+  // Plan 09-02 extension: when already in 'select' mode (no active markup
+  // flow), Escape clears the selectedMarkupIds — matches the must_have
+  // "Pressing Escape in 'select' mode deselects".
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent): void {
       if (e.key === 'Escape') {
@@ -321,12 +342,19 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
           e.preventDefault()
           cancelMarkup()
           useViewerStore.getState().setActiveTool('select')
+          return
+        }
+        // No active markup flow: if we're in 'select' mode, deselect.
+        // Read activeTool fresh from the store so this effect doesn't need
+        // to re-subscribe when only the selection contents change.
+        if (useViewerStore.getState().activeTool === 'select') {
+          clearSelection()
         }
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [markupState.mode, cancelMarkup])
+  }, [markupState.mode, cancelMarkup, clearSelection])
 
   // Auto-dismiss error toast after 3s
   useEffect(() => {
@@ -486,8 +514,15 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         recordMarkupClick({ x: pointer.x, y: pointer.y })
         return
       }
+
+      // Plan 09-02 / D-05: in 'select' mode, clicking empty stage canvas
+      // deselects all markups. e.target is the Stage itself only when the
+      // click missed every interactive shape (the markup Groups in Layer 1b).
+      if (activeTool === 'select' && e.target === stageRef.current) {
+        clearSelection()
+      }
     },
-    [calibState.mode, markupState.mode, markupState.toolType, markupState.points.length, isOverStartPoint, stageRef, recordClick, recordMarkupClick, finishPolygon]
+    [calibState.mode, markupState.mode, markupState.toolType, markupState.points.length, isOverStartPoint, stageRef, recordClick, recordMarkupClick, finishPolygon, activeTool, clearSelection]
   )
 
   // Handle Stage mousemove — update preview point for calibration or markup drawing
@@ -736,6 +771,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                 onHoverEnter={handleHoverEnter}
                 onHoverLeave={handleHoverLeave}
                 onContextMenu={handleContextMenu}
+                onClick={handleMarkupClick}
               />
             )
           })}
@@ -754,6 +790,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                 onHoverEnter={handleHoverEnter}
                 onHoverLeave={handleHoverLeave}
                 onContextMenu={handleContextMenu}
+                onClick={handleMarkupClick}
               />
             )
           })}
@@ -772,6 +809,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                 onHoverEnter={handleHoverEnter}
                 onHoverLeave={handleHoverLeave}
                 onContextMenu={handleContextMenu}
+                onClick={handleMarkupClick}
               />
             )
           })}
@@ -790,6 +828,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                 onHoverEnter={handleHoverEnter}
                 onHoverLeave={handleHoverLeave}
                 onContextMenu={handleContextMenu}
+                onClick={handleMarkupClick}
               />
             )
           })}
@@ -808,6 +847,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                 onHoverEnter={handleHoverEnter}
                 onHoverLeave={handleHoverLeave}
                 onContextMenu={handleContextMenu}
+                onClick={handleMarkupClick}
               />
             )
           })}
@@ -832,6 +872,25 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
             )}
           </Layer>
         )}
+
+        {/* Plan 09-02 / D-02: selection ring Layer. Reuses HoverRing with the
+            accent color at full opacity so a selected markup reads as a solid
+            blue outer ring while the panel-hover ring (white @ 40%) sits at a
+            different radius/opacity for visual distinction.
+            CRITICAL: listening={false} on the Layer — without it the selection
+            ring shapes would intercept clicks meant for the markup Groups in
+            Layer 1b below, breaking single-click selection and the
+            highlight-overlay-listening.test.ts regression contract (D-11). */}
+        <Layer listening={false}>
+          {selectedMarkupIds.length > 0 && (
+            <HoverRing
+              markups={pageMarkups.filter((m) => selectedMarkupIds.includes(m.id))}
+              currentZoom={currentZoom}
+              color={COLORS.accent}
+              opacity={1.0}
+            />
+          )}
+        </Layer>
 
         {/* Layer 2: Transient interactive polygon drawing (only mounted while drawing area/perimeter) */}
         {(markupState.toolType === 'area' || markupState.toolType === 'perimeter') &&
