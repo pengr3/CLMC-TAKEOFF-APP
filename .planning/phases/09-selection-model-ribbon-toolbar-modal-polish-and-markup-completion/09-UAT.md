@@ -75,7 +75,7 @@ blocked: 0
 ## Gaps
 
 - truth: "Ctrl+A selects all markups on current page; Delete removes all selected in one step; Ctrl+Z restores all in one undo step"
-  status: failed
+  status: fixed_pending_user_verify
   reason: "User reported: does not work"
   severity: major
   test: 9
@@ -85,10 +85,14 @@ blocked: 0
       issue: "Ctrl+Z handler (lines 92-99) calls undo() without peeking at the undone command; does not call setSelectedMarkupIds() to restore previously-selected IDs after a delete/delete-group undo"
   missing:
     - "Before calling undo(), peek at undoStack.at(-1); if type 'delete' extract markup.id, if type 'delete-group' extract markups.map(m=>m.id); after undo() call useViewerStore.getState().setSelectedMarkupIds(restoredIds)"
+  fix:
+    quick_task: 260518-uat-fix-phase09-uat-gaps
+    commit: 4db36bb
+    note: "Peek undoStack.at(-1) before markupStore.undo(); on 'delete' / 'delete-group' commands, capture restored IDs and call setSelectedMarkupIds() after undo() returns. Vitest 473/473 green."
   debug_session: ""
 
 - truth: "LMB drag must never pan the canvas when a markup tool is active — only MMB and Spacebar+LMB should pan"
-  status: failed
+  status: fixed_pending_user_verify
   reason: "User reported: when a markup tool is selected and LMB is held before initial click, it introduces drag/pan functionality. Unacceptable — interferes with markup placement."
   severity: major
   test: 11
@@ -98,4 +102,8 @@ blocked: 0
       issue: "Line 84: Konva.dragButtons = spaceHeld || activeTool !== 'select' ? [0, 1] : [1] — the activeTool !== 'select' branch incorrectly enables LMB pan for all markup tools"
   missing:
     - "Remove activeTool !== 'select' condition entirely; restore to: Konva.dragButtons = spaceHeld ? [0, 1] : [1]"
+  fix:
+    quick_task: 260518-uat-fix-phase09-uat-gaps
+    commit: 4db36bb
+    note: "Formula simplified to spaceHeld ? [0, 1] : [1]; activeTool selector + effect dep removed. LMB is now reserved for tool actions in every mode. Vitest 473/473 green."
   debug_session: ""

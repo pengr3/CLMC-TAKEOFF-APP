@@ -181,6 +181,7 @@ None.
 | 260429-jov | Restore optimizeDeps exclude pdfjs-dist in electron.vite.config.ts | 2026-04-29 | 0442ebc | [260429-jov-restore-optimizedeps-exclude-pdfjs-dist-](./quick/260429-jov-restore-optimizedeps-exclude-pdfjs-dist-/) |
 | 260518-k9x | Fix MMB pan broken + LMB rubber-band not selecting (phase 09 regressions) | 2026-05-18 | 0677d9d | [260518-k9x-fix-mmb-pan-and-rubber-band-select](./quick/260518-k9x-fix-mmb-pan-and-rubber-band-select/) |
 | 260518-fix | Fix rubber-band click-clears-selection: Konva click after mouseup wipes selection; move rubber-band rect to correct layer; window mouseup cleanup | 2026-05-18 | pending | [260518-fix-rubber-band-click-clears-selection](./quick/260518-fix-rubber-band-click-clears-selection/) |
+| 260518-uat | Fix Phase 09 UAT gaps — Test 9 (Ctrl+Z restores selection after delete-undo) + Test 11 (LMB no-pan during markup placement) | 2026-05-18 | 4db36bb | [260518-uat-fix-phase09-uat-gaps](./quick/260518-uat-fix-phase09-uat-gaps/) |
 
 ### Roadmap Evolution
 
@@ -194,11 +195,11 @@ None.
 
 **Last activity:** 2026-05-18
 
-**Last session:** 2026-05-18T07:10:56.284Z
+**Last session:** 2026-05-18 — resumed; Phase 09 UAT gaps queued for fix
 
-**Stopped at:** context exhaustion at 76% (2026-05-18)
+**Stopped at:** Quick task 260518-uat applied both UAT fixes; commit 4db36bb; vitest 473/473 green; awaiting live UAT re-verification of tests 9 + 11
 
-**Next action:** v1.0 milestone complete. All 11 phases done. Run `/gsd-complete-milestone` to archive v1.0 and prepare for v1.1, or start a new phase with `/gsd-discuss-phase`.
+**Next action:** Launch `npm run dev` and re-run UAT Tests 9 (Ctrl+A → Delete → Ctrl+Z restores selection rings) + 11 (LMB drag does not pan during markup placement). On PASS, mark gaps as `status: fixed` in 09-UAT.md and close Plan 09-05 via Wave 3 closure (ROADMAP Phase 9 complete + STATE.md update).
 
 ---
 *State initialized: 2026-03-25*
