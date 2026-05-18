@@ -36,6 +36,8 @@ export interface WallMarkupProps {
   onHoverEnter?: (id: string, screenX: number, screenY: number) => void
   onHoverLeave?: (id: string) => void
   onContextMenu?: (id: string, screenX: number, screenY: number) => void
+  /** Plan 09-02: single-click selection. D-03 guard lives in CanvasViewport. */
+  onClick?: (id: string) => void
 }
 
 // World-anchored label sizing — labels scale with zoom (D-22/D-34).
@@ -68,7 +70,8 @@ export function WallMarkup({
   pageScale,
   onHoverEnter,
   onHoverLeave,
-  onContextMenu
+  onContextMenu,
+  onClick
 }: WallMarkupProps): React.JSX.Element | null {
   // Hidden-item skip — composite key "name|categoryId" prevents cross-category collision.
   // Place as the very first lines so the rest of the render body is not evaluated.
@@ -111,6 +114,7 @@ export function WallMarkup({
         const p = stage?.getPointerPosition()
         if (p && onContextMenu) onContextMenu(markup.id, p.x, p.y)
       }}
+      onClick={() => onClick?.(markup.id)}
     >
       {/* PRIMARY LINE — 2.5× base stroke, interactive hit area */}
       <Line

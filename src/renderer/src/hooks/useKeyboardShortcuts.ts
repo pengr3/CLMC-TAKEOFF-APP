@@ -107,6 +107,65 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
         return
       }
 
+      // Plan 09-02: Delete — remove the currently selected markup(s) as a
+      // single undoable command. isTextInputActive() guard is mandatory
+      // (T-09-02-01) so pressing Delete inside a name-input or context-menu
+      // text field never wipes a committed markup.
+      if (e.key === 'Delete') {
+        if (isTextInputActive()) return
+        const selectedIds = useViewerStore.getState().selectedMarkupIds
+        if (selectedIds.length === 0) return
+        if (selectedIds.length === 1) {
+          // Single-select: look up the markup's page so we call deleteMarkup
+          // with the correct (page, id) pair. The Wave 0 invariant (page-
+          // scoped clear on every page transition) guarantees the id lives
+          // on the current page, but reading the page from the markup
+          // itself is the safest path against any drift.
+          const id = selectedIds[0]
+          const allPages = useMarkupStore.getState().pageMarkups
+          let pageOfMarkup = -1
+          for (const [pageKey, list] of Object.entries(allPages)) {
+            if (list.some((m) => m.id === id)) {
+              pageOfMarkup = Number(pageKey)
+              break
+            }
+          }
+          if (pageOfMarkup > 0) {
+            useMarkupStore.getState().deleteMarkup(pageOfMarkup, id)
+          }
+        } else {
+          // Multi-select: route through deleteGroup so the entire batch is a
+          // single undoable command (Wave 0 contract — MarkupCommand
+          // 'delete-group').
+          const idSet = new Set(selectedIds)
+          const allMarkups = Object.values(useMarkupStore.getState().pageMarkups).flat()
+          const toDelete = allMarkups.filter((m) => idSet.has(m.id))
+          if (toDelete.length > 0) {
+            useMarkupStore.getState().deleteGroup(toDelete)
+          }
+        }
+        // CRITICAL: clear selection AFTER the delete so selectedMarkupIds never
+        // points at a removed markup. The keyboard handler owns the selection
+        // lifecycle (Wave 0 SUMMARY decision) — markupStore stays free of
+        // viewerStore imports.
+        useViewerStore.getState().clearSelection()
+        return
+      }
+
+      // Plan 09-02: Ctrl+A — select every markup on the current page while in
+      // 'select' mode. isTextInputActive() guard preserves the OS-standard
+      // "Select All" inside any focused text input (T-09-02-01 / D-27 pattern).
+      if (e.ctrlKey && (e.key === 'a' || e.key === 'A')) {
+        if (isTextInputActive()) return
+        e.preventDefault()
+        if (useViewerStore.getState().activeTool !== 'select') return
+        if (totalPages === 0) return
+        const currentPage = useViewerStore.getState().currentPage
+        const allIds = useMarkupStore.getState().getMarkups(currentPage).map((m) => m.id)
+        useViewerStore.getState().setSelectedMarkupIds(allIds)
+        return
+      }
+
       // Only handle remaining shortcuts when a PDF is loaded
       if (totalPages === 0) return
 

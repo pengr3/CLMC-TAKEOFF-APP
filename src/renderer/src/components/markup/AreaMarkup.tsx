@@ -12,6 +12,8 @@ export interface AreaMarkupProps {
   onHoverEnter?: (id: string, screenX: number, screenY: number) => void
   onHoverLeave?: (id: string) => void
   onContextMenu?: (id: string, screenX: number, screenY: number) => void
+  /** Plan 09-02: single-click selection. D-03 guard lives in CanvasViewport. */
+  onClick?: (id: string) => void
 }
 
 // Pure world-anchored label (D-34), dark rounded chip background for legibility
@@ -38,7 +40,8 @@ export function AreaMarkup({
   pageScale,
   onHoverEnter,
   onHoverLeave,
-  onContextMenu
+  onContextMenu,
+  onClick
 }: AreaMarkupProps): React.JSX.Element | null {
   // Composite key: "name|categoryId" — matches the key used by TotalsRow toggleHiddenItem.
   const itemKey = `${markup.name}|${markup.categoryId ?? ''}`
@@ -77,6 +80,7 @@ export function AreaMarkup({
         const p = stage?.getPointerPosition()
         if (p && onContextMenu) onContextMenu(markup.id, p.x, p.y)
       }}
+      onClick={() => onClick?.(markup.id)}
     >
       <Line
         points={flatPoints}

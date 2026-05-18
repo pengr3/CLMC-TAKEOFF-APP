@@ -25,6 +25,17 @@ export interface HoverRingProps {
   markups: Markup[]
   /** Current Stage zoom; used to keep stroke/offset visually constant. */
   currentZoom: number
+  /**
+   * Optional stroke color. Defaults to `RING_COLOR` (#ffffff) used by the
+   * panel-driven hover overlay. Plan 09-02 passes `COLORS.accent` (#0078d4)
+   * for the selection ring so the same renderer can serve both roles.
+   */
+  color?: string
+  /**
+   * Optional stroke opacity. Defaults to `RING_OPACITY` (0.4) used by the
+   * hover overlay. Plan 09-02 passes `1.0` for the selection ring.
+   */
+  opacity?: number
 }
 
 /**
@@ -41,9 +52,19 @@ export interface HoverRingProps {
  * This is verified by `highlight-overlay-listening.test.ts` (regression
  * guard).
  */
-export function HoverRing({ markups, currentZoom }: HoverRingProps): React.JSX.Element {
+export function HoverRing({
+  markups,
+  currentZoom,
+  color,
+  opacity
+}: HoverRingProps): React.JSX.Element {
   const stroke = STROKE_BASE_PX / currentZoom
   const offset = RING_OFFSET_PX / currentZoom
+  // Defaults preserve the hover-overlay look exactly (plan 06-03 contract).
+  // Plan 09-02 overrides with COLORS.accent + opacity=1.0 to render the
+  // selection ring through the same component.
+  const strokeColor = color ?? RING_COLOR
+  const strokeOpacity = opacity ?? RING_OPACITY
 
   return (
     <>
@@ -55,9 +76,9 @@ export function HoverRing({ markups, currentZoom }: HoverRingProps): React.JSX.E
               x={m.point.x}
               y={m.point.y}
               radius={PIN_RADIUS_WORLD + offset}
-              stroke={RING_COLOR}
+              stroke={strokeColor}
               strokeWidth={stroke}
-              opacity={RING_OPACITY}
+              opacity={strokeOpacity}
               fill="transparent"
               listening={false}
             />
@@ -68,11 +89,11 @@ export function HoverRing({ markups, currentZoom }: HoverRingProps): React.JSX.E
             <Line
               key={m.id}
               points={m.points.flatMap((p) => [p.x, p.y])}
-              stroke={RING_COLOR}
+              stroke={strokeColor}
               // Wider envelope around the polyline so the ring reads as an
               // outer outline rather than overlapping the line itself.
               strokeWidth={stroke + offset * 2}
-              opacity={RING_OPACITY}
+              opacity={strokeOpacity}
               lineCap="round"
               lineJoin="round"
               listening={false}
@@ -85,9 +106,9 @@ export function HoverRing({ markups, currentZoom }: HoverRingProps): React.JSX.E
             <Line
               key={m.id}
               points={m.points.flatMap((p) => [p.x, p.y])}
-              stroke={RING_COLOR}
+              stroke={strokeColor}
               strokeWidth={stroke + offset * 2}
-              opacity={RING_OPACITY}
+              opacity={strokeOpacity}
               lineCap="round"
               lineJoin="round"
               listening={false}
@@ -101,9 +122,9 @@ export function HoverRing({ markups, currentZoom }: HoverRingProps): React.JSX.E
           <Line
             key={m.id}
             points={closing.flatMap((p) => [p.x, p.y])}
-            stroke={RING_COLOR}
+            stroke={strokeColor}
             strokeWidth={stroke + offset * 2}
-            opacity={RING_OPACITY}
+            opacity={strokeOpacity}
             lineCap="round"
             lineJoin="round"
             listening={false}
