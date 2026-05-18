@@ -70,13 +70,19 @@ export function useViewportControls(
   const [spaceHeld, setSpaceHeld] = useState(false)
   const currentPage = useViewerStore((s) => s.currentPage)
   const setViewport = useViewerStore((s) => s.setViewport)
+  const activeTool = useViewerStore((s) => s.activeTool)
 
-  // Configure Konva drag buttons based on spacebar state.
+  // Configure Konva drag buttons based on spacebar state AND activeTool.
   // Middle-mouse (button 1) can always drag the stage.
-  // Left-mouse (button 0) can only drag when spacebar is held (pan mode).
+  // Left-mouse (button 0) can drag the stage when:
+  //   - spacebar is held (pan-mode override, D-06), OR
+  //   - the active tool is anything other than 'select'.
+  // In 'select' mode without spacebar, LMB is freed for the rubber-band
+  // multi-select rectangle (Plan 09-03 / D-06 / D-07). Stage.draggable
+  // stays hardcoded true — pan is controlled exclusively by dragButtons.
   useEffect(() => {
-    Konva.dragButtons = spaceHeld ? [0, 1] : [1]
-  }, [spaceHeld])
+    Konva.dragButtons = spaceHeld || activeTool !== 'select' ? [0, 1] : [1]
+  }, [spaceHeld, activeTool])
 
   // Handle Ctrl+scroll wheel zoom
   const handleWheel = useCallback(

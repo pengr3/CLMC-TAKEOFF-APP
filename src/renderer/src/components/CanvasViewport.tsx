@@ -1,11 +1,11 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
-import { Stage, Layer, Image as KonvaImage, Circle, Line } from 'react-konva'
+import { Stage, Layer, Image as KonvaImage, Circle, Line, Rect } from 'react-konva'
 import Konva from 'konva'
 import { usePdfRenderer } from '../hooks/usePdfRenderer'
 import { useViewerStore } from '../stores/viewerStore'
 import { useScaleStore } from '../stores/scaleStore'
 import { useViewportControls } from '../hooks/useViewportControls'
-import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
+import { useKeyboardShortcuts, isTextInputActive } from '../hooks/useKeyboardShortcuts'
 import { usePdfDocument } from '../hooks/usePdfDocument'
 import { useCalibrationMode } from '../hooks/useCalibrationMode'
 import { useMarkupTool } from '../hooks/useMarkupTool'
@@ -39,6 +39,64 @@ import type { Markup, CountMarkup, LinearMarkup as LinearMarkupType, AreaMarkup 
 // A fresh `[]` literal inside a Zustand selector breaks useSyncExternalStore's
 // Object.is snapshot check and causes an infinite re-render loop.
 const EMPTY_MARKUPS: Markup[] = []
+
+// Plan 09-03: Rubber-band selection (D-06, D-07, D-08, D-09).
+// Stage-space coordinates of the in-progress rubber-band drag rectangle.
+type RubberBandState = { startX: number; startY: number; endX: number; endY: number } | null
+
+// Translucent accent fill for the rubber-band rectangle. Defined at module
+// scope (not inside JSX) so the literal does not violate the codebase's
+// "COLORS tokens only / no raw hex" rule — opacity variants of accent are not
+// part of the COLORS palette, and a named constant makes the intent obvious.
+const RUBBER_BAND_FILL = 'rgba(0,120,212,0.1)'
+
+// PIN_RADIUS_WORLD mirrors CountPinMarkup.tsx:25 and HoverRing.tsx:21 — pins
+// are world-anchored at radius 10 stage-units, so a count markup's axis-
+// aligned bounding box for D-07 containment math is point ± 10 on both axes.
+const PIN_RADIUS_WORLD = 10
+
+/**
+ * Compute the axis-aligned bounding box of a markup in stage-space.
+ * Used by the rubber-band containment check (D-07): a markup is selected iff
+ * its FULL bbox falls inside the rubber-band rectangle (standard CAD
+ * "selection window" rule). The convex-hull is not needed for AABB.
+ */
+function getMarkupBBox(markup: Markup): { minX: number; maxX: number; minY: number; maxY: number } {
+  if (markup.type === 'count') {
+    return {
+      minX: markup.point.x - PIN_RADIUS_WORLD,
+      maxX: markup.point.x + PIN_RADIUS_WORLD,
+      minY: markup.point.y - PIN_RADIUS_WORLD,
+      maxY: markup.point.y + PIN_RADIUS_WORLD
+    }
+  }
+  // linear | area | perimeter | wall — all are point arrays in stage-space.
+  const xs = markup.points.map((p) => p.x)
+  const ys = markup.points.map((p) => p.y)
+  return {
+    minX: Math.min(...xs),
+    maxX: Math.max(...xs),
+    minY: Math.min(...ys),
+    maxY: Math.max(...ys)
+  }
+}
+
+/**
+ * D-07 containment check: the markup's full AABB must be entirely inside the
+ * normalised rubber-band rectangle. Band corners are normalised so the test
+ * works regardless of drag direction (top-left→bottom-right, or any other).
+ */
+function isFullyInside(
+  markup: Markup,
+  band: { startX: number; startY: number; endX: number; endY: number }
+): boolean {
+  const bx1 = Math.min(band.startX, band.endX)
+  const bx2 = Math.max(band.startX, band.endX)
+  const by1 = Math.min(band.startY, band.endY)
+  const by2 = Math.max(band.startY, band.endY)
+  const { minX, maxX, minY, maxY } = getMarkupBBox(markup)
+  return minX >= bx1 && maxX <= bx2 && minY >= by1 && maxY <= by2
+}
 
 // Module-level ref for canvas control functions (consumed by Toolbar via getCanvasControls)
 let _canvasControls: {
@@ -225,6 +283,12 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // Local state for polygon start-vertex hover (drives close-on-click affordance)
   const [isOverStartPoint, setIsOverStartPoint] = useState(false)
 
+  // Plan 09-03: rubber-band rectangle in stage-space while the user is
+  // mid-drag in 'select' mode. null when no drag is in progress.
+  // useState (not useRef) so the rect re-renders as the user drags;
+  // 60fps single-Rect updates are within React 19's budget (RESEARCH §Pitfall 9).
+  const [rubberBand, setRubberBand] = useState<RubberBandState>(null)
+
   // Sync viewerStore.activeTool with the markup tool state machine
   useEffect(() => {
     if (isMarkupTool(activeTool) && markupState.toolType !== activeTool) {
@@ -330,6 +394,14 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // Plan 09-02 extension: when already in 'select' mode (no active markup
   // flow), Escape clears the selectedMarkupIds — matches the must_have
   // "Pressing Escape in 'select' mode deselects".
+  // Plan 09-03 extension: Enter key commits an in-progress Linear/Wall (>=2
+  // points) or Area/Perimeter (>=3 points) markup. The commit uses
+  // markupState.points ONLY — the floating hover/preview point is NOT
+  // appended. finishLinear/finishPolygon operate on markupState.points
+  // (the array of CLICKED vertices), so this is correct by construction;
+  // do NOT add any code that reads stage.getPointerPosition() before the
+  // finish call. isTextInputActive() guard prevents the global Enter from
+  // firing while a popup name-input is focused (Pitfall 5).
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent): void {
       if (e.key === 'Escape') {
@@ -350,11 +422,41 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         if (useViewerStore.getState().activeTool === 'select') {
           clearSelection()
         }
+        return
+      }
+
+      // Plan 09-03 / D-26 / D-27: Enter key commits in-progress markup.
+      if (e.key === 'Enter') {
+        if (isTextInputActive()) return
+        if (markupState.mode !== 'drawing') return
+        if (markupState.toolType === 'linear' || markupState.toolType === 'wall') {
+          if (markupState.points.length >= 2) {
+            e.preventDefault()
+            finishLinear()
+          }
+          // else: silent ignore per D-26 (degenerate shape)
+          return
+        }
+        if (markupState.toolType === 'area' || markupState.toolType === 'perimeter') {
+          if (markupState.points.length >= 3) {
+            e.preventDefault()
+            finishPolygon()
+          }
+          // else: silent ignore per D-26 (degenerate shape)
+        }
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [markupState.mode, cancelMarkup, clearSelection])
+  }, [
+    markupState.mode,
+    markupState.toolType,
+    markupState.points.length,
+    cancelMarkup,
+    clearSelection,
+    finishLinear,
+    finishPolygon
+  ])
 
   // Auto-dismiss error toast after 3s
   useEffect(() => {
@@ -525,13 +627,39 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     [calibState.mode, markupState.mode, markupState.toolType, markupState.points.length, isOverStartPoint, stageRef, recordClick, recordMarkupClick, finishPolygon, activeTool, clearSelection]
   )
 
-  // Handle Stage mousemove — update preview point for calibration or markup drawing
+  // Plan 09-03: rubber-band drag (D-06).
+  // onMouseDown in 'select' mode with LMB and no spacebar starts the rubber-band.
+  // Konva.dragButtons (useViewportControls) is gated so the Stage will NOT pan
+  // for LMB in 'select' mode without spacebar — that frees LMB for this drag.
+  const handleStageMouseDown = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      if (e.evt.button !== 0) return // LMB only
+      if (activeTool !== 'select') return
+      if (spaceHeld) return // spacebar-held override: LMB pans the stage
+      const stage = stageRef.current
+      if (!stage) return
+      const pointer = stage.getPointerPosition()
+      if (!pointer) return
+      const pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+      setRubberBand({ startX: pt.x, startY: pt.y, endX: pt.x, endY: pt.y })
+    },
+    [activeTool, spaceHeld, stageRef]
+  )
+
+  // Handle Stage mousemove — update preview point for calibration or markup drawing.
+  // Plan 09-03: also update the rubber-band end-point while a drag is in progress.
   const handleStageMouseMove = useCallback(
     (_e: Konva.KonvaEventObject<MouseEvent>) => {
       const stage = stageRef.current
       if (!stage) return
       const pointer = stage.getPointerPosition()
       if (!pointer) return
+
+      if (rubberBand) {
+        const pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+        setRubberBand((prev) => (prev ? { ...prev, endX: pt.x, endY: pt.y } : null))
+        return
+      }
 
       if (calibState.mode === 'drawing' && calibState.startPoint) {
         updatePreview({ x: pointer.x, y: pointer.y })
@@ -541,8 +669,22 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         updateMarkupPreview({ x: pointer.x, y: pointer.y })
       }
     },
-    [calibState.mode, calibState.startPoint, markupState.mode, markupState.points.length, stageRef, updatePreview, updateMarkupPreview]
+    [calibState.mode, calibState.startPoint, markupState.mode, markupState.points.length, stageRef, updatePreview, updateMarkupPreview, rubberBand]
   )
+
+  // Plan 09-03: rubber-band release (D-07, D-09).
+  // On mouseup, compute the markups whose FULL bbox is inside the rubber-band
+  // rectangle and set them as the selection. Single-id and multi-id deletes
+  // are handled by the existing Delete-key handler in useKeyboardShortcuts
+  // (Wave 1) — this handler only sets selectedMarkupIds and does not delete.
+  const handleStageMouseUp = useCallback(() => {
+    if (!rubberBand) return
+    const matched = pageMarkups.filter((m) => isFullyInside(m, rubberBand))
+    if (matched.length > 0) {
+      setSelectedMarkupIds(matched.map((m) => m.id))
+    }
+    setRubberBand(null)
+  }, [rubberBand, pageMarkups, setSelectedMarkupIds])
 
   // Handle Stage dblclick — finish linear or wall polyline (both are open polylines)
   const handleStageDblClick = useCallback(
@@ -655,7 +797,9 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         onWheel={handleWheel}
         onDragEnd={handleDragEnd}
         onClick={handleStageClick}
+        onMouseDown={handleStageMouseDown}
         onMouseMove={handleStageMouseMove}
+        onMouseUp={handleStageMouseUp}
         onDblClick={handleStageDblClick}
       >
         {/* Layer 0: PDF background */}
@@ -754,6 +898,26 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                 ))}
               </>
             )}
+
+          {/* Plan 09-03: rubber-band multi-select rectangle (D-06, D-07).
+              Renders in Layer 1a (listening={false}) so it never intercepts
+              clicks meant for the markup Groups in Layer 1b — same contract as
+              the calibration overlay and in-progress linear preview above.
+              Zoom-compensated 1/currentZoom stroke so visual width is constant
+              at every zoom level. RUBBER_BAND_FILL is a module-level constant
+              (no raw rgba literal in JSX). */}
+          {rubberBand && (
+            <Rect
+              x={Math.min(rubberBand.startX, rubberBand.endX)}
+              y={Math.min(rubberBand.startY, rubberBand.endY)}
+              width={Math.abs(rubberBand.endX - rubberBand.startX)}
+              height={Math.abs(rubberBand.endY - rubberBand.startY)}
+              stroke={COLORS.accent}
+              strokeWidth={1 / currentZoom}
+              fill={RUBBER_BAND_FILL}
+              listening={false}
+            />
+          )}
         </Layer>
 
         {/* Layer 1b: Committed markups — LISTENING for hover + right-click (plan 03.1-05) */}
