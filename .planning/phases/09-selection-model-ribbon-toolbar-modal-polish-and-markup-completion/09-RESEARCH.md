@@ -753,8 +753,8 @@ src/renderer/src/
 
 ### Pitfall 2: Rubber-Band Starts Pan Instead of Drawing Rectangle
 **What goes wrong:** Left-click drag on Stage in `'select'` mode activates Konva's built-in Stage drag (pan behavior).
-**Why it happens:** `isDraggable` is still `true` when activeTool is `'select'` and no spacebar is held.
-**How to avoid:** In `useViewportControls`, the `isDraggable` calculation must return `false` when `activeTool === 'select'` (no spacebar). Currently it only accounts for `spaceHeld` and middle-mouse. Add a check: if activeTool is `'select'` and not spaceHeld, `isDraggable = false`.
+**Why it happens:** Pan is controlled via `Konva.dragButtons` (not the `draggable` prop — `isDraggable` is hardcoded `true`). The existing `Konva.dragButtons` useEffect in `useViewportControls` only checks `spaceHeld`, so LMB is always a pan button when not in spacebar mode.
+**How to avoid:** Add `activeTool` to the `Konva.dragButtons` useEffect deps in `useViewportControls`. Change formula to: `Konva.dragButtons = (spaceHeld || activeTool !== 'select') ? [0, 1] : [1]`. When in select mode without spacebar, only middle-mouse pans; LMB is free for rubber-band. Do NOT change `isDraggable` — leave it `true`.
 **Warning signs:** Dragging on empty canvas pans instead of drawing a rubber-band rect.
 
 ### Pitfall 3: delete-group Undo Switch Fallthrough
@@ -1003,13 +1003,13 @@ ASVS V5 Input Validation: The rubber-band containment math uses client-side coor
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **ScalePopup centering** — Is ScalePopup a screenPos-based popup (like MarkupNamePopup) or a full-overlay modal (like CalibrationDialog)? The answer determines whether it needs full conversion or just the draggable hook. Read `ScalePopup.tsx` before planning D-10 scope.
+1. **ScalePopup centering** — RESOLVED: Executor must read `ScalePopup.tsx` before implementing D-10 scope. If screenPos-based (like MarkupNamePopup), apply the same overlay-conversion + draggable pattern. If already a flexbox overlay (like CalibrationDialog), add draggable only. Either path is covered by the useDraggable hook in 09-01.
 
-2. **Estimating tab content** — D-21 leaves this to implementer discretion. Options: (a) duplicate Export button, (b) BOQ summary stats from `useBoqLive`, (c) empty with "More features coming soon". Stub is safest.
+2. **Estimating tab content** — RESOLVED: Stub with "Coming soon" text per D-21 implementer discretion. No new dependencies required; avoids scope creep.
 
-3. **LAYOUT.toolbarHeight consumers** — Verify no component reads `LAYOUT.toolbarHeight` to compute layout geometry. If `StatusBar` or `CanvasHeaderBar` depends on this constant, the ribbon height change requires updating those calculations.
+3. **LAYOUT.toolbarHeight consumers** — RESOLVED: Grep confirms zero consumers in the codebase (`LAYOUT.toolbarHeight` is defined but never read by any component). Ribbon height change is safe; constant can be updated or annotated as legacy.
 
 ---
 
