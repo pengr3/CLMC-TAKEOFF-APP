@@ -94,7 +94,19 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
         e.preventDefault()
         const handledByDraw = getMarkupUndoHandler()?.() ?? false
         if (!handledByDraw) {
+          // Phase 09 UAT gap (Test 9): peek the command being undone — if a
+          // delete or delete-group is about to be reversed, capture the
+          // restored markup IDs so we can re-apply selection rings after
+          // undo(). Without this, Ctrl+A → Delete → Ctrl+Z restores the
+          // markups but leaves selection empty, breaking the round-trip.
+          const top = useMarkupStore.getState().undoStack.at(-1)
+          let restoredIds: string[] = []
+          if (top?.type === 'delete') restoredIds = [top.markup.id]
+          else if (top?.type === 'delete-group') restoredIds = top.markups.map((m) => m.id)
           useMarkupStore.getState().undo()
+          if (restoredIds.length > 0) {
+            useViewerStore.getState().setSelectedMarkupIds(restoredIds)
+          }
         }
         return
       }
