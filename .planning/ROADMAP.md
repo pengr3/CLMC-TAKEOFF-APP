@@ -294,7 +294,7 @@ Plans:
   5. For the Linear, Area, Perimeter, and Wall tools, pressing Enter or double-clicking the most recently placed point commits the in-progress markup — identical outcome to the existing finish-segment mechanism
 **Plans:** 6 plans
 Plans:
-- [ ] 09-00-PLAN.md — Type extensions + store additions (Wave 0)
+- [x] 09-00-PLAN.md — Type extensions + store additions (Wave 0)
 - [ ] 09-01-PLAN.md — useDraggable hook + all 9 modals draggable (Wave 1)
 - [ ] 09-02-PLAN.md — Click-to-select + selection ring + Delete/Ctrl+A (Wave 1)
 - [ ] 09-03-PLAN.md — Rubber-band multi-select + Enter key commit (Wave 2)
