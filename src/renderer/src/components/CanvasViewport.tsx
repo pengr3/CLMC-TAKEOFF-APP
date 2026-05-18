@@ -300,24 +300,26 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   const rubberBandDraggedRef = useRef(false)
 
   // Markup-mode click-vs-hold disambiguation. Konva fires `click` on every mouseup
-  // that wasn't preceded by an internal Stage drag. After commit 4db36bb (Phase 09
-  // UAT Test 11 fix) removed LMB from Konva.dragButtons during markup tools, every
-  // mouseup fires `click` — including the release of a deliberately-held LMB,
-  // which then drops a markup at the release position. Mirror the rubber-band
-  // pattern (4px threshold) to suppress the click when the pointer moved while
-  // LMB was held during a markup tool.
+  // that wasn't preceded by an internal Stage drag. After commit 4db36bb removed
+  // LMB from Konva.dragButtons during markup tools, every mouseup fires `click` —
+  // including the release of a deliberately-held LMB, which then drops a markup at
+  // the release position.
+  //
+  // Implementation: capture the LMB-down screen position; at click time, compare
+  // the FINAL pointer position to it. If the final delta exceeds the threshold the
+  // gesture is "drag-then-release" (suppress); otherwise it is a "click" (place).
+  // A fast jab with mid-flight wobble that returns near the down-pos places — only
+  // the resulting displacement matters, not max travel during the hold.
   const markupMouseDownPosRef = useRef<{ x: number; y: number } | null>(null)
-  const markupDraggedRef = useRef(false)
 
   // Clean up a rubber-band that is still active when the user releases the mouse
   // outside the Stage canvas (Stage onMouseUp never fires for out-of-bounds releases).
-  // Also clear markup-mode hold-tracking refs so a release-outside-canvas does not
-  // leak a stale "dragged" flag into the next in-bounds click.
+  // Also clear the markup-mode down-pos so a release-outside-canvas cannot leak
+  // a stale down-pos into the next in-bounds click.
   useEffect(() => {
     const cleanup = () => {
       if (rubberBandRef.current) setRubberBand(null)
       markupMouseDownPosRef.current = null
-      markupDraggedRef.current = false
     }
     window.addEventListener('mouseup', cleanup)
     return () => window.removeEventListener('mouseup', cleanup)
@@ -628,13 +630,17 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       const pointer = stage.getPointerPosition()
       if (!pointer) return
 
-      // Markup-mode hold suppression: if the user pressed LMB and moved the
-      // pointer >4px before releasing, treat the gesture as a "hold-and-drag"
-      // and suppress placement. The refs are always cleared here so a single
-      // suppressed click never leaks into the next gesture.
-      const wasDragged = markupDraggedRef.current
+      // Markup-mode hold suppression: compare the FINAL pointer position to the
+      // captured LMB-down position. If the resulting displacement exceeds 4px,
+      // treat the gesture as a "hold-and-drag" and suppress placement. Mid-flight
+      // wobble that returns near the down-pos still places — only the final
+      // displacement matters. The ref is cleared unconditionally so a single
+      // gesture never leaks into the next.
+      const downPos = markupMouseDownPosRef.current
       markupMouseDownPosRef.current = null
-      markupDraggedRef.current = false
+      const wasDragged =
+        downPos !== null &&
+        (Math.abs(pointer.x - downPos.x) > 4 || Math.abs(pointer.y - downPos.y) > 4)
 
       // Calibration path (existing)
       if (calibState.mode === 'drawing') {
@@ -697,12 +703,12 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       const pointer = stage.getPointerPosition()
       if (!pointer) return
 
-      // Markup-mode hold tracking (mirrors rubber-band pattern; runs regardless
-      // of whether a markup draw is in progress so a click on empty stage that
-      // would START a markup is also suppressed when the user held + moved).
+      // Markup-mode hold tracking: capture the LMB-down screen position so
+      // handleStageClick can compute final-delta and decide click-vs-drag.
+      // Runs regardless of whether a markup draw is in progress so a click
+      // that would START a markup is also subject to the same gate.
       if (isMarkupTool(activeTool) && !spaceHeld) {
         markupMouseDownPosRef.current = { x: pointer.x, y: pointer.y }
-        markupDraggedRef.current = false
       }
 
       if (activeTool !== 'select') return
@@ -725,17 +731,6 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       if (!stage) return
       const pointer = stage.getPointerPosition()
       if (!pointer) return
-
-      // Markup-mode click-vs-hold detection: once the pointer has moved more
-      // than 4px from the LMB-down position, mark the gesture as "dragged" so
-      // handleStageClick suppresses placement on release. 4px matches the
-      // rubber-band threshold (line ~722) — uniform dead-zone across gestures.
-      const downPos = markupMouseDownPosRef.current
-      if (downPos && !markupDraggedRef.current) {
-        if (Math.abs(pointer.x - downPos.x) > 4 || Math.abs(pointer.y - downPos.y) > 4) {
-          markupDraggedRef.current = true
-        }
-      }
 
       const rb = rubberBandRef.current
       if (rb) {
