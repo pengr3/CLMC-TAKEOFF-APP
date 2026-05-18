@@ -1,0 +1,64 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-05-18T23:30:00Z",
+  "phase": "09",
+  "phase_name": "selection-model-ribbon-toolbar-modal-polish-and-markup-completion",
+  "phase_dir": ".planning/phases/09-selection-model-ribbon-toolbar-modal-polish-and-markup-completion",
+  "plan": 5,
+  "task": 1,
+  "total_tasks": 1,
+  "status": "paused_pending_live_verify",
+  "context": "Phase 09 is CLOSED (12/12 UAT PASS, milestone v1.0-extended COMPLETE). The only pending item is the user's live re-verify of the rapid-click drop fix that landed in commit a8c37eb during this session. No code work is in progress; nothing is partially done; nothing is uncommitted. This handoff exists purely to remind the next session that two specific behaviors need to be checked in the live Electron app.",
+  "completed_tasks": [
+    {"id": "phase-09-closure", "name": "Close Phase 09 — 12/12 UAT PASS, v1.0-extended milestone complete", "status": "done", "commit": "65368bb"},
+    {"id": "260518-uat", "name": "Quick task — fix UAT Test 9 (Ctrl+Z selection restore) + Test 11 (LMB no-pan during markup)", "status": "done", "commit": "4db36bb", "docs_commit": "cf89b61"},
+    {"id": "debug-lmb-hold", "name": "Debug session — LMB hold-and-release dropping markup (UX follow-up to Test 11 fix)", "status": "done", "commit": "665835f", "docs_commit": "17ff415"},
+    {"id": "260518-rcp", "name": "Quick task — rapid-click drops fix (sticky-flag → delta-at-click-time)", "status": "done", "commit": "a8c37eb", "docs_commit": "ee095cc"}
+  ],
+  "remaining_tasks": [
+    {
+      "id": "live-verify-260518-rcp",
+      "name": "Live-verify rapid-click fix in npm run dev",
+      "status": "pending_user",
+      "checks": [
+        "Rapid Count clicks (10+ fast jabs in different empty spots) all place — no dropped clicks, sequence numbers continuous",
+        "Deliberate hold-and-drag (LMB press, drag >4px across canvas, release) still suppresses — no markup dropped at release position",
+        "Linear / Area / Perimeter / Wall vertex placement at rapid speed also works (same code path, same expected behavior)"
+      ]
+    }
+  ],
+  "blockers": [],
+  "human_actions_pending": [
+    {
+      "action": "Live re-verify of commit a8c37eb in the running Electron app",
+      "context": "Three rapid-fire and one hold-and-drag check. On PASS, no further action needed — Phase 09 is already closed and milestone is already marked complete. On FAIL, run /gsd-debug continue rapid-clicks-dropped.",
+      "blocking": false
+    },
+    {
+      "action": "Optional: git push origin master",
+      "context": "Branch is ~44 commits ahead of origin/master. Auto-memory notes user works across machines — pushing keeps the work portable. Not blocking; user's call.",
+      "blocking": false
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Switched markup-tool click suppression from sticky-flag pattern to delta-at-click-time",
+      "rationale": "The sticky-flag (markupDraggedRef set true on >4px max travel during the hold) was asking the wrong question. A fast Count click routinely moves 5-15 screen pixels mid-flight even when the pointer returns near the press point by mouseup — those legitimate clicks were being suppressed. Delta-at-click-time compares only the FINAL mousedown→mouseup displacement, so mid-flight wobble is irrelevant. Mirrors CAD tool conventions (Illustrator, Figma, SketchUp). Code is also smaller — net deletion vs 665835f.",
+      "phase": "09",
+      "commit": "a8c37eb"
+    },
+    {
+      "decision": "Phase 09 closure landed BEFORE the rapid-click fix was discovered",
+      "rationale": "The rapid-click drop was caused by 665835f (the UX follow-up to Test 11) and only surfaced after Phase 09 closure. Decision: do NOT reopen Phase 09 — the fix is a follow-up quick task (260518-rcp), recorded in STATE.md's Quick Tasks table, with the debug session resolved. The phase's 12/12 UAT PASS record stands because Test 11 itself does pass (LMB no longer pans during markup); the rapid-click issue is a new defect class introduced by the fix, not a regression of the original UAT scenario.",
+      "phase": "09"
+    }
+  ],
+  "uncommitted_files": [],
+  "untracked_files_out_of_scope": [
+    {"path": ".planning/debug/count-tool-double-click.md", "note": "Old debug doc from 2026-04-21 (already-fixed React StrictMode count-double-fire bug). Pre-existing leftover, not touched this session."},
+    {"path": ".planning/phases/03.1-markup-gap-closure-and-visual-redesign/.gitkeep", "note": "Directory marker from prior session, harmless."},
+    {"path": ".planning/phases/08-markup-workflow-and-wall-tool/.gitkeep", "note": "Directory marker from prior session, harmless."}
+  ],
+  "next_action": "Run `npm run dev`. Run the three checks listed in remaining_tasks[0].checks. Report PASS/FAIL to Claude. On all-PASS, nothing else to do. On any FAIL, run `/gsd-debug continue rapid-clicks-dropped`.",
+  "context_notes": "Full session arc: resumed at Phase 09 UAT gap punch-list → /gsd-quick fixed Tests 9 + 11 atomically (4db36bb) → /gsd-debug found a UX follow-up exposed by the Test 11 fix and resolved it via 4px movement threshold (665835f) → /gsd-debug --diagnose later identified that same 4px threshold (specifically its sticky-flag implementation) as the cause of rapid-click drops → user picked Option 2 (delta-at-click-time) → /gsd-quick applied a8c37eb (net deletion) → Phase 09 closed atomically (65368bb) at 12/12 UAT PASS. Five commits today. Branch ~44 commits ahead of origin/master. No uncommitted work; no partial tasks; no in-progress refactors. The only thread is user-side live-verify of a8c37eb."
+}
