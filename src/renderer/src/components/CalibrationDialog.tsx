@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, KeyboardEvent } from 'react'
 import { COLORS } from '../lib/constants'
 import { UNIT_LABELS } from '../lib/scale-math'
 import type { MeasurementUnit } from '../types/viewer'
+import { useDraggable } from '../hooks/useDraggable'
 
 export interface CalibrationDialogProps {
   pixelDistance: number
@@ -23,6 +24,7 @@ export function CalibrationDialog({
 }: CalibrationDialogProps): React.JSX.Element {
   const [distanceText, setDistanceText] = useState('')
   const [unit, setUnit] = useState<MeasurementUnit>('m')
+  const { position, onPointerDown } = useDraggable()
 
   const parsedDistance = parseFloat(distanceText)
   const isValid = !isNaN(parsedDistance) && parsedDistance > 0
@@ -65,6 +67,7 @@ export function CalibrationDialog({
       }}
     >
       <div
+        onPointerDown={onPointerDown}
         style={{
           background: COLORS.secondary,
           border: `1px solid ${COLORS.border}`,
@@ -73,7 +76,16 @@ export function CalibrationDialog({
           minWidth: 320,
           color: COLORS.textPrimary,
           fontSize: 13,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          cursor: 'default',
+          ...(position !== null
+            ? {
+                position: 'absolute' as const,
+                left: '50%',
+                top: '50%',
+                transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`
+              }
+            : {})
         }}
       >
         <h2

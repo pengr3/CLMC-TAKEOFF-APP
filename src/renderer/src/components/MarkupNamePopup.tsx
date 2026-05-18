@@ -1,8 +1,9 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { COLORS } from '../lib/constants'
 import { CategoryAutocomplete } from './CategoryAutocomplete'
 import { MARKUP_PALETTE, nextPaletteColor } from '../lib/markup-palette'
 import { useMarkupStore } from '../stores/markupStore'
+import { useDraggable } from '../hooks/useDraggable'
 
 const POPUP_MIN_WIDTH = 260
 const POPUP_MAX_WIDTH = 320
@@ -53,7 +54,12 @@ function resolveDefaultColor(
 }
 
 export function MarkupNamePopup({
-  mode, screenPos, containerSize,
+  mode,
+  // screenPos & containerSize: kept in the prop interface so CanvasViewport
+  // callsites don't need to change, but no longer used for positioning —
+  // D-10/D-14 require the popup to open centred via the overlay below.
+  screenPos: _screenPos,
+  containerSize: _containerSize,
   initialName = '', initialCategoryName = '',
   initialColor,
   measurementPreview,
@@ -70,6 +76,9 @@ export function MarkupNamePopup({
   // Wall-height state — only active when toolType === 'wall' (D-09)
   const [wallHeight, setWallHeight] = useState<string>(String(initialWallHeight))
   const [wallHeightError, setWallHeightError] = useState<string | null>(null)
+  const { position, onPointerDown } = useDraggable()
+  // Touch _screenPos / _containerSize so eslint no-unused-vars stays quiet.
+  void _screenPos; void _containerSize
 
   // Subscribe to store for inheritance lookups (primitive + selector pattern — NOT method-invoking selectors;
   // getColorForName is a stable function reference on the store, so subscribing to it is safe)
@@ -91,12 +100,6 @@ export function MarkupNamePopup({
   }, [name, getColorForName])
 
   useEffect(() => { nameRef.current?.focus() }, [])
-
-  const popupStyle = useMemo(() => {
-    const left = Math.min(Math.max(screenPos.x, 0), containerSize.width - POPUP_MIN_WIDTH)
-    const top = Math.min(Math.max(screenPos.y, 0), containerSize.height - 240)
-    return { left, top }
-  }, [screenPos, containerSize])
 
   const handleConfirm = useCallback((): void => {
     const trimmedName = name.trim()
@@ -170,10 +173,21 @@ export function MarkupNamePopup({
   const primaryCta = mode === 'count-pre' ? 'Start Count' : mode === 'edit' ? 'Save Changes' : 'Save Markup'
   const cancelLabel = mode === 'edit' ? 'Discard Changes' : 'Discard'
 
-  const containerStyle: React.CSSProperties = {
+  // D-10/D-11/D-14: outer overlay is full-inset, flex-centred, and clicks
+  // through to the canvas (pointerEvents: 'none') so it doesn't block normal
+  // pointer events outside the popup card. Pitfall 4 — zIndex retained at 10
+  // matching the pre-conversion containerStyle.zIndex.
+  const overlayStyle: React.CSSProperties = {
     position: 'absolute',
-    left: popupStyle.left,
-    top: popupStyle.top,
+    inset: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+    zIndex: 10
+  }
+
+  const containerStyle: React.CSSProperties = {
     minWidth: POPUP_MIN_WIDTH,
     maxWidth: POPUP_MAX_WIDTH,
     padding: 16,
@@ -181,13 +195,22 @@ export function MarkupNamePopup({
     border: `1px solid ${COLORS.border}`,
     borderRadius: 8,
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
-    zIndex: 10,
+    pointerEvents: 'auto',
     display: 'flex',
     flexDirection: 'column',
     gap: 8,
     fontSize: 13,
     lineHeight: 1.4,
-    color: COLORS.textPrimary
+    color: COLORS.textPrimary,
+    cursor: 'default',
+    ...(position !== null
+      ? {
+          position: 'absolute' as const,
+          left: '50%',
+          top: '50%',
+          transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`
+        }
+      : {})
   }
 
   const inputStyle: React.CSSProperties = {
@@ -204,11 +227,13 @@ export function MarkupNamePopup({
   }
 
   return (
+    <div style={overlayStyle}>
     <div
       role="dialog"
       aria-modal="true"
       aria-label={mode === 'count-pre' ? 'Name count item' : mode === 'edit' ? 'Edit markup' : 'Save markup'}
       onKeyDown={handleKeyDown}
+      onPointerDown={onPointerDown}
       style={containerStyle}
     >
       <div>
@@ -351,6 +376,7 @@ export function MarkupNamePopup({
           {primaryCta}
         </button>
       </div>
+    </div>
     </div>
   )
 }
