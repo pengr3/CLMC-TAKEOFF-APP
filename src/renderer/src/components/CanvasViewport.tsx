@@ -285,9 +285,15 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
 
   // Plan 09-03: rubber-band rectangle in stage-space while the user is
   // mid-drag in 'select' mode. null when no drag is in progress.
-  // useState (not useRef) so the rect re-renders as the user drags;
-  // 60fps single-Rect updates are within React 19's budget (RESEARCH §Pitfall 9).
-  const [rubberBand, setRubberBand] = useState<RubberBandState>(null)
+  // useState drives the render; useRef gives event handlers a stable,
+  // always-current value without needing rubberBand in useCallback deps
+  // (which would cause a listener-swap on every state change and miss events).
+  const [rubberBand, setRubberBandState] = useState<RubberBandState>(null)
+  const rubberBandRef = useRef<RubberBandState>(null)
+  const setRubberBand = useCallback((val: RubberBandState) => {
+    rubberBandRef.current = val
+    setRubberBandState(val)
+  }, [])
 
   // Sync viewerStore.activeTool with the markup tool state machine
   useEffect(() => {
@@ -629,8 +635,10 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
 
   // Plan 09-03: rubber-band drag (D-06).
   // onMouseDown in 'select' mode with LMB and no spacebar starts the rubber-band.
-  // Konva.dragButtons (useViewportControls) is gated so the Stage will NOT pan
-  // for LMB in 'select' mode without spacebar — that frees LMB for this drag.
+  // Konva.dragButtons (useViewportControls) is [1] in select mode, so the Stage
+  // will NOT pan for LMB — that frees LMB for this drag.
+  // stopPropagation on the native event prevents Konva DD from registering a
+  // window-level pointermove interceptor that would swallow subsequent move events.
   const handleStageMouseDown = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
       if (e.evt.button !== 0) return // LMB only
@@ -640,14 +648,18 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       if (!stage) return
       const pointer = stage.getPointerPosition()
       if (!pointer) return
+      e.evt.stopPropagation()
       const pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
       setRubberBand({ startX: pt.x, startY: pt.y, endX: pt.x, endY: pt.y })
     },
-    [activeTool, spaceHeld, stageRef]
+    [activeTool, spaceHeld, stageRef, setRubberBand]
   )
 
   // Handle Stage mousemove — update preview point for calibration or markup drawing.
   // Plan 09-03: also update the rubber-band end-point while a drag is in progress.
+  // Reads rubberBandRef.current (not the closure value) so this callback does NOT
+  // need rubberBand in its deps — prevents the listener-swap cycle that caused
+  // rubber-band updates to be missed on every state change.
   const handleStageMouseMove = useCallback(
     (_e: Konva.KonvaEventObject<MouseEvent>) => {
       const stage = stageRef.current
@@ -655,9 +667,10 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       const pointer = stage.getPointerPosition()
       if (!pointer) return
 
-      if (rubberBand) {
+      const rb = rubberBandRef.current
+      if (rb) {
         const pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
-        setRubberBand((prev) => (prev ? { ...prev, endX: pt.x, endY: pt.y } : null))
+        setRubberBand({ ...rb, endX: pt.x, endY: pt.y })
         return
       }
 
@@ -669,7 +682,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         updateMarkupPreview({ x: pointer.x, y: pointer.y })
       }
     },
-    [calibState.mode, calibState.startPoint, markupState.mode, markupState.points.length, stageRef, updatePreview, updateMarkupPreview, rubberBand]
+    [calibState.mode, calibState.startPoint, markupState.mode, markupState.points.length, stageRef, updatePreview, updateMarkupPreview, setRubberBand]
   )
 
   // Plan 09-03: rubber-band release (D-07, D-09).
@@ -677,14 +690,16 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // rectangle and set them as the selection. Single-id and multi-id deletes
   // are handled by the existing Delete-key handler in useKeyboardShortcuts
   // (Wave 1) — this handler only sets selectedMarkupIds and does not delete.
+  // Reads rubberBandRef.current so this callback is stable across rubber-band updates.
   const handleStageMouseUp = useCallback(() => {
-    if (!rubberBand) return
-    const matched = pageMarkups.filter((m) => isFullyInside(m, rubberBand))
+    const rb = rubberBandRef.current
+    if (!rb) return
+    const matched = pageMarkups.filter((m) => isFullyInside(m, rb))
     if (matched.length > 0) {
       setSelectedMarkupIds(matched.map((m) => m.id))
     }
     setRubberBand(null)
-  }, [rubberBand, pageMarkups, setSelectedMarkupIds])
+  }, [pageMarkups, setSelectedMarkupIds, setRubberBand])
 
   // Handle Stage dblclick — finish linear or wall polyline (both are open polylines)
   const handleStageDblClick = useCallback(

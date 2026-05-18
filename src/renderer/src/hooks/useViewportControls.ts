@@ -170,11 +170,9 @@ export function useViewportControls(
     return () => container.removeEventListener('mousedown', preventAutoScroll)
   }, [stageRef.current])
 
-  // In 'select' mode (no spacebar) disable Stage drag so Konva does not absorb
-  // pointermove events at the window level — that would prevent the rubber-band
-  // onMouseMove handler in CanvasViewport from receiving LMB drag events.
-  // Middle-mouse pan uses DOM listeners and is unaffected by isDraggable.
-  const isDraggable = spaceHeld || activeTool !== 'select'
+  // Stage is always draggable. Konva.dragButtons (above) controls which buttons
+  // can start a drag — MMB pan requires draggable=true.
+  const isDraggable = true
 
   return {
     handleWheel,
