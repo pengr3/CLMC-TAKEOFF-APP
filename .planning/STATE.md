@@ -182,6 +182,7 @@ None.
 | 260518-k9x | Fix MMB pan broken + LMB rubber-band not selecting (phase 09 regressions) | 2026-05-18 | 0677d9d | [260518-k9x-fix-mmb-pan-and-rubber-band-select](./quick/260518-k9x-fix-mmb-pan-and-rubber-band-select/) |
 | 260518-fix | Fix rubber-band click-clears-selection: Konva click after mouseup wipes selection; move rubber-band rect to correct layer; window mouseup cleanup | 2026-05-18 | pending | [260518-fix-rubber-band-click-clears-selection](./quick/260518-fix-rubber-band-click-clears-selection/) |
 | 260518-uat | Fix Phase 09 UAT gaps — Test 9 (Ctrl+Z restores selection after delete-undo) + Test 11 (LMB no-pan during markup placement) | 2026-05-18 | 4db36bb | [260518-uat-fix-phase09-uat-gaps](./quick/260518-uat-fix-phase09-uat-gaps/) |
+| 260518-rcp | Fix rapid-click drops — switch markup-tool click suppression from sticky-flag to delta-at-click-time (follow-up to 665835f) | 2026-05-18 | a8c37eb | [260518-rcp-fix-rapid-click-drops](./quick/260518-rcp-fix-rapid-click-drops/) |
 
 ### Roadmap Evolution
 
@@ -194,13 +195,13 @@ None.
 
 ## Session Continuity
 
-**Last activity:** 2026-05-18 — Phase 09 closed; v1.0-extended milestone complete
+**Last activity:** 2026-05-18 — Phase 09 closed; rapid-click drops follow-up fix applied
 
-**Last session:** 2026-05-18 — UAT walkthrough (11/12 PASS) → quick task 260518-uat fixed both gaps → debug session lmb-hold-drops-markup-on-release fixed UX follow-up → live re-verify confirmed → Phase 09 closed atomically (09-UAT.md, 09-05-SUMMARY.md, ROADMAP.md, STATE.md)
+**Last session:** 2026-05-18 — Phase 09 closure → user reported rapid-click drops in markup tools → /gsd-debug --diagnose identified the sticky-flag pattern in 665835f as the cause → user picked Option 2 (delta-at-click-time) → quick task 260518-rcp applied the fix in commit a8c37eb (net deletion) → typecheck + vitest green → awaiting live re-verify
 
-**Stopped at:** Milestone v1.0-extended COMPLETE (12/12 phases, 70/70 plans, 25/25 requirements). Branch is ~42 commits ahead of origin/master.
+**Stopped at:** Milestone v1.0-extended COMPLETE. Rapid-click follow-up fix committed but not yet user-verified in the live app.
 
-**Next action:** User-driven decision. Options: (a) `/gsd-complete-milestone` to archive v1.0-extended and start a new milestone; (b) `/gsd-phase add` to extend the current milestone with another phase; (c) `git push origin master` to land the in-flight work on the remote. No outstanding UAT, blockers, or partial work.
+**Next action:** User to live-verify two flows: (1) rapid Count clicks all place (no drops); (2) deliberate hold-and-drag still suppresses (no markup drop on release). On PASS, no further action needed — phase is already closed, milestone is already marked complete. On FAIL, `/gsd-debug continue rapid-clicks-dropped`.
 
 ---
 *State initialized: 2026-03-25*
