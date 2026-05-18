@@ -173,6 +173,9 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
   for (const catKey of orderedCatKeys) {
     const bucket = buckets.get(catKey)!
 
+    // The categoryId for this group — null for uncategorized.
+    const groupCategoryId: string | null = catKey === UNCAT_BUCKET_KEY ? null : catKey
+
     // 2a. Per-name collision detection (excluding perimeter — D-02)
     const nameNonPerimTypes = new Map<string, Set<BoqRowType>>()
     for (const k of bucket.keys()) {
@@ -206,7 +209,8 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
         quantity: acc.quantity,
         uom: uomFor(type, globalUnit),
         color: acc.color,
-        type
+        type,
+        categoryId: groupCategoryId
       })
     }
 

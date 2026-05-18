@@ -40,6 +40,9 @@ const STROKE_BASE_PX = 2
  * - Label positioned at true arc-length midpoint (B2 fix)
  * - Label pure world-anchored with dark chip background (D-34 + D-35 fallback)
  * - Uncalibrated page: no measurement label rendered
+ *
+ * Visibility key: composite `name|categoryId` so that items sharing a name
+ * in different categories are hidden/shown independently.
  */
 export function LinearMarkup({
   markup,
@@ -49,7 +52,9 @@ export function LinearMarkup({
   onHoverLeave,
   onContextMenu
 }: LinearMarkupProps): React.JSX.Element | null {
-  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(markup.name))
+  // Composite key: "name|categoryId" — matches the key used by TotalsRow toggleHiddenItem.
+  const itemKey = `${markup.name}|${markup.categoryId ?? ''}`
+  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(itemKey))
   if (isHidden) return null
 
   const strokeWidth = STROKE_BASE_PX / currentZoom

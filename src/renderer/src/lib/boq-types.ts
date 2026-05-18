@@ -41,6 +41,14 @@ export interface BoqItemRow {
   color: string | null
   /** Used for like-typed subtotal grouping (D-12). */
   type: BoqRowType
+  /**
+   * The categoryId this row belongs to, or null for uncategorized items.
+   * Optional — absent only in legacy test fixtures and export writer consumers
+   * that don't need it. The UI visibility layer (TotalsRow, TotalsCategoryBlock)
+   * uses this to build the composite key `name|categoryId` so that same-named
+   * items in different categories are toggled independently.
+   */
+  categoryId?: string | null
 }
 
 /** One subtotal entry — one per distinct UoM within a category (D-12). */

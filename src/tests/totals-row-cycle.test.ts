@@ -8,6 +8,10 @@
  *   3. Third click on the third page → wraps back to N1.
  *   4. Click on a row with no matches anywhere → setPage NOT called.
  *   5. mouseLeave resets cycle index (so the next mouseEnter+click starts again at N1).
+ *
+ * Cycle navigation now filters by (name, categoryId, type) so same-named items in
+ * different categories navigate independently. Tests that place markups with
+ * categoryId='cat-1' must also give the BoqItemRow categoryId='cat-1'.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import React from 'react'
@@ -45,13 +49,13 @@ function mount(element: React.ReactElement): MountResult {
   }
 }
 
-function makeCount(page: number, name: string, color: string, sequence: number): CountMarkup {
+function makeCount(page: number, name: string, color: string, sequence: number, categoryId = 'cat-1'): CountMarkup {
   return {
     id: crypto.randomUUID(),
     type: 'count',
     page,
     name,
-    categoryId: 'cat-1',
+    categoryId,
     color,
     sequence,
     point: { x: 0, y: 0 },
@@ -71,12 +75,14 @@ function fireMouseLeave(target: HTMLElement): void {
   target.dispatchEvent(ev)
 }
 
+// baseItem has categoryId='cat-1' to match the markups created by makeCount.
 const baseItem: BoqItemRow = {
   label: 'Outlet (count)',
   quantity: 3,
   uom: 'ea',
   color: '#0078d4',
-  type: 'count'
+  type: 'count',
+  categoryId: 'cat-1'
 }
 
 beforeEach(() => {
@@ -318,12 +324,14 @@ describe('TotalsRow click cycle (D-10)', () => {
     })
 
     const setPageSpy = vi.spyOn(useViewerStore.getState(), 'setPage')
+    // categoryId matches the markups' categoryId='cat-1'
     const item: BoqItemRow = {
       label: 'Wall (area)',
       quantity: 15,
       uom: 'm²',
       color: '#107c10',
-      type: 'perimeter-area'
+      type: 'perimeter-area',
+      categoryId: 'cat-1'
     }
 
     const { container, unmount } = mount(
@@ -343,6 +351,55 @@ describe('TotalsRow click cycle (D-10)', () => {
         row.click()
       })
       expect(setPageSpy).toHaveBeenCalledWith(2)
+    } finally {
+      unmount()
+    }
+  })
+
+  it('same-named items in different categories navigate to their own markups', () => {
+    // "Outlet" in cat-1 on page 2; "Outlet" in cat-2 on page 5
+    useMarkupStore.setState({
+      pageMarkups: {
+        2: [makeCount(2, 'Outlet', '#0078d4', 1, 'cat-1')],
+        5: [makeCount(5, 'Outlet', '#d13438', 1, 'cat-2')]
+      },
+      categories: {},
+      categoryOrder: [],
+      undoStack: [],
+      redoStack: []
+    })
+
+    const setPageSpy = vi.spyOn(useViewerStore.getState(), 'setPage')
+
+    // Row for cat-2 "Outlet" — should only navigate to page 5
+    const cat2Item: BoqItemRow = {
+      label: 'Outlet',
+      quantity: 1,
+      uom: 'ea',
+      color: '#d13438',
+      type: 'count',
+      categoryId: 'cat-2'
+    }
+
+    const { container, unmount } = mount(
+      React.createElement(TotalsRow, {
+        item: cat2Item,
+        cycleIndex: 0,
+        currentPageMatches: [],
+        onHover: vi.fn(),
+        onClick: vi.fn(),
+        onContextMenu: vi.fn(),
+        onTriggerPulse: vi.fn()
+      })
+    )
+    try {
+      const row = container.querySelector('[data-testid="totals-row"]') as HTMLElement
+      act(() => {
+        row.click()
+      })
+      // Should navigate to page 5 (cat-2 Outlet), NOT page 2 (cat-1 Outlet)
+      expect(setPageSpy).toHaveBeenCalledTimes(1)
+      expect(setPageSpy).toHaveBeenCalledWith(5)
     } finally {
       unmount()
     }

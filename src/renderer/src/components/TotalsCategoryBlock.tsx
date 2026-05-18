@@ -21,7 +21,8 @@ import type { Markup, MarkupType } from '../types/markup'
  *
  * Match resolution: `pageMarkups` is the current page's markup list. For each
  * row we filter to markups whose `name` matches the row's name-portion of the
- * label and whose `type` matches the row's underlying markup type
+ * label, whose `categoryId` matches the row's categoryId (name-collision fix),
+ * and whose `type` matches the row's underlying markup type
  * (perimeter-length / perimeter-area both map to underlying 'perimeter').
  * Filtering on the parent side keeps TotalsRow ignorant of stores.
  */
@@ -70,7 +71,13 @@ export function TotalsCategoryBlock(props: TotalsCategoryBlockProps): React.JSX.
   const matchesForRow = (row: BoqItemRow): Markup[] => {
     const name = labelToName(row.label)
     const underlying = rowTypeToMarkupType(row.type)
-    return pageMarkups.filter((m) => m.name === name && m.type === underlying)
+    return pageMarkups.filter((m) => {
+      if (m.name !== name) return false
+      if (m.type !== underlying) return false
+      // Filter by categoryId to avoid cross-category collisions when items share a name.
+      const mCatId = m.categoryId && m.categoryId.length > 0 ? m.categoryId : null
+      return mCatId === (row.categoryId ?? null)
+    })
   }
 
   return (

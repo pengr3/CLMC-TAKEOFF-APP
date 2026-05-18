@@ -31,6 +31,11 @@ import { useProjectStore } from '../stores/projectStore'
  *
  * Right-click (D-14): contextmenu fires `onContextMenu(x, y)`; the parent
  * mounts `TotalsRowContextMenu` at the cursor position.
+ *
+ * Visibility key (name-collision fix): the hidden-item key is the composite
+ * string `name|categoryId` (not bare name). This ensures that two items
+ * sharing the same name but belonging to different categories are toggled
+ * independently. The same composite key is used by all markup renderers.
  */
 export interface TotalsRowProps {
   item: BoqItemRow
@@ -64,25 +69,33 @@ function rowTypeToMarkupType(t: BoqRowType): MarkupType {
   return t
 }
 
-/** Module-level helper: which markups on `pageMarkups` match (name, rowType)? */
+/** Module-level helper: which markups on `pageMarkups` match (name, categoryId, rowType)? */
 function matchMarkupsOnPage(
   pageMarkups: Markup[],
   itemName: string,
+  categoryId: string | null,
   rowType: BoqRowType
 ): Markup[] {
   const underlying = rowTypeToMarkupType(rowType)
-  return pageMarkups.filter((m) => m.name === itemName && m.type === underlying)
+  return pageMarkups.filter((m) => {
+    if (m.name !== itemName) return false
+    if (m.type !== underlying) return false
+    // Match by categoryId: null means uncategorized (empty string categoryId).
+    const mCatId = m.categoryId && m.categoryId.length > 0 ? m.categoryId : null
+    return mCatId === categoryId
+  })
 }
 
 /** Module-level helper: which pages contain ≥1 matching markup, ascending? */
 function findPagesWithMatches(
   pageMarkupsAll: Record<number, Markup[]>,
   itemName: string,
+  categoryId: string | null,
   rowType: BoqRowType
 ): number[] {
   const out: number[] = []
   for (const [pageStr, list] of Object.entries(pageMarkupsAll)) {
-    if (matchMarkupsOnPage(list, itemName, rowType).length > 0) out.push(Number(pageStr))
+    if (matchMarkupsOnPage(list, itemName, categoryId, rowType).length > 0) out.push(Number(pageStr))
   }
   return out.sort((a, b) => a - b)
 }
@@ -101,13 +114,22 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
 
   // Recompute pages-with-matches whenever the underlying markup store changes.
   const itemName = useMemo(() => labelToName(item.label), [item.label])
+
+  // Composite visibility key: "name|categoryId" — prevents same-named items in
+  // different categories from sharing a single hide/show toggle.
+  const itemKey = useMemo(
+    () => `${itemName}|${item.categoryId ?? ''}`,
+    [itemName, item.categoryId]
+  )
+
   const pagesWithMatches = useMemo(
-    () => findPagesWithMatches(pageMarkupsAll, itemName, item.type),
-    [pageMarkupsAll, itemName, item.type]
+    () => findPagesWithMatches(pageMarkupsAll, itemName, item.categoryId ?? null, item.type),
+    [pageMarkupsAll, itemName, item.categoryId, item.type]
   )
 
   // O(1) Set lookup for hidden state — hiddenItemSet is derived from hiddenItemNames in projectStore.
-  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(itemName))
+  // Key is the composite `name|categoryId` string (not bare name) to avoid cross-category collision.
+  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(itemKey))
 
   // The dot is driven by either the parent's prop (legacy) OR the internal cycle state.
   const showCycleDot = internalCycleIndex > 0 || cycleIndexProp > 0
@@ -141,6 +163,7 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
     const matchesOnTarget = matchMarkupsOnPage(
       pageMarkupsAll[targetPage] ?? [],
       itemName,
+      item.categoryId ?? null,
       item.type
     )
     onTriggerPulse?.(matchesOnTarget, item.color ?? '#cccccc')
@@ -204,11 +227,12 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
 
       {/* Lightbulb visibility slot — 16px fixed width, always visible (D-14).
            Click toggles item visibility via O(1) hiddenItemSet + e.stopPropagation()
-           prevents row cycle navigation from also firing (Pitfall 9 / T-08-06-01). */}
+           prevents row cycle navigation from also firing (Pitfall 9 / T-08-06-01).
+           Uses composite key `name|categoryId` to avoid cross-category collision. */}
       <div
         data-testid="totals-row-lightbulb"
         style={{ width: 16, flexShrink: 0, display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-        onClick={(e) => { e.stopPropagation(); useProjectStore.getState().toggleHiddenItem(itemName) }}
+        onClick={(e) => { e.stopPropagation(); useProjectStore.getState().toggleHiddenItem(itemKey) }}
         title={isHidden ? 'Show on canvas' : 'Hide from canvas'}
       >
         {isHidden

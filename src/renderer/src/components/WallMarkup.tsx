@@ -16,7 +16,8 @@
  * Uncalibrated page: no label rendered (graceful degradation).
  *
  * Color follows the per-name-group color model (D-29 from Phase 03.1).
- * Hidden-item skip uses hiddenItemSet O(1) lookup (from Phase 8 Plan 02).
+ * Hidden-item skip uses composite key `name|categoryId` for O(1) lookup
+ * — prevents same-named items in different categories from sharing a toggle.
  */
 import { Line, Text, Rect, Group } from 'react-konva'
 import type { WallMarkup as WallMarkupType, Category } from '../types/markup'
@@ -57,6 +58,9 @@ const WALL_HAIRLINE_OPACITY = 0.7 // hairline is same color at 70% opacity
 /**
  * Wall polyline Konva renderer with m² label, hidden-item skip, and parallel
  * hairline affordance. Zoom-compensated strokes per Pitfall 2.
+ *
+ * Visibility key: composite `name|categoryId` so that items sharing a name
+ * in different categories are hidden/shown independently.
  */
 export function WallMarkup({
   markup,
@@ -66,9 +70,10 @@ export function WallMarkup({
   onHoverLeave,
   onContextMenu
 }: WallMarkupProps): React.JSX.Element | null {
-  // Hidden-item skip — O(1) Set lookup via hiddenItemSet (from 08-02 Task 2).
+  // Hidden-item skip — composite key "name|categoryId" prevents cross-category collision.
   // Place as the very first lines so the rest of the render body is not evaluated.
-  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(markup.name))
+  const itemKey = `${markup.name}|${markup.categoryId ?? ''}`
+  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(itemKey))
   if (isHidden) return null
 
   // Pitfall 2: both stroke widths MUST divide by currentZoom — never use bare px.

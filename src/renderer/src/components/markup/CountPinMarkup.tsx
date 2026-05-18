@@ -28,6 +28,9 @@ const NUMBER_FONT_WORLD = 12
  *  - Auto-contrast ink (white on dark fills, black on light fills)
  *  - Name is never on canvas (D-24) - it appears only in the hover tooltip
  *    rendered by CanvasViewport.
+ *
+ * Visibility key: composite `name|categoryId` so that items sharing a name
+ * in different categories are hidden/shown independently.
  */
 export function CountPinMarkup({
   markup,
@@ -35,7 +38,9 @@ export function CountPinMarkup({
   onHoverLeave,
   onContextMenu
 }: CountPinMarkupProps): React.JSX.Element | null {
-  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(markup.name))
+  // Composite key: "name|categoryId" — matches the key used by TotalsRow toggleHiddenItem.
+  const itemKey = `${markup.name}|${markup.categoryId ?? ''}`
+  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(itemKey))
   if (isHidden) return null
 
   const fill = markup.color

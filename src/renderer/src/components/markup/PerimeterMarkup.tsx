@@ -35,6 +35,9 @@ const STROKE_BASE_PX = 2
  * - Single-line label: "P: 24.6 m  A: 38.2 m²"  (no name, D-24)
  * - Label pure world-anchored with dark chip background
  * - Positioned at centroid
+ *
+ * Visibility key: composite `name|categoryId` so that items sharing a name
+ * in different categories are hidden/shown independently.
  */
 export function PerimeterMarkup({
   markup,
@@ -44,7 +47,9 @@ export function PerimeterMarkup({
   onHoverLeave,
   onContextMenu
 }: PerimeterMarkupProps): React.JSX.Element | null {
-  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(markup.name))
+  // Composite key: "name|categoryId" — matches the key used by TotalsRow toggleHiddenItem.
+  const itemKey = `${markup.name}|${markup.categoryId ?? ''}`
+  const isHidden = useProjectStore((s) => s.hiddenItemSet.has(itemKey))
   if (isHidden) return null
 
   const strokeWidth = STROKE_BASE_PX / currentZoom

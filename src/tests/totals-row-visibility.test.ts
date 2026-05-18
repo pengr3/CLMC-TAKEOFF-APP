@@ -48,8 +48,13 @@ function mount(element: React.ReactElement): MountResult {
   }
 }
 
-function makeCountItem(name: string): BoqItemRow {
-  return { label: name, quantity: 3, uom: 'ea', color: '#0078d4', type: 'count' }
+/**
+ * Build a count BoqItemRow with an explicit categoryId.
+ * categoryId=null → uncategorized (key becomes "name|")
+ * categoryId='cat-1' → key becomes "name|cat-1"
+ */
+function makeCountItem(name: string, categoryId: string | null = null): BoqItemRow {
+  return { label: name, quantity: 3, uom: 'ea', color: '#0078d4', type: 'count', categoryId }
 }
 
 const noop = vi.fn()
@@ -79,7 +84,6 @@ beforeEach(() => {
 
 describe('TotalsRow — lightbulb visibility toggle', () => {
   it('renders a Lightbulb icon (visible state) when item is not hidden', () => {
-    // MUST FAIL — lightbulb slot does not yet exist on TotalsRow
     const item = makeCountItem('Outlet')
     const { container, unmount } = mount(React.createElement(TotalsRow, makeRowProps(item)))
 
@@ -90,11 +94,12 @@ describe('TotalsRow — lightbulb visibility toggle', () => {
     unmount()
   })
 
-  it('renders LightbulbOff when item name is in hiddenItemNames', () => {
+  it('renders LightbulbOff when item composite key is in hiddenItemNames', () => {
+    // The composite key for an uncategorized "Outlet" item is "Outlet|"
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(useProjectStore as any).setState({ hiddenItemNames: ['Outlet'], hiddenItemSet: new Set(['Outlet']) })
+    ;(useProjectStore as any).setState({ hiddenItemNames: ['Outlet|'], hiddenItemSet: new Set(['Outlet|']) })
 
-    const item = makeCountItem('Outlet')
+    const item = makeCountItem('Outlet', null) // null categoryId → key "Outlet|"
     const { container, unmount } = mount(React.createElement(TotalsRow, makeRowProps(item)))
 
     // LightbulbOff state has title "Show on canvas"
@@ -104,10 +109,23 @@ describe('TotalsRow — lightbulb visibility toggle', () => {
     unmount()
   })
 
-  it('clicking lightbulb toggles hiddenItemNames AND does NOT call row onClick', () => {
-    // MUST FAIL — lightbulb slot does not yet exist on TotalsRow (Pitfall 9: e.stopPropagation)
+  it('renders LightbulbOff when item with categoryId is hidden by composite key', () => {
+    // A categorized item: name="Outlet", categoryId="cat-1" → key "Outlet|cat-1"
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(useProjectStore as any).setState({ hiddenItemNames: ['Outlet|cat-1'], hiddenItemSet: new Set(['Outlet|cat-1']) })
+
+    const item = makeCountItem('Outlet', 'cat-1')
+    const { container, unmount } = mount(React.createElement(TotalsRow, makeRowProps(item)))
+
+    const lightbulbOff = container.querySelector('[title="Show on canvas"]')
+    expect(lightbulbOff).not.toBeNull()
+
+    unmount()
+  })
+
+  it('clicking lightbulb toggles hiddenItemNames with composite key AND does NOT call row onClick', () => {
     const onClickSpy = vi.fn()
-    const item = makeCountItem('Outlet')
+    const item = makeCountItem('Outlet', null) // uncategorized → composite key "Outlet|"
     const { container, unmount } = mount(React.createElement(TotalsRow, makeRowProps(item, onClickSpy)))
 
     const lightbulb = container.querySelector('[title="Hide from canvas"]')
@@ -117,14 +135,35 @@ describe('TotalsRow — lightbulb visibility toggle', () => {
       lightbulb?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
     })
 
-    // hiddenItemNames should now contain 'Outlet'
+    // hiddenItemNames should now contain the composite key 'Outlet|' (not bare 'Outlet')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const hidden = (useProjectStore.getState() as any).hiddenItemNames as string[]
-    expect(hidden).toContain('Outlet')
+    expect(hidden).toContain('Outlet|')
 
     // Row onClick must NOT have been called (e.stopPropagation on the lightbulb)
     expect(onClickSpy).not.toHaveBeenCalled()
 
     unmount()
+  })
+
+  it('items with same name but different categoryId hide independently', () => {
+    // "Outlet" uncategorized (key "Outlet|") and "Outlet" in cat-1 (key "Outlet|cat-1")
+    // Hiding one must NOT hide the other.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(useProjectStore as any).setState({ hiddenItemNames: ['Outlet|cat-1'], hiddenItemSet: new Set(['Outlet|cat-1']) })
+
+    // Uncategorized "Outlet" — should NOT be hidden
+    const itemUncat = makeCountItem('Outlet', null)
+    const { container: c1, unmount: u1 } = mount(React.createElement(TotalsRow, makeRowProps(itemUncat)))
+    const uncatLightbulb = c1.querySelector('[title="Hide from canvas"]')
+    expect(uncatLightbulb).not.toBeNull() // should be visible (not hidden)
+    u1()
+
+    // Categorized "Outlet" in cat-1 — should BE hidden
+    const itemCat = makeCountItem('Outlet', 'cat-1')
+    const { container: c2, unmount: u2 } = mount(React.createElement(TotalsRow, makeRowProps(itemCat)))
+    const catLightbulbOff = c2.querySelector('[title="Show on canvas"]')
+    expect(catLightbulbOff).not.toBeNull() // should show as hidden
+    u2()
   })
 })
