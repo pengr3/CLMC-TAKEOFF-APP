@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { COLORS } from '../lib/constants'
+import { useDraggable } from '../hooks/useDraggable'
 
 export interface SaveCloseModalProps {
   filename: string
@@ -23,6 +24,7 @@ export function SaveCloseModal({
 }: SaveCloseModalProps): React.JSX.Element {
   const saveRef = useRef<HTMLButtonElement>(null)
   useEffect(() => { saveRef.current?.focus() }, [])
+  const { position, onPointerDown } = useDraggable()
 
   const handleKey = (e: React.KeyboardEvent<HTMLDivElement>): void => {
     if (e.key === 'Escape') { e.preventDefault(); onCancel() }
@@ -41,6 +43,7 @@ export function SaveCloseModal({
         role="dialog"
         aria-modal="true"
         aria-label="Save changes before closing"
+        onPointerDown={onPointerDown}
         style={{
           width: 420, padding: 20,
           background: COLORS.secondary,
@@ -48,7 +51,16 @@ export function SaveCloseModal({
           borderRadius: 8,
           boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
           display: 'flex', flexDirection: 'column', gap: 12,
-          fontSize: 13, lineHeight: 1.45, color: COLORS.textPrimary
+          fontSize: 13, lineHeight: 1.45, color: COLORS.textPrimary,
+          cursor: 'default',
+          ...(position !== null
+            ? {
+                position: 'absolute' as const,
+                left: '50%',
+                top: '50%',
+                transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`
+              }
+            : {})
         }}
       >
         <div style={{ fontWeight: 600, fontSize: 14 }}>Unsaved changes</div>

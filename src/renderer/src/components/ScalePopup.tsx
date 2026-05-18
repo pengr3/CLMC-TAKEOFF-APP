@@ -1,7 +1,8 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { COLORS } from '../lib/constants'
 import { computePixelsPerMm, formatScaleRatio, pixelsToRealWorld, MIN_CALIBRATION_PIXELS } from '../lib/scale-math'
 import type { ScaleUnit, PageScale } from '../types/scale'
+import { useDraggable } from '../hooks/useDraggable'
 
 const POPUP_MIN_WIDTH = 240
 const POPUP_MAX_WIDTH = 280
@@ -33,8 +34,11 @@ export interface ScalePopupProps {
  */
 export function ScalePopup({
   mode,
-  screenPos,
-  containerSize,
+  // screenPos & containerSize: kept in the prop interface so CanvasViewport
+  // callsites don't need to change, but no longer used for positioning —
+  // D-10/D-14 require the popup to open centred via the overlay below.
+  screenPos: _screenPos,
+  containerSize: _containerSize,
   pixelLength,
   onConfirm,
   onCancel,
@@ -45,6 +49,9 @@ export function ScalePopup({
   const [unitOpen, setUnitOpen] = useState(false)
   const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null)
   const unitButtonRef = useRef<HTMLButtonElement>(null)
+  const { position, onPointerDown } = useDraggable()
+  // Touch _screenPos / _containerSize so eslint no-unused-vars stays quiet.
+  void _screenPos; void _containerSize
 
   useEffect(() => {
     if (!unitOpen) return
@@ -65,18 +72,6 @@ export function ScalePopup({
     ? formatScaleRatio(computePixelsPerMm(pixelLength, parsedDistance, unit))
     : null
 
-  const popupStyle = useMemo(() => {
-    const left = Math.min(
-      Math.max(screenPos.x, 0),
-      containerSize.width - POPUP_MIN_WIDTH
-    )
-    const top = Math.min(
-      Math.max(screenPos.y, 0),
-      containerSize.height - 220
-    )
-    return { left, top }
-  }, [screenPos, containerSize])
-
   const handleConfirmClick = useCallback((): void => {
     if (!canConfirm || !onConfirm) return
     const ppm = computePixelsPerMm(pixelLength, parsedDistance, unit)
@@ -90,10 +85,20 @@ export function ScalePopup({
     }
   }
 
-  const containerStyle: React.CSSProperties = {
+  // D-10/D-11/D-14: outer overlay is full-inset, flex-centred, pointer-events
+  // disabled on the overlay itself so canvas clicks underneath still register
+  // outside the inner card. zIndex retained at 10.
+  const overlayStyle: React.CSSProperties = {
     position: 'absolute',
-    left: popupStyle.left,
-    top: popupStyle.top,
+    inset: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+    zIndex: 10
+  }
+
+  const containerStyle: React.CSSProperties = {
     minWidth: POPUP_MIN_WIDTH,
     maxWidth: POPUP_MAX_WIDTH,
     padding: '16px 20px 20px',
@@ -101,13 +106,22 @@ export function ScalePopup({
     border: `1px solid ${COLORS.border}`,
     borderRadius: 8,
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
-    zIndex: 10,
+    pointerEvents: 'auto',
     display: 'flex',
     flexDirection: 'column',
     gap: 12,
     fontSize: 13,
     lineHeight: 1.4,
-    color: COLORS.textPrimary
+    color: COLORS.textPrimary,
+    cursor: 'default',
+    ...(position !== null
+      ? {
+          position: 'absolute' as const,
+          left: '50%',
+          top: '50%',
+          transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`
+        }
+      : {})
   }
 
   // Verify mode: read-only display of measured distance
@@ -120,35 +134,38 @@ export function ScalePopup({
       : 'Measured: — (no scale set)'
 
     return (
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Verify scale measurement"
-        onKeyDown={handleKeyDown}
-        style={containerStyle}
-      >
-        <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.textPrimary }}>
-          {measuredText}
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button
-            type="button"
-            onClick={onCancel}
-            aria-label="Dismiss"
-            style={{
-              height: 28,
-              padding: '4px 8px',
-              background: COLORS.accent,
-              border: 'none',
-              borderRadius: 4,
-              color: COLORS.textOnAccent,
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            Dismiss
-          </button>
+      <div style={overlayStyle}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Verify scale measurement"
+          onKeyDown={handleKeyDown}
+          onPointerDown={onPointerDown}
+          style={containerStyle}
+        >
+          <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.textPrimary }}>
+            {measuredText}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={onCancel}
+              aria-label="Dismiss"
+              style={{
+                height: 28,
+                padding: '4px 8px',
+                background: COLORS.accent,
+                border: 'none',
+                borderRadius: 4,
+                color: COLORS.textOnAccent,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -156,11 +173,13 @@ export function ScalePopup({
 
   // Confirm mode: distance entry form
   return (
+    <div style={overlayStyle}>
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Set scale"
       onKeyDown={handleKeyDown}
+      onPointerDown={onPointerDown}
       style={containerStyle}
     >
       {/* Title */}
@@ -343,6 +362,7 @@ export function ScalePopup({
           Confirm
         </button>
       </div>
+    </div>
     </div>
   )
 }
