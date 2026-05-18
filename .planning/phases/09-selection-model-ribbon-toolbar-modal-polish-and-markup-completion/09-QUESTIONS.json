@@ -1,0 +1,662 @@
+{
+  "phase": "09-selection-model-ribbon-toolbar-modal-polish-and-markup-completion",
+  "generated_at": "2026-05-18T00:00:00.000Z",
+  "stats": {
+    "total": 23,
+    "answered": 0,
+    "chat_more": 0,
+    "remaining": 23
+  },
+  "sections": [
+    {
+      "id": "selection-model",
+      "title": "Selection Model (click-to-select + Delete)",
+      "questions": [
+        {
+          "id": "Q-01",
+          "title": "Where does selected markup state live?",
+          "context": "viewerStore already holds activeTool (transient, not persisted). markupStore holds all markup data. A selectedMarkupId could go in either store, or a new thin selectionStore. This affects which components need to subscribe and how selection interacts with undo/redo.",
+          "options": [
+            {
+              "id": "a",
+              "label": "viewerStore (transient, alongside activeTool)",
+              "description": "Cleanest: selection is UI state like zoom/pan. Already imported everywhere markup tools are wired. No new store."
+            },
+            {
+              "id": "b",
+              "label": "markupStore (alongside markup data)",
+              "description": "Selection stays co-located with markup data. Simpler if delete-via-selection needs to interact with the undo stack directly."
+            },
+            {
+              "id": "c",
+              "label": "New selectionStore (dedicated)",
+              "description": "Maximum isolation but adds import surface. Overkill unless multi-select state becomes complex."
+            },
+            {
+              "id": "d",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-02",
+          "title": "Selection visual — how does 'selected' look vs. 'hovered'?",
+          "context": "HoverRing (outer offset 4/zoom, ~40% opacity white) and PulseHighlight (outer offset 8/zoom) already exist in Layer 2. A 'selected' state needs to be visually distinct from hover. Options include a thicker/brighter ring, a dashed outline, or reusing HoverRing at 100% opacity.",
+          "options": [
+            {
+              "id": "a",
+              "label": "Solid bright ring (same shape as HoverRing, 100% opacity, accent color)",
+              "description": "Simple — reuse HoverRing component with opacity=1 and color=#0078d4 (accent). Hover stays white/40%."
+            },
+            {
+              "id": "b",
+              "label": "Dashed/animated selection outline (distinct style)",
+              "description": "More CAD-like (\"marching ants\"). Requires Konva dash animation (Konva.Animation on the dash offset). More implementation work."
+            },
+            {
+              "id": "c",
+              "label": "Corner handles (transformer-style resize handles)",
+              "description": "Shows a bounding-box with corner squares. Users could drag to re-position. Significant added scope — worth its own phase."
+            },
+            {
+              "id": "d",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-03",
+          "title": "Click behavior when a markup tool is active",
+          "context": "Currently, clicking on the canvas with Count/Linear/Area/Perimeter/Wall active places a markup point. If a markup tool is active and the user clicks on an existing markup, should it select the markup (interrupting placement) or be ignored (placement takes priority)?",
+          "options": [
+            {
+              "id": "a",
+              "label": "Placement always takes priority — selection only works in 'select' mode",
+              "description": "Simplest. User must press Escape to cancel in-progress markup, then click to select. No ambiguity about intent."
+            },
+            {
+              "id": "b",
+              "label": "Click on existing markup always selects it, even mid-placement",
+              "description": "More discoverable. Requires detecting if click hit an existing markup before deciding to add a point. Complex hit-test logic."
+            },
+            {
+              "id": "c",
+              "label": "Selection works in 'select' mode only; Escape from any tool returns to 'select' mode",
+              "description": "Middle ground: Escape exits markup tools and leaves the user in select mode rather than returning to 'select' (which is the current idle). Feels more natural for mouse-first users."
+            },
+            {
+              "id": "d",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-04",
+          "title": "Delete key — how does it interact with the existing right-click Delete?",
+          "context": "Right-click on a markup already shows a context menu with a Delete item (calls markupStore.deleteMarkup). Phase 9 adds Delete-key deletion when a markup is selected. Both paths should produce the same undoable MarkupCommand. Should they use the same code path?",
+          "options": [
+            {
+              "id": "a",
+              "label": "Both use the same deleteMarkup store action — key handler just calls it",
+              "description": "Single implementation. Delete key reads selectedMarkupId from store, calls deleteMarkup(id). Context menu does the same. DRY."
+            },
+            {
+              "id": "b",
+              "label": "Delete key handler is separate, calls a new 'deleteSelected' action",
+              "description": "Slightly cleaner separation for multi-select later (deleteSelected handles an array). More future-proof but adds surface now."
+            },
+            {
+              "id": "c",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-05",
+          "title": "Clicking canvas empty space while in 'select' mode — what happens?",
+          "context": "When no markup is under the click, in standard selection UIs this deselects the current selection. But it could also be a no-op to avoid accidental deselects while navigating.",
+          "options": [
+            {
+              "id": "a",
+              "label": "Clicking empty space deselects (clears selectedMarkupId)",
+              "description": "Standard selection behavior. Clean, predictable."
+            },
+            {
+              "id": "b",
+              "label": "Clicking empty space starts rubber-band drag (multi-select path)",
+              "description": "Avoids a separate mode toggle for rubber-band — if there's nothing to select under cursor, drag draws the rectangle. More efficient but the interaction model is less explicit."
+            },
+            {
+              "id": "c",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "rubber-band-multi-select",
+      "title": "Rubber-Band Multi-Select + Group Delete",
+      "questions": [
+        {
+          "id": "Q-06",
+          "title": "How does rubber-band drag distinguish from canvas pan?",
+          "context": "Currently, middle-mouse-button drag pans the canvas (DOM event listeners). Left-mouse-button drag on the Stage currently does nothing in 'select' mode. Options include: rubber-band on any LMB drag in select mode, or require a modifier key (Alt/Shift) to activate rubber-band.",
+          "options": [
+            {
+              "id": "a",
+              "label": "LMB drag on empty canvas in 'select' mode = rubber-band (no modifier)",
+              "description": "Simplest UX. Middle-mouse still pans. Users in select mode expect LMB drag to rubber-band. Most consistent with CAD tools."
+            },
+            {
+              "id": "b",
+              "label": "Shift+LMB drag = rubber-band; LMB drag alone = pan (even in select mode)",
+              "description": "Panning always available with LMB even in select mode. Matches browser-based PDF viewers. Requires users to know the modifier."
+            },
+            {
+              "id": "c",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-07",
+          "title": "Containment rule — full inside vs. touch/intersect?",
+          "context": "When the rubber-band rectangle is released, which markups are selected? Full containment (markup bounding box entirely within the rubber band) is predictable but misses markups that straddle the edge. Touch/intersect (any overlap) is more forgiving for large area/perimeter polygons.",
+          "options": [
+            {
+              "id": "a",
+              "label": "Markup centroid/anchor point inside rubber band",
+              "description": "Simplest computation. Count pins use their anchor point; polylines/polygons use their centroid. Unambiguous for all markup types."
+            },
+            {
+              "id": "b",
+              "label": "Any markup point inside rubber band (touch/intersect)",
+              "description": "More forgiving for large polygons. A wall or area polygon that barely overlaps is still caught. More computation (walk all points)."
+            },
+            {
+              "id": "c",
+              "label": "Full bounding box of markup entirely inside rubber band",
+              "description": "Standard CAD 'crossing window vs. selection window' behavior. Most predictable for estimators familiar with CAD."
+            },
+            {
+              "id": "d",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-08",
+          "title": "Ctrl+A — select all markups on current page?",
+          "context": "isTextInputActive() guard is already in place for global keyboard shortcuts. Ctrl+A is unused. Adding it is low-effort. But it's a minor nice-to-have and could be left for a later phase.",
+          "options": [
+            {
+              "id": "a",
+              "label": "Yes — add Ctrl+A to select all markups on current page",
+              "description": "Pairs naturally with the rubber-band and Delete flow. Minimal extra code."
+            },
+            {
+              "id": "b",
+              "label": "No — skip Ctrl+A for now, in scope of this phase only if trivial",
+              "description": "Keep scope tight. Rubber-band + Delete is the primary feature. Ctrl+A can come later."
+            },
+            {
+              "id": "c",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-09",
+          "title": "Group delete undo — how is 'remove multiple markups' stored in MarkupCommand history?",
+          "context": "MarkupCommand currently supports 'add' | 'delete' | 'edit' | 'recolor' for a single markup. Group delete of N markups needs to be one undoable action. Options: a new 'delete-group' command that holds an array, or push N individual 'delete' commands and undo them as a batch.",
+          "options": [
+            {
+              "id": "a",
+              "label": "New 'delete-group' MarkupCommand variant holding Markup[]",
+              "description": "Single undo step for the group. Clean semantics. Requires extending the MarkupCommand discriminated union and the undo/redo switch in markupStore."
+            },
+            {
+              "id": "b",
+              "label": "Push N individual 'delete' commands; undo pops N times automatically",
+              "description": "No new command type. But Ctrl+Z would undo one markup at a time, not the whole group — inconsistent with user expectation of one-step undo."
+            },
+            {
+              "id": "c",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "draggable-centered-modals",
+      "title": "Draggable Centered Modals",
+      "questions": [
+        {
+          "id": "Q-10",
+          "title": "Which modals get the draggable+centered treatment?",
+          "context": "The phase goal says 'every modal that appears in the app'. Current modals: CalibrationDialog (Set Scale), MarkupNamePopup (name/category/color input), ScalePopup (scale confirm), SaveCloseModal, OpenErrorModal, UncalibratedExportWarningModal, ArchiveCorruptedModal, DimensionMismatchModal, PageCountAbortModal. MarkupContextMenu is a context menu, not a modal — likely excluded.",
+          "options": [
+            {
+              "id": "a",
+              "label": "All true modals (everything with an overlay/backdrop) — 8-9 components",
+              "description": "Complete scope. Covers CalibrationDialog, MarkupNamePopup, ScalePopup, SaveCloseModal, OpenErrorModal, UncalibratedExportWarningModal, ArchiveCorruptedModal, DimensionMismatchModal, PageCountAbortModal."
+            },
+            {
+              "id": "b",
+              "label": "Only the 'workflow' modals — CalibrationDialog, MarkupNamePopup, ScalePopup",
+              "description": "Focus on the modals the estimator interacts with repeatedly during takeoff. Error/confirmation modals (SaveClose, OpenError, etc.) keep their current centered-non-draggable behavior."
+            },
+            {
+              "id": "c",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-11",
+          "title": "Draggable implementation — shared wrapper or per-modal?",
+          "context": "Modals are currently individual components (CalibrationDialog, MarkupNamePopup, etc.) with inline overlay + inner div. A reusable DraggableModal wrapper component could handle centering + drag logic once, then each modal just renders its content inside it.",
+          "options": [
+            {
+              "id": "a",
+              "label": "Shared DraggableModal wrapper component",
+              "description": "Write drag logic once. Each modal renders children inside the wrapper. Clean, DRY. Requires refactoring each modal to remove its own overlay div."
+            },
+            {
+              "id": "b",
+              "label": "Add useDraggable hook, each modal applies it independently",
+              "description": "Keeps per-modal structure intact. Hook returns position offset + onPointerDown handler for the drag handle. More flexible but slightly more repetition."
+            },
+            {
+              "id": "c",
+              "label": "Per-modal, inline drag state (no shared abstraction)",
+              "description": "Easiest to diff per modal. But duplicates drag logic (mousedown, mousemove, mouseup) N times. Hard to keep consistent."
+            },
+            {
+              "id": "d",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-12",
+          "title": "Drag handle — where on the modal does dragging work?",
+          "context": "MarkupNamePopup has no explicit title bar — it starts directly with inputs. CalibrationDialog has a <h2>Set Scale</h2> heading. Dragging could work on a dedicated header strip, or on the entire modal (anywhere not occupied by an interactive control).",
+          "options": [
+            {
+              "id": "a",
+              "label": "Dedicated header bar on every modal (add one to modals that lack it)",
+              "description": "Clear affordance — cursor changes to 'grab' on the header strip. Every modal gets a consistent title bar. Adds a small UI strip (~28px) to modals that currently lack one."
+            },
+            {
+              "id": "b",
+              "label": "Drag on the modal's existing title/heading element only",
+              "description": "No layout change. For CalibrationDialog it's the <h2>; for MarkupNamePopup the top strip could become draggable. Might be too small a hit area."
+            },
+            {
+              "id": "c",
+              "label": "Drag anywhere on the modal that isn't an input/button",
+              "description": "Maximum hit area. But no visual affordance — user might not know the modal is draggable."
+            },
+            {
+              "id": "d",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-13",
+          "title": "Backdrop click — keep or remove for currently-dismissible modals?",
+          "context": "CalibrationDialog currently closes on backdrop click (e.target === e.currentTarget). With a draggable overlay, pointerdown on the backdrop could start a drag of a modal near the edge. Should backdrop-dismiss stay, or should all modals require explicit button dismissal?",
+          "options": [
+            {
+              "id": "a",
+              "label": "Keep backdrop-dismiss for applicable modals (CalibrationDialog, ScalePopup, MarkupNamePopup)",
+              "description": "Familiar behavior. Risk of accidental dismiss during drag is low if drag is confined to the modal header. Monitor in UAT."
+            },
+            {
+              "id": "b",
+              "label": "Remove backdrop-dismiss — all modals require an explicit Cancel/Close button",
+              "description": "Safer with draggable modals. No accidental dismiss. Consistent across all modals. Slightly more clicks to dismiss."
+            },
+            {
+              "id": "c",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-14",
+          "title": "Modal position memory — reset on close or persist across opens?",
+          "context": "The phase says 'position maintained until the modal is closed'. After closing and re-opening, should the modal re-center, or remember its last position (e.g. via localStorage or module-level ref)?",
+          "options": [
+            {
+              "id": "a",
+              "label": "Re-center on every open (position resets when modal closes)",
+              "description": "Simplest. No persistence logic. Always predictable starting position. The user repositions each time they open if desired."
+            },
+            {
+              "id": "b",
+              "label": "Remember last position per modal type (module-level ref, not localStorage)",
+              "description": "Quality of life — CalibrationDialog stays where the user left it from the last calibration. Module-level ref is simple and ephemeral (resets on app restart)."
+            },
+            {
+              "id": "c",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "ribbon-toolbar",
+      "title": "Ribbon-Style Tabbed Toolbar",
+      "questions": [
+        {
+          "id": "Q-15",
+          "title": "Replace vs. wrap — what happens to the current flat action bar?",
+          "context": "The current Toolbar.tsx is a 40px flex bar with Open, Save, SaveAs, Replace, Export (left), Page nav (center), Set Scale (center-right), 5 markup tools, Zoom controls (right). The phase says 'replaces (or wraps)'. If replaced, the existing component gets deleted and rebuilt as a ribbon. If wrapped, the ribbon renders above or alongside the old bar.",
+          "options": [
+            {
+              "id": "a",
+              "label": "Full replacement — delete Toolbar.tsx and build ribbon from scratch",
+              "description": "Clean break. All buttons migrated into ribbon tabs. No legacy layout code. More work upfront, cleaner result."
+            },
+            {
+              "id": "b",
+              "label": "Wrap — add ribbon tabs above, keep existing toolbar below as the panel",
+              "description": "Faster to implement. The existing Toolbar.tsx becomes the 'default tab panel'. Tab row sits above it. Risk: awkward double-height bar."
+            },
+            {
+              "id": "c",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-16",
+          "title": "Ribbon button style — icon-above-label (tall square) vs. icon+label inline?",
+          "context": "The current toolbar uses icon+label inline, 28px height (small, horizontal). A ribbon typically uses icon-above-label, taller square buttons (~56-64px). The phase says 'square icon+label buttons'. This would require a new button component styled differently from the existing IconButton.",
+          "options": [
+            {
+              "id": "a",
+              "label": "Icon above label — tall square buttons (~56-64px), ribbon style",
+              "description": "Matches Microsoft Office ribbon conventions. More visual; slower to scan. Requires new button component distinct from existing IconButton."
+            },
+            {
+              "id": "b",
+              "label": "Icon+label inline — same as current IconButton, just in ribbon tab panels",
+              "description": "Reuses existing IconButton component. Ribbon feels like grouped sections of the current bar. Less visual change but less distinct from the old toolbar."
+            },
+            {
+              "id": "c",
+              "label": "Mixed — large icon-above-label for primary actions, small inline for secondary",
+              "description": "Matches modern ribbon conventions (Word/Excel: big Paste, small Cut/Copy). More nuanced layout, more design decisions per tab."
+            },
+            {
+              "id": "d",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-17",
+          "title": "Home tab — what goes here?",
+          "context": "Home is typically the default/first tab with most-used actions. Current most-used: Open, Save, SaveAs, Replace Plan PDF, Export. Could also include Undo/Redo here.",
+          "options": [
+            {
+              "id": "a",
+              "label": "Open, Save, SaveAs, Replace PDF, Export (current left-side buttons)",
+              "description": "Mirrors current toolbar left section. Predictable mapping."
+            },
+            {
+              "id": "b",
+              "label": "Open, Save, SaveAs, Replace PDF, Export + Undo/Redo",
+              "description": "Undo/Redo move from keyboard-only to ribbon-visible. Good for discoverability."
+            },
+            {
+              "id": "c",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-18",
+          "title": "Tools tab — what goes here?",
+          "context": "The 5 markup tools (Count, Linear, Area, Perimeter, Wall) plus Set Scale logically belong in a Tools tab. The selection tool (new in this phase) would also live here.",
+          "options": [
+            {
+              "id": "a",
+              "label": "Select (new), Count, Linear, Area, Perimeter, Wall, Set Scale",
+              "description": "All markup + scale tools in one place. Mirrors current toolbar markup section."
+            },
+            {
+              "id": "b",
+              "label": "Markup tools here; Scale tools in Page tab",
+              "description": "Scale calibration is page-specific — fits Page tab. Tools tab is purely markup placement."
+            },
+            {
+              "id": "c",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-19",
+          "title": "View tab — what goes here?",
+          "context": "View controls: Zoom In, Zoom Out, Fit to Window, zoom % display. Could also include TotalsPanel show/hide toggle and per-markup visibility (show/hide all hidden items). Currently these are distributed across toolbar (zoom) and totals panel (lightbulb icons).",
+          "options": [
+            {
+              "id": "a",
+              "label": "Zoom In, Zoom Out, Fit to Window — just the current zoom controls",
+              "description": "Minimal, clean. Panel show/hide stays in the panel itself."
+            },
+            {
+              "id": "b",
+              "label": "Zoom controls + Show/Hide Totals Panel + Show All / Hide All markups",
+              "description": "Consolidates all visibility controls in View. More discoverable than hunting for the panel toggle."
+            },
+            {
+              "id": "c",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-20",
+          "title": "Settings and Help tabs — what do they show?",
+          "context": "These tabs are named in the phase goal but their content isn't specified. Settings could be a placeholder or open an Electron preferences window. Help could show keyboard shortcuts or link to documentation.",
+          "options": [
+            {
+              "id": "a",
+              "label": "Both stubbed — tab labels only, panel shows 'Coming soon'",
+              "description": "Fastest. Structure is correct, content deferred. No risk of scope creep."
+            },
+            {
+              "id": "b",
+              "label": "Help shows keyboard shortcuts list; Settings stubbed",
+              "description": "Help provides real value (shortcuts reference). Settings stubbed for later. Good trade-off."
+            },
+            {
+              "id": "c",
+              "label": "Settings shows global unit preference; Help shows keyboard shortcuts",
+              "description": "Settings gets a meaningful first feature: switch between m/ft/mm for display. This is a real gap — currently unit is set per-calibration only."
+            },
+            {
+              "id": "d",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-21",
+          "title": "Default active tab on app load",
+          "context": "Which ribbon tab should be active when the app starts? The estimator's first action is usually opening a file, so Home makes sense. But Tools is where they spend most time.",
+          "options": [
+            {
+              "id": "a",
+              "label": "Home tab (default — Open/Save actions most prominent on start)",
+              "description": "First action is always opening a file. Home is logical."
+            },
+            {
+              "id": "b",
+              "label": "Tools tab (markup tools most used during takeoff)",
+              "description": "Once a file is open, most time is spent in markup tools. Default to what the user does most."
+            },
+            {
+              "id": "c",
+              "label": "Remember last-used tab (localStorage)",
+              "description": "Quality of life. User who always works in Tools doesn't have to switch every session."
+            },
+            {
+              "id": "d",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "markup-completion",
+      "title": "Enter / Double-click to Finish In-Progress Markup",
+      "questions": [
+        {
+          "id": "Q-22",
+          "title": "Double-click — anywhere on canvas, or only near the last placed point?",
+          "context": "For Linear/Area/Perimeter/Wall, each click adds a segment point. Double-clicking to commit could work (A) anywhere on the canvas (any double-click = commit), or (B) only within a hit radius of the last placed point (similar to start-vertex close detection). The ROADMAP says 'double-clicking the most recently placed point'.",
+          "options": [
+            {
+              "id": "a",
+              "label": "Anywhere on canvas — any double-click commits the in-progress markup",
+              "description": "Simplest implementation. The second click of the double-click also places a point (before commit fires), so the markup gains one extra point — acceptable if the gap is <5px."
+            },
+            {
+              "id": "b",
+              "label": "Within hit radius of last placed point only (e.g. 12px)",
+              "description": "Matches ROADMAP wording. More deliberate — user must double-click the last point. Prevents accidental commits. Requires the same hit-test pattern as isOverStartPoint."
+            },
+            {
+              "id": "c",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-23",
+          "title": "Enter key — what is the minimum-point guard?",
+          "context": "Should Enter commit the in-progress markup regardless of how many points are placed, or be blocked for degenerate shapes (e.g. < 2 points for linear = no line, < 3 points for polygon = no area)?",
+          "options": [
+            {
+              "id": "a",
+              "label": "Block commit if markup would be degenerate (< 2 points for linear, < 3 for polygon)",
+              "description": "Prevents meaningless markups. Consistent with existing close-polygon detection (needs 3+ points). Silent ignore or visual feedback."
+            },
+            {
+              "id": "b",
+              "label": "Always commit — even if degenerate; let the store handle edge cases",
+              "description": "Simpler key handler. But a 1-point 'linear' markup is a bug waiting to happen (zero length, no label)."
+            },
+            {
+              "id": "c",
+              "label": "Custom",
+              "description": ""
+            }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    }
+  ]
+}
