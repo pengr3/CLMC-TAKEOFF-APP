@@ -25,6 +25,6 @@ export const COLORS = {
 
 export const LAYOUT = {
   titleBarHeight: 32,
-  toolbarHeight: 40,
+  toolbarHeight: 40, // legacy — RibbonToolbar governs its own height; this value is not consumed by any component
   statusBarHeight: 28
 } as const
