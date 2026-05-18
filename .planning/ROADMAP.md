@@ -19,6 +19,7 @@
  (completed 2026-05-12)
 - [x] **Phase 7: Canvas Workspace UX and Markup Editing Fixes** - Fix five live-use delinquencies: full-screen canvas workspace, post-commit markup editing, totals panel quantity list redesign, Set Scale modal dropdown overflow, and smart category deduplication (completed 2026-05-13)
 - [x] **Phase 8: Markup Workflow Acceleration and Wall Measurement Tool** - Chain markup mode, wall area measurement tool, per-item show/hide visibility toggle, and rifle-scope crosshair cursor (completed 2026-05-15)
+- [ ] **Phase 9: Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion** - Click-to-select + Delete-key deletion, drag-to-multi-select with group delete, all modals centered and draggable, ribbon-style tabbed toolbar (Home/Page/Tools/View/Estimating/Settings/Help), and Enter/double-click to finish in-progress markup
 
 ---
 
@@ -280,6 +281,26 @@ Plans:
 
 **Cross-cutting constraints:** Zoom-compensated stroke widths (`/ currentZoom`) on all Konva shapes in WallMarkup (Pitfall 2); stateRef snapshot in commitShape wall branch (Pitfall 3); `e.stopPropagation()` on Lightbulb click (Pitfall 9); `boq-types.ts` + `boq-writers.ts` inline dup updated in lockstep in Wave 0 (Pitfall 10); `markDirty()` called explicitly in `toggleHiddenItem` (Pitfall 4); no formatVersion bump for additive `hiddenItemNames` field (Pitfall 11 note); COLORS tokens + inline styles only (no Tailwind in panel/canvas path).
 
+### Phase 9: Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion
+
+**Goal:** Five UX improvements that make the markup workflow faster and more intuitive: (1) click a markup to select it, press Delete to remove it; (2) hold and drag over the canvas to rubber-band-select multiple markups, press Delete to remove them as one undoable action; (3) every modal (Set Scale, Markup Name, Edit Markup, etc.) opens centered on the viewport and can be freely repositioned by dragging its header; (4) replace the flat action bar with a ribbon-style UI — a compact tab row (Home, Page, Tools, View, Estimating, Settings, Help) above a ribbon panel that is at least twice as tall and displays icon-plus-label buttons for the active tab; (5) pressing Enter or double-clicking the last placed point finalises an in-progress linear, area, or perimeter markup.
+**Depends on:** Phase 8
+**Requirements:** No new v1 requirements (quality-of-life enhancements)
+**Success Criteria** (what must be TRUE):
+  1. Clicking a placed markup selects it (visible selection ring); pressing Delete removes it and the action is undoable via Ctrl+Z
+  2. Holding the mouse button and dragging across empty canvas draws a selection rectangle — all markups fully or partially inside are highlighted; pressing Delete removes all selected markups as a single undoable command
+  3. Every modal that appears in the app opens at the center of the application window; dragging the modal's title bar freely repositions it and the position is maintained until the modal is closed
+  4. A tabbed ribbon replaces (or wraps) the current toolbar area: a tab row with labels Home, Page, Tools, View, Estimating, Settings, Help; the ribbon panel below is at least 2× the height of the tab row and shows square icon+label buttons for the active tab; all existing markup and scale tools remain accessible via the ribbon
+  5. For the Linear, Area, Perimeter, and Wall tools, pressing Enter or double-clicking the most recently placed point commits the in-progress markup — identical outcome to the existing finish-segment mechanism
+**Plans:** 6 plans
+Plans:
+- [ ] 09-00-PLAN.md — Type extensions + store additions (Wave 0)
+- [ ] 09-01-PLAN.md — useDraggable hook + all 9 modals draggable (Wave 1)
+- [ ] 09-02-PLAN.md — Click-to-select + selection ring + Delete/Ctrl+A (Wave 1)
+- [ ] 09-03-PLAN.md — Rubber-band multi-select + Enter key commit (Wave 2)
+- [ ] 09-04-PLAN.md — Ribbon toolbar RibbonButton + RibbonToolbar (Wave 2)
+- [ ] 09-05-PLAN.md — Manual UAT and phase closure (Wave 3)
+
 ---
 
 ## Progress
@@ -297,6 +318,7 @@ Plans:
 | 6.1. Remove Left Thumbnail Strip Panel | 1/1 | Complete   | 2026-05-12 |
 | 7. Canvas Workspace UX and Markup Editing Fixes | 5/5 | Complete | 2026-05-13 |
 | 8. Markup Workflow Acceleration and Wall Measurement Tool | 8/8 | Complete | 2026-05-15 |
+| 9. Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion | 0/6 | In Progress | — |
 
 ---
 
@@ -345,4 +367,5 @@ Plans:
 *Updated: 2026-05-12 â€” Phase 6 complete (all 9 plans, UAT Aâ€”F passed, VIEW-01 + PDF-05 delivered â€” v1 milestone complete, 25/25 requirements)*
 *Updated: 2026-05-13 â€” Phase 7 complete (5 plans, UAT Aâ€”F passed â€” all five live-use delinquencies resolved)*
 *Updated: 2026-05-15 â€” Phase 8 complete (8 plans, UAT 10/10 passed â€” chain mode, wall tool, show/hide visibility, crosshair cursor)*
+*Updated: 2026-05-18 â€” Phase 9 added (selection model, ribbon toolbar, modal polish, markup completion â€” 5 items)*
 
