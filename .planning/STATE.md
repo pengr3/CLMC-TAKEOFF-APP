@@ -180,6 +180,7 @@ None.
 |---|-------------|------|--------|-----------|
 | 260429-jov | Restore optimizeDeps exclude pdfjs-dist in electron.vite.config.ts | 2026-04-29 | 0442ebc | [260429-jov-restore-optimizedeps-exclude-pdfjs-dist-](./quick/260429-jov-restore-optimizedeps-exclude-pdfjs-dist-/) |
 | 260518-k9x | Fix MMB pan broken + LMB rubber-band not selecting (phase 09 regressions) | 2026-05-18 | 0677d9d | [260518-k9x-fix-mmb-pan-and-rubber-band-select](./quick/260518-k9x-fix-mmb-pan-and-rubber-band-select/) |
+| 260518-fix | Fix rubber-band click-clears-selection: Konva click after mouseup wipes selection; move rubber-band rect to correct layer; window mouseup cleanup | 2026-05-18 | pending | [260518-fix-rubber-band-click-clears-selection](./quick/260518-fix-rubber-band-click-clears-selection/) |
 
 ### Roadmap Evolution
 

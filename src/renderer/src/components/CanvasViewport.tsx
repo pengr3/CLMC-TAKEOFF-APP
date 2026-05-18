@@ -294,6 +294,20 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     rubberBandRef.current = val
     setRubberBandState(val)
   }, [])
+  // Set to true in handleStageMouseUp after a real rubber-band drag (mouse moved >4px).
+  // Read and cleared in handleStageClick to prevent the Konva click event (always fired
+  // when _mouseListenClick=true, i.e. no Konva drag active) from wiping the selection.
+  const rubberBandDraggedRef = useRef(false)
+
+  // Clean up a rubber-band that is still active when the user releases the mouse
+  // outside the Stage canvas (Stage onMouseUp never fires for out-of-bounds releases).
+  useEffect(() => {
+    const cleanup = () => {
+      if (rubberBandRef.current) setRubberBand(null)
+    }
+    window.addEventListener('mouseup', cleanup)
+    return () => window.removeEventListener('mouseup', cleanup)
+  }, [setRubberBand])
 
   // Sync viewerStore.activeTool with the markup tool state machine
   useEffect(() => {
@@ -626,8 +640,17 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       // Plan 09-02 / D-05: in 'select' mode, clicking empty stage canvas
       // deselects all markups. e.target is the Stage itself only when the
       // click missed every interactive shape (the markup Groups in Layer 1b).
-      if (activeTool === 'select' && e.target === stageRef.current) {
-        clearSelection()
+      // Guard: if a rubber-band drag just completed, Konva still fires click
+      // (no Konva drag was active so _mouseListenClick was never set to false).
+      // Skip clearSelection() in that case so the rubber-band result survives.
+      if (activeTool === 'select') {
+        if (rubberBandDraggedRef.current) {
+          rubberBandDraggedRef.current = false
+          return
+        }
+        if (e.target === stageRef.current) {
+          clearSelection()
+        }
       }
     },
     [calibState.mode, markupState.mode, markupState.toolType, markupState.points.length, isOverStartPoint, stageRef, recordClick, recordMarkupClick, finishPolygon, activeTool, clearSelection]
@@ -694,9 +717,16 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   const handleStageMouseUp = useCallback(() => {
     const rb = rubberBandRef.current
     if (!rb) return
-    const matched = pageMarkups.filter((m) => isFullyInside(m, rb))
-    if (matched.length > 0) {
-      setSelectedMarkupIds(matched.map((m) => m.id))
+    // Only treat as a rubber-band drag when the mouse moved more than 4px in any direction.
+    // A zero-size band (pure click) should not interfere with the click handler below.
+    const moved = Math.abs(rb.endX - rb.startX) > 4 || Math.abs(rb.endY - rb.startY) > 4
+    if (moved) {
+      const matched = pageMarkups.filter((m) => isFullyInside(m, rb))
+      if (matched.length > 0) setSelectedMarkupIds(matched.map((m) => m.id))
+      // Signal handleStageClick to skip clearSelection() — Konva always fires click
+      // after mouseup when _mouseListenClick=true (no Konva drag active), which would
+      // immediately wipe the selection we just set.
+      rubberBandDraggedRef.current = true
     }
     setRubberBand(null)
   }, [pageMarkups, setSelectedMarkupIds, setRubberBand])
@@ -914,25 +944,6 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
               </>
             )}
 
-          {/* Plan 09-03: rubber-band multi-select rectangle (D-06, D-07).
-              Renders in Layer 1a (listening={false}) so it never intercepts
-              clicks meant for the markup Groups in Layer 1b — same contract as
-              the calibration overlay and in-progress linear preview above.
-              Zoom-compensated 1/currentZoom stroke so visual width is constant
-              at every zoom level. RUBBER_BAND_FILL is a module-level constant
-              (no raw rgba literal in JSX). */}
-          {rubberBand && (
-            <Rect
-              x={Math.min(rubberBand.startX, rubberBand.endX)}
-              y={Math.min(rubberBand.startY, rubberBand.endY)}
-              width={Math.abs(rubberBand.endX - rubberBand.startX)}
-              height={Math.abs(rubberBand.endY - rubberBand.startY)}
-              stroke={COLORS.accent}
-              strokeWidth={1 / currentZoom}
-              fill={RUBBER_BAND_FILL}
-              listening={false}
-            />
-          )}
         </Layer>
 
         {/* Layer 1b: Committed markups — LISTENING for hover + right-click (plan 03.1-05) */}
@@ -1031,6 +1042,24 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
             )
           })}
         </Layer>
+
+        {/* Plan 09-03: rubber-band multi-select rectangle (D-06, D-07).
+            Own layer ABOVE Layer 1b so the band is visible over markup shapes.
+            listening={false} — never intercepts clicks meant for markup Groups. */}
+        {rubberBand && (
+          <Layer listening={false}>
+            <Rect
+              x={Math.min(rubberBand.startX, rubberBand.endX)}
+              y={Math.min(rubberBand.startY, rubberBand.endY)}
+              width={Math.abs(rubberBand.endX - rubberBand.startX)}
+              height={Math.abs(rubberBand.endY - rubberBand.startY)}
+              stroke={COLORS.accent}
+              strokeWidth={1 / currentZoom}
+              fill={RUBBER_BAND_FILL}
+              listening={false}
+            />
+          </Layer>
+        )}
 
         {/* Phase 6: Layer 2 transient — panel-driven highlights (D-11 HoverRing + D-12 PulseHighlight).
             listening={false} on both the Layer and every shape inside so these overlays NEVER
