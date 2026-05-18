@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { TitleBar } from './components/TitleBar'
-import { Toolbar } from './components/Toolbar'
+import { RibbonToolbar } from './components/RibbonToolbar'
 import { StatusBar } from './components/StatusBar'
 import { EmptyState } from './components/EmptyState'
 import { CanvasViewport } from './components/CanvasViewport'
@@ -241,7 +241,7 @@ function App(): React.JSX.Element {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
       <TitleBar />
-      <Toolbar
+      <RibbonToolbar
         onOpenClick={handleOpenClick}
         onReplaceClick={handleReplaceClick}
         onExportClick={handleExportClick}
