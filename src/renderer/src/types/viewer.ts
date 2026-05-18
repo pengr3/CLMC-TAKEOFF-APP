@@ -50,6 +50,16 @@ export interface ViewerState {
   clearPageScale: (page: number) => void
   setActiveTool: (tool: ActiveTool) => void
 
+  /**
+   * IDs of markups currently selected on the active page (Phase 09 D-01).
+   * Single-select is `[id]`; multi-select is `[id1, id2, ...]`; nothing
+   * selected is `[]`. Page-scoped: cleared automatically on page change,
+   * resetViewer(), hydrate(), and setFile().
+   */
+  selectedMarkupIds: string[]
+  setSelectedMarkupIds: (ids: string[]) => void
+  clearSelection: () => void
+
   hydrate: (data: { currentPage: number; pageViewports: Record<number, ViewportState> }) => void
 }
 

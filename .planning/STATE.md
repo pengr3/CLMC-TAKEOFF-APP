@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: Complete
 stopped_at: Phase 8 complete (2026-05-15)
-last_updated: "2026-05-15T06:00:00.000Z"
-last_activity: 2026-05-15
+last_updated: "2026-05-18T05:59:58.044Z"
+last_activity: 2026-05-18
 progress:
-  total_phases: 11
+  total_phases: 12
   completed_phases: 11
-  total_plans: 64
+  total_plans: 70
   completed_plans: 64
-  percent: 100
+  percent: 91
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 8 — markup workflow acceleration (chain mode), new wall measurement tool, per-item show/hide toggle, in-app crosshair cursor
+**Current Focus:** Phase 09 — selection-model-ribbon-toolbar-modal-polish-and-markup-completion
 
 ---
 
 ## Current Position
 
-Phase: 08 (markup-workflow-and-wall-tool) — Complete (2026-05-15)
-Plan: 8 of 8 — all plans executed, UAT passed, phase closed
+Phase: 09 (selection-model-ribbon-toolbar-modal-polish-and-markup-completion) — EXECUTING
+Plan: 1 of 6
 
 ## Performance Metrics
 
@@ -190,7 +190,7 @@ None.
 
 ## Session Continuity
 
-**Last activity:** 2026-05-15
+**Last activity:** 2026-05-18
 
 **Last session:** 2026-05-15T06:00:00.000Z
 

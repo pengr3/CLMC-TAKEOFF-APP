@@ -19,6 +19,16 @@ interface MarkupStoreState {
   getOrCreateCategory: (name: string) => Category
   placeMarkup: (markup: Markup) => void
   deleteMarkup: (page: number, markupId: string) => void
+  /**
+   * Delete a group of markups as a single undoable command (D-09).
+   * Pushes one 'delete-group' command onto the undoStack — undo() restores
+   * every markup to its original page; redo() re-removes them.
+   *
+   * Empty array is a no-op (no command pushed). Selection-clear in the
+   * keyboard handler (Plan 02) is the caller's responsibility; this action
+   * does not reach into viewerStore (cross-store coupling avoided).
+   */
+  deleteGroup: (markups: Markup[]) => void
   recolorGroup: (name: string, newColor: string, page?: number) => void
   editMarkup: (
     markupId: string,
@@ -118,6 +128,21 @@ export const useMarkupStore = create<MarkupStoreState>()(
       return {
         pageMarkups: { ...s.pageMarkups, [page]: pageList.filter((m) => m.id !== markupId) },
         undoStack: pushCommand(s.undoStack, { type: 'delete', markup: target }),
+        redoStack: []
+      }
+    }),
+
+  deleteGroup: (markups) =>
+    set((s) => {
+      if (markups.length === 0) return s
+      const idSet = new Set(markups.map((m) => m.id))
+      const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+      for (const p of Object.keys(nextPageMarkups).map(Number)) {
+        nextPageMarkups[p] = (nextPageMarkups[p] ?? []).filter((m) => !idSet.has(m.id))
+      }
+      return {
+        pageMarkups: nextPageMarkups,
+        undoStack: pushCommand(s.undoStack, { type: 'delete-group', markups }),
         redoStack: []
       }
     }),
@@ -256,6 +281,20 @@ export const useMarkupStore = create<MarkupStoreState>()(
         }
       }
 
+      // delete-group branch MUST come BEFORE the `cmd.markup.page` access
+      // below — delete-group carries `markups` (plural), not `markup`.
+      if (cmd.type === 'delete-group') {
+        const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+        for (const m of cmd.markups) {
+          nextPageMarkups[m.page] = [...(nextPageMarkups[m.page] ?? []), m]
+        }
+        return {
+          pageMarkups: nextPageMarkups,
+          undoStack: s.undoStack.slice(0, -1),
+          redoStack: [...s.redoStack, cmd]
+        }
+      }
+
       const page = cmd.markup.page
       const pageList = s.pageMarkups[page] ?? []
       let nextList: Markup[]
@@ -311,6 +350,21 @@ export const useMarkupStore = create<MarkupStoreState>()(
         )
         return {
           pageMarkups: { ...s.pageMarkups, [cmd.page]: nextList },
+          undoStack: pushCommand(s.undoStack, cmd),
+          redoStack: s.redoStack.slice(0, -1)
+        }
+      }
+
+      // delete-group branch MUST come BEFORE the `cmd.markup.page` access
+      // below — delete-group carries `markups` (plural), not `markup`.
+      if (cmd.type === 'delete-group') {
+        const idSet = new Set(cmd.markups.map((m) => m.id))
+        const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+        for (const p of Object.keys(nextPageMarkups).map(Number)) {
+          nextPageMarkups[p] = (nextPageMarkups[p] ?? []).filter((m) => !idSet.has(m.id))
+        }
+        return {
+          pageMarkups: nextPageMarkups,
           undoStack: pushCommand(s.undoStack, cmd),
           redoStack: s.redoStack.slice(0, -1)
         }

@@ -52,6 +52,7 @@ export interface Category {
 export type MarkupCommand =
   | { type: 'place'; markup: Markup }
   | { type: 'delete'; markup: Markup }
+  | { type: 'delete-group'; markups: Markup[] }
   | {
       type: 'recolor-group'
       name: string
