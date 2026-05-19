@@ -24,7 +24,7 @@ import { HoverRing } from './HoverRing'
 import { PulseHighlight } from './PulseHighlight'
 import { COLORS } from '../lib/constants'
 import { formatScaleRatio } from '../lib/scale-math'
-import { setMarkupUndoHandler } from '../lib/markup-undo-ref'
+import { setMarkupUndoHandler, setMarkupRedoHandler } from '../lib/markup-undo-ref'
 import {
   polylineLength,
   polygonArea,
@@ -267,7 +267,8 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     commitCountName,
     commitShape,
     dismissError,
-    popLastPoint
+    popLastPoint,
+    repushLastPoint
   } = useMarkupTool(stageRef)
 
   // Expose the mid-draw undo handler via a module-level ref so useKeyboardShortcuts
@@ -279,6 +280,13 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       setMarkupUndoHandler(null)
     }
   }, [popLastPoint])
+
+  useEffect(() => {
+    setMarkupRedoHandler(repushLastPoint)
+    return () => {
+      setMarkupRedoHandler(null)
+    }
+  }, [repushLastPoint])
 
   // Local state for polygon start-vertex hover (drives close-on-click affordance)
   const [isOverStartPoint, setIsOverStartPoint] = useState(false)

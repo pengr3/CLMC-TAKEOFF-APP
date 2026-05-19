@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useViewerStore } from '../stores/viewerStore'
 import { useMarkupStore } from '../stores/markupStore'
-import { getMarkupUndoHandler } from '../lib/markup-undo-ref'
+import { getMarkupUndoHandler, getMarkupRedoHandler } from '../lib/markup-undo-ref'
 
 interface KeyboardShortcutHandlers {
   openPdf: () => void                          // kept for backwards compat
@@ -111,11 +111,18 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
         return
       }
 
-      // Ctrl+Y or Ctrl+Shift+Z: Redo markup action
+      // Ctrl+Y or Ctrl+Shift+Z: Redo markup action.
+      // While a linear/area/perimeter draw is in progress, prefer repushing the
+      // last popped vertex so in-progress redo does not affect the committed-markup
+      // redo stack.
       if (e.ctrlKey && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
         if (isTextInputActive()) return
         e.preventDefault()
-        useMarkupStore.getState().redo()
+        // Prefer in-progress vertex redo before falling through to committed-markup redo
+        const handledByDraw = getMarkupRedoHandler()?.() ?? false
+        if (!handledByDraw) {
+          useMarkupStore.getState().redo()
+        }
         return
       }
 
