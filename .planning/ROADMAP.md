@@ -265,9 +265,9 @@ Plans:
 **Plans**: 7 plans across 4 waves
 
 **Wave 1 *(parallel-safe — independent hook + component extensions)*:**
-- [ ] 07.1-01-PLAN.md — useMarkupTool: add activatePreset() useCallback + UseMarkupToolReturn export
-- [ ] 07.1-02-PLAN.md — TotalsRow: export labelToName + rowTypeToMarkupType, add onArmTool prop, Plus slot
-- [ ] 07.1-03-PLAN.md — TotalsCategoryBlock: onArmTool prop thread with category.name curry
+- [x] 07.1-01-PLAN.md — useMarkupTool: add activatePreset() useCallback + UseMarkupToolReturn export
+- [x] 07.1-02-PLAN.md — TotalsRow: export labelToName + rowTypeToMarkupType, add onArmTool prop, Plus slot
+- [x] 07.1-03-PLAN.md — TotalsCategoryBlock: onArmTool prop thread with category.name curry
 
 **Wave 2 *(blocked on Wave 1)*:**
 - [ ] 07.1-04-PLAN.md — CanvasViewport: _activatePresetRef module-ref + setChainArmedFromTotals export + useEffect populator
@@ -365,7 +365,7 @@ Plans:
 | 6. Live View and UI Polish | 9/9 | Complete | 2026-05-12 |
 | 6.1. Remove Left Thumbnail Strip Panel | 1/1 | Complete   | 2026-05-12 |
 | 7. Canvas Workspace UX and Markup Editing Fixes | 5/5 | Complete | 2026-05-13 |
-| 7.1. Resume Markup Group from Totals Panel | 0/7 | In Progress | — |
+| 7.1. Resume Markup Group from Totals Panel | 3/7 | In Progress | — |
 | 8. Markup Workflow Acceleration and Wall Measurement Tool | 8/8 | Complete | 2026-05-15 |
 | 9. Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion | 6/6 | Complete | 2026-05-18 |
 | 10. Granular Undo Foundation | 2/2 | Complete    | 2026-05-19 |
