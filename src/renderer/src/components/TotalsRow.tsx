@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type React from 'react'
-import { Lightbulb, LightbulbOff } from 'lucide-react'
+import { Lightbulb, LightbulbOff, Plus } from 'lucide-react'
 import { COLORS } from '../lib/constants'
 import type { BoqItemRow, BoqRowType } from '../lib/boq-types'
 import type { Markup, MarkupType } from '../types/markup'
@@ -51,6 +51,8 @@ export interface TotalsRowProps {
   onContextMenu: (x: number, y: number) => void
   /** Fired after a click navigates to a new page — caller can flash PulseHighlight. */
   onTriggerPulse?: (matches: Markup[], color: string) => void
+  /** Arm the matching markup tool with this item's name/type/color. Fired on every row click. */
+  onArmTool?: (item: BoqItemRow) => void
 }
 
 function formatQuantity(item: BoqItemRow): string {
@@ -101,7 +103,7 @@ function findPagesWithMatches(
 }
 
 export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
-  const { item, cycleIndex: cycleIndexProp, currentPageMatches, onHover, onClick, onContextMenu, onTriggerPulse } = props
+  const { item, cycleIndex: cycleIndexProp, currentPageMatches, onHover, onClick, onContextMenu, onTriggerPulse, onArmTool } = props
   const [bg, setBg] = useState<string>('transparent')
 
   // Internal cycle state. Reset on mouse-leave (D-10 "until row-leave").
@@ -155,7 +157,11 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
     onClick(item)
 
     // Cycle navigation: skip when no matches anywhere.
-    if (pagesWithMatches.length === 0) return
+    // Arm fires even with no matches — new placements may land on any page.
+    if (pagesWithMatches.length === 0) {
+      onArmTool?.(item)
+      return
+    }
 
     const slot = internalCycleIndex % pagesWithMatches.length
     const targetPage = pagesWithMatches[slot]
@@ -170,6 +176,9 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
 
     // Advance cycle index (wraps via modulo on next click).
     setInternalCycleIndex((i) => (i + 1) % pagesWithMatches.length)
+
+    // Arm the matching tool after cycle navigation.
+    onArmTool?.(item)
   }
   const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>): void => {
     e.preventDefault()
@@ -290,6 +299,15 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
       >
         {item.uom}
       </span>
+
+      {/* Plus arm-tool affordance — fixed 20px slot so UoM column never reflows.
+           Icon appears only while hovered; no own click handler (propagates to row). */}
+      <div
+        style={{ width: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        title="Add more to this group"
+      >
+        {bg !== 'transparent' && <Plus size={14} color={COLORS.textSecondary} />}
+      </div>
     </div>
   )
 }
