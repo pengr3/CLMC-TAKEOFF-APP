@@ -14,6 +14,7 @@ import { SaveCloseModal } from './components/SaveCloseModal'
 import { OpenErrorModal } from './components/OpenErrorModal'
 import { UncalibratedExportWarningModal } from './components/UncalibratedExportWarningModal'
 import { useViewerStore } from './stores/viewerStore'
+import { useMarkupStore } from './stores/markupStore'
 import { attachDirtyTracking, useProjectStore } from './stores/projectStore'
 import { useProject, type ProjectOpenResult } from './hooks/useProject'
 import { useExport } from './hooks/useExport'
@@ -21,10 +22,13 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useCloseGuard } from './hooks/useCloseGuard'
 import { useUiPanels } from './hooks/useUiPanels'
 import { useMarkupHighlight } from './hooks/useMarkupHighlight'
-import { getCanvasControls } from './components/CanvasViewport'
+import { getCanvasControls, setChainArmedFromTotals } from './components/CanvasViewport'
+import { labelToName, rowTypeToMarkupType } from './components/TotalsRow'
+import { MARKUP_PALETTE } from './lib/markup-palette'
 import { COLORS } from './lib/constants'
 import type { ProjectFileV2 } from './lib/project-schema'
-import type { BoqStructure } from './lib/boq-types'
+import type { BoqStructure, BoqItemRow } from './lib/boq-types'
+import type { WallMarkup } from './types/markup'
 
 function App(): React.JSX.Element {
   const totalPages = useViewerStore((s) => s.totalPages)
@@ -227,6 +231,42 @@ function App(): React.JSX.Element {
     // r.kind === 'canceled' → no-op
   }, [exportBoq])
 
+  // Phase 7.1: Arm markup tool from TotalsPanel row click.
+  // CRITICAL ordering: setChainArmedFromTotals MUST be called BEFORE setActiveTool
+  // so that _activatePresetRef fires before the tool-mode state update triggers
+  // CanvasViewport re-render (per 07.1-RESEARCH Focus Area 8 and PATTERNS.md).
+  const handleArmTool = useCallback((item: BoqItemRow, categoryName: string): void => {
+    const toolType = rowTypeToMarkupType(item.type)
+    const itemName = labelToName(item.label)
+
+    // Wall height: scan markup store for the most-recent WallMarkup with matching name.
+    let wallHeight: number | undefined
+    if (toolType === 'wall') {
+      const { pageMarkups } = useMarkupStore.getState()
+      let latestWall: WallMarkup | null = null
+      for (const markups of Object.values(pageMarkups)) {
+        for (const m of markups) {
+          if (m.type === 'wall' && m.name === itemName) {
+            if (latestWall === null || m.createdAt > latestWall.createdAt) {
+              latestWall = m as WallMarkup
+            }
+          }
+        }
+      }
+      wallHeight = latestWall?.wallHeight ?? 2400
+    }
+
+    // MUST call setChainArmedFromTotals BEFORE setActiveTool (ordering critical).
+    setChainArmedFromTotals({
+      name: itemName,
+      categoryName,
+      color: item.color ?? MARKUP_PALETTE[0],
+      toolType,
+      wallHeight
+    })
+    useViewerStore.getState().setActiveTool(toolType)
+  }, [])
+
   useKeyboardShortcuts({
     openPdf: handleOpenClick,
     openProject: handleOpenClick,
@@ -260,9 +300,9 @@ function App(): React.JSX.Element {
         {/* Center: CanvasHeaderBar + CanvasViewport + toasts.
             CRITICAL: minWidth: 0 prevents the canvas's intrinsic content from blocking
             shrinking when both panels are open (flex-child needs explicit 0 floor). */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
           {totalPages > 0 && <CanvasHeaderBar />}
-          <div style={{ flex: 1, position: 'relative' }}>
+          <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
             {totalPages === 0
               ? <EmptyState />
               : <CanvasViewport
@@ -368,6 +408,7 @@ function App(): React.JSX.Element {
           onTriggerPulse={triggerPulse}
           onCopy={(msg) => setCopyToast(msg)}
           onCopyError={() => setCopyToast('Copy failed.')}
+          onArmTool={handleArmTool}
         />
       </main>
       <StatusBar />
