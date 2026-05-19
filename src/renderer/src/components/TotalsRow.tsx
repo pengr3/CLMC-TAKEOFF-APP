@@ -59,12 +59,12 @@ function formatQuantity(item: BoqItemRow): string {
 }
 
 /** D-02 disambiguation suffix stripper. "Outlet (count)" → "Outlet". */
-function labelToName(label: string): string {
+export function labelToName(label: string): string {
   return label.replace(/\s*\((count|linear|area|perimeter|wall)\)\s*$/, '')
 }
 
 /** Map a BoqRowType (perimeter-length / perimeter-area split) back to underlying Markup.type. */
-function rowTypeToMarkupType(t: BoqRowType): MarkupType {
+export function rowTypeToMarkupType(t: BoqRowType): MarkupType {
   if (t === 'perimeter-length' || t === 'perimeter-area') return 'perimeter'
   return t
 }
