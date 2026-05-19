@@ -1,9 +1,9 @@
 ---
-status: pending
+status: passed
 phase: 10-granular-undo-foundation
 source: [10-VERIFICATION.md]
-started:
-updated:
+started: 2026-05-19
+updated: 2026-05-19
 ---
 
 # Phase 10 Human UAT — Granular In-Progress Undo/Redo
@@ -22,7 +22,7 @@ updated:
 
 **Expected:** The last point you placed disappears. The tool is still active — you can see the rubber-band preview following your cursor. The line now has one segment (two points).
 
-- [ ] Pass
+- [x] Pass
 
 ---
 
@@ -34,7 +34,7 @@ Continuing from where Test 10-A left off (you have two points on the canvas):
 
 **Expected:** The second point disappears. The tool is still active. Only the first point remains — the rubber-band line connects the first point to your cursor.
 
-- [ ] Pass
+- [x] Pass
 
 ---
 
@@ -50,7 +50,7 @@ Continuing from Test 10-B (one point on the canvas, tool still active):
 
 **Expected:** The third point comes back. The line has two segments again — exactly as it was before either Ctrl+Z.
 
-- [ ] Pass
+- [x] Pass
 
 ---
 
@@ -63,7 +63,7 @@ Continuing from Test 10-B (one point on the canvas, tool still active):
 
 **Expected:** Nothing happens — the redo stack was cleared when you placed the new point. The markup stays as-is with the two original points plus the new one you just clicked.
 
-- [ ] Pass
+- [x] Pass
 
 ---
 
@@ -74,7 +74,7 @@ Continuing from Test 10-B (one point on the canvas, tool still active):
 
 **Expected:** The point disappears and the tool deactivates — you are back to the normal pointer/no-tool state. No half-finished markup remains on the canvas.
 
-- [ ] Pass
+- [x] Pass
 
 ---
 
@@ -90,7 +90,7 @@ Continuing from Test 10-B (one point on the canvas, tool still active):
 
 **Expected:** The whole markup comes back.
 
-- [ ] Pass
+- [x] Pass
 
 ---
 
@@ -104,7 +104,7 @@ Continuing from Test 10-B (one point on the canvas, tool still active):
 
 **Expected:** The pop/repush behaviour is identical across all three tools — no tool behaves differently.
 
-- [ ] Pass
+- [x] Pass
 
 ---
 
@@ -120,7 +120,7 @@ Continuing from Test 10-B (one point on the canvas, tool still active):
 | 10-F | Post-commit Ctrl+Z unchanged (whole-markup) | |
 | 10-G | Works on Area, Perimeter, Wall tools | |
 
-Total: 7 | Passed: | Failed:
+Total: 7 | Passed: 7 | Failed: 0
 
 ## Gaps
 
