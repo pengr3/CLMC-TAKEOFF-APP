@@ -75,6 +75,10 @@ export interface UseMarkupToolReturn {
   // handler so mid-draw misclicks can be corrected without undoing a prior
   // committed markup.
   popLastPoint: () => boolean
+  activatePreset: (
+    tool: 'count' | 'linear' | 'area' | 'perimeter' | 'wall',
+    preset: { name: string; categoryName: string; color: string; wallHeight?: number }
+  ) => void
 }
 
 export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarkupToolReturn {
@@ -104,6 +108,37 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
       setState({ ...INITIAL_STATE, mode: 'drawing', toolType: tool })
     }
   }, [])
+
+  const activatePreset = useCallback(
+    (
+      tool: 'count' | 'linear' | 'area' | 'perimeter' | 'wall',
+      preset: { name: string; categoryName: string; color: string; wallHeight?: number }
+    ) => {
+      if (tool === 'count') {
+        setState({
+          ...INITIAL_STATE,
+          mode: 'placing',
+          toolType: 'count',
+          pendingName: preset.name,
+          pendingCategoryName: preset.categoryName || UNCATEGORIZED,
+          pendingColor: preset.color,
+          chainArmed: true
+        })
+      } else {
+        setState({
+          ...INITIAL_STATE,
+          mode: 'drawing',
+          toolType: tool,
+          pendingName: preset.name,
+          pendingCategoryName: preset.categoryName || UNCATEGORIZED,
+          pendingColor: preset.color,
+          chainArmed: true,
+          ...(tool === 'wall' ? { pendingWallHeight: preset.wallHeight ?? 2400 } : {})
+        })
+      }
+    },
+    []
+  )
 
   const cancel = useCallback(() => {
     // INITIAL_STATE resets chainArmed and pendingWallHeight per Pitfall 7
@@ -377,6 +412,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
   return {
     state,
     activate,
+    activatePreset,
     cancel,
     recordClick,
     updatePreview,
