@@ -21,3 +21,13 @@ export function setMarkupUndoHandler(handler: (() => boolean) | null): void {
 export function getMarkupUndoHandler(): (() => boolean) | null {
   return _markupUndoHandler
 }
+
+let _markupRedoHandler: (() => boolean) | null = null
+
+export function setMarkupRedoHandler(handler: (() => boolean) | null): void {
+  _markupRedoHandler = handler
+}
+
+export function getMarkupRedoHandler(): (() => boolean) | null {
+  return _markupRedoHandler
+}
