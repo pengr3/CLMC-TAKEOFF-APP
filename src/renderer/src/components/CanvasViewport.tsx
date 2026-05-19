@@ -773,15 +773,6 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     setRubberBand(null)
   }, [pageMarkups, setSelectedMarkupIds, setRubberBand])
 
-  // Handle Stage dblclick — finish linear or wall polyline (both are open polylines)
-  const handleStageDblClick = useCallback(
-    (_e: Konva.KonvaEventObject<MouseEvent>) => {
-      if ((markupState.toolType === 'linear' || markupState.toolType === 'wall') && markupState.mode === 'drawing') {
-        finishLinear()
-      }
-    },
-    [markupState.toolType, markupState.mode, finishLinear]
-  )
 
   // Determine cursor based on interaction state.
   // Spacebar held = grab cursor (left-click pan mode).
@@ -887,7 +878,6 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         onMouseDown={handleStageMouseDown}
         onMouseMove={handleStageMouseMove}
         onMouseUp={handleStageMouseUp}
-        onDblClick={handleStageDblClick}
       >
         {/* Layer 0: PDF background */}
         <Layer listening={false}>

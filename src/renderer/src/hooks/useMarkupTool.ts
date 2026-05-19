@@ -8,7 +8,10 @@ import { polygonCentroid } from '../lib/markup-math'
 import { MARKUP_PALETTE } from '../lib/markup-palette'
 
 const UNCATEGORIZED = 'Uncategorized'
-const DUPLICATE_POINT_EPSILON = 2 // stage-pixel threshold for de-duping dblclick duplicate point (Pitfall 1)
+// DUPLICATE_POINT_EPSILON: kept for recordClick de-dup guard. Double-click finish
+// is no longer used (Enter-only finish), but rapid-fire clicks at nearly the same
+// position should still only place one vertex.
+const DUPLICATE_POINT_EPSILON = 2
 
 export interface MarkupDrawState {
   mode: 'idle' | 'naming' | 'drawing' | 'confirming' | 'placing'
@@ -169,7 +172,8 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
             prev.toolType === 'perimeter' ||
             prev.toolType === 'wall')
         ) {
-          // De-duplicate consecutive same-position clicks (Pitfall 1 — dblclick fires two clicks)
+          // De-duplicate consecutive same-position clicks (rapid-fire clicks at nearly
+          // the same canvas position should only place one vertex).
           const last = prev.points[prev.points.length - 1]
           if (
             last &&
@@ -209,22 +213,11 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     setState((prev) => {
       if ((prev.toolType !== 'linear' && prev.toolType !== 'wall') || prev.mode !== 'drawing') return prev
 
-      // Drop the trailing duplicate click that preceded the dblclick (Pitfall 1)
-      let finalPoints = prev.points
-      if (finalPoints.length >= 2) {
-        const a = finalPoints[finalPoints.length - 2]
-        const b = finalPoints[finalPoints.length - 1]
-        if (distanceSquared(a, b) < DUPLICATE_POINT_EPSILON * DUPLICATE_POINT_EPSILON) {
-          finalPoints = finalPoints.slice(0, -1)
-        }
-      }
-
-      if (finalPoints.length < 2) {
+      if (prev.points.length < 2) {
+        // Stay in drawing mode so the tool remains live after the error dismisses.
+        // The user can continue clicking without needing to switch tools.
         return {
           ...prev,
-          mode: 'idle',
-          points: [],
-          previewPoint: null,
           errorToast: 'Add at least two points before ending'
         }
       }
@@ -233,14 +226,13 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
       if (!stage) return prev
 
       // Place popup near the midpoint of the finished polyline (screen-space)
-      const midIndex = Math.floor(finalPoints.length / 2)
-      const mid = finalPoints[midIndex]
+      const midIndex = Math.floor(prev.points.length / 2)
+      const mid = prev.points[midIndex]
       const screenMid = stageToScreenPoint(stage, mid)
 
       return {
         ...prev,
         mode: 'confirming',
-        points: finalPoints,
         previewPoint: null,
         popupScreenPos: { x: screenMid.x, y: screenMid.y + 20 },
         pendingPage: prev.pendingPage ?? useViewerStore.getState().currentPage
@@ -254,11 +246,9 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
         return prev
       }
       if (prev.points.length < 3) {
+        // Stay in drawing mode so the tool remains live after the error dismisses.
         return {
           ...prev,
-          mode: 'idle',
-          points: [],
-          previewPoint: null,
           errorToast: 'Add at least three points to close the shape'
         }
       }
