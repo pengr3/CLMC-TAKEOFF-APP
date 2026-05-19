@@ -127,6 +127,35 @@ export function getChainArmedItem(): { name: string; color: string } | null {
   return _chainArmedItem
 }
 
+// Module-level ref for activatePreset (consumed by setChainArmedFromTotals)
+type ActivatePresetFn = (
+  tool: 'count' | 'linear' | 'area' | 'perimeter' | 'wall',
+  preset: { name: string; categoryName: string; color: string; wallHeight?: number }
+) => void
+let _activatePresetRef: ActivatePresetFn | null = null
+
+export function setChainArmedFromTotals(
+  payload: {
+    name: string
+    categoryName: string
+    color: string
+    toolType: 'count' | 'linear' | 'area' | 'perimeter' | 'wall'
+    wallHeight?: number
+  } | null
+): void {
+  if (payload === null) {
+    _chainArmedItem = null
+    return
+  }
+  _chainArmedItem = { name: payload.name, color: payload.color }
+  _activatePresetRef?.(payload.toolType, {
+    name: payload.name,
+    categoryName: payload.categoryName,
+    color: payload.color,
+    wallHeight: payload.wallHeight
+  })
+}
+
 // Crosshair SVG data-URL cursor with 4px center gap per D-17.
 // Computed ONCE at module load — never inside a component render path.
 // 8 line elements: 4 black outline (stroke-width 3) + 4 white foreground (stroke-width 1.5).
