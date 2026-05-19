@@ -76,6 +76,8 @@ What the leading takeoff tools (PlanSwift, Bluebeam, Countfire, Stack CT) ship:
 
 ## Gap Analysis
 
+### Top 10 Gaps (ranked by impact/effort ratio)
+
 ### Tier 1 — Deal-Breaker Gaps (adoption blockers)
 
 These are gaps where an estimator hits a wall and switches tools.
@@ -172,7 +174,7 @@ Library file separate from project file. Medium complexity, ~2–3 plans.
 
 These are gaps an experienced estimator works around but that slow them down.
 
-#### GAP-T2-01: No drawing-scale-ratio input (1:100 mode)
+#### GAP-T2-00: No drawing-scale-ratio input (1:100 mode) [#6 overall]
 
 **What's missing:** The only calibration path is drawing a line between two known
 points and typing the distance. Construction drawings always print a scale ratio
@@ -207,7 +209,7 @@ complexity.
 
 ---
 
-#### GAP-T2-04: Cross-page item breakdown missing
+#### GAP-T2-04: Cross-page item breakdown missing [#9 overall]
 
 **What's missing:** The BOQ aggregates "Concrete Slab: 120.5 m²" but doesn't say
 which pages contribute. Useful for checking against page-level drawings.
@@ -215,6 +217,42 @@ which pages contribute. Useful for checking against page-level drawings.
 **Feasibility:** BOQ aggregator already walks per-page. Add a `pageBreakdown: {page, qty}[]`
 array to BoqItemRow. Render a collapsible sub-list in the totals panel and add a
 "By page" sub-sheet in the XLSX export. Medium complexity.
+
+---
+
+#### GAP-T2-05: No snap / click-assist on plan geometry [#7 overall]
+
+**What's missing:** Every measurement point is free-click. On a construction drawing
+the estimator needs to hit the exact corner of a room or the end of a wall. Without
+snap, accumulated error across a 20-vertex polygon is significant. Competitors offer
+"snap to drawn line" and some (Countfire) offer AI-assisted auto-detection of repeated
+elements for count.
+
+**Impact:** Measurement accuracy degrades on dense or small-scale plans. Estimators
+zoom in very far to compensate — slowing down the workflow.
+
+**Feasibility (basic snap):** On mousemove, scan existing committed markup vertices
+within a snap radius (15–20px screen-space) and override the cursor position if close.
+Uses the stage inverse transform pattern already in the codebase. Medium complexity,
+~2 plans.
+
+**Feasibility (AI count-assist):** Much higher complexity — requires a vision model
+or template-matching algorithm. Out of scope for v1.1; target v2.0.
+
+---
+
+#### GAP-T2-06: No installer / auto-update delivery channel [#10 overall]
+
+**What's missing:** `electron-builder` is configured in the project but no build has
+been produced. There is no installer (.exe / NSIS), no code-signing, and no
+`electron-updater` auto-update channel. The app runs only from the dev server.
+
+**Impact:** Cannot be distributed to or installed by a client. Every "this is great"
+demo ends with "but how do I install it?" The answer is currently "you can't."
+
+**Feasibility:** `electron-builder` build config + GitHub Releases as the update
+channel + `electron-updater` in the main process. Medium complexity (~2–3 plans) but
+a pure ops/infra phase with no feature work. Blocking for any real-world use.
 
 ---
 
@@ -235,42 +273,52 @@ These are gaps that affect whether the app feels "finished" to a paying customer
 
 ## Recommended Build Sequence (v1.1 Milestone)
 
-Ordered by impact/effort ratio. Each item maps to roughly one GSD phase.
+Top 10 gaps ordered by impact/effort ratio. Each item maps to roughly one GSD phase.
 
 ```
-Priority 1 — Phase A: Drawing-Scale Input (1:100 mode)
-  Highest ROI per effort. Every plan has a printed scale; this makes calibration 3× faster.
-  ~2 plans. Data model: no change. UI: CalibrationDialog gets a "ratio" tab.
+#1  — Phase A: Drawing-Scale Input (1:100 mode)              [GAP-T2-00]
+      Highest ROI per effort. Every plan has a printed scale; 3× faster calibration.
+      ~2 plans. No data model change. CalibrationDialog gets a "type ratio" tab.
 
-Priority 2 — Phase B: Markup Vertex Editing
-  Biggest UX unlock. Makes committed markups feel malleable, not frozen.
-  ~3 plans. Konva vertex handles + drag with stage inverse transform.
+#2  — Phase B: Markup Vertex Editing                         [GAP-T1-01]
+      Biggest UX unlock. Committed markups feel malleable, not frozen.
+      ~3 plans. Konva vertex handle circles + drag via stage inverse transform.
 
-Priority 3 — Phase C: Markup Translate (Move)
-  Pairs naturally with vertex editing — ship together or immediately after.
-  ~1–2 plans. Konva draggable prop + movement threshold guard.
+#3  — Phase C: Markup Translate (Move whole shape)           [GAP-T1-02]
+      Ships naturally after vertex editing.
+      ~1–2 plans. Konva draggable prop + movement threshold guard (re-use rubber-band pattern).
 
-Priority 4 — Phase D: Pricing Column in BOQ
-  Turns the app from "a measuring tool" to "an estimating tool."
-  ~3–4 plans. Rate field per item name; rate × qty = cost; new columns in export.
+#4  — Phase D: Pricing Column in BOQ                         [GAP-T1-03]
+      Turns the app from "a measuring tool" to "an estimating tool."
+      ~3–4 plans. rates: Record<string,number> in project schema; rate × qty = cost;
+      new Rate + Cost columns in .xlsx and .csv export.
 
-Priority 5 — Phase E: Item Library
-  Feeds naturally from pricing — save rates + item names across projects.
-  ~2–3 plans. AppData JSON library; IPC handlers; autocomplete integration.
+#5  — Phase E: Item Library                                  [GAP-T1-05]
+      Feeds naturally from pricing — persists item names + rates across projects.
+      ~2–3 plans. AppData JSON library; IPC handlers; autocomplete draws from library.
 
-Priority 6 — Phase F: Step-Level Undo During Drawing (Phase 10 — already planned)
-  Already in the roadmap. Schedule after Phase C.
+#6  — Phase F: Step-Level Undo During Drawing                [GAP-T2-02, Phase 10]
+      Already in the roadmap. Ctrl+Z pops last placed point; first-point Z cancels.
+      Schedule after Phase C (vertex/move share similar selection state).
 
-Priority 7 — Phase G: Markup Notes
-  Small effort, high professionalism signal.
-  ~1–2 plans. Add notes field to BaseMarkup; extend right-click menu.
+#7  — Phase G: Snap to Existing Geometry                     [GAP-T2-05]
+      Accuracy improvement for dense plans. Snap radius scan on mousemove.
+      ~2 plans. Stage inverse transform pattern already known.
 
-Priority 8 — Phase H: Professional Export
-  Branded template, print BOQ.
-  ~2–3 plans. Settings tab; print CSS; logo in XLSX header.
+#8  — Phase H: Markup Notes / Comments                       [GAP-T2-03]
+      Low effort, high professionalism signal.
+      ~1–2 plans. notes?: string on BaseMarkup; right-click "Add note"; tooltip shows note.
 
-Deferred — PDF-with-markups export
-  High value but high complexity. Target v2.0 after core UX is solid.
+#9  — Phase I: Cross-Page Item Breakdown                     [GAP-T2-04]
+      Shows which pages an item appears on — useful for QA.
+      ~2 plans. pageBreakdown[] in BoqItemRow; collapsible sub-list + XLSX sub-sheet.
+
+#10 — Phase J: Installer + Auto-Update Channel               [GAP-T2-06]
+      Pure infra — no feature work. electron-builder NSIS + electron-updater + GitHub Releases.
+      ~2–3 plans. Blocking for any real-world distribution.
+
+Deferred — PDF-with-markups export                           [GAP-T1-04]
+      High value but high complexity. Target v2.0 after core UX is solid.
 ```
 
 ---
