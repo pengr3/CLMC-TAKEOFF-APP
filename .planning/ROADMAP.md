@@ -18,7 +18,7 @@
 - [x] **Phase 6.1: Remove Left Thumbnail Strip Panel** (INSERTED) - Remove the left sidebar thumbnail strip; page navigation arrows are sufficient and the panel wastes horizontal canvas space
  (completed 2026-05-12)
 - [x] **Phase 7: Canvas Workspace UX and Markup Editing Fixes** - Fix five live-use delinquencies: full-screen canvas workspace, post-commit markup editing, totals panel quantity list redesign, Set Scale modal dropdown overflow, and smart category deduplication (completed 2026-05-13)
-- [ ] **Phase 7.1: Resume Markup Group from Totals Panel** (INSERTED) - One-click row selection in the live totals panel arms the matching markup tool with that item's name, category, and color — eliminating the need to retype existing group names when adding more markups
+- [x] **Phase 7.1: Resume Markup Group from Totals Panel** (INSERTED) - One-click row selection in the live totals panel arms the matching markup tool with that item's name, category, and color — eliminating the need to retype existing group names when adding more markups (completed 2026-05-19)
 - [x] **Phase 8: Markup Workflow Acceleration and Wall Measurement Tool** - Chain markup mode, wall area measurement tool, per-item show/hide visibility toggle, and rifle-scope crosshair cursor (completed 2026-05-15)
 - [x] **Phase 9: Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion** - Click-to-select + Delete-key deletion, drag-to-multi-select with group delete, all modals centered and draggable, ribbon-style tabbed toolbar (Home/Page/Tools/View/Estimating/Settings/Help), and Enter/double-click to finish in-progress markup (completed 2026-05-18)
 - [x] **Phase 10: Granular Undo Foundation** - Polish undo so that Ctrl+Z during an in-progress multi-point markup (linear, area, perimeter, wall) pops only the last placed point rather than deleting the entire markup; establish this step-level undo contract as the foundation for all future undo behavior (completed 2026-05-19)
@@ -277,7 +277,7 @@ Plans:
 - [x] 07.1-06-PLAN.md — App.tsx: handleArmTool + TotalsPanel wire; RibbonToolbar: setChainArmedFromTotals(null) disarm
 
 **Wave 4 *(blocked on Wave 3 — UAT and closure)*:**
-- [ ] 07.1-07-PLAN.md — Human UAT (7 scenarios: A-G) + ROADMAP/STATE closure
+- [x] 07.1-07-PLAN.md — Human UAT (7 scenarios: A-G) + ROADMAP/STATE closure
 
 ---
 
@@ -365,7 +365,7 @@ Plans:
 | 6. Live View and UI Polish | 9/9 | Complete | 2026-05-12 |
 | 6.1. Remove Left Thumbnail Strip Panel | 1/1 | Complete   | 2026-05-12 |
 | 7. Canvas Workspace UX and Markup Editing Fixes | 5/5 | Complete | 2026-05-13 |
-| 7.1. Resume Markup Group from Totals Panel | 6/7 | In Progress | — |
+| 7.1. Resume Markup Group from Totals Panel | 7/7 | Complete | 2026-05-19 |
 | 8. Markup Workflow Acceleration and Wall Measurement Tool | 8/8 | Complete | 2026-05-15 |
 | 9. Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion | 6/6 | Complete | 2026-05-18 |
 | 10. Granular Undo Foundation | 2/2 | Complete    | 2026-05-19 |

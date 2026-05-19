@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Phase 7.1 planned — 7 plans across 4 waves ready to execute.
+stopped_at: Phase 7.1 complete — arm-from-totals feature shipped, all 7/7 UAT scenarios passed.
 last_updated: "2026-05-19T00:00:00.000Z"
 last_activity: 2026-05-19
 progress:
@@ -26,7 +26,7 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 7.1 — resume-markup-group-from-totals
+**Current Focus:** Phase 7.1 complete — resume-markup-group-from-totals shipped
 
 ---
 
@@ -193,7 +193,7 @@ None.
 - Phase 7 added: Canvas Workspace UX and Markup Editing Fixes — five live-use delinquencies: full-screen canvas, post-commit markup editing, totals panel redesign, Set Scale modal overflow fix, smart category deduplication (completed 2026-05-13)
 - Phase 8 added (2026-05-14): Markup Workflow Acceleration and Wall Measurement Tool — bundles four post-v1 enhancements into a single phase: (1) per-item show/hide visibility toggle in the live totals panel, (2) continuous chain markup mode that keeps name/category/color armed across successive placements, (3) in-app crosshair cursor over the canvas, (4) new wall-area measurement tool (linear length × user-input wall height) reusing the chain pattern from item 2. v1.0 milestone reopened beyond original 25-requirement scope per user decision (chose "Extend v1.0 with Phase 8" over starting v1.1). Open design decisions reserved for `/gsd-discuss-phase 8`: chain-break trigger + visual affordance, varying-ceiling-height strategy, crosshair styling, visibility-state persistence scope.
 - Phase 8 completed (2026-05-15): chain markup mode, wall measurement tool, per-item show/hide visibility (hiddenItemSet O(1)), in-app crosshair cursor â€" 4 features across 8 plans, 5 waves. One UAT bug fixed: edit popup missing toolType/initialWallHeight for wall markups (commit 224f867). v1.0 milestone complete â€" all 11 phases done, 64 plans, 25/25 requirements delivered.
-- Phase 7.1 inserted after Phase 7 (2026-05-19): Resume Markup Group from Totals Panel — one-click totals panel row arms the matching markup tool with that item's name, category, and color; eliminates retyping group names when adding more markups to an existing group (URGENT)
+- Phase 7.1 inserted after Phase 7 (2026-05-19) and completed (2026-05-19): Resume Markup Group from Totals Panel — one-click totals panel row arms the matching markup tool with that item's name, category, and color; eliminates retyping group names when adding more markups to an existing group. 7 plans across 4 waves; 7/7 UAT scenarios PASS.
 - Phase 10 added (2026-05-19): Granular Undo Foundation — Ctrl+Z during in-progress multi-point drawing pops the last placed point; Ctrl+Y re-adds it; first-point Ctrl+Z cancels; post-commit undo/redo unchanged. Sets the step-level undo/redo base for future work.
 - Phase 9 added (2026-05-15) and completed (2026-05-18): five UX improvements — click-to-select + Delete-key deletion, rubber-band multi-select with group delete, every modal centred + draggable, 7-tab Office-style ribbon (Home/Page/Tools/View/Estimating/Settings/Help) replacing the flat Toolbar, and Enter / double-click commit for in-progress linear / area / perimeter / wall markups. 6 plans across 3 waves; 12/12 UAT scenarios PASS after two fix loops — quick task 260518-uat (commit 4db36bb) addressed Ctrl+Z selection-restore + LMB-no-pan-during-markup, and debug session lmb-hold-drops-markup-on-release (commit 665835f) added a 4px movement-threshold click-vs-hold gate mirroring the rubber-band suppression pattern. No new v1 requirements (pure quality-of-life). v1.0-extended milestone now reads 12/12 phases, 70/70 plans, 25/25 requirements delivered.
 
