@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type React from 'react'
 import { COLORS } from '../lib/constants'
 import { useUiPanels } from '../hooks/useUiPanels'
-import { TotalsRow } from './TotalsRow'
+import { TotalsRow, labelToName, rowTypeToMarkupType } from './TotalsRow'
 import type { BoqCategoryGroup, BoqItemRow, BoqRowType } from '../lib/boq-types'
 import type { Markup, MarkupType } from '../types/markup'
 
@@ -45,23 +45,6 @@ export interface TotalsCategoryBlockProps {
  * Map a BoqRowType (which carries both perimeter-length and perimeter-area)
  * back to the concrete underlying Markup.type used by the canvas store.
  */
-function rowTypeToMarkupType(t: BoqRowType): MarkupType {
-  if (t === 'perimeter-length' || t === 'perimeter-area') return 'perimeter'
-  return t
-}
-
-/**
- * Strip the D-02 disambiguation suffix to recover the markup name.
- * Aggregator labels examples:
- *   "Outlet"             → "Outlet"
- *   "Outlet (count)"     → "Outlet"
- *   "Wall (linear)"      → "Wall"
- *   "Wall (perimeter)"   → "Wall"      (perimeter-length)
- *   "Wall (area)"        → "Wall"      (perimeter-area)
- */
-function labelToName(label: string): string {
-  return label.replace(/\s*\((count|linear|area|perimeter)\)\s*$/, '')
-}
 
 export function TotalsCategoryBlock(props: TotalsCategoryBlockProps): React.JSX.Element {
   const { category, pageMarkups, cycleIndexByKey, onRowHover, onRowClick, onRowContextMenu, onTriggerPulse, onArmTool } = props

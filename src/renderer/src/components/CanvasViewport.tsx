@@ -364,9 +364,12 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     return () => window.removeEventListener('mouseup', cleanup)
   }, [setRubberBand])
 
-  // Sync viewerStore.activeTool with the markup tool state machine
+  // Sync viewerStore.activeTool with the markup tool state machine.
+  // Guard: skip activateMarkup when mode is already non-idle — activatePreset may have
+  // already transitioned the machine to 'placing'/'drawing' with chainArmed:true.
+  // Calling activateMarkup in that case would erase the preset state.
   useEffect(() => {
-    if (isMarkupTool(activeTool) && markupState.toolType !== activeTool) {
+    if (isMarkupTool(activeTool) && markupState.toolType !== activeTool && markupState.mode === 'idle') {
       activateMarkup(activeTool)
     } else if (!isMarkupTool(activeTool) && markupState.mode !== 'idle') {
       cancelMarkup()

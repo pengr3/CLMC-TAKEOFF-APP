@@ -245,6 +245,7 @@ function App(): React.JSX.Element {
       const { pageMarkups } = useMarkupStore.getState()
       let latestWall: WallMarkup | null = null
       for (const markups of Object.values(pageMarkups)) {
+        if (!markups) continue
         for (const m of markups) {
           if (m.type === 'wall' && m.name === itemName) {
             if (latestWall === null || m.createdAt > latestWall.createdAt) {
