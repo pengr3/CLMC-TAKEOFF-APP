@@ -61,6 +61,8 @@ export interface TotalsPanelProps {
   onCopy?: (msg: string) => void
   /** Phase 6 D-14: fired on clipboard write failure. */
   onCopyError?: () => void
+  /** Phase 7.1: fired when user clicks a row to arm the markup tool for that item. */
+  onArmTool?: (item: BoqItemRow, categoryName: string) => void
 }
 
 const RAIL_WIDTH = 28
@@ -75,7 +77,7 @@ export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
   const {
     open, width, onSetOpen,
     onRowHover, onRowClick, onRowContextMenu, cycleIndexByKey,
-    onTriggerPulse, onCopy, onCopyError
+    onTriggerPulse, onCopy, onCopyError, onArmTool
   } = props
 
   // Context menu state — mounted inside the panel, owned here so position +
@@ -255,6 +257,7 @@ export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
               onRowClick={handleRowClick}
               onRowContextMenu={handleRowContextMenu}
               onTriggerPulse={onTriggerPulse}
+              onArmTool={onArmTool}
             />
           ))}
         </div>
