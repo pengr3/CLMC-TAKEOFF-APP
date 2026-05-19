@@ -20,7 +20,7 @@
 - [x] **Phase 7: Canvas Workspace UX and Markup Editing Fixes** - Fix five live-use delinquencies: full-screen canvas workspace, post-commit markup editing, totals panel quantity list redesign, Set Scale modal dropdown overflow, and smart category deduplication (completed 2026-05-13)
 - [x] **Phase 8: Markup Workflow Acceleration and Wall Measurement Tool** - Chain markup mode, wall area measurement tool, per-item show/hide visibility toggle, and rifle-scope crosshair cursor (completed 2026-05-15)
 - [x] **Phase 9: Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion** - Click-to-select + Delete-key deletion, drag-to-multi-select with group delete, all modals centered and draggable, ribbon-style tabbed toolbar (Home/Page/Tools/View/Estimating/Settings/Help), and Enter/double-click to finish in-progress markup (completed 2026-05-18)
-- [ ] **Phase 10: Granular Undo Foundation** - Polish undo so that Ctrl+Z during an in-progress multi-point markup (linear, area, perimeter, wall) pops only the last placed point rather than deleting the entire markup; establish this step-level undo contract as the foundation for all future undo behavior
+- [x] **Phase 10: Granular Undo Foundation** - Polish undo so that Ctrl+Z during an in-progress multi-point markup (linear, area, perimeter, wall) pops only the last placed point rather than deleting the entire markup; establish this step-level undo contract as the foundation for all future undo behavior (completed 2026-05-19)
 
 ---
 
@@ -336,7 +336,7 @@ Plans:
 | 7. Canvas Workspace UX and Markup Editing Fixes | 5/5 | Complete | 2026-05-13 |
 | 8. Markup Workflow Acceleration and Wall Measurement Tool | 8/8 | Complete | 2026-05-15 |
 | 9. Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion | 6/6 | Complete | 2026-05-18 |
-| 10. Granular Undo Foundation | 0/2 | Ready to execute | — |
+| 10. Granular Undo Foundation | 0/0 | Complete    | 2026-05-19 |
 
 ---
 
