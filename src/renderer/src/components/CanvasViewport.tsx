@@ -299,17 +299,18 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // when _mouseListenClick=true, i.e. no Konva drag active) from wiping the selection.
   const rubberBandDraggedRef = useRef(false)
 
-  // Markup-mode click-vs-hold disambiguation. Konva fires `click` on every mouseup
+  // Selection-mode click-vs-hold disambiguation. Konva fires `click` on every mouseup
   // that wasn't preceded by an internal Stage drag. After commit 4db36bb removed
   // LMB from Konva.dragButtons during markup tools, every mouseup fires `click` —
-  // including the release of a deliberately-held LMB, which then drops a markup at
-  // the release position.
+  // including the release of a deliberately-held LMB (rubber-band selection gesture),
+  // which would otherwise wipe the active selection or misplace a markup.
   //
   // Implementation: capture the LMB-down screen position; at click time, compare
-  // the FINAL pointer position to it. If the final delta exceeds the threshold the
-  // gesture is "drag-then-release" (suppress); otherwise it is a "click" (place).
-  // A fast jab with mid-flight wobble that returns near the down-pos places — only
-  // the resulting displacement matters, not max travel during the hold.
+  // the FINAL pointer position to it. If the final delta exceeds the threshold AND
+  // no markup tool is active (i.e. we are in selection mode), treat the gesture as
+  // a rubber-band drag and suppress the click. When a markup tool IS active there is
+  // no rubber-band selection — every mouseup is a legitimate vertex/pin placement
+  // regardless of how far the mouse moved between down and up.
   const markupMouseDownPosRef = useRef<{ x: number; y: number } | null>(null)
 
   // Clean up a rubber-band that is still active when the user releases the mouse
@@ -630,16 +631,18 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       const pointer = stage.getPointerPosition()
       if (!pointer) return
 
-      // Markup-mode hold suppression: compare the FINAL pointer position to the
-      // captured LMB-down position. If the resulting displacement exceeds 4px,
-      // treat the gesture as a "hold-and-drag" and suppress placement. Mid-flight
-      // wobble that returns near the down-pos still places — only the final
-      // displacement matters. The ref is cleared unconditionally so a single
-      // gesture never leaks into the next.
+      // Rubber-band drag suppression (selection mode only): compare the FINAL pointer
+      // position to the captured LMB-down position. The displacement guard is SKIPPED
+      // when a markup tool is active — in markup mode there is no rubber-band selection
+      // so rapid clicks with natural hand movement (drifting >4px between down and up)
+      // must still register as vertex/pin placements. The guard ONLY applies in select
+      // mode to prevent a rubber-band drag from accidentally placing a markup on release.
+      // The ref is cleared unconditionally so a single gesture never leaks into the next.
       const downPos = markupMouseDownPosRef.current
       markupMouseDownPosRef.current = null
       const wasDragged =
         downPos !== null &&
+        !isMarkupTool(activeTool) &&
         (Math.abs(pointer.x - downPos.x) > 4 || Math.abs(pointer.y - downPos.y) > 4)
 
       // Calibration path (existing)
