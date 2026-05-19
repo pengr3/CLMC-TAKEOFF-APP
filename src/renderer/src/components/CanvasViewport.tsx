@@ -297,7 +297,8 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     commitShape,
     dismissError,
     popLastPoint,
-    repushLastPoint
+    repushLastPoint,
+    activatePreset
   } = useMarkupTool(stageRef)
 
   // Expose the mid-draw undo handler via a module-level ref so useKeyboardShortcuts
@@ -636,6 +637,14 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       _calibrationControls = null
     }
   }, [activate, activateVerify, cancel])
+
+  // Expose activatePreset to the setChainArmedFromTotals module-level setter
+  useEffect(() => {
+    _activatePresetRef = activatePreset
+    return () => {
+      _activatePresetRef = null
+    }
+  }, [activatePreset])
 
   // Populate _chainArmedItem so Toolbar can render the chain badge chip without prop drilling
   useEffect(() => {
