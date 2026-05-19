@@ -28,6 +28,8 @@ export interface MarkupDrawState {
   chainArmed: boolean
   /** millimetres; inherited across chain wall commits; default 2400 */
   pendingWallHeight: number
+  /** Points popped by Ctrl+Z during an in-progress draw; cleared on new recordClick */
+  redoPoints: StagePoint[]
 }
 
 const INITIAL_STATE: MarkupDrawState = {
@@ -42,7 +44,8 @@ const INITIAL_STATE: MarkupDrawState = {
   pendingPage: null,
   errorToast: null,
   chainArmed: false,
-  pendingWallHeight: 2400
+  pendingWallHeight: 2400,
+  redoPoints: []
 }
 
 function screenToStagePoint(stage: Konva.Stage, sx: number, sy: number): StagePoint {
@@ -78,6 +81,7 @@ export interface UseMarkupToolReturn {
   // handler so mid-draw misclicks can be corrected without undoing a prior
   // committed markup.
   popLastPoint: () => boolean
+  repushLastPoint: () => boolean
 }
 
 export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarkupToolReturn {
@@ -184,7 +188,8 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
           return {
             ...prev,
             points: [...prev.points, stagePoint],
-            pendingPage: prev.pendingPage ?? useViewerStore.getState().currentPage
+            pendingPage: prev.pendingPage ?? useViewerStore.getState().currentPage,
+            redoPoints: []    // new placement invalidates in-progress redo history
           }
         }
 
@@ -357,9 +362,37 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     const current = stateRef.current
     if (current.mode !== 'drawing') return false
     if (current.points.length === 0) return false
+    // SC3: popping the first point exits the tool entirely (same as Escape)
+    if (current.points.length === 1) {
+      cancel()
+      return true
+    }
     setState((prev) => {
       if (prev.mode !== 'drawing' || prev.points.length === 0) return prev
-      return { ...prev, points: prev.points.slice(0, -1), previewPoint: null }
+      const popped = prev.points[prev.points.length - 1]
+      return {
+        ...prev,
+        points: prev.points.slice(0, -1),
+        previewPoint: null,
+        redoPoints: [popped, ...prev.redoPoints]   // push front → LIFO repush
+      }
+    })
+    return true
+  }, [cancel])
+
+  const repushLastPoint = useCallback((): boolean => {
+    const current = stateRef.current
+    if (current.mode !== 'drawing') return false
+    if (current.redoPoints.length === 0) return false
+    setState((prev) => {
+      if (prev.mode !== 'drawing' || prev.redoPoints.length === 0) return prev
+      const [next, ...remaining] = prev.redoPoints
+      return {
+        ...prev,
+        points: [...prev.points, next],
+        previewPoint: null,
+        redoPoints: remaining
+      }
     })
     return true
   }, [])
@@ -375,6 +408,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     commitCountName,
     commitShape,
     dismissError,
-    popLastPoint
+    popLastPoint,
+    repushLastPoint
   }
 }
