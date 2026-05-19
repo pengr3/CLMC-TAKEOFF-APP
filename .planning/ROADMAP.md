@@ -316,7 +316,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 10-01-PLAN.md — Wave 0 RED test file: repushLastPoint and SC3 auto-cancel (markup-tool-point-redo.test.ts, 12 test cases)
-- [ ] 10-02-PLAN.md — Wave 1 implementation: redoPoints state extension, repushLastPoint, redo handler ref, Ctrl+Y dispatch extension
+- [x] 10-02-PLAN.md — Wave 1 implementation: redoPoints state extension, repushLastPoint, redo handler ref, Ctrl+Y dispatch extension
 
 ---
 
