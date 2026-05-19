@@ -20,6 +20,7 @@
 - [x] **Phase 7: Canvas Workspace UX and Markup Editing Fixes** - Fix five live-use delinquencies: full-screen canvas workspace, post-commit markup editing, totals panel quantity list redesign, Set Scale modal dropdown overflow, and smart category deduplication (completed 2026-05-13)
 - [x] **Phase 8: Markup Workflow Acceleration and Wall Measurement Tool** - Chain markup mode, wall area measurement tool, per-item show/hide visibility toggle, and rifle-scope crosshair cursor (completed 2026-05-15)
 - [x] **Phase 9: Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion** - Click-to-select + Delete-key deletion, drag-to-multi-select with group delete, all modals centered and draggable, ribbon-style tabbed toolbar (Home/Page/Tools/View/Estimating/Settings/Help), and Enter/double-click to finish in-progress markup (completed 2026-05-18)
+- [ ] **Phase 10: Granular Undo Foundation** - Polish undo so that Ctrl+Z during an in-progress multi-point markup (linear, area, perimeter, wall) pops only the last placed point rather than deleting the entire markup; establish this step-level undo contract as the foundation for all future undo behavior
 
 ---
 
@@ -301,6 +302,22 @@ Plans:
 - [x] 09-04-PLAN.md — Ribbon toolbar RibbonButton + RibbonToolbar (Wave 2)
 - [x] 09-05-PLAN.md — Manual UAT and phase closure (Wave 3) — 12/12 PASS; gaps fixed via quick task 260518-uat (commit 4db36bb) and debug session lmb-hold-drops-markup-on-release (commit 665835f)
 
+### Phase 10: Granular Undo Foundation
+
+**Goal:** Make Ctrl+Z and Ctrl+Y work at point granularity during in-progress multi-point markup drawing — so a misplaced click can be corrected and re-applied without scrapping all prior work. This establishes the step-level undo/redo contract as a foundation for all future undo behaviour across the markup toolset.
+**Depends on:** Phase 9
+**Requirements:** MARK-09 (quality-of-life polish, no new v1 requirements)
+**Success Criteria** (what must be TRUE):
+  1. While drawing a linear, area, perimeter, or wall markup (mode:'drawing'), pressing Ctrl+Z removes only the last placed point and keeps the tool active with all prior points intact
+  2. After popping one or more points with Ctrl+Z during drawing, pressing Ctrl+Y re-adds the most recently popped point — the full in-progress undo/redo stack is navigable before committing
+  3. Ctrl+Z on the very first point of an in-progress markup cancels the whole markup (same as Escape), leaving the canvas clean
+  4. After a markup is fully committed (finished), Ctrl+Z and Ctrl+Y continue to work at whole-markup granularity — no change to post-commit undo/redo behaviour
+  5. All five multi-point tools (linear, area, perimeter, wall, and any future tool) share the same in-progress point-pop/re-add logic — not duplicated per tool
+**Plans**: 2 plans
+Plans:
+- [ ] 10-01-PLAN.md — Wave 0 RED test file: repushLastPoint and SC3 auto-cancel (markup-tool-point-redo.test.ts, 12 test cases)
+- [ ] 10-02-PLAN.md — Wave 1 implementation: redoPoints state extension, repushLastPoint, redo handler ref, Ctrl+Y dispatch extension
+
 ---
 
 ## Progress
@@ -318,7 +335,8 @@ Plans:
 | 6.1. Remove Left Thumbnail Strip Panel | 1/1 | Complete   | 2026-05-12 |
 | 7. Canvas Workspace UX and Markup Editing Fixes | 5/5 | Complete | 2026-05-13 |
 | 8. Markup Workflow Acceleration and Wall Measurement Tool | 8/8 | Complete | 2026-05-15 |
-| 9. Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion | 0/6 | In Progress | — |
+| 9. Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion | 6/6 | Complete | 2026-05-18 |
+| 10. Granular Undo Foundation | 0/2 | In progress | — |
 
 ---
 
@@ -368,4 +386,5 @@ Plans:
 *Updated: 2026-05-13 â€” Phase 7 complete (5 plans, UAT Aâ€”F passed â€” all five live-use delinquencies resolved)*
 *Updated: 2026-05-15 â€” Phase 8 complete (8 plans, UAT 10/10 passed â€” chain mode, wall tool, show/hide visibility, crosshair cursor)*
 *Updated: 2026-05-18 â€” Phase 9 added (selection model, ribbon toolbar, modal polish, markup completion â€” 5 items)*
+*Updated: 2026-05-19 â€” Phase 10 added (granular undo foundation â€” step-level point pop during in-progress markup drawing)*
 
