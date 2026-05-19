@@ -440,7 +440,7 @@ Phase 10 is renderer-only UI state management with no external data, no IPC, no 
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should the Wave 0 test go in a new file or append to `markup-tool-pop-last-point.test.ts`?**
    - What we know: the existing pop test already has the HookHost/probe/mount setup; appending would keep related tests co-located. A new file is cleaner for the planner's per-task scope.

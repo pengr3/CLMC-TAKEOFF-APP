@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Complete
-stopped_at: Phase 09 complete; v1.0-extended milestone delivered (12/12 phases, 70/70 plans)
-last_updated: "2026-05-18T23:30:00Z"
-last_activity: 2026-05-18
+status: In Progress
+stopped_at: Phase 10 planning complete — 2 plans ready to execute
+last_updated: "2026-05-19T00:00:00Z"
+last_activity: 2026-05-19
 progress:
-  total_phases: 12
+  total_phases: 13
   completed_phases: 12
-  total_plans: 70
+  total_plans: 72
   completed_plans: 70
-  percent: 100
+  percent: 97
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** v1.0-extended milestone COMPLETE — all 12 phases delivered. Awaiting milestone archive decision (`/gsd-complete-milestone`) or new-phase capture.
+**Current Focus:** Phase 10 — Granular Undo Foundation. Planning complete; 2 plans across 2 waves ready for `/gsd-execute-phase 10`.
 
 ---
 
 ## Current Position
 
-Phase: 09 (selection-model-ribbon-toolbar-modal-polish-and-markup-completion) — COMPLETE (2026-05-18)
-Plan: 6 of 6
+Phase: 10 (granular-undo-foundation) — READY TO EXECUTE (planned 2026-05-19)
+Plan: 0 of 2
 
 ## Performance Metrics
 
@@ -183,6 +183,8 @@ None.
 | 260518-fix | Fix rubber-band click-clears-selection: Konva click after mouseup wipes selection; move rubber-band rect to correct layer; window mouseup cleanup | 2026-05-18 | pending | [260518-fix-rubber-band-click-clears-selection](./quick/260518-fix-rubber-band-click-clears-selection/) |
 | 260518-uat | Fix Phase 09 UAT gaps — Test 9 (Ctrl+Z restores selection after delete-undo) + Test 11 (LMB no-pan during markup placement) | 2026-05-18 | 4db36bb | [260518-uat-fix-phase09-uat-gaps](./quick/260518-uat-fix-phase09-uat-gaps/) |
 | 260518-rcp | Fix rapid-click drops — switch markup-tool click suppression from sticky-flag to delta-at-click-time (follow-up to 665835f) | 2026-05-18 | a8c37eb | [260518-rcp-fix-rapid-click-drops](./quick/260518-rcp-fix-rapid-click-drops/) |
+| 260519-dbl | Remove double-click finish (Linear/Wall/Area/Perimeter); fix finishLinear/finishPolygon error paths to keep mode:'drawing' after degenerate-shape attempt | 2026-05-19 | a0d311c | debug/rapid-click-dblclick-modal.md |
+| 260519-drg | Skip 4px drag-suppression guard when markup tool active — rapid clicks while hand moving now all register; guard remains for select mode (rubber-band) | 2026-05-19 | af83fc4 | debug/rapid-click-movement-threshold.md |
 
 ### Roadmap Evolution
 
@@ -191,17 +193,18 @@ None.
 - Phase 7 added: Canvas Workspace UX and Markup Editing Fixes — five live-use delinquencies: full-screen canvas, post-commit markup editing, totals panel redesign, Set Scale modal overflow fix, smart category deduplication (completed 2026-05-13)
 - Phase 8 added (2026-05-14): Markup Workflow Acceleration and Wall Measurement Tool — bundles four post-v1 enhancements into a single phase: (1) per-item show/hide visibility toggle in the live totals panel, (2) continuous chain markup mode that keeps name/category/color armed across successive placements, (3) in-app crosshair cursor over the canvas, (4) new wall-area measurement tool (linear length × user-input wall height) reusing the chain pattern from item 2. v1.0 milestone reopened beyond original 25-requirement scope per user decision (chose "Extend v1.0 with Phase 8" over starting v1.1). Open design decisions reserved for `/gsd-discuss-phase 8`: chain-break trigger + visual affordance, varying-ceiling-height strategy, crosshair styling, visibility-state persistence scope.
 - Phase 8 completed (2026-05-15): chain markup mode, wall measurement tool, per-item show/hide visibility (hiddenItemSet O(1)), in-app crosshair cursor â€" 4 features across 8 plans, 5 waves. One UAT bug fixed: edit popup missing toolType/initialWallHeight for wall markups (commit 224f867). v1.0 milestone complete â€" all 11 phases done, 64 plans, 25/25 requirements delivered.
+- Phase 10 added (2026-05-19): Granular Undo Foundation — Ctrl+Z during in-progress multi-point drawing pops the last placed point; Ctrl+Y re-adds it; first-point Ctrl+Z cancels; post-commit undo/redo unchanged. Sets the step-level undo/redo base for future work.
 - Phase 9 added (2026-05-15) and completed (2026-05-18): five UX improvements — click-to-select + Delete-key deletion, rubber-band multi-select with group delete, every modal centred + draggable, 7-tab Office-style ribbon (Home/Page/Tools/View/Estimating/Settings/Help) replacing the flat Toolbar, and Enter / double-click commit for in-progress linear / area / perimeter / wall markups. 6 plans across 3 waves; 12/12 UAT scenarios PASS after two fix loops — quick task 260518-uat (commit 4db36bb) addressed Ctrl+Z selection-restore + LMB-no-pan-during-markup, and debug session lmb-hold-drops-markup-on-release (commit 665835f) added a 4px movement-threshold click-vs-hold gate mirroring the rubber-band suppression pattern. No new v1 requirements (pure quality-of-life). v1.0-extended milestone now reads 12/12 phases, 70/70 plans, 25/25 requirements delivered.
 
 ## Session Continuity
 
-**Last activity:** 2026-05-18 — Phase 09 closed; rapid-click drops follow-up fix applied
+**Last activity:** 2026-05-19 — Rapid-click drops fully resolved (user confirmed PASS)
 
-**Last session:** 2026-05-18 — Phase 09 closure → user reported rapid-click drops in markup tools → /gsd-debug --diagnose identified the sticky-flag pattern in 665835f as the cause → user picked Option 2 (delta-at-click-time) → quick task 260518-rcp applied the fix in commit a8c37eb (net deletion) → typecheck + vitest green → awaiting live re-verify
+**Last session:** 2026-05-19 — Two root causes found and fixed: (1) dblclick handler consuming rapid single clicks as finish gesture → removed entirely (a0d311c); (2) 4px drag-suppression guard applied unconditionally — blocked clicks when hand moved between locations → guard now skipped in markup tool mode (af83fc4). User live-verified both fixes: all tools place correctly on rapid spread-out clicks.
 
-**Stopped at:** Milestone v1.0-extended COMPLETE. Rapid-click follow-up fix committed but not yet user-verified in the live app.
+**Stopped at:** All rapid-click bugs resolved. Milestone v1.0-extended complete and stable.
 
-**Next action:** User to live-verify two flows: (1) rapid Count clicks all place (no drops); (2) deliberate hold-and-drag still suppresses (no markup drop on release). On PASS, no further action needed — phase is already closed, milestone is already marked complete. On FAIL, `/gsd-debug continue rapid-clicks-dropped`.
+**Next action:** None outstanding. Start new work or run `/gsd-complete-milestone` to archive v1.0-extended.
 
 ---
 *State initialized: 2026-03-25*

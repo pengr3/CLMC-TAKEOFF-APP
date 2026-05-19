@@ -336,7 +336,7 @@ Plans:
 | 7. Canvas Workspace UX and Markup Editing Fixes | 5/5 | Complete | 2026-05-13 |
 | 8. Markup Workflow Acceleration and Wall Measurement Tool | 8/8 | Complete | 2026-05-15 |
 | 9. Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion | 6/6 | Complete | 2026-05-18 |
-| 10. Granular Undo Foundation | 0/2 | In progress | — |
+| 10. Granular Undo Foundation | 0/2 | Ready to execute | — |
 
 ---
 
