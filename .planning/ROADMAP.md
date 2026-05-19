@@ -274,7 +274,7 @@ Plans:
 - [x] 07.1-05-PLAN.md — TotalsPanel: onArmTool pass-through prop
 
 **Wave 3 *(blocked on Wave 2)*:**
-- [ ] 07.1-06-PLAN.md — App.tsx: handleArmTool + TotalsPanel wire; RibbonToolbar: setChainArmedFromTotals(null) disarm
+- [x] 07.1-06-PLAN.md — App.tsx: handleArmTool + TotalsPanel wire; RibbonToolbar: setChainArmedFromTotals(null) disarm
 
 **Wave 4 *(blocked on Wave 3 — UAT and closure)*:**
 - [ ] 07.1-07-PLAN.md — Human UAT (7 scenarios: A-G) + ROADMAP/STATE closure
@@ -365,7 +365,7 @@ Plans:
 | 6. Live View and UI Polish | 9/9 | Complete | 2026-05-12 |
 | 6.1. Remove Left Thumbnail Strip Panel | 1/1 | Complete   | 2026-05-12 |
 | 7. Canvas Workspace UX and Markup Editing Fixes | 5/5 | Complete | 2026-05-13 |
-| 7.1. Resume Markup Group from Totals Panel | 5/7 | In Progress | — |
+| 7.1. Resume Markup Group from Totals Panel | 6/7 | In Progress | — |
 | 8. Markup Workflow Acceleration and Wall Measurement Tool | 8/8 | Complete | 2026-05-15 |
 | 9. Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion | 6/6 | Complete | 2026-05-18 |
 | 10. Granular Undo Foundation | 2/2 | Complete    | 2026-05-19 |
