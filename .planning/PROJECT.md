@@ -63,9 +63,15 @@ Speed up quantity takeoff — let the estimator focus on reading the plan, not d
 | Scale set by drawing a known distance | More accurate than typing a ratio; matches how estimators work on plans | — Pending |
 | Export standard layout (not custom template) | Avoids template management complexity for v1 | — Pending |
 
+## Current State
+
+Phase 10 complete (2026-05-19) — Granular Undo Foundation. Ctrl+Z during in-progress multi-point markup drawing now pops only the last placed point; Ctrl+Y re-adds it; Ctrl+Z on the first point cancels the whole markup. All five multi-point tools (linear, area, perimeter, wall, and future tools) share the same step-level undo/redo logic. All 10 v1 phases complete — the app is feature-complete for the v1 milestone.
+
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
+
+Last updated: 2026-05-19
 
 **After each phase transition** (via `/gsd:transition`):
 1. Requirements invalidated? → Move to Out of Scope with reason
