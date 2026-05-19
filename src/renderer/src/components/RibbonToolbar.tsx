@@ -27,7 +27,7 @@ import { useProjectStore } from '../stores/projectStore'
 import { useMarkupStore } from '../stores/markupStore'
 import { useProject } from '../hooks/useProject'
 import { useUiPanels } from '../hooks/useUiPanels'
-import { getCanvasControls, getCalibrationControls, getChainArmedItem } from './CanvasViewport'
+import { getCanvasControls, getCalibrationControls, getChainArmedItem, setChainArmedFromTotals } from './CanvasViewport'
 import { ScaleContextMenu } from './ScaleContextMenu'
 import { RibbonButton } from './RibbonButton'
 import { MIN_ZOOM, MAX_ZOOM, COLORS } from '../lib/constants'
@@ -194,6 +194,7 @@ export function RibbonToolbar({
     tool: 'count' | 'linear' | 'area' | 'perimeter' | 'wall'
   ): void => {
     if (activeTool === tool) {
+      setChainArmedFromTotals(null)
       setActiveTool('select')
     } else {
       setActiveTool(tool)
