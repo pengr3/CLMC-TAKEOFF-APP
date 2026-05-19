@@ -315,7 +315,7 @@ Plans:
   5. All five multi-point tools (linear, area, perimeter, wall, and any future tool) share the same in-progress point-pop/re-add logic — not duplicated per tool
 **Plans**: 2 plans
 Plans:
-- [ ] 10-01-PLAN.md — Wave 0 RED test file: repushLastPoint and SC3 auto-cancel (markup-tool-point-redo.test.ts, 12 test cases)
+- [x] 10-01-PLAN.md — Wave 0 RED test file: repushLastPoint and SC3 auto-cancel (markup-tool-point-redo.test.ts, 12 test cases)
 - [ ] 10-02-PLAN.md — Wave 1 implementation: redoPoints state extension, repushLastPoint, redo handler ref, Ctrl+Y dispatch extension
 
 ---
