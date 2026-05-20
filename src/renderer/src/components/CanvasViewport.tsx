@@ -11,6 +11,7 @@ import { useCalibrationMode } from '../hooks/useCalibrationMode'
 import { useMarkupTool } from '../hooks/useMarkupTool'
 import { useMarkupStore } from '../stores/markupStore'
 import { ScalePopup } from './ScalePopup'
+import { ScaleMethodDialog } from './ScaleMethodDialog'
 import { ConfirmationToast } from './ConfirmationToast'
 import { MarkupNamePopup } from './MarkupNamePopup'
 import { MarkupTooltip } from './MarkupTooltip'
@@ -234,6 +235,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   const currentPage = useViewerStore((s) => s.currentPage)
   const pdfDocument = useViewerStore((s) => s.pdfDocument)
   const totalPages = useViewerStore((s) => s.totalPages)
+  const pdfDocument = useViewerStore((s) => s.pdfDocument)
   const getViewport = useViewerStore((s) => s.getViewport)
   const setViewport = useViewerStore((s) => s.setViewport)
   // B4 fix: subscribe to the zoom primitive so changes trigger a re-render.
@@ -271,6 +273,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     activate,
     activateVerify,
     cancel,
+    startDrawing,
     recordClick,
     updatePreview,
     recomputePopupPos
@@ -1244,16 +1247,31 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         )}
       </Stage>
 
-      {/* ScalePopup: confirm mode — shown when drawing a line OR after line drawn (ratio tab available immediately) */}
-      {(calibState.mode === 'confirming' || calibState.mode === 'drawing') && !calibState.isVerify && (
-        <ScalePopup
-          mode="confirm"
-          screenPos={calibState.popupScreenPos ?? { x: 0, y: 0 }}
+      {/* ScaleMethodDialog: pre-choice gate — shown when user clicks Set Scale */}
+      {calibState.mode === 'pre-choice' && (
+        <ScaleMethodDialog
           containerSize={containerSize}
-          pixelLength={calibState.linePixelLength}
           pdfDocument={pdfDocument}
           pageWidthPx={displayPageSize?.width}
           currentPage={currentPage}
+          onDrawLine={startDrawing}
+          onConfirm={(pixelsPerMm: number, displayUnit: ScaleUnit) => {
+            setScale(currentPage, pixelsPerMm, displayUnit)
+            const ratioText = formatScaleRatio(pixelsPerMm)
+            cancel()
+            setToast({ ratioText })
+          }}
+          onCancel={cancel}
+        />
+      )}
+
+      {/* ScalePopup: confirm mode — shown after user draws a calibration line */}
+      {calibState.mode === 'confirming' && calibState.popupScreenPos && !calibState.isVerify && (
+        <ScalePopup
+          mode="confirm"
+          screenPos={calibState.popupScreenPos}
+          containerSize={containerSize}
+          pixelLength={calibState.linePixelLength}
           onConfirm={(pixelsPerMm: number, displayUnit: ScaleUnit) => {
             setScale(currentPage, pixelsPerMm, displayUnit)
             const ratioText = formatScaleRatio(pixelsPerMm)
