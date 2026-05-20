@@ -4,8 +4,8 @@ import { useDraggable } from '../hooks/useDraggable'
 import { computePixelsPerMmFromRatio, isoSheetLabel } from '../lib/scale-math'
 import type { ScaleUnit } from '../types/scale'
 
-const DIALOG_MIN_WIDTH = 240
-const DIALOG_MAX_WIDTH = 280
+const DIALOG_MIN_WIDTH = 300
+const DIALOG_MAX_WIDTH = 360
 
 interface ScaleMethodDialogProps {
   containerSize: { width: number; height: number }
@@ -65,9 +65,9 @@ export function ScaleMethodDialog({
     ;(pdfDocument as any).getPage(currentPage).then((page: any) => {
       if (cancelled) return
       fetchedRef.current = true
-      const [x0, y0, x1, y1] = page.view as [number, number, number, number]
-      const widthPt = x1 - x0
-      const heightPt = y1 - y0
+      const vp = page.getViewport({ scale: 1 })
+      const widthPt = vp.width
+      const heightPt = vp.height
       if (widthPt > 0 && heightPt > 0) {
         setPageView({ widthPt, heightPt })
       } else {
