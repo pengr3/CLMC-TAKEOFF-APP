@@ -1,0 +1,35 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-05-20T11:04:49.379Z",
+  "phase": "12",
+  "phase_name": "Markup Geometry Editing",
+  "phase_dir": ".planning/phases/12-markup-geometry-editing",
+  "plan": 0,
+  "task": 0,
+  "total_tasks": 7,
+  "status": "paused",
+  "completed_tasks": [],
+  "remaining_tasks": [
+    {"id": 0, "name": "12-00 RED test stubs", "status": "not_started"},
+    {"id": 1, "name": "12-01 Types + store commands + viewerStore", "status": "not_started"},
+    {"id": 2, "name": "12-02 Markup drag props + VertexHandleOverlay", "status": "not_started"},
+    {"id": 3, "name": "12-03 CanvasViewport: refs, vertex-edit activation, keyboard", "status": "not_started"},
+    {"id": 4, "name": "12-04 CanvasViewport: body-drag translate + group move", "status": "not_started"},
+    {"id": 5, "name": "12-05 CanvasViewport: vertex drag + click-outside commit", "status": "not_started"},
+    {"id": 6, "name": "12-06 UAT checkpoint + phase closure", "status": "not_started"}
+  ],
+  "blockers": [],
+  "human_actions_pending": [
+    {"action": "UAT testing of Phase 12 (Plan 12-06)", "context": "14-scenario UAT (A-N) covering vertex edit, translate, group move, undo, Escape restore", "blocking": false}
+  ],
+  "decisions": [
+    {"decision": "Phase 11 Scale Ratio Input scrapped", "rationale": "Draw-line calibration is robust; ratio feature produced unreliable values in UAT", "phase": "11"},
+    {"decision": "Phase 12 vertex edit activates by second click on already-selected markup", "rationale": "D-04 from v1.1-CONTEXT.md — first click = selection ring, second = handles", "phase": "12"},
+    {"decision": "WallMarkup.tsx lives at src/renderer/src/components/WallMarkup.tsx not markup/ subdir", "rationale": "Confirmed by plan-checker review; plan 12-02 corrected accordingly", "phase": "12"},
+    {"decision": "commitVertexEdit is cleanup-only — vertex dispatch only in handleStageMouseUp", "rationale": "Prevents multiple undo commands per drag session (plan-checker blocker fix)", "phase": "12"},
+    {"decision": "vertexEditOriginalRef set once at session start, never mid-session", "rationale": "Escape restores to pre-session state; undo stack handles Ctrl+Z granularity", "phase": "12"}
+  ],
+  "uncommitted_files": [],
+  "next_action": "Run /gsd-execute-phase 12 to start Wave 0 (12-00 RED test stubs)",
+  "context_notes": "Phase 12 fully planned and plan-checker reviewed (6 blockers fixed, 3 warnings addressed). All 7 PLAN.md files committed. No code written yet — ready to execute Wave 0."
+}
