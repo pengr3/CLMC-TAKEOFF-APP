@@ -22,7 +22,7 @@
 - [x] **Phase 8: Markup Workflow Acceleration and Wall Measurement Tool** - Chain markup mode, wall area measurement tool, per-item show/hide visibility toggle, and rifle-scope crosshair cursor (completed 2026-05-15)
 - [x] **Phase 9: Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion** - Click-to-select + Delete-key deletion, drag-to-multi-select with group delete, all modals centered and draggable, ribbon-style tabbed toolbar (Home/Page/Tools/View/Estimating/Settings/Help), and Enter/double-click to finish in-progress markup (completed 2026-05-18)
 - [x] **Phase 10: Granular Undo Foundation** - Polish undo so that Ctrl+Z during an in-progress multi-point markup (linear, area, perimeter, wall) pops only the last placed point rather than deleting the entire markup; establish this step-level undo contract as the foundation for all future undo behavior (completed 2026-05-19)
-- [ ] **Phase 11: Scale Ratio Input** - Add a "Type ratio" tab to CalibrationDialog so estimators can enter a 1:N scale directly from the drawing title block — no need to draw a calibration line when the scale is already printed on the plan
+- [ ] **Phase 11: Scale Ratio Input** - Add a "Type ratio" tab to ScalePopup so estimators can enter a 1:N scale directly from the drawing title block — no need to draw a calibration line when the scale is already printed on the plan
 
 ---
 
@@ -336,18 +336,18 @@ Plans:
 
 ### Phase 11: Scale Ratio Input
 
-**Goal:** Estimators can enter a drawing scale directly from the title block (e.g. 1:100) without drawing a calibration line — a new "Type ratio" tab inside the existing CalibrationDialog auto-derives the sheet size from PDF metadata and computes pixelsPerMm from the ratio.
+**Goal:** Estimators can enter a drawing scale directly from the title block (e.g. 1:100) without drawing a calibration line — a new "Type ratio" tab inside `ScalePopup.tsx` auto-derives the sheet size from PDF metadata and computes pixelsPerMm from the ratio.
 **Depends on:** Phase 10
 **Requirements:** SCAL-01 (v1.1 enhancement — GAP-T2-00)
 **Success Criteria** (what must be TRUE):
-  1. CalibrationDialog shows two tabs: "Draw line" (existing) and "Type ratio" (new); switching tabs does not lose any in-progress state on the other tab
+  1. ScalePopup shows two tabs: "Draw line" (existing) and "Type ratio" (new); switching tabs does not lose any in-progress state on the other tab
   2. In the "Type ratio" tab, user types a denominator (e.g. 100) into the right-hand field; the left field is locked to 1; the computed ratio (1:100) is displayed for confirmation
   3. The sheet physical size is derived from PDF.js page.view metadata and shown (e.g. "841 × 594 mm — A1") so the user can confirm the PDF has correct metadata before accepting
   4. Accepting the ratio sets the page scale to the same pixelsPerMm value that the draw-line path would have produced for the same ratio — measurements are identical regardless of which calibration method was used
   5. If the PDF has no usable page.view metadata (all-zero or degenerate), a clear warning is shown and the user is directed to use the Draw Line tab instead
 **Plans**: 2 plans in 2 waves
 Plans:
-- [ ] 11-01-PLAN.md — TDD: computePixelsPerMmFromRatio + isoSheetLabel (scale-math.ts) + test file
+- [x] 11-01-PLAN.md — TDD: computePixelsPerMmFromRatio + isoSheetLabel (scale-math.ts) + test file
 - [ ] 11-02-PLAN.md — ScalePopup tab switcher + ratio panel + CanvasViewport render condition widen
 
 ### Phase 10: Granular Undo Foundation
@@ -386,7 +386,7 @@ Plans:
 | 8. Markup Workflow Acceleration and Wall Measurement Tool | 8/8 | Complete | 2026-05-15 |
 | 9. Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion | 6/6 | Complete | 2026-05-18 |
 | 10. Granular Undo Foundation | 2/2 | Complete    | 2026-05-19 |
-| 11. Scale Ratio Input | 0/2 | Planning | — |
+| 11. Scale Ratio Input | 1/2 | In Progress | — |
 
 ---
 
