@@ -25,6 +25,7 @@ export interface UseCalibrationModeReturn {
   activate: () => void
   activateVerify: () => void
   cancel: () => void
+  startDrawing: () => void
   recordClick: (screenPos: { x: number; y: number }) => void
   updatePreview: (screenPos: { x: number; y: number }) => void
   recomputePopupPos: () => void
@@ -68,6 +69,11 @@ export function useCalibrationMode(
   const stageContainerRef = useRef<HTMLElement | null>(null)
 
   const activate = useCallback(() => {
+    setState({ ...INITIAL_STATE, mode: 'pre-choice', isVerify: false })
+    useScaleStore.getState().setCalibMode('pre-choice')
+  }, [])
+
+  const startDrawing = useCallback(() => {
     setState({ ...INITIAL_STATE, mode: 'drawing', isVerify: false })
     useScaleStore.getState().setCalibMode('drawing')
   }, [])
@@ -193,5 +199,5 @@ export function useCalibrationMode(
     }
   }, [stageRef])
 
-  return { state, activate, activateVerify, cancel, recordClick, updatePreview, recomputePopupPos }
+  return { state, activate, activateVerify, cancel, startDrawing, recordClick, updatePreview, recomputePopupPos }
 }
