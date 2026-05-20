@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { COLORS } from '../lib/constants'
-import { computePixelsPerMm, formatScaleRatio, pixelsToRealWorld, MIN_CALIBRATION_PIXELS, computePixelsPerMmFromRatio, isoSheetLabel } from '../lib/scale-math'
+import { computePixelsPerMm, formatScaleRatio, pixelsToRealWorld, MIN_CALIBRATION_PIXELS } from '../lib/scale-math'
 import type { ScaleUnit, PageScale } from '../types/scale'
 import { useDraggable } from '../hooks/useDraggable'
 
@@ -24,9 +24,6 @@ export interface ScalePopupProps {
   onConfirm?: (pixelsPerMm: number, displayUnit: ScaleUnit) => void
   onCancel: () => void
   pageScale?: PageScale | null
-  pdfDocument?: unknown
-  pageWidthPx?: number
-  currentPage?: number
 }
 
 /**
@@ -45,10 +42,7 @@ export function ScalePopup({
   pixelLength,
   onConfirm,
   onCancel,
-  pageScale,
-  pdfDocument,
-  pageWidthPx,
-  currentPage
+  pageScale
 }: ScalePopupProps): React.JSX.Element {
   const [distanceText, setDistanceText] = useState('')
   const [unit, setUnit] = useState<ScaleUnit>('m')
@@ -58,11 +52,6 @@ export function ScalePopup({
   const { position, onPointerDown } = useDraggable()
   // Touch _screenPos / _containerSize so eslint no-unused-vars stays quiet.
   void _screenPos; void _containerSize
-
-  // Ratio tab state
-  const [activeTab, setActiveTab] = useState<'draw' | 'ratio'>('draw')
-  const [denominator, setDenominator] = useState<string>('100')
-  const [pageView, setPageView] = useState<{ widthPt: number; heightPt: number } | null>(null)
 
   useEffect(() => {
     if (!unitOpen) return
@@ -74,25 +63,6 @@ export function ScalePopup({
     return () => document.removeEventListener('mousedown', close)
   }, [unitOpen])
 
-  // Async page.view fetch for ratio tab — cancelled ref guard prevents stale setState
-  useEffect(() => {
-    if (!pdfDocument || activeTab !== 'ratio' || currentPage == null) return
-    let cancelled = false
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(pdfDocument as any).getPage(currentPage).then((page: any) => {
-      if (cancelled) return
-      const [x0, y0, x1, y1] = page.view as [number, number, number, number]
-      const widthPt = x1 - x0
-      const heightPt = y1 - y0
-      if (widthPt > 0 && heightPt > 0) {
-        setPageView({ widthPt, heightPt })
-      } else {
-        setPageView(null)
-      }
-    })
-    return () => { cancelled = true }
-  }, [pdfDocument, currentPage, activeTab])
-
   const parsedDistance = parseFloat(distanceText)
   const isValidDistance = !isNaN(parsedDistance) && parsedDistance > 0
   const isLineValid = pixelLength >= MIN_CALIBRATION_PIXELS
@@ -102,32 +72,16 @@ export function ScalePopup({
     ? formatScaleRatio(computePixelsPerMm(pixelLength, parsedDistance, unit))
     : null
 
-  // Ratio tab derived values
-  const parsedDenominator = parseInt(denominator, 10)
-  const isValidDenominator = !isNaN(parsedDenominator) && parsedDenominator > 0 && isFinite(parsedDenominator)
-  const canConfirmRatio = isValidDenominator && pageWidthPx != null && pageWidthPx > 0 && pageView !== null
-
   const handleConfirmClick = useCallback((): void => {
     if (!canConfirm || !onConfirm) return
     const ppm = computePixelsPerMm(pixelLength, parsedDistance, unit)
     onConfirm(ppm, unit)
   }, [canConfirm, onConfirm, pixelLength, parsedDistance, unit])
 
-  const handleRatioConfirmClick = useCallback((): void => {
-    if (!canConfirmRatio || !onConfirm || pageWidthPx == null || !pageView) return
-    const ppm = computePixelsPerMmFromRatio(pageWidthPx, pageView.widthPt, parsedDenominator)
-    onConfirm(ppm, unit)
-  }, [canConfirmRatio, onConfirm, pageWidthPx, pageView, parsedDenominator, unit])
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>): void => {
-    if (mode === 'confirm' && e.key === 'Enter') {
-      if (activeTab === 'ratio' && canConfirmRatio) {
-        e.preventDefault()
-        handleRatioConfirmClick()
-      } else if (activeTab === 'draw' && canConfirm) {
-        e.preventDefault()
-        handleConfirmClick()
-      }
+    if (mode === 'confirm' && e.key === 'Enter' && canConfirm) {
+      e.preventDefault()
+      handleConfirmClick()
     }
   }
 
@@ -233,31 +187,7 @@ export function ScalePopup({
         Set Scale
       </div>
 
-      {/* Tab switcher */}
-      <div style={{ display: 'flex', gap: 0, borderRadius: 4, overflow: 'hidden', border: `1px solid ${COLORS.border}` }}>
-        {(['draw', 'ratio'] as const).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveTab(tab)}
-            style={{
-              flex: 1,
-              padding: '6px 0',
-              fontSize: 12,
-              fontWeight: activeTab === tab ? 700 : 400,
-              background: activeTab === tab ? COLORS.accent : COLORS.dominant,
-              color: activeTab === tab ? COLORS.textOnAccent : COLORS.textSecondary,
-              border: 'none',
-              cursor: 'pointer'
-            }}
-          >
-            {tab === 'draw' ? 'Draw line' : 'Type ratio'}
-          </button>
-        ))}
-      </div>
-
-      {/* Distance input — only shown on draw tab */}
-      {activeTab === 'draw' && (
+      {/* Distance input */}
       <div>
         <label
           style={{ display: 'block', fontSize: 12, color: COLORS.textSecondary, marginBottom: 6 }}
@@ -285,57 +215,6 @@ export function ScalePopup({
           }}
         />
       </div>
-      )}
-
-      {/* Ratio tab panel — shown only on ratio tab */}
-      {activeTab === 'ratio' && (
-        <div>
-          <label style={{ display: 'block', fontSize: 12, color: COLORS.textSecondary, marginBottom: 6 }}>
-            Drawing scale
-          </label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <input
-              type="number"
-              value={1}
-              readOnly
-              style={{
-                width: 48,
-                height: 32,
-                padding: '4px 8px',
-                background: COLORS.dominant,
-                border: `1px solid ${COLORS.border}`,
-                borderRadius: 4,
-                color: COLORS.textSecondary,
-                fontSize: 13,
-                textAlign: 'center',
-                boxSizing: 'border-box'
-              }}
-            />
-            <span style={{ color: COLORS.textSecondary, fontSize: 16, fontWeight: 600 }}>:</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={1}
-              step={1}
-              value={denominator}
-              onChange={(e) => setDenominator(e.target.value)}
-              autoFocus
-              style={{
-                flex: 1,
-                height: 32,
-                padding: '4px 10px',
-                background: COLORS.dominant,
-                border: `1px solid ${COLORS.border}`,
-                borderRadius: 4,
-                color: COLORS.textPrimary,
-                fontSize: 13,
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Unit dropdown — position:fixed list escapes overflow:hidden ancestors */}
       <div>
@@ -424,38 +303,21 @@ export function ScalePopup({
         )}
       </div>
 
-      {/* Scale preview or error — draw tab only */}
-      {activeTab === 'draw' && (
-        !isLineValid ? (
-          <div style={{ fontSize: 12, color: COLORS.warning }}>
-            Line too short — please draw again.
-          </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 12, color: COLORS.textSecondary }}>Scale</span>
-            <span style={{
-              fontWeight: 600,
-              fontSize: 13,
-              color: previewRatio ? COLORS.accent : COLORS.textSecondary
-            }}>
-              {previewRatio ?? '—'}
-            </span>
-          </div>
-        )
-      )}
-
-      {/* Sheet size display — ratio tab only */}
-      {activeTab === 'ratio' && pageView !== null && (
-        <div style={{ fontSize: 12, color: COLORS.textSecondary }}>
-          {isoSheetLabel(
-            pageView.widthPt * 25.4 / 72,
-            pageView.heightPt * 25.4 / 72
-          )}
-        </div>
-      )}
-      {activeTab === 'ratio' && pageView === null && (
+      {/* Scale preview or error */}
+      {!isLineValid ? (
         <div style={{ fontSize: 12, color: COLORS.warning }}>
-          PDF metadata missing — use the Draw Line tab instead.
+          Line too short — please draw again.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 12, color: COLORS.textSecondary }}>Scale</span>
+          <span style={{
+            fontWeight: 600,
+            fontSize: 13,
+            color: previewRatio ? COLORS.accent : COLORS.textSecondary
+          }}>
+            {previewRatio ?? '—'}
+          </span>
         </div>
       )}
 
@@ -480,47 +342,25 @@ export function ScalePopup({
         >
           Discard line
         </button>
-        {activeTab === 'draw' ? (
-          <button
-            type="button"
-            onClick={handleConfirmClick}
-            disabled={!canConfirm}
-            style={{
-              height: 32,
-              padding: '6px 14px',
-              background: canConfirm ? COLORS.accent : COLORS.border,
-              border: 'none',
-              borderRadius: 4,
-              color: COLORS.textOnAccent,
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: canConfirm ? 'pointer' : 'not-allowed',
-              opacity: canConfirm ? 1 : 0.6
-            }}
-          >
-            Confirm
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={handleRatioConfirmClick}
-            disabled={!canConfirmRatio}
-            style={{
-              height: 32,
-              padding: '6px 14px',
-              background: canConfirmRatio ? COLORS.accent : COLORS.border,
-              border: 'none',
-              borderRadius: 4,
-              color: COLORS.textOnAccent,
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: canConfirmRatio ? 'pointer' : 'not-allowed',
-              opacity: canConfirmRatio ? 1 : 0.6
-            }}
-          >
-            Accept
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={handleConfirmClick}
+          disabled={!canConfirm}
+          style={{
+            height: 32,
+            padding: '6px 14px',
+            background: canConfirm ? COLORS.accent : COLORS.border,
+            border: 'none',
+            borderRadius: 4,
+            color: COLORS.textOnAccent,
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: canConfirm ? 'pointer' : 'not-allowed',
+            opacity: canConfirm ? 1 : 0.6
+          }}
+        >
+          Confirm
+        </button>
       </div>
     </div>
     </div>

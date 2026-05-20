@@ -65,6 +65,7 @@ function createWindow(): void {
   const showOnce = (): void => {
     if (hasShown || mainWindow.isDestroyed()) return
     hasShown = true
+    mainWindow.maximize()
     mainWindow.show()
   }
   mainWindow.on('ready-to-show', showOnce)

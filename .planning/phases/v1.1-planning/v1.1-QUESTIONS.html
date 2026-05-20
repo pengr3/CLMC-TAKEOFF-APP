@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLMC Takeoff — v1.1 Planning Questions</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #1e293b; font-size: 14px; }
+
+  /* Header */
+  .header { background: #1e293b; color: white; padding: 20px 32px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+  .header h1 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .header p { font-size: 12px; color: #94a3b8; margin-bottom: 12px; }
+  .stats-bar { display: flex; align-items: center; gap: 20px; }
+  .stat { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .stat-num { font-weight: 700; font-size: 16px; }
+  .stat-num.answered { color: #4ade80; }
+  .stat-num.remaining { color: #f97316; }
+  .progress-track { flex: 1; height: 8px; background: #334155; border-radius: 4px; overflow: hidden; max-width: 300px; }
+  .progress-fill { height: 100%; background: #22c55e; border-radius: 4px; transition: width 0.3s ease; }
+  .save-btn { background: #3b82f6; color: white; border: none; padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-left: auto; }
+  .save-btn:hover { background: #2563eb; }
+
+  /* Instructions */
+  .instructions { background: #fefce8; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin: 20px 32px 0; font-size: 13px; color: #92400e; }
+  .instructions strong { font-weight: 600; }
+
+  /* Main content */
+  .content { padding: 20px 32px 60px; max-width: 1400px; }
+
+  /* Section */
+  .section { background: white; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .section-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; user-select: none; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+  .section-header:hover { background: #f1f5f9; }
+  .section-title { font-size: 15px; font-weight: 700; color: #1e293b; }
+  .section-summary { font-size: 12px; color: #64748b; margin-top: 2px; }
+  .section-badge { background: #e2e8f0; color: #475569; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+  .section-badge.all-answered { background: #dcfce7; color: #15803d; }
+  .section-chevron { color: #94a3b8; font-size: 16px; transition: transform 0.2s; margin-left: 8px; }
+  .section-chevron.collapsed { transform: rotate(-90deg); }
+  .section-body { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px; padding: 16px 20px; }
+  .section-body.collapsed { display: none; }
+
+  /* Question card */
+  .qcard { border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; background: white; transition: border-color 0.2s, background-color 0.2s; }
+  .qcard.answered { border: 2px solid #22c55e; background: #f0fdf4; }
+  .qcard.chat-only { border: 2px solid #f97316; }
+  .qcard-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+  .qid { background: #1e293b; color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+  .qcard.answered .qid { background: #16a34a; }
+  .qtitle { font-size: 13px; font-weight: 600; color: #1e293b; line-height: 1.4; }
+  .qcontext { font-size: 11px; color: #64748b; font-style: italic; margin-bottom: 12px; line-height: 1.5; padding: 8px 10px; background: #f8fafc; border-radius: 6px; border-left: 3px solid #cbd5e1; }
+  .options { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .option-label { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; padding: 8px 10px; border-radius: 6px; border: 1px solid #e2e8f0; transition: background 0.15s; }
+  .option-label:hover { background: #f1f5f9; }
+  .option-label input[type="radio"] { margin-top: 2px; flex-shrink: 0; accent-color: #22c55e; }
+  .option-label input[type="radio"]:checked + .option-content { }
+  .option-label:has(input:checked) { background: #f0fdf4; border-color: #86efac; }
+  .option-content { flex: 1; }
+  .option-name { font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 2px; }
+  .option-desc { font-size: 11px; color: #64748b; line-height: 1.4; }
+  .chat-more-label { font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+  .chat-more-indicator { width: 8px; height: 8px; border-radius: 50%; background: #e2e8f0; display: inline-block; }
+  .chat-more-indicator.active { background: #f97316; }
+  .chat-more-textarea { width: 100%; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 10px; font-size: 12px; font-family: inherit; color: #1e293b; resize: vertical; min-height: 60px; transition: border-color 0.2s; }
+  .chat-more-textarea:focus { outline: none; border-color: #3b82f6; }
+  .chat-more-textarea.has-content { border: 2px solid #f97316; }
+
+  /* Footer save */
+  .footer-save { position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; padding: 12px 32px; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+  .footer-save p { font-size: 12px; color: #94a3b8; }
+  .footer-save .save-btn { background: #22c55e; }
+  .footer-save .save-btn:hover { background: #16a34a; }
+  .footer-stats { font-size: 13px; color: #94a3b8; }
+  .footer-stats span { color: white; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CLMC Takeoff v1.1 — Planning Questions</h1>
+  <p>GAP-001 spike review — 10 gap items + Phase 10 extension, 31 questions. Answer at your own pace, then return to Claude and say "finalize".</p>
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-num" id="stat-total">31</span>
+      <span>total</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num answered" id="stat-answered">0</span>
+      <span>answered</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num remaining" id="stat-remaining">31</span>
+      <span>remaining</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <button class="save-btn" onclick="saveAnswers()">Save answers</button>
+  </div>
+</div>
+
+<div class="instructions">
+  <strong>How to use:</strong> Select an option for each question. Use the "Add context" box for nuance or edge cases you want to discuss further in chat. Click <strong>Save answers</strong> to write back to the JSON file (or download it and replace the original). Then return to Claude and say <strong>"refresh"</strong> to see progress, or <strong>"finalize"</strong> to generate CONTEXT.md.
+</div>
+
+<div class="content" id="content"></div>
+
+<div class="footer-save">
+  <p>After saving: return to Claude and say <strong style="color:white">"refresh"</strong> or <strong style="color:white">"finalize"</strong></p>
+  <div class="footer-stats">Answered: <span id="footer-answered">0</span> / <span id="footer-total">31</span></div>
+  <button class="save-btn" onclick="saveAnswers()">Save answers</button>
+</div>
+
+<script>
+const JSON_PATH = 'v1.1-QUESTIONS.json';
+
+// State loaded from JSON
+let state = null;
+
+// On load: fetch JSON and render
+async function init() {
+  try {
+    const resp = await fetch(JSON_PATH + '?t=' + Date.now());
+    state = await resp.json();
+  } catch(e) {
+    // Fallback: embed the data inline (for when opened from filesystem without a server)
+    state = getEmbeddedState();
+  }
+  render();
+  updateStats();
+}
+
+function getEmbeddedState() {
+  // Embedded fallback state — synced with the JSON file at generation time
+  return {"phase":"v1.1-planning","generated_at":"2026-05-20T00:00:00.000Z","description":"GAP-001 spike review — 10 gap items + Phase 10 extension, all design decisions captured before v1.1 roadmap is written","stats":{"total":31,"answered":0,"chat_more":0,"remaining":31},"sections":[{"id":"scale-ratio","title":"1 — Scale Ratio Input (GAP-T2-00)","summary":"Add a 1:100 / 1:50 / 1:200 input path so estimators don't need to draw a calibration line when the title block shows the scale.","questions":[{"id":"Q-01","title":"Where does ratio input live?","context":"CalibrationDialog.tsx is the existing modal (shown after drawing two points). It currently has a single flow: line length → real-world distance → confirm. Adding a ratio mode means either extending this dialog or adding a separate entry point.","options":[{"id":"a","label":"New tab in CalibrationDialog","description":"Add a 'Type ratio' tab alongside the existing 'Draw line' tab. User picks the mode before interacting with the canvas. Keeps all calibration in one place."},{"id":"b","label":"Separate toolbar button","description":"A new 'Type 1:N' button in the ribbon that opens a lightweight popover — just a ratio input + confirm. Drawn-line path unchanged. Cleaner separation."},{"id":"c","label":"Add ratio field inside existing CalibrationDialog","description":"After drawing the line and entering the real-world distance, also show a 'Or type a scale ratio' field. Either field can produce the calibration. Most compact."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-02","title":"What ratio formats to accept?","context":"Construction drawings use '1:100', '1:50', '1:200'. Some older Australian drawings also use '1:25' or '1:500'. The math is pixelsPerMm = pageWidthPx / (physicalWidthMm × N) where N is the denominator.","options":[{"id":"a","label":"\"1:N\" only","description":"Accept only the standard construction notation (e.g. '1:100'). Reject '100' or '0.01'. Simple validation, clear error message."},{"id":"b","label":"\"1:N\" and bare number","description":"Accept '1:100' or '100' (treated as 1:100). Easier to type. Small risk of ambiguity."},{"id":"c","label":"Smart parse any form","description":"Accept '1:100', '100', '1/100', '0.01'. Most flexible but more validation code."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-03","title":"Physical page size source","context":"To convert a ratio to pixelsPerMm, the app needs the physical sheet size (e.g. A1 = 841mm wide). PDF.js provides page.view = [0, 0, widthPt, heightPt] in user-space points (72 pts/inch). A1 at 72dpi = 2384pt wide → 841mm. This conversion is reliable for PDFs generated from CAD. Scanned PDFs may have wrong metadata.","options":[{"id":"a","label":"Auto-derive from PDF page.view","description":"Use PDF.js page dimensions (pts → mm via 25.4/72). Works for any CAD-exported PDF. Scanned PDFs may be wrong — show the derived sheet size for user confirmation."},{"id":"b","label":"User picks sheet size from a dropdown","description":"Offer A0/A1/A2/A3/A4 and common US sizes. User selects which sheet size matches the plan. Reliable but adds one more step."},{"id":"c","label":"User draws one known edge","description":"Prompt user to draw along a sheet edge of known length (e.g. draw the full width and type 841). Accurate but more work than typing a ratio."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"}]},{"id":"vertex-editing","title":"2 — Markup Vertex Editing (GAP-T1-01)","summary":"Let estimators drag individual vertices of a committed linear, area, perimeter, or wall markup to correct mistakes without redrawing the whole shape.","questions":[{"id":"Q-04","title":"How does vertex edit mode activate?","context":"Currently, clicking a committed markup selects it (selection ring appears). Double-click is used during drawing to finish a shape, but has no post-commit role. Right-click opens the context menu (MarkupContextMenu.tsx with Edit, Recolor Group, Delete).","options":[{"id":"a","label":"Double-click the committed markup","description":"Double-click (post-commit, different from double-click-to-finish which is pre-commit) enters vertex edit mode. Natural discovery — users try this first. No new UI element needed."},{"id":"b","label":"Right-click → 'Edit vertices'","description":"Add 'Edit vertices' to the existing context menu. Discoverable through the same menu the user already uses for Edit/Recolor/Delete."},{"id":"c","label":"Click to select then click again","description":"First click selects (existing behavior). Second click on the selected markup enters vertex edit mode. Simple, no extra menu item. Risk: accidental double-click."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-05","title":"Vertex handle appearance","context":"HoverRing.tsx and the selection ring pattern already exist. Konva Circle nodes at each vertex would be the handle. The page-space inverse transform (stage.getAbsoluteTransform().copy().invert().point()) is established for converting screen coords to page coords during drag.","options":[{"id":"a","label":"Small filled squares (CAD-style)","description":"8px × 8px white squares with a colored border at each vertex. Classic CAD convention — every estimator who has used AutoCAD or Bluebeam will recognize this."},{"id":"b","label":"Small circles matching markup color","description":"Filled circles (radius 6-8px) at each vertex, colored to match the markup's color with white outline. Consistent with the existing count pin circle visual language."},{"id":"c","label":"Orange accent handles","description":"Orange handles regardless of markup color — same orange as the chain mode badge (#f97316). Makes handles visually distinct from the markup itself. Clear 'editing mode active' signal."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-06","title":"How to exit vertex edit mode","context":"Existing pattern from CalibrationDialog cancel: user can retry immediately. MarkupNamePopup commits on Enter or clicking Confirm. The selection ring disappears on click-off (clearSelection in handleStageClick). All vertex moves should be wrapped in EditMarkupCommand (already exists in markupStore) so Ctrl+Z undoes the whole edit session.","options":[{"id":"a","label":"Enter saves, Escape cancels","description":"Keyboard-first: Enter commits all vertex changes, Escape restores original positions. Consistent with markup name popup and scale calibration patterns."},{"id":"b","label":"Click anywhere outside the markup","description":"Clicking off the markup auto-commits vertex positions (same as clicking off a text field). No keyboard required. Risk: accidental commits when clicking to pan."},{"id":"c","label":"Floating Done / Cancel buttons near markup","description":"Small inline buttons appear near the markup bounding box: [Done] [Cancel]. Most explicit — can't accidentally commit. Adds a UI element to manage."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"}]},{"id":"markup-translate","title":"3 — Markup Translate / Move (GAP-T1-02)","summary":"Let estimators drag a committed markup to a new position — a count pin to the right room, a polygon to the correct slab.","questions":[{"id":"Q-07","title":"How does drag-to-move trigger?","context":"CanvasViewport already has isDraggable on the Stage for pan (middle mouse button). The rubber-band fix added a 4px movement threshold (rubberBandDraggedRef) to distinguish click-to-select from drag. The same mechanism can gate markup drag. The markup Group nodes currently have listening=true in Layer 1b.","options":[{"id":"a","label":"Drag a selected markup to move it","description":"After clicking to select a markup, dragging it (with the same LMB movement threshold) moves it. Natural for anyone who has used Bluebeam or Powerpoint."},{"id":"b","label":"Hold Shift while dragging","description":"Shift+drag moves the markup. Without Shift, LMB drag continues to mean rubber-band select (or do nothing on a selected markup). Avoids accidental moves."},{"id":"c","label":"Dedicated 'Move' mode in the ribbon","description":"A Move tool button in the ribbon. While active, clicking+dragging any markup moves it. Clear but requires tool switching."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-08","title":"Group move — do multiple selected markups move together?","context":"Rubber-band multi-select already works and stores selectedMarkupIds in viewerStore. Moving a group would offset all selected markup coordinates by the same delta. This is technically straightforward but adds complexity to the undo command (a batch MoveMarkupsCommand vs a single MoveMarkupCommand).","options":[{"id":"a","label":"Yes — drag any selected markup, all selected move","description":"Standard behavior in every graphics tool. Works for rubber-band selections too. Requires a batch undo command."},{"id":"b","label":"Single-markup move only for v1.1","description":"Only the dragged markup moves. Other selections are deselected. Simpler implementation. Group move can be added later."},{"id":"c","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-09","title":"What is the drag movement threshold?","context":"The rubber-band pattern uses 4px before activating (prevents accidental drag on a precise click). A markup drag-to-move should also have a threshold to prevent accidentally moving a markup when trying to click-to-select it.","options":[{"id":"a","label":"Same 4px as rubber-band","description":"Reuse the existing constant. Consistent across all drag operations in the app."},{"id":"b","label":"Larger — 8-12px","description":"A slightly larger threshold means you need more deliberate movement to trigger a move. Safer for estimators who click precisely on small markups."},{"id":"c","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"}]},{"id":"pricing-column","title":"4 — Pricing Column in BOQ (GAP-T1-03)","summary":"Attach a unit rate to each item name so the BOQ shows Rate ($/unit) and Cost ($) columns alongside Quantity.","questions":[{"id":"Q-10","title":"Where does the estimator enter a unit rate?","context":"TotalsRow.tsx currently has a Lightbulb slot (visibility toggle) and a '+' slot (arm from totals). MarkupNamePopup.tsx has name/category/color/wall-height fields. The rates dictionary could live in projectStore as rates: Record<string, number> (same additive pattern as hiddenItemNames).","options":[{"id":"a","label":"Inline in the totals panel rate cell","description":"Each totals row shows a rate field (e.g. '$___/m²'). Click it to edit inline. Live feedback as rate × qty = cost updates immediately. No modal needed."},{"id":"b","label":"In the MarkupNamePopup when naming a markup","description":"Add a Rate field alongside Name/Category/Color. Rate is set when first naming the item. Can be changed via Edit markup later."},{"id":"c","label":"Dedicated Rates tab or panel","description":"A separate pricing screen (e.g. in the Estimating ribbon tab) that lists all item names with rate fields. Separates 'measuring' from 'pricing' workflows."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-11","title":"Rate granularity — what does a rate apply to?","context":"boq-aggregator.ts groups markups by item name across all pages. A 'rates' Record<string, number> keyed by item name is the simplest model. Edge case: same item name with different UoM on different pages.","options":[{"id":"a","label":"Per item name","description":"One rate per name, applied to the aggregated quantity. Simple. Works for 99% of real takeoff data. Warn if the same name has multiple UoM."},{"id":"b","label":"Per item name + UoM pair","description":"'Concrete Slab @ m²' → $X; 'Concrete Slab @ m' → $Y. Handles the edge case cleanly but makes the rate key more complex."},{"id":"c","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-12","title":"BOQ export format with pricing","context":"Current export: Item | Quantity | UoM. boq-writers.ts builds this in main process using ExcelJS. Adding pricing means new columns. The XLSX has frozen title row + colored category headers already.","options":[{"id":"a","label":"Add Rate and Cost columns after Quantity","description":"Item | Quantity | UoM | Rate ($/unit) | Cost ($). Standard priced BOQ layout. Grand total Cost row at the bottom."},{"id":"b","label":"Cost column only (hide rate)","description":"Item | Quantity | UoM | Cost ($). Cleaner output — rate is internal. Less useful if client wants to verify unit rates."},{"id":"c","label":"Separate 'Priced BOQ' sheet in XLSX","description":"Keep the existing quantity sheet unchanged; add a second sheet with the priced layout. Both always exported. Maximally compatible with existing workflows."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-13","title":"Currency symbol and formatting","context":"No currency handling exists today. ExcelJS can apply numFmt to cells. Currency choice affects both the totals panel display and the XLSX export.","options":[{"id":"a","label":"No currency symbol — user adds in Excel","description":"Keep it unitless. Avoids currency assumptions. User formats in Excel as needed."},{"id":"b","label":"Default AUD with settings option","description":"Show '$' by default. Settings tab lets user pick currency symbol. Stored in localStorage clmc.ui."},{"id":"c","label":"Currency per project in .clmc file","description":"Currency is a project-level setting. Allows different projects to use different currencies."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"}]},{"id":"item-library","title":"5 — Item Library (GAP-T1-05)","summary":"A persistent dictionary of item names (and optionally rates) that survives across projects.","questions":[{"id":"Q-14","title":"Where does the library live?","context":"Electron gives access to app.getPath('userData') — a per-machine AppData folder. A JSON file there (e.g. clmc-library.json) persists across all projects. Alternatively, embed the library in each .clmc file.","options":[{"id":"a","label":"Global — AppData/clmc-library.json","description":"One library for all projects on this machine. Add an item once; it appears in every project's autocomplete. Standard approach."},{"id":"b","label":"Per-project — embedded in .clmc","description":"Library travels with the project file. No cross-project sharing."},{"id":"c","label":"Both — global library + per-project overrides","description":"Global base library; per-project additions. Most powerful but most complex."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-15","title":"How does the estimator add to the library?","context":"CategoryAutocomplete.tsx already shows completions from current project item names. MarkupNamePopup.tsx is the primary naming UI.","options":[{"id":"a","label":"'Save to library' checkbox in MarkupNamePopup","description":"After filling in name/category/color, a 'Save to library' checkbox appears. Check it and confirm to persist to the library."},{"id":"b","label":"Right-click on totals row → 'Add to library'","description":"After placing a markup, right-click its row in the totals panel to save to the library. Fits the existing TotalsRowContextMenu pattern."},{"id":"c","label":"Library management screen in Settings tab","description":"Settings tab gets a 'Library' section: view/add/delete/edit library items. Explicit management, no implicit saves."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-16","title":"Does the library store rates?","context":"If Pricing (GAP-T1-03) is also built, the item library can store {name, category, defaultColor, defaultRate}. When an estimator picks a library item, the rate auto-fills.","options":[{"id":"a","label":"Yes — library stores name + category + color + rate","description":"One-time setup: add item to library with its typical rate. Every new project starts with rates pre-filled."},{"id":"b","label":"No — library stores name + category + color only","description":"Keep the library simple in v1.1. Rates stay per-project. Library can gain rate support in a future phase."},{"id":"c","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"}]},{"id":"markup-notes","title":"6 — Markup Notes / Comments (GAP-T2-03)","summary":"Attach a free-text note to a markup or item group for QA context.","questions":[{"id":"Q-17","title":"Note attachment level — per placement or per item name?","context":"BaseMarkup in markup.ts can gain a notes?: string field (additive, no formatVersion bump needed). Item-level notes would live in the rates/library store.","options":[{"id":"a","label":"Per individual markup placement","description":"Each placed count pin, polyline, polygon can have its own note. Most granular. Stored in BaseMarkup."},{"id":"b","label":"Per item name group","description":"All instances of an item name share one note. Simpler to read in the BOQ."},{"id":"c","label":"Both — group note with per-placement override","description":"Group note as default; individual overrides possible. Most flexible. More complex UI."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-18","title":"Where do notes appear once added?","context":"MarkupTooltip.tsx shows name/category/measurement on hover. TotalsRow.tsx shows the row. boq-writers.ts builds the XLSX export.","options":[{"id":"a","label":"Hover tooltip only","description":"Notes shown in the canvas hover tooltip. Low impact on BOQ layout. Good for quick QA."},{"id":"b","label":"Tooltip + note icon badge on canvas + BOQ Notes column","description":"Full visibility: badge on markup shows a note exists; tooltip shows text; XLSX gets a Notes column."},{"id":"c","label":"Tooltip + totals panel (truncated)","description":"Notes shown in hover tooltip and as small italic text under the item name in the totals panel. No BOQ export change."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"}]},{"id":"cross-page-breakdown","title":"7 — Cross-Page Item Breakdown (GAP-T2-04)","summary":"Show which pages contribute to each BOQ item total.","questions":[{"id":"Q-19","title":"Where does breakdown appear in the totals panel?","context":"TotalsCategoryBlock.tsx → TotalsRow.tsx is the current hierarchy. boq-aggregator.ts already walks per-page.","options":[{"id":"a","label":"Collapsible sub-rows under each item","description":"Click an item row to expand page-level sub-rows: ↳ Page 1: 45 m², ↳ Page 3: 75.5 m². Inline, no extra UI."},{"id":"b","label":"Separate 'By Page' tab in the totals panel header","description":"TotalsPanelHeader gets a second tab. 'Summary' shows current view; 'By Page' shows page-grouped breakdown."},{"id":"c","label":"XLSX export only — no panel UI change","description":"Add a 'By Page' sheet to the Excel export only. Totals panel stays simple."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-20","title":"BOQ export — how is breakdown shown in the .xlsx?","context":"Current XLSX: one sheet, one row per item, colored category headers.","options":[{"id":"a","label":"Indented sub-rows in the main sheet","description":"Under each item row: indented rows for each contributing page. Simple, no sheet switching."},{"id":"b","label":"Separate 'By Page' worksheet","description":"Second worksheet in the same workbook: Item | Page | Qty per row. Keeps the main sheet clean."},{"id":"c","label":"Both — main sheet sub-rows + 'By Page' sheet","description":"Most complete. Larger XLSX. Most useful for QA and client delivery."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"}]},{"id":"snap-geometry","title":"8 — Snap to Existing Geometry (GAP-T2-05)","summary":"During markup placement, snap the cursor to nearby existing markup vertices for precision.","questions":[{"id":"Q-21","title":"What can the cursor snap to?","context":"Page-space coords are available for all placed markups. On mousemove, scan existing markup vertex positions within a snap radius. The stage inverse transform pattern handles screen → page-space conversion at any zoom.","options":[{"id":"a","label":"Existing markup vertices only","description":"Snap to the exact corner points of placed polylines and polygons. Simplest. Allows chains of markups to share exact endpoints."},{"id":"b","label":"Vertices + edge midpoints","description":"Also snap to the midpoint of each markup segment. Useful for measuring from the center of a wall."},{"id":"c","label":"Vertices + midpoints + grid (user-definable spacing)","description":"Full snap grid option. Most powerful but most configuration surface."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-22","title":"Snap on/off default and toggle","context":"Snap changes cursor behavior globally during markup placement. A toolbar toggle or keyboard shortcut (S) would cover both needs.","options":[{"id":"a","label":"On by default, S key toggles","description":"Snap is active whenever a markup tool is armed. Press S to disable. Persists in localStorage."},{"id":"b","label":"Off by default, toolbar button enables","description":"Opt-in. Users who want it turn it on. Avoids surprising first-time users."},{"id":"c","label":"On by default, hold Alt to momentarily disable","description":"Snap is default-on; holding Alt suspends it for one placement."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"}]},{"id":"installer-autoupdate","title":"9 — Installer & Auto-Update (GAP-T2-06)","summary":"Build and distribute a proper Windows installer and auto-update channel so estimators can install and stay current.","questions":[{"id":"Q-23","title":"Distribution and update channel","context":"electron-builder is already configured. electron-updater reads a RELEASES JSON from a URL. GitHub Releases is free and public.","options":[{"id":"a","label":"GitHub Releases","description":"Free, zero infrastructure. New version = create a GitHub Release. Standard approach for Electron indie apps."},{"id":"b","label":"Self-hosted server (S3 or VPS)","description":"Full control over the release feed, access control, analytics. More setup."},{"id":"c","label":"Start with GitHub Releases, migrate if needed","description":"Ship now. Move to self-hosted if the repo needs to be private or access control is required."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-24","title":"Auto-update notification behavior","context":"electron-updater has three modes: silent background download + notify; prompt user; user-triggered. The estimating context means users open the app before a site visit.","options":[{"id":"a","label":"Silent download, non-disruptive notification","description":"Download in background. When done, a small banner says 'Update ready — restart when you're done.' Least disruptive."},{"id":"b","label":"Prompt on launch if update available","description":"Check at startup. If available, dialog: 'A new version is available. Install now?' Yes restarts+updates, No skips."},{"id":"c","label":"Manual only — Help → Check for Updates","description":"No automatic behavior. Estimator is always in control. Simplest implementation."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-25","title":"Installer format and code signing","context":"electron-builder can produce NSIS .exe, portable .exe, or .msi. Without code signing, Windows Defender SmartScreen blocks the installer for unknown publishers. EV cert costs ~$300-400/yr.","options":[{"id":"a","label":"NSIS .exe, no code signing for v1.1","description":"Ship unsigned. SmartScreen will warn first-time users. Acceptable during internal/beta testing."},{"id":"b","label":"NSIS .exe + portable .exe, no signing","description":"Same as above but also offer a portable version (no install required)."},{"id":"c","label":"NSIS .exe with EV code signing","description":"Eliminate the SmartScreen barrier. Required before any client distribution."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"}]},{"id":"pdf-markups-export","title":"10 — PDF with Markups Export (GAP-T1-04)","summary":"Export a flattened PDF showing markups baked onto the plan for client delivery.","questions":[{"id":"Q-26","title":"Include in v1.1 or defer to v2.0?","context":"The spike rated this as high value but high complexity (~5+ plans). pdf-lib coordinate transform between Konva page-space and PDF page-space is non-trivial across multi-page projects. The other 9 gaps are lower-risk and higher immediate ROI.","options":[{"id":"a","label":"Defer to v2.0","description":"Focus v1.1 on the 9 higher-ROI gaps. PDF export is a full phase on its own."},{"id":"b","label":"Include in v1.1 after other items","description":"Add it at the end of the v1.1 build sequence. Adds ~5 plans and significant complexity."},{"id":"c","label":"Include in v1.1 as a priority","description":"Move it up the sequence. This is the most requested feature by clients who want to see the takeoff work."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"}]},{"id":"post-commit-undo","title":"F — Post-Commit Step-Level Undo (Phase 10 extension)","summary":"Phase 10 gave Ctrl+Z point-level granularity during in-progress drawing. Once committed, Ctrl+Z still removes the whole shape. Should it re-open the shape instead?","questions":[{"id":"Q-30","title":"What should Ctrl+Z do after a committed multi-point markup?","context":"Phase 10 handles the in-progress case. After committing (pressing Enter to finish a linear/area/perimeter/wall), Ctrl+Z currently removes the entire shape as a single undo step. The question is whether 'committed' should be re-enterable by undo.","options":[{"id":"a","label":"Keep current: whole-shape undo (one Ctrl+Z = whole markup gone)","description":"Standard command-pattern behavior. Predictable: one placement = one undo. Simple and consistent with the existing 50-level undo stack."},{"id":"b","label":"Re-open in drawing mode (undo the commit, keep all points)","description":"Ctrl+Z after committing puts the shape back into in-progress drawing mode with all points intact. The estimator can add more points, pop points, or re-commit with Enter. Most powerful — no geometry is permanently lost on the first Ctrl+Z after finishing."},{"id":"c","label":"Re-open in drawing mode AND pop the last point","description":"Ctrl+Z after committing re-enters drawing mode with one fewer point. Consistent: each Ctrl+Z always removes one point, whether or not the shape was committed."}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-31","title":"If the markup re-opens in drawing mode, how does the UX communicate this?","context":"Relevant only if option (b) or (c) is chosen for Q-30. Risk: after Ctrl+Z the canvas looks similar to mid-drawing but the user may not realise they are in an active drawing session. useMarkupTool state machine has mode:'drawing' — it would need re-entry from outside the normal tool-arm flow.","options":[{"id":"a","label":"Same as normal in-progress drawing — no extra signal","description":"Shape snaps back to in-progress appearance (open line, placement cursor). Experienced users recognise this immediately. Minimal UI change."},{"id":"b","label":"Brief toast: 'Shape re-opened — continue drawing or press Enter to commit'","description":"A ConfirmationToast (existing component) surfaces for 3 seconds. Ensures first-time users understand what happened. Follows the existing toast pattern."},{"id":"c","label":"Animated transition — shape 'unfolds' from committed to in-progress","description":"A short visual animation signals the state change. More complex. May be distracting during fast editing."}],"answer":null,"chat_more":"","status":"unanswered"}]},{"id":"build-sequence","title":"11 — Build Sequence & Priorities","summary":"Confirm the order and scope of v1.1 phases.","questions":[{"id":"Q-27","title":"What is the first v1.1 phase?","context":"The spike recommended Scale Ratio Input first (#1 by ROI). But installer/auto-update is the blocker for real-world distribution. Vertex editing is the biggest UX unlock.","options":[{"id":"a","label":"Scale ratio input (1:100 mode)","description":"Highest ROI per effort. 3× faster calibration for every plan. ~2 plans."},{"id":"b","label":"Installer + auto-update","description":"Enables real-world testing immediately. ~2–3 plans. No feature work."},{"id":"c","label":"Vertex editing","description":"Biggest UX unlock. Makes demos more impressive. ~3 plans."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-28","title":"Vertex Editing + Translate — one phase or two?","context":"Both involve post-commit geometry manipulation and share the same Konva drag infrastructure.","options":[{"id":"a","label":"One phase — vertex editing + translate together","description":"Shared infrastructure, single research pass. ~4–5 plans."},{"id":"b","label":"Two phases — vertex editing first, translate follow-up","description":"Ship vertex editing sooner. Translate builds on the same foundation."},{"id":"c","label":"Translate only (skip vertex editing for v1.1)","description":"Move is simpler to implement. Defer vertex editing to v2.0."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"},{"id":"Q-29","title":"Pricing + Item Library — one phase or two?","context":"Pricing column adds rates to the project schema and BOQ export. Item library adds a persistent AppData dictionary. They overlap if the library stores rates.","options":[{"id":"a","label":"One phase — pricing + library together","description":"The library is the rate master. Tightly coupled, ~6–7 plans."},{"id":"b","label":"Two phases — pricing first, library adds rates later","description":"Pricing in one phase (per-project rates). Library in a follow-up. More modular."},{"id":"c","label":"Library first (names only), pricing adds rates later","description":"Ship name autocomplete library without rates. Pricing phase adds rates to both."},{"id":"d","label":"Custom","description":""}],"answer":null,"chat_more":"","status":"unanswered"}]}]};
+}
+
+function render() {
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+  state.sections.forEach(section => {
+    const sectionEl = document.createElement('div');
+    sectionEl.className = 'section';
+    sectionEl.id = 'section-' + section.id;
+
+    const answeredInSection = section.questions.filter(q => q.answer).length;
+    const totalInSection = section.questions.length;
+    const allAnswered = answeredInSection === totalInSection;
+
+    sectionEl.innerHTML = `
+      <div class="section-header" onclick="toggleSection('${section.id}')">
+        <div>
+          <div class="section-title">${section.title}</div>
+          <div class="section-summary">${section.summary}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <span class="section-badge ${allAnswered ? 'all-answered' : ''}">${answeredInSection}/${totalInSection}</span>
+          <span class="section-chevron" id="chevron-${section.id}">▼</span>
+        </div>
+      </div>
+      <div class="section-body" id="body-${section.id}">
+        ${section.questions.map(q => renderCard(q)).join('')}
+      </div>
+    `;
+    content.appendChild(sectionEl);
+  });
+}
+
+function renderCard(q) {
+  const isAnswered = q.answer && q.answer !== '';
+  const hasChatMore = q.chat_more && q.chat_more !== '';
+  const cardClass = isAnswered ? 'qcard answered' : (hasChatMore && !isAnswered ? 'qcard chat-only' : 'qcard');
+
+  const optionsHtml = q.options.map(opt => `
+    <label class="option-label">
+      <input type="radio" name="${q.id}" value="${opt.id}" ${q.answer === opt.id ? 'checked' : ''} onchange="onAnswer('${q.id}', '${opt.id}')">
+      <div class="option-content">
+        <div class="option-name">${opt.label}</div>
+        ${opt.description ? `<div class="option-desc">${opt.description}</div>` : ''}
+      </div>
+    </label>
+  `).join('');
+
+  return `
+    <div class="${cardClass}" id="card-${q.id}">
+      <div class="qcard-header">
+        <span class="qid">${q.id}</span>
+        <span class="qtitle">${q.title}</span>
+      </div>
+      <div class="qcontext">${q.context}</div>
+      <div class="options">${optionsHtml}</div>
+      <div class="chat-more-label">
+        <span class="chat-more-indicator ${hasChatMore ? 'active' : ''}" id="indicator-${q.id}"></span>
+        Add context / nuance
+      </div>
+      <textarea class="chat-more-textarea ${hasChatMore ? 'has-content' : ''}"
+        id="chatmore-${q.id}"
+        placeholder="Add context, nuance, or clarification for this question..."
+        oninput="onChatMore('${q.id}', this.value)"
+      >${q.chat_more || ''}</textarea>
+    </div>
+  `;
+}
+
+function toggleSection(id) {
+  const body = document.getElementById('body-' + id);
+  const chevron = document.getElementById('chevron-' + id);
+  if (body.classList.contains('collapsed')) {
+    body.classList.remove('collapsed');
+    chevron.classList.remove('collapsed');
+  } else {
+    body.classList.add('collapsed');
+    chevron.classList.add('collapsed');
+  }
+}
+
+function findQuestion(qid) {
+  for (const section of state.sections) {
+    for (const q of section.questions) {
+      if (q.id === qid) return q;
+    }
+  }
+  return null;
+}
+
+function onAnswer(qid, optionId) {
+  const q = findQuestion(qid);
+  if (!q) return;
+  q.answer = optionId;
+  q.status = 'answered';
+  updateCardStyle(q);
+  updateSectionBadge(qid);
+  updateStats();
+}
+
+function onChatMore(qid, value) {
+  const q = findQuestion(qid);
+  if (!q) return;
+  q.chat_more = value;
+  if (value && !q.answer) q.status = 'chat-more';
+  const indicator = document.getElementById('indicator-' + qid);
+  const textarea = document.getElementById('chatmore-' + qid);
+  if (value) {
+    indicator.classList.add('active');
+    textarea.classList.add('has-content');
+  } else {
+    indicator.classList.remove('active');
+    textarea.classList.remove('has-content');
+  }
+  updateStats();
+}
+
+function updateCardStyle(q) {
+  const card = document.getElementById('card-' + q.id);
+  if (!card) return;
+  card.className = 'qcard' + (q.answer ? ' answered' : (q.chat_more && !q.answer ? ' chat-only' : ''));
+  const qidEl = card.querySelector('.qid');
+  if (qidEl) qidEl.style.background = q.answer ? '#16a34a' : '#1e293b';
+}
+
+function updateSectionBadge(qid) {
+  for (const section of state.sections) {
+    if (section.questions.some(q => q.id === qid)) {
+      const answered = section.questions.filter(q => q.answer).length;
+      const total = section.questions.length;
+      const badge = document.querySelector(`#section-${section.id} .section-badge`);
+      if (badge) {
+        badge.textContent = `${answered}/${total}`;
+        badge.className = 'section-badge' + (answered === total ? ' all-answered' : '');
+      }
+      break;
+    }
+  }
+}
+
+function updateStats() {
+  let total = 0, answered = 0, chatMore = 0;
+  for (const section of state.sections) {
+    for (const q of section.questions) {
+      total++;
+      if (q.answer) answered++;
+      if (q.chat_more) chatMore++;
+    }
+  }
+  state.stats = { total, answered, chat_more: chatMore, remaining: total - answered };
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-answered').textContent = answered;
+  document.getElementById('stat-remaining').textContent = total - answered;
+  document.getElementById('footer-answered').textContent = answered;
+  document.getElementById('footer-total').textContent = total;
+  const pct = total > 0 ? (answered / total * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+async function saveAnswers() {
+  // Sync state from DOM before saving
+  for (const section of state.sections) {
+    for (const q of section.questions) {
+      const textarea = document.getElementById('chatmore-' + q.id);
+      if (textarea) q.chat_more = textarea.value;
+    }
+  }
+  updateStats();
+
+  const json = JSON.stringify(state, null, 2);
+
+  // Try File System Access API first
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: 'v1.1-QUESTIONS.json',
+        types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(json);
+      await writable.close();
+      showToast('Saved! Return to Claude and say "refresh" or "finalize".');
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return;
+      // Fall through to download
+    }
+  }
+
+  // Fallback: download the file
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'v1.1-QUESTIONS.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Downloaded! Replace the original file, then return to Claude and say "refresh".');
+}
+
+function showToast(msg) {
+  let toast = document.getElementById('save-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'save-toast';
+    toast.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#16a34a;color:white;padding:10px 20px;border-radius:8px;font-weight:600;font-size:13px;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,0.3)';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  setTimeout(() => { toast.style.display = 'none'; }, 5000);
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,525 @@
+{
+  "phase": "v1.1-planning",
+  "generated_at": "2026-05-20T00:00:00.000Z",
+  "description": "GAP-001 spike review — 10 gap items, all design decisions captured before v1.1 roadmap is written",
+  "stats": {
+    "total": 31,
+    "answered": 0,
+    "chat_more": 0,
+    "remaining": 31
+  },
+  "sections": [
+    {
+      "id": "scale-ratio",
+      "title": "1 — Scale Ratio Input (GAP-T2-00)",
+      "summary": "Add a 1:100 / 1:50 / 1:200 input path so estimators don't need to draw a calibration line when the title block shows the scale.",
+      "questions": [
+        {
+          "id": "Q-01",
+          "title": "Where does ratio input live?",
+          "context": "CalibrationDialog.tsx is the existing modal (shown after drawing two points). It currently has a single flow: line length → real-world distance → confirm. Adding a ratio mode means either extending this dialog or adding a separate entry point.",
+          "options": [
+            { "id": "a", "label": "New tab in CalibrationDialog", "description": "Add a 'Type ratio' tab alongside the existing 'Draw line' tab. User picks the mode before interacting with the canvas. Keeps all calibration in one place." },
+            { "id": "b", "label": "Separate toolbar button", "description": "A new 'Type 1:N' button in the ribbon that opens a lightweight popover — just a ratio input + confirm. Drawn-line path unchanged. Cleaner separation." },
+            { "id": "c", "label": "Add ratio field inside existing CalibrationDialog", "description": "After drawing the line and entering the real-world distance, also show a 'Or type a scale ratio' field. Either field can produce the calibration. Most compact." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-02",
+          "title": "What ratio formats to accept?",
+          "context": "Construction drawings use '1:100', '1:50', '1:200'. Some older Australian drawings also use '1:25' or '1:500'. The math is pixelsPerMm = pageWidthPx / (physicalWidthMm × N) where N is the denominator.",
+          "options": [
+            { "id": "a", "label": "\"1:N\" only", "description": "Accept only the standard construction notation (e.g. '1:100'). Reject '100' or '0.01'. Simple validation, clear error message." },
+            { "id": "b", "label": "\"1:N\" and bare number", "description": "Accept '1:100' or '100' (treated as 1:100). Easier to type. Small risk of ambiguity." },
+            { "id": "c", "label": "Smart parse any form", "description": "Accept '1:100', '100', '1/100', '0.01'. Most flexible but more validation code." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-03",
+          "title": "Physical page size source",
+          "context": "To convert a ratio to pixelsPerMm, the app needs the physical sheet size (e.g. A1 = 841mm wide). PDF.js provides page.view = [0, 0, widthPt, heightPt] in user-space points (72 pts/inch). A1 at 72dpi = 2384pt wide → 841mm. This conversion is reliable for PDFs generated from CAD. Scanned PDFs may have wrong metadata.",
+          "options": [
+            { "id": "a", "label": "Auto-derive from PDF page.view", "description": "Use PDF.js page dimensions (pts → mm via 25.4/72). Works for any CAD-exported PDF. Scanned PDFs may be wrong — show the derived sheet size for user confirmation." },
+            { "id": "b", "label": "User picks sheet size from a dropdown", "description": "Offer A0/A1/A2/A3/A4 and common US sizes. User selects which sheet size matches the plan. Reliable but adds one more step." },
+            { "id": "c", "label": "User draws one known edge", "description": "Prompt user to draw along a sheet edge of known length (e.g. draw the full width and type 841). Accurate but more work than typing a ratio." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "vertex-editing",
+      "title": "2 — Markup Vertex Editing (GAP-T1-01)",
+      "summary": "Let estimators drag individual vertices of a committed linear, area, perimeter, or wall markup to correct mistakes without redrawing the whole shape.",
+      "questions": [
+        {
+          "id": "Q-04",
+          "title": "How does vertex edit mode activate?",
+          "context": "Currently, clicking a committed markup selects it (selection ring appears). Double-click is used during drawing to finish a shape, but has no post-commit role. Right-click opens the context menu (MarkupContextMenu.tsx with Edit, Recolor Group, Delete).",
+          "options": [
+            { "id": "a", "label": "Double-click the committed markup", "description": "Double-click (post-commit, different from double-click-to-finish which is pre-commit) enters vertex edit mode. Natural discovery — users try this first. No new UI element needed." },
+            { "id": "b", "label": "Right-click → 'Edit vertices'", "description": "Add 'Edit vertices' to the existing context menu. Discoverable through the same menu the user already uses for Edit/Recolor/Delete." },
+            { "id": "c", "label": "Click to select then click again", "description": "First click selects (existing behavior). Second click on the selected markup enters vertex edit mode. Simple, no extra menu item. Risk: accidental double-click." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-05",
+          "title": "Vertex handle appearance",
+          "context": "HoverRing.tsx and the selection ring pattern already exist. Konva Circle nodes at each vertex would be the handle. The page-space inverse transform (stage.getAbsoluteTransform().copy().invert().point()) is established for converting screen coords to page coords during drag.",
+          "options": [
+            { "id": "a", "label": "Small filled squares (CAD-style)", "description": "8px × 8px white squares with a colored border at each vertex. Classic CAD convention — every estimator who has used AutoCAD or Bluebeam will recognize this." },
+            { "id": "b", "label": "Small circles matching markup color", "description": "Filled circles (radius 6-8px) at each vertex, colored to match the markup's color with white outline. Consistent with the existing count pin circle visual language." },
+            { "id": "c", "label": "Orange accent handles", "description": "Orange handles regardless of markup color — same orange as the chain mode badge (#f97316). Makes handles visually distinct from the markup itself. Clear 'editing mode active' signal." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-06",
+          "title": "How to exit vertex edit mode",
+          "context": "Existing pattern from CalibrationDialog cancel: user can retry immediately. MarkupNamePopup commits on Enter or clicking Confirm. The selection ring disappears on click-off (clearSelection in handleStageClick). All vertex moves should be wrapped in EditMarkupCommand (already exists in markupStore) so Ctrl+Z undoes the whole edit session.",
+          "options": [
+            { "id": "a", "label": "Enter saves, Escape cancels", "description": "Keyboard-first: Enter commits all vertex changes, Escape restores original positions. Consistent with markup name popup and scale calibration patterns." },
+            { "id": "b", "label": "Click anywhere outside the markup", "description": "Clicking off the markup auto-commits vertex positions (same as clicking off a text field). No keyboard required. Risk: accidental commits when clicking to pan." },
+            { "id": "c", "label": "Floating Done / Cancel buttons near markup", "description": "Small inline buttons appear near the markup bounding box: [Done] [Cancel]. Most explicit — can't accidentally commit. Adds a UI element to manage." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "markup-translate",
+      "title": "3 — Markup Translate / Move (GAP-T1-02)",
+      "summary": "Let estimators drag a committed markup to a new position — a count pin to the right room, a polygon to the correct slab.",
+      "questions": [
+        {
+          "id": "Q-07",
+          "title": "How does drag-to-move trigger?",
+          "context": "CanvasViewport already has isDraggable on the Stage for pan (middle mouse button). The rubber-band fix added a 4px movement threshold (rubberBandDraggedRef) to distinguish click-to-select from drag. The same mechanism can gate markup drag. The markup Group nodes currently have listening=true in Layer 1b.",
+          "options": [
+            { "id": "a", "label": "Drag a selected markup to move it", "description": "After clicking to select a markup, dragging it (with the same LMB movement threshold) moves it. Natural for anyone who has used Bluebeam or Powerpoint." },
+            { "id": "b", "label": "Hold Shift while dragging", "description": "Shift+drag moves the markup. Without Shift, LMB drag continues to mean rubber-band select (or do nothing on a selected markup). Avoids accidental moves." },
+            { "id": "c", "label": "Dedicated 'Move' mode in the ribbon", "description": "A Move tool button in the ribbon. While active, clicking+dragging any markup moves it. Clear but requires tool switching." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-08",
+          "title": "Group move — do multiple selected markups move together?",
+          "context": "Rubber-band multi-select already works and stores selectedMarkupIds in viewerStore. Moving a group would offset all selected markup coordinates by the same delta. This is technically straightforward but adds complexity to the undo command (a batch MoveMarkupsCommand vs a single MoveMarkupCommand).",
+          "options": [
+            { "id": "a", "label": "Yes — drag any selected markup, all selected move", "description": "Standard behavior in every graphics tool. Works for rubber-band selections too. Requires a batch undo command." },
+            { "id": "b", "label": "Single-markup move only for v1.1", "description": "Only the dragged markup moves. Other selections are deselected. Simpler implementation. Group move can be added later." },
+            { "id": "c", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-09",
+          "title": "What is the drag movement threshold?",
+          "context": "The rubber-band pattern uses 4px before activating (prevents accidental drag on a precise click). A markup drag-to-move should also have a threshold to prevent accidentally moving a markup when trying to click-to-select it.",
+          "options": [
+            { "id": "a", "label": "Same 4px as rubber-band", "description": "Reuse the existing constant. Consistent across all drag operations in the app." },
+            { "id": "b", "label": "Larger — 8-12px", "description": "A slightly larger threshold means you need more deliberate movement to trigger a move. Safer for estimators who click precisely on small markups." },
+            { "id": "c", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "pricing-column",
+      "title": "4 — Pricing Column in BOQ (GAP-T1-03)",
+      "summary": "Attach a unit rate to each item name so the BOQ shows Rate ($/unit) and Cost ($) columns alongside Quantity — turning measurement output into a priced Bill of Quantities.",
+      "questions": [
+        {
+          "id": "Q-10",
+          "title": "Where does the estimator enter a unit rate?",
+          "context": "TotalsRow.tsx currently has a Lightbulb slot (visibility toggle) and a '+' slot (arm from totals). MarkupNamePopup.tsx has name/category/color/wall-height fields. The rates dictionary could live in projectStore as rates: Record<string, number> (same additive pattern as hiddenItemNames).",
+          "options": [
+            { "id": "a", "label": "Inline in the totals panel rate cell", "description": "Each totals row shows a rate field (e.g. '$___/m²'). Click it to edit inline. Live feedback as rate × qty = cost updates immediately. No modal needed." },
+            { "id": "b", "label": "In the MarkupNamePopup when naming a markup", "description": "Add a Rate field alongside Name/Category/Color. Rate is set when first naming the item. Can be changed via Edit markup later." },
+            { "id": "c", "label": "Dedicated Rates tab or panel", "description": "A separate pricing screen (e.g. in the Estimating ribbon tab) that lists all item names with rate fields. Separates 'measuring' from 'pricing' workflows." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-11",
+          "title": "Rate granularity — what does a rate apply to?",
+          "context": "boq-aggregator.ts groups markups by item name across all pages. A 'rates' Record<string, number> keyed by item name is the simplest model. Edge case: same item name with different UoM on different pages (e.g. 'brick' as count on one page, linear on another) — would need two rates.",
+          "options": [
+            { "id": "a", "label": "Per item name (e.g. 'Concrete Slab' → $X per m²)", "description": "One rate per name, applied to the aggregated quantity. Simple. Works for 99% of real takeoff data. Warn if the same name has multiple UoM." },
+            { "id": "b", "label": "Per item name + UoM pair", "description": "'Concrete Slab @ m²' → $X; 'Concrete Slab @ m' → $Y. Handles the edge case cleanly but makes the rate key more complex." },
+            { "id": "c", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-12",
+          "title": "BOQ export format with pricing",
+          "context": "Current export: Item | Quantity | UoM. boq-writers.ts builds this in main process using ExcelJS. Adding pricing means new columns. The XLSX has frozen title row + colored category headers already.",
+          "options": [
+            { "id": "a", "label": "Add Rate and Cost columns after Quantity", "description": "Item | Quantity | UoM | Rate ($/unit) | Cost ($). Standard priced BOQ layout. Grand total Cost row at the bottom." },
+            { "id": "b", "label": "Cost column only (hide rate)", "description": "Item | Quantity | UoM | Cost ($). Cleaner output — rate is internal. Less useful if client wants to verify unit rates." },
+            { "id": "c", "label": "Separate 'Priced BOQ' sheet in XLSX", "description": "Keep the existing quantity sheet unchanged; add a second sheet with the priced layout. Both always exported. Maximally compatible with existing workflows." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-13",
+          "title": "Currency symbol and formatting",
+          "context": "No currency handling exists today. ExcelJS can apply numFmt to cells (e.g. '$#,##0.00'). Currency choice affects both the totals panel display and the XLSX export.",
+          "options": [
+            { "id": "a", "label": "No currency symbol — user adds in Excel", "description": "Keep it unitless: show '12500.00' not '$12,500.00'. Avoids currency assumptions. User formats in Excel as needed." },
+            { "id": "b", "label": "Default AUD with settings option", "description": "Show '$' by default. Settings tab lets user pick currency symbol (AUD / USD / NZD / GBP / EUR / custom). Stored in localStorage clmc.ui (never in .clmc)." },
+            { "id": "c", "label": "Currency per project in .clmc file", "description": "Currency is a project-level setting (like hiddenItemNames). Allows different projects to use different currencies. Slightly more complex persistence." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "item-library",
+      "title": "5 — Item Library (GAP-T1-05)",
+      "summary": "A persistent dictionary of item names (and optionally rates) that survives across projects — so estimators don't retype 'Concrete Slab 100mm' or '2400mm Stud Wall' every session.",
+      "questions": [
+        {
+          "id": "Q-14",
+          "title": "Where does the library live?",
+          "context": "Electron gives access to app.getPath('userData') — a per-machine AppData folder. A JSON file there (e.g. clmc-library.json) persists across all projects. Alternatively, embed the library in each .clmc file. The hidden-items pattern used additive optional fields in the project schema with no formatVersion bump.",
+          "options": [
+            { "id": "a", "label": "Global — AppData/clmc-library.json", "description": "One library for all projects on this machine. Add an item once; it appears in every project's autocomplete. Standard approach (e.g. AutoCAD tool palettes)." },
+            { "id": "b", "label": "Per-project — embedded in .clmc", "description": "Library travels with the project file. Open the same .clmc on another machine and the library is there. No cross-project sharing." },
+            { "id": "c", "label": "Both — global library + per-project overrides", "description": "Global base library; per-project additions. Most powerful but most complex to manage (merge logic, conflict resolution)." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-15",
+          "title": "How does the estimator add to the library?",
+          "context": "CategoryAutocomplete.tsx already shows completions from current project item names. MarkupNamePopup.tsx is the primary naming UI. A 'Save to library' action fits naturally as a button in either place.",
+          "options": [
+            { "id": "a", "label": "'Save to library' checkbox/button in MarkupNamePopup", "description": "After filling in name/category/color in the popup, a 'Save to library' checkbox appears. Check it and the item is persisted to the global library on confirm." },
+            { "id": "b", "label": "Right-click on totals row → 'Add to library'", "description": "After placing a markup, right-click its row in the totals panel to save the name/category to the library. Fits the existing TotalsRowContextMenu pattern." },
+            { "id": "c", "label": "Library management screen in Settings tab", "description": "Settings tab (currently a stub) gets a 'Library' section: view/add/delete/edit library items. Explicit management, no implicit saves." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-16",
+          "title": "Does the library store rates?",
+          "context": "If Pricing (GAP-T1-03) is also built, the item library can store {name, category, defaultColor, defaultRate}. When an estimator picks a library item, the rate auto-fills. This tightly couples the two phases.",
+          "options": [
+            { "id": "a", "label": "Yes — library stores name + category + color + rate", "description": "One-time setup: add item to library with its typical rate. Every new project starts with rates pre-filled. Requires Pricing phase to be built first or in parallel." },
+            { "id": "b", "label": "No — library stores name + category + color only", "description": "Keep the library simple in v1.1. Rates stay per-project. Library can gain rate support in a future phase." },
+            { "id": "c", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "markup-notes",
+      "title": "6 — Markup Notes / Comments (GAP-T2-03)",
+      "summary": "Attach a free-text note to a markup or item group (e.g. 'check with structural — may be load bearing'). Notes appear in tooltips and optionally in the BOQ.",
+      "questions": [
+        {
+          "id": "Q-17",
+          "title": "Note attachment level — per placement or per item name?",
+          "context": "BaseMarkup in markup.ts can gain a notes?: string field (additive, no formatVersion bump needed — same pattern as hiddenItemNames). Item-level notes would live in the rates/library store. Both have different persistence implications.",
+          "options": [
+            { "id": "a", "label": "Per individual markup placement", "description": "Each placed count pin, polyline, polygon can have its own note. Most granular — 'this specific window is a custom size'. Stored in BaseMarkup." },
+            { "id": "b", "label": "Per item name group", "description": "'All instances of Concrete Slab share one note.' Simpler to read in the BOQ. Stored in the project rates dictionary or library." },
+            { "id": "c", "label": "Both — group note with per-placement override", "description": "Group note as default; individual overrides possible. Most flexible. More complex UI." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-18",
+          "title": "Where do notes appear once added?",
+          "context": "MarkupTooltip.tsx shows name, category, measurement on hover. TotalsRow.tsx shows the row. boq-writers.ts builds the XLSX export. Notes could surface in any or all of these.",
+          "options": [
+            { "id": "a", "label": "Hover tooltip only", "description": "Notes shown in the canvas hover tooltip. Low impact on the BOQ layout. Good for quick QA during placement." },
+            { "id": "b", "label": "Tooltip + note icon badge on canvas + BOQ Notes column", "description": "Full visibility: badge on the markup shows a note exists; tooltip shows the text; XLSX export gets a Notes column. Professional — matches Bluebeam's comment system." },
+            { "id": "c", "label": "Tooltip + totals panel (truncated)", "description": "Notes shown in the hover tooltip and as small italic text under the item name in the totals panel. No BOQ export change." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "cross-page-breakdown",
+      "title": "7 — Cross-Page Item Breakdown (GAP-T2-04)",
+      "summary": "Show which pages contribute to each BOQ item — e.g., 'Concrete Slab: 120.5 m² total → Page 1: 45 m², Page 3: 75.5 m²'.",
+      "questions": [
+        {
+          "id": "Q-19",
+          "title": "Where does breakdown appear in the totals panel?",
+          "context": "TotalsCategoryBlock.tsx → TotalsRow.tsx is the current hierarchy. boq-aggregator.ts already walks per-page (it skips uncalibrated pages). Adding pageBreakdown: {pageIndex, qty}[] to BoqItemRow is straightforward.",
+          "options": [
+            { "id": "a", "label": "Collapsible sub-rows under each item in the totals panel", "description": "Click an item row to expand page-level sub-rows: ↳ Page 1: 45 m², ↳ Page 3: 75.5 m². Same pattern as a tree view. Inline, no extra UI." },
+            { "id": "b", "label": "Separate 'By Page' tab in the totals panel header", "description": "The TotalsPanelHeader gets a second tab. 'Summary' shows current view; 'By Page' shows a page-grouped breakdown. Cleaner separation but adds navigation." },
+            { "id": "c", "label": "XLSX export only — no panel UI change", "description": "Add a 'By Page' sheet to the Excel export only. Totals panel stays simple. Estimators who need the breakdown open the export." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-20",
+          "title": "BOQ export — how is breakdown shown in the .xlsx?",
+          "context": "Current XLSX: one sheet, one row per item, colored category headers. A breakdown could be indented sub-rows, a second sheet, or an extra column with a page list string.",
+          "options": [
+            { "id": "a", "label": "Indented sub-rows in the main sheet", "description": "Under each item row: indented rows for each contributing page. Simple, no sheet switching." },
+            { "id": "b", "label": "Separate 'By Page' worksheet", "description": "Second worksheet in the same workbook: Item | Page | Qty per row. Keeps the main sheet clean." },
+            { "id": "c", "label": "Both — main sheet sub-rows + 'By Page' sheet", "description": "Most complete. Larger XLSX. Most useful for QA and client delivery." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "snap-geometry",
+      "title": "8 — Snap to Existing Geometry (GAP-T2-05)",
+      "summary": "During markup placement, snap the cursor to nearby existing markup vertices so points connect precisely — reducing accumulated measurement error.",
+      "questions": [
+        {
+          "id": "Q-21",
+          "title": "What can the cursor snap to?",
+          "context": "Page-space coords are available for all placed markups (stored as normalized 0–1). On mousemove, scan existing markup vertex positions within a snap radius. The stage inverse transform pattern (canonical in STATE.md) handles screen → page-space conversion at any zoom.",
+          "options": [
+            { "id": "a", "label": "Existing markup vertices only", "description": "Snap to the exact corner points of placed polylines and polygons. Simplest. Allows chains of markups to share exact endpoints." },
+            { "id": "b", "label": "Vertices + edge midpoints", "description": "Also snap to the midpoint of each markup segment. Useful for measuring from the center of a wall." },
+            { "id": "c", "label": "Vertices + midpoints + grid (user-definable spacing)", "description": "Full snap grid option. Most powerful but most configuration surface. Probably v1.2 scope." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-22",
+          "title": "Snap on/off default and toggle",
+          "context": "Snap changes cursor behavior globally during markup placement. Some estimators will always want it; others find it frustrating when clicking near but not on a snap point. A toolbar toggle or keyboard shortcut (S) would cover both needs.",
+          "options": [
+            { "id": "a", "label": "On by default, S key toggles", "description": "Snap is active whenever a markup tool is armed. Press S to temporarily disable. Persists in localStorage (like panel widths). Most useful out of the box." },
+            { "id": "b", "label": "Off by default, toolbar button enables", "description": "Opt-in. Users who want it turn it on. Avoids surprising first-time users who don't understand why the cursor is jumping." },
+            { "id": "c", "label": "On by default, hold Alt to momentarily disable", "description": "Snap is default-on; holding Alt suspends it for one placement. No persistent toggle. Good for occasional override without interrupting flow." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "installer-autoupdate",
+      "title": "9 — Installer & Auto-Update (GAP-T2-06)",
+      "summary": "Build and distribute a proper Windows installer (.exe) so estimators can install the app from a file — and auto-update when new versions are released.",
+      "questions": [
+        {
+          "id": "Q-23",
+          "title": "Distribution and update channel",
+          "context": "electron-builder is already configured in package.json. electron-updater reads a RELEASES JSON from a URL. GitHub Releases is free, public, and integrates with Actions CI. A self-hosted server gives more control but requires infra. The app is Windows-only.",
+          "options": [
+            { "id": "a", "label": "GitHub Releases", "description": "Free, zero infrastructure. electron-updater polls the GitHub release API. New version = create a GitHub Release and upload the installer + RELEASES.json. Standard approach for Electron indie apps." },
+            { "id": "b", "label": "Self-hosted server (S3 or VPS)", "description": "Full control over the release feed, access control, analytics. More setup. Required if the app is distributed privately (not public GitHub repo)." },
+            { "id": "c", "label": "Start with GitHub Releases, migrate if needed", "description": "Ship now. Move to self-hosted if the repo needs to be private or access control is required." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-24",
+          "title": "Auto-update notification behavior",
+          "context": "electron-updater has three modes: (1) silent background download + restart-to-apply notification; (2) prompt user to download+install; (3) user-triggered via Help → Check for Updates. The estimating context means users open the app before a site visit — a surprise restart prompt could be disruptive.",
+          "options": [
+            { "id": "a", "label": "Silent download, non-disruptive notification", "description": "Download happens in background. When done, a small banner/toast says 'Update ready — restart when you're done.' User decides when to restart. Least disruptive." },
+            { "id": "b", "label": "Prompt on launch if update available", "description": "Check for update at startup. If available, show a dialog: 'A new version is available. Install now?' Yes restarts+updates, No skips. User always knows about updates." },
+            { "id": "c", "label": "Manual only — Help → Check for Updates", "description": "No automatic behavior. Estimator is always in control. Simplest implementation; updates won't be applied unless user actively checks." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-25",
+          "title": "Installer format and code signing",
+          "context": "electron-builder can produce NSIS .exe (recommended for Windows), portable .exe (no install), or .msi. Code signing requires a certificate. Without signing, Windows Defender SmartScreen blocks the installer for unknown publishers (user has to click 'More info → Run anyway'). An EV cert costs ~$300–400/yr and eliminates SmartScreen. A standard OV cert costs less but still triggers SmartScreen on first run.",
+          "options": [
+            { "id": "a", "label": "NSIS .exe, no code signing for v1.1", "description": "Ship unsigned. SmartScreen will warn first-time users. Acceptable during internal/beta testing. Add signing before distributing to clients." },
+            { "id": "b", "label": "NSIS .exe + portable .exe, no signing", "description": "Same as above but also offer a portable version (no install required). Useful for machines where the user can't install software." },
+            { "id": "c", "label": "NSIS .exe with EV code signing", "description": "Eliminate the SmartScreen barrier. Required before any client distribution. Costs ~$300–400/yr." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "pdf-markups-export",
+      "title": "10 — PDF with Markups Export (GAP-T1-04)",
+      "summary": "Export a flattened PDF showing the estimator's markups baked onto the plan — for delivery to clients and colleagues who don't have the .clmc file.",
+      "questions": [
+        {
+          "id": "Q-26",
+          "title": "Include in v1.1 or defer to v2.0?",
+          "context": "The spike rated this as high value but high complexity (~5+ plans). pdf-lib can draw shapes onto a PDFDocument, but coordinate transform between Konva page-space (normalized 0–1) and PDF page-space (pts) is non-trivial, especially across multi-page projects with different page sizes. The other 9 gaps are lower-risk and higher immediate ROI.",
+          "options": [
+            { "id": "a", "label": "Defer to v2.0", "description": "Focus v1.1 on the 9 higher-ROI gaps. PDF export is a full phase on its own — tackle it after the UX foundations are solid." },
+            { "id": "b", "label": "Include in v1.1 after other items", "description": "Add it at the end of the v1.1 build sequence. Adds ~5 plans and significant complexity." },
+            { "id": "c", "label": "Include in v1.1 as a priority", "description": "Move it up the sequence. This is the most requested feature by clients who want to see the takeoff work." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "post-commit-undo",
+      "title": "F — Post-Commit Step-Level Undo (Phase 10 extension)",
+      "summary": "Phase 10 gave Ctrl+Z point-level granularity during in-progress drawing. But once a markup is committed (finished), Ctrl+Z still removes the whole shape in one step. Should it re-open the shape for continued editing instead?",
+      "questions": [
+        {
+          "id": "Q-30",
+          "title": "What should Ctrl+Z do after a committed multi-point markup?",
+          "context": "Phase 10 (completed 2026-05-19) handles the in-progress case: Ctrl+Z during drawing pops the last unfinished point. After committing (pressing Enter or double-clicking to finish a linear/area/perimeter/wall), the current behavior is that Ctrl+Z removes the entire shape as a single undo step via RemoveMarkupCommand. The question is whether 'committed' should be re-enterable by undo.",
+          "options": [
+            { "id": "a", "label": "Keep current: whole-shape undo (one Ctrl+Z = whole markup gone)", "description": "Standard command-pattern behavior. Predictable: one placement = one undo. The shape is not recoverable by Ctrl+Y after removal unless Ctrl+Y is pressed immediately. Simple and consistent with the existing 50-level undo stack." },
+            { "id": "b", "label": "Re-open in drawing mode (undo the commit, keep all points)", "description": "Ctrl+Z after committing puts the shape back into in-progress drawing mode with all placed points intact. The estimator can then add more points, pop points with Ctrl+Z, or re-commit with Enter. Most powerful — no geometry is ever permanently lost on the first Ctrl+Z after finishing." },
+            { "id": "c", "label": "Re-open in drawing mode AND pop the last point", "description": "Ctrl+Z after committing re-enters drawing mode with one fewer point (as if you had pressed Ctrl+Z once while still drawing). Consistent mental model: each Ctrl+Z always removes one point, whether or not the shape was committed." }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-31",
+          "title": "If the markup re-opens in drawing mode after undo, how does the UX communicate this?",
+          "context": "Relevant only if option (b) or (c) is chosen for Q-30. The risk: after Ctrl+Z the canvas looks similar to mid-drawing but the user may not realise they are now back in an active drawing session. The useMarkupTool state machine already has mode:'drawing' — it would need to be re-entered from outside the normal tool-arm flow.",
+          "options": [
+            { "id": "a", "label": "Same as normal in-progress drawing — no extra signal", "description": "The shape snaps back to in-progress appearance (dashed/open line, vertex handles, placement cursor). Experienced users recognise this immediately. Minimal UI change." },
+            { "id": "b", "label": "Brief toast: 'Shape re-opened — continue drawing or press Enter to commit'", "description": "A ConfirmationToast (existing component) surfaces for 3 seconds. Ensures first-time users understand what happened. Follows the existing toast pattern (parent-owned lifecycle)." },
+            { "id": "c", "label": "Animated transition — shape 'unfolds' from committed to in-progress state", "description": "A short visual animation signals the state change clearly. More complex to implement. May be distracting during fast editing." }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    },
+    {
+      "id": "build-sequence",
+      "title": "11 — Build Sequence & Priorities",
+      "summary": "Decide the order and scope of v1.1 phases. The spike ranked 10 items by impact/effort — now confirm which to build and in what order.",
+      "questions": [
+        {
+          "id": "Q-27",
+          "title": "What is the first v1.1 phase?",
+          "context": "The spike recommended Scale Ratio Input first (#1 by ROI). But installer/auto-update (GAP-T2-06) is the blocker for any real-world distribution. Vertex editing (T1-01) is the biggest UX unlock. The sequence is a strategic choice.",
+          "options": [
+            { "id": "a", "label": "Scale ratio input (1:100 mode) — highest ROI per effort", "description": "3× faster calibration for every plan. Immediate daily-use benefit. Low risk. ~2 plans." },
+            { "id": "b", "label": "Installer + auto-update — enables real-world testing", "description": "Distribute to clients and collect real feedback before building more features. ~2–3 plans. No feature work." },
+            { "id": "c", "label": "Vertex editing — biggest UX unlock", "description": "Removes the biggest frustration: frozen geometry. Makes demos more impressive. ~3 plans." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-28",
+          "title": "Vertex Editing + Translate — one phase or two?",
+          "context": "Vertex editing (T1-01) and translate/move (T1-02) both involve post-commit geometry manipulation and share the same Konva drag infrastructure. Building them together saves a research/planning cycle. Building separately lets you ship vertex editing sooner.",
+          "options": [
+            { "id": "a", "label": "One phase — vertex editing + translate together", "description": "Shared infrastructure, single research pass, one phase closure. ~4–5 plans." },
+            { "id": "b", "label": "Two phases — vertex editing first, translate follow-up", "description": "Ship vertex editing sooner. Translate builds on the same foundation with a lighter follow-up phase." },
+            { "id": "c", "label": "Translate only (skip vertex editing for v1.1)", "description": "Move is simpler to implement. Vertex editing is more complex. Defer vertex editing to v2.0." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        },
+        {
+          "id": "Q-29",
+          "title": "Pricing + Item Library — one phase or two?",
+          "context": "Pricing column (T1-03) adds rates to the project schema and BOQ export. Item library (T1-05) adds a persistent AppData dictionary. They overlap if the library stores rates (Q-16). Building together makes sense if library stores rates; separately otherwise.",
+          "options": [
+            { "id": "a", "label": "One phase — pricing + library together (library stores rates)", "description": "The library is the rate master — enter a rate once, reuse across projects. Tightly coupled, ~6–7 plans." },
+            { "id": "b", "label": "Two phases — pricing first, library adds names+rates later", "description": "Pricing in one phase (per-project rates). Library in a follow-up (global name+rate persistence). More modular." },
+            { "id": "c", "label": "Library first (names only), pricing adds rates later", "description": "Ship name autocomplete library without rates. Pricing phase adds rates to both project and library. Two clear milestones." },
+            { "id": "d", "label": "Custom", "description": "" }
+          ],
+          "answer": null,
+          "chat_more": "",
+          "status": "unanswered"
+        }
+      ]
+    }
+  ]
+}

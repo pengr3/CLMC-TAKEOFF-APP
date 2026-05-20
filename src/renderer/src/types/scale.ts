@@ -8,7 +8,7 @@
 
 export type ScaleUnit = 'mm' | 'cm' | 'm' | 'in' | 'ft'
 
-export type CalibMode = 'idle' | 'pre-choice' | 'drawing' | 'confirming' | 'verifying'
+export type CalibMode = 'idle' | 'drawing' | 'confirming' | 'verifying'
 
 export interface PageScale {
   pixelsPerMm: number
