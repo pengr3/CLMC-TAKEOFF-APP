@@ -186,6 +186,7 @@ None.
 | 260519-dbl | Remove double-click finish (Linear/Wall/Area/Perimeter); fix finishLinear/finishPolygon error paths to keep mode:'drawing' after degenerate-shape attempt | 2026-05-19 | a0d311c | debug/rapid-click-dblclick-modal.md |
 | 260519-drg | Skip 4px drag-suppression guard when markup tool active — rapid clicks while hand moving now all register; guard remains for select mode (rubber-band) | 2026-05-19 | af83fc4 | debug/rapid-click-movement-threshold.md |
 | 260520-p2g | Phase 11 gap — Replace ScalePopup tab-switcher with pre-choice gate dialog (Draw line / Type ratio 1:N) | 2026-05-20 | 4ec8846 | [260520-p2g-phase11-prechoice-gate](./quick/260520-p2g-phase11-prechoice-gate/) |
+| 260520-rrf | Scrap ratio scale feature — revert to draw-line only; delete ScaleMethodDialog, remove pre-choice CalibMode, clean ScalePopup, strip scale-math ratio exports | 2026-05-20 | 4156dee | [260520-rrf-remove-ratio-feature](./quick/260520-rrf-remove-ratio-feature/) |
 
 ### Roadmap Evolution
 
