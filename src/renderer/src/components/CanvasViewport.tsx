@@ -235,7 +235,6 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   const currentPage = useViewerStore((s) => s.currentPage)
   const pdfDocument = useViewerStore((s) => s.pdfDocument)
   const totalPages = useViewerStore((s) => s.totalPages)
-  const pdfDocument = useViewerStore((s) => s.pdfDocument)
   const getViewport = useViewerStore((s) => s.getViewport)
   const setViewport = useViewerStore((s) => s.setViewport)
   // B4 fix: subscribe to the zoom primitive so changes trigger a re-render.
