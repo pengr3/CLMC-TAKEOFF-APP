@@ -185,6 +185,7 @@ None.
 | 260518-rcp | Fix rapid-click drops — switch markup-tool click suppression from sticky-flag to delta-at-click-time (follow-up to 665835f) | 2026-05-18 | a8c37eb | [260518-rcp-fix-rapid-click-drops](./quick/260518-rcp-fix-rapid-click-drops/) |
 | 260519-dbl | Remove double-click finish (Linear/Wall/Area/Perimeter); fix finishLinear/finishPolygon error paths to keep mode:'drawing' after degenerate-shape attempt | 2026-05-19 | a0d311c | debug/rapid-click-dblclick-modal.md |
 | 260519-drg | Skip 4px drag-suppression guard when markup tool active — rapid clicks while hand moving now all register; guard remains for select mode (rubber-band) | 2026-05-19 | af83fc4 | debug/rapid-click-movement-threshold.md |
+| 260520-p2g | Phase 11 gap — Replace ScalePopup tab-switcher with pre-choice gate dialog (Draw line / Type ratio 1:N) | 2026-05-20 | 4ec8846 | [260520-p2g-phase11-prechoice-gate](./quick/260520-p2g-phase11-prechoice-gate/) |
 
 ### Roadmap Evolution
 
