@@ -548,22 +548,25 @@ if (bodyDraggedRef.current) {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `clearVertexEdit()` also be called when activeTool changes away from 'select'?**
    - What we know: selecting a markup tool (e.g. linear) changes `activeTool` but doesn't clear `selectedMarkupIds` today
    - What's unclear: is it confusing to have handles visible while a markup tool is active?
    - Recommendation: yes — clear vertex edit in the `activeTool` change useEffect that already handles `cancelMarkup()`. Add `clearVertexEdit()` in the same effect when `!isMarkupTool(activeTool)`.
+   - **RESOLVED:** yes, clear vertex edit mode when activeTool changes away from 'select'. Add `clearVertexEdit()` in a dedicated `useEffect` that runs when `activeTool !== 'select'`.
 
 2. **Preview rendering approach for body drag: override-points prop vs. ghost overlay?**
    - What we know: override-points prop requires touching 5 markup components; ghost overlay can be rendered separately
    - What's unclear: either works; which is simpler to implement and test
    - Recommendation: override-points prop is simpler because it reuses existing render code with minimal changes; ghost overlay would duplicate rendering logic
+   - **RESOLVED:** use overridePoints prop on markup components. Ghost overlay adds unnecessary complexity — the override-prop approach reuses existing render code with minimal changes.
 
 3. **Should vertex edit mode survive a single rubber-band re-selection?**
    - What we know: clicking empty stage in vertex edit mode should commit (D-06 "click outside")
    - What's unclear: rubber-band re-selection in vertex edit mode is not covered by D-04/D-06
    - Recommendation: rubber-band selection exits vertex edit mode (same as click-outside) and sets the new selection. The rubber-band drag suppressor (`rubberBandDraggedRef`) already clears selection; add `clearVertexEdit()` alongside it.
+   - **RESOLVED:** no; entering rubber-band (mousedown on empty canvas) clears vertexEditMarkupId. Add `clearVertexEdit()` at the point where rubber-band drag is detected in `handleStageMouseDown`.
 
 ---
 
