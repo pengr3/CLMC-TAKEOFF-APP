@@ -22,7 +22,8 @@
 - [x] **Phase 8: Markup Workflow Acceleration and Wall Measurement Tool** - Chain markup mode, wall area measurement tool, per-item show/hide visibility toggle, and rifle-scope crosshair cursor (completed 2026-05-15)
 - [x] **Phase 9: Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion** - Click-to-select + Delete-key deletion, drag-to-multi-select with group delete, all modals centered and draggable, ribbon-style tabbed toolbar (Home/Page/Tools/View/Estimating/Settings/Help), and Enter/double-click to finish in-progress markup (completed 2026-05-18)
 - [x] **Phase 10: Granular Undo Foundation** - Polish undo so that Ctrl+Z during an in-progress multi-point markup (linear, area, perimeter, wall) pops only the last placed point rather than deleting the entire markup; establish this step-level undo contract as the foundation for all future undo behavior (completed 2026-05-19)
-- [ ] **Phase 11: Scale Ratio Input** - Add a "Type ratio" tab to ScalePopup so estimators can enter a 1:N scale directly from the drawing title block — no need to draw a calibration line when the scale is already printed on the plan
+- [x] **Phase 11: Scale Ratio Input** - Scrapped — ratio calibration removed after UAT; draw-line method is sufficient (completed/closed 2026-05-20)
+- [ ] **Phase 12: Markup Geometry Editing** - Vertex edit mode (click selected markup again → drag square handles to reposition points) and drag-to-translate (drag selected markup to move it); group move for multi-select; all changes undoable via existing command pattern
 
 ---
 
@@ -334,6 +335,27 @@ Plans:
 - [x] 09-04-PLAN.md — Ribbon toolbar RibbonButton + RibbonToolbar (Wave 2)
 - [x] 09-05-PLAN.md — Manual UAT and phase closure (Wave 3) — 12/12 PASS; gaps fixed via quick task 260518-uat (commit 4db36bb) and debug session lmb-hold-drops-markup-on-release (commit 665835f)
 
+### Phase 12: Markup Geometry Editing
+
+**Goal:** Estimators can directly adjust placed markups without deleting and redrawing — vertex edit mode (click a selected markup again to enter handle-drag mode, reposition any vertex) and drag-to-translate (drag a selected markup to move its entire shape); group move works when multiple markups are selected; all edits are undoable via Ctrl+Z.
+**Depends on:** Phase 9 (selection model), Phase 10 (undo foundation)
+**Requirements:** No new v1 requirements (quality-of-life enhancement from v1.1 GAP-T1-01 + GAP-T1-02)
+**Success Criteria** (what must be TRUE):
+  1. Clicking an already-selected markup enters vertex edit mode — square handles appear at each vertex; dragging a handle repositions that vertex and the shape updates live
+  2. Pressing Enter or clicking outside the markup commits the vertex changes; Escape restores original vertex positions
+  3. Dragging a selected markup (not on a handle) translates the entire shape — 4px movement threshold prevents accidental moves on precise clicks
+  4. When multiple markups are selected, dragging any one moves all selected shapes by the same delta (group move)
+  5. All geometry edits (vertex move, single translate, group translate) are undoable with Ctrl+Z as a single action
+**Plans**: 7 plans (12-00 through 12-06) across 5 waves
+Plans:
+- [ ] 12-00-PLAN.md -- Wave 0 RED test stubs (move-vertex-command, move-markups-command, vertex-edit-mode)
+- [ ] 12-01-PLAN.md -- Types + store actions (move-vertex, move-markups) + viewerStore vertexEditMarkupId
+- [ ] 12-02-PLAN.md -- Markup component drag props + VertexHandleOverlay component
+- [ ] 12-03-PLAN.md -- CanvasViewport: refs, vertex-edit activation, keyboard handlers, handle layer
+- [ ] 12-04-PLAN.md -- CanvasViewport: body-drag translate + group move (D-07/D-08)
+- [ ] 12-05-PLAN.md -- CanvasViewport: vertex drag flow + click-outside commit (D-04..D-09 complete)
+- [ ] 12-06-PLAN.md -- UAT checkpoint and phase closure
+
 ### Phase 11: Scale Ratio Input
 
 **Goal:** Estimators can enter a drawing scale directly from the title block (e.g. 1:100) without drawing a calibration line — a new "Type ratio" tab inside `ScalePopup.tsx` auto-derives the sheet size from PDF metadata and computes pixelsPerMm from the ratio.
@@ -386,7 +408,8 @@ Plans:
 | 8. Markup Workflow Acceleration and Wall Measurement Tool | 8/8 | Complete | 2026-05-15 |
 | 9. Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion | 6/6 | Complete | 2026-05-18 |
 | 10. Granular Undo Foundation | 2/2 | Complete    | 2026-05-19 |
-| 11. Scale Ratio Input | 1/2 | In Progress | — |
+| 11. Scale Ratio Input | —/— | Scrapped | 2026-05-20 |
+| 12. Markup Geometry Editing | 0/7 | In Progress | — |
 
 ---
 
