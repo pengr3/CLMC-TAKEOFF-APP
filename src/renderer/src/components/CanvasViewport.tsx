@@ -232,6 +232,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   const displayPageSize = pageSize ?? lastValidRef.current?.pageSize ?? null
 
   const currentPage = useViewerStore((s) => s.currentPage)
+  const pdfDocument = useViewerStore((s) => s.pdfDocument)
   const totalPages = useViewerStore((s) => s.totalPages)
   const getViewport = useViewerStore((s) => s.getViewport)
   const setViewport = useViewerStore((s) => s.setViewport)
@@ -1243,13 +1244,16 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         )}
       </Stage>
 
-      {/* ScalePopup: confirm mode — shown after user draws a calibration line */}
-      {calibState.mode === 'confirming' && calibState.popupScreenPos && !calibState.isVerify && (
+      {/* ScalePopup: confirm mode — shown when drawing a line OR after line drawn (ratio tab available immediately) */}
+      {(calibState.mode === 'confirming' || calibState.mode === 'drawing') && !calibState.isVerify && (
         <ScalePopup
           mode="confirm"
-          screenPos={calibState.popupScreenPos}
+          screenPos={calibState.popupScreenPos ?? { x: 0, y: 0 }}
           containerSize={containerSize}
           pixelLength={calibState.linePixelLength}
+          pdfDocument={pdfDocument}
+          pageWidthPx={displayPageSize?.width}
+          currentPage={currentPage}
           onConfirm={(pixelsPerMm: number, displayUnit: ScaleUnit) => {
             setScale(currentPage, pixelsPerMm, displayUnit)
             const ratioText = formatScaleRatio(pixelsPerMm)
