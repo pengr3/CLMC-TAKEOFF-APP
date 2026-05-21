@@ -99,6 +99,17 @@ export type MarkupCommand =
         newPoints: StagePoint[]
       }>
     }
+  | {
+      type: 'reopen-recommit'
+      /** Original markup that was removed from the page on re-open trigger (D-14). */
+      oldMarkup: Markup
+      /** New markup committed by Enter after point edits during re-open (D-15). */
+      newMarkup: Markup
+      /**
+       * Page is implicit: oldMarkup.page === newMarkup.page. Re-open never crosses
+       * pages (A4 / D-17 condition 5 — same-page guard in the reopen handler).
+       */
+    }
 
 export const CATEGORY_PALETTE = [
   '#0078d4',
@@ -114,3 +125,16 @@ export const CATEGORY_PALETTE = [
 export const UNDO_STACK_MAX = 50
 export const LABEL_FONT_FLOOR = 10
 export const LABEL_FONT_BASE = 14
+
+/**
+ * Phase 13 (D-12): true for multi-point markups (linear / area / perimeter / wall),
+ * false for count pins. Used by the post-commit re-open trigger to discriminate
+ * eligibility without scattered string-literal comparisons.
+ *
+ * Mirrors the isMarkupTool pattern in src/renderer/src/types/viewer.ts.
+ */
+export function isMultiPointMarkup(
+  markup: Markup
+): markup is LinearMarkup | AreaMarkup | PerimeterMarkup | WallMarkup {
+  return markup.type !== 'count'
+}
