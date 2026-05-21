@@ -860,6 +860,16 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
           rubberBandDraggedRef.current = false
           return
         }
+        // Phase 12 (12-04): body-drag suppression — mirrors rubberBandDraggedRef pattern.
+        // Konva fires click after a body-drag mouseup (no internal Konva drag was active);
+        // without this guard, e.target on the dragged markup would route through the
+        // existing markup-onClick flow which is fine, BUT if the drag released over
+        // empty stage area (e.target === stage), clearSelection() would wipe the
+        // selection we just translated. Either case: suppress the post-drag click.
+        if (bodyDraggedRef.current) {
+          bodyDraggedRef.current = false
+          return
+        }
         if (e.target === stageRef.current) {
           clearSelection()
         }
@@ -990,6 +1000,65 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // (Wave 1) — this handler only sets selectedMarkupIds and does not delete.
   // Reads rubberBandRef.current so this callback is stable across rubber-band updates.
   const handleStageMouseUp = useCallback(() => {
+    // Phase 12 (12-04): body-drag commit — fires BEFORE the rubber-band check below
+    // because a body drag and a rubber-band drag are mutually exclusive at mouseDown
+    // (the body branch returns early before starting rubber-band), but defensive
+    // ordering keeps the body commit path isolated.
+    const bd = bodyDragRef.current
+    if (bd) {
+      const stage = stageRef.current
+      const pointer = stage?.getPointerPosition()
+      if (stage && pointer) {
+        const pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+        const dx = pt.x - bd.origin.x
+        const dy = pt.y - bd.origin.y
+        // D-09: 4px movement threshold — below threshold = click, above = real drag.
+        const moved = Math.abs(dx) > 4 || Math.abs(dy) > 4
+        if (moved) {
+          // Build the move-markups command entries. Read pageMarkups from the store
+          // snapshot, NOT the closed-over React state — stale closure anti-pattern (per
+          // .planning/phases/12-markup-geometry-editing/.continue-here.md blocking pattern).
+          const currentPageMarkups = useMarkupStore.getState().pageMarkups[currentPage] ?? []
+          const moves: Array<{
+            markupId: string
+            page: number
+            oldPoints: StagePoint[]
+            newPoints: StagePoint[]
+          }> = []
+          for (const id of bd.ids) {
+            const markup = currentPageMarkups.find((m) => m.id === id)
+            if (!markup) continue
+            if (markup.type === 'count') {
+              moves.push({
+                markupId: id,
+                page: markup.page,
+                oldPoints: [markup.point],
+                newPoints: [{ x: markup.point.x + dx, y: markup.point.y + dy }]
+              })
+            } else {
+              moves.push({
+                markupId: id,
+                page: markup.page,
+                oldPoints: [...markup.points],
+                newPoints: markup.points.map((p) => ({ x: p.x + dx, y: p.y + dy }))
+              })
+            }
+          }
+          // StrictMode-safe: dispatch OUTSIDE setState (PATTERNS.md StrictMode section).
+          // Single translate (moves.length === 1) and group move (moves.length === N) use
+          // the same single moveMarkups command per D-08 — one undo entry covers both.
+          if (moves.length > 0) {
+            useMarkupStore.getState().moveMarkups(moves)
+          }
+          // Suppress Konva click after a real drag (Pitfall 2 — mirrors rubberBandDraggedRef).
+          bodyDraggedRef.current = true
+        }
+      }
+      bodyDragRef.current = null
+      setDragPreview(null)
+      return  // done — do not fall through to rubber-band handler
+    }
+
     const rb = rubberBandRef.current
     if (!rb) return
     // Only treat as a rubber-band drag when the mouse moved more than 4px in any direction.
@@ -1004,7 +1073,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       rubberBandDraggedRef.current = true
     }
     setRubberBand(null)
-  }, [pageMarkups, setSelectedMarkupIds, setRubberBand])
+  }, [pageMarkups, currentPage, setSelectedMarkupIds, setRubberBand, setDragPreview])
 
 
   // Determine cursor based on interaction state.
