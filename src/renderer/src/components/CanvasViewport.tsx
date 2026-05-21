@@ -27,6 +27,7 @@ import { VertexHandleOverlay } from './markup/VertexHandleOverlay'
 import { COLORS } from '../lib/constants'
 import { formatScaleRatio } from '../lib/scale-math'
 import { setMarkupUndoHandler, setMarkupRedoHandler } from '../lib/markup-undo-ref'
+import { setMarkupReopenHandler, getReopenSnapshot, setReopenSnapshot } from '../lib/markup-reopen-ref'
 import {
   polylineLength,
   polygonArea,
@@ -36,6 +37,7 @@ import {
 import { isMarkupTool } from '../types/viewer'
 import type { ScaleUnit } from '../types/scale'
 import type { Markup, CountMarkup, LinearMarkup as LinearMarkupType, AreaMarkup as AreaMarkupType, PerimeterMarkup as PerimeterMarkupType, WallMarkup as WallMarkupType } from '../types/markup'
+import { isMultiPointMarkup } from '../types/markup'
 
 // Stable empty-array reference for the pageMarkups selector fallback.
 // A fresh `[]` literal inside a Zustand selector breaks useSyncExternalStore's
@@ -187,6 +189,8 @@ export interface CanvasViewportProps {
   pulse?: { matches: Markup[]; color: string } | null
   /** Phase 6: called when the pulse animation completes OR page changes (clears pulse). */
   onPulseComplete?: () => void
+  /** Phase 13 (D-11): Fire when a post-commit re-open transition succeeds. App.tsx owns the toast slot. */
+  onReopenToast?: () => void
 }
 
 export function CanvasViewport(props: CanvasViewportProps = {}) {
@@ -325,6 +329,61 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       setMarkupRedoHandler(null)
     }
   }, [repushLastPoint])
+
+  // Phase 13: register the post-commit re-open handler. useKeyboardShortcuts calls
+  // getMarkupReopenHandler() between the in-progress draw-undo (Phase 10) and the
+  // committed-markup store.undo() (Phase 3). The handler applies D-17 all 5 conditions
+  // and on success snapshots the original, removes it silently, pops the 'place'
+  // command, clears selection/vertex-edit, hands off to useMarkupTool via activatePreset,
+  // and fires the toast.
+  useEffect(() => {
+    const handler = (): boolean => {
+      // D-17 condition 1: no in-progress draw. (Phase 10's getMarkupUndoHandler would have
+      // returned true if drawing was active — this is defensive.)
+      if (markupState.mode !== 'idle') return false
+      // D-17 condition 4: no vertex-edit active.
+      if (useViewerStore.getState().vertexEditMarkupId !== null) return false
+      // D-17 condition 2: top of stack is 'place' of a multi-point markup.
+      const store = useMarkupStore.getState()
+      const top = store.undoStack.at(-1)
+      if (!top || top.type !== 'place') return false
+      if (!isMultiPointMarkup(top.markup)) return false  // D-12 — count pins excluded
+      // D-17 condition 5 (A4): markup must be on currentPage.
+      if (top.markup.page !== useViewerStore.getState().currentPage) return false
+      // D-17 condition 3: markup still exists in store.
+      const stillExists = (store.pageMarkups[top.markup.page] ?? []).some((m) => m.id === top.markup.id)
+      if (!stillExists) return false
+
+      // All five conditions satisfied — fire the re-open transition.
+      const original = top.markup
+      setReopenSnapshot(original)
+      store.removeForReopen(original)
+      // D-16: pop the original 'place' command from undoStack. It becomes part of the
+      // reopen-recommit command (Plan 13-02's commitReopen pushes it as one entry on Enter),
+      // not a separate undo entry. On Esc-cancel the Esc handler below re-pushes it.
+      useMarkupStore.setState((s) => ({ undoStack: s.undoStack.slice(0, -1) }))
+      // D-24: clear selection + vertex-edit so the canvas reads clean.
+      clearSelection()
+      clearVertexEdit()
+      // Map markup.type 1:1 to the tool string activatePreset expects. isMultiPointMarkup
+      // already excluded 'count' so this narrow is safe.
+      const tool = original.type as 'linear' | 'area' | 'perimeter' | 'wall'
+      const cat = store.getCategory(original.categoryId)
+      activatePreset(tool, {
+        name: original.name,
+        categoryName: cat?.name ?? '',
+        color: original.color,
+        points: original.type === 'count' ? undefined : original.points,
+        wallHeight: original.type === 'wall' ? original.wallHeight : undefined
+      })
+      // D-11: fire the toast via app-level callback.
+      props.onReopenToast?.()
+      return true
+    }
+    setMarkupReopenHandler(handler)
+    // Pitfall 9 / T-13-03-01: cleanup MUST set ref to null to survive StrictMode double-mount.
+    return () => setMarkupReopenHandler(null)
+  }, [markupState.mode, activatePreset, clearSelection, clearVertexEdit, props.onReopenToast])
 
   // Local state for polygon start-vertex hover (drives close-on-click affordance)
   const [isOverStartPoint, setIsOverStartPoint] = useState(false)
@@ -590,6 +649,19 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // Dismiss hover tooltip + context menu on page change (plan 03.1-05)
   // Phase 6: also clear the panel-driven pulse on page change (T-06-07-02).
   useEffect(() => {
+    // Phase 13 (D-26 / Pitfall 1): page navigation during re-open treats as implicit Esc —
+    // restore the original markup, re-push the 'place' command, clear the snapshot, and
+    // reset the in-progress draw state. Without this, the user would cross to another
+    // page mid-re-open and lose the original.
+    const reopenSnapshot = getReopenSnapshot()
+    if (reopenSnapshot) {
+      useMarkupStore.getState().restoreFromReopen(reopenSnapshot)
+      useMarkupStore.setState((s) => ({
+        undoStack: [...s.undoStack, { type: 'place', markup: reopenSnapshot }]
+      }))
+      setReopenSnapshot(null)
+      cancelMarkup()
+    }
     setHoverState(null)
     setTooltipShown(false)
     setContextMenu(null)
@@ -647,6 +719,13 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
           cancelVertexEdit()
           return
         }
+        // Phase 13: post-commit re-open cancel. NOTE: the snapshot restore (markup,
+        // place command, setReopenSnapshot(null)) is owned by useMarkupTool's window
+        // keydown listener so it fires even when CanvasViewport is not mounted (test
+        // harness compatibility). Here we ONLY handle the activeTool reset, which
+        // requires the outer-component setActiveTool that useMarkupTool does not own.
+        // The fall-through to the mode-based cancel branch handles cancelMarkup —
+        // markupState.mode === 'drawing' is the post-activatePreset state.
         if (
           markupState.mode === 'drawing' ||
           markupState.mode === 'confirming' ||

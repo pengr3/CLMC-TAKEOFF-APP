@@ -33,6 +33,9 @@ import type { WallMarkup } from './types/markup'
 function App(): React.JSX.Element {
   const totalPages = useViewerStore((s) => s.totalPages)
   const fileName = useViewerStore((s) => s.fileName)
+  // Phase 13 (Pitfall 5): subscribe to currentPage so the page-change useEffect below can
+  // clear reopenToast when the user navigates while the toast is showing.
+  const currentPage = useViewerStore((s) => s.currentPage)
   const currentFilePath = useProjectStore((s) => s.currentFilePath)
   const {
     openByExtension,
@@ -97,6 +100,9 @@ function App(): React.JSX.Element {
   } | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
 
+  // Phase 13 (D-11): toast slot fires on post-commit re-open via CanvasViewport.onReopenToast.
+  const [reopenToast, setReopenToast] = useState<string | null>(null)
+
   const displayFilename = currentFilePath
     ? (currentFilePath.split(/[\\/]/).pop() ?? 'project')
     : (fileName ?? 'project')
@@ -130,6 +136,21 @@ function App(): React.JSX.Element {
     const t = window.setTimeout(() => setExportToast(null), 2000)
     return () => window.clearTimeout(t)
   }, [exportToast])
+
+  // Phase 13 (D-19): 2500ms auto-dismiss — slightly longer than save/export because users
+  // need time to read the action prompt ("press Enter to commit"). Mirror the parent-owns-
+  // lifecycle pattern used by saveToast / exportToast above.
+  useEffect(() => {
+    if (!reopenToast) return
+    const t = window.setTimeout(() => setReopenToast(null), 2500)
+    return () => window.clearTimeout(t)
+  }, [reopenToast])
+
+  // Phase 13 (Pitfall 5): clear re-open toast on page navigation. CanvasViewport's
+  // page-nav useEffect also restores the snapshot — the toast must not linger.
+  useEffect(() => {
+    setReopenToast(null)
+  }, [currentPage])
 
   useCloseGuard(() => {
     if (!useProjectStore.getState().isDirty) {
@@ -310,6 +331,7 @@ function App(): React.JSX.Element {
                   hoverMatches={hoverMatches}
                   pulse={pulse}
                   onPulseComplete={clearPulse}
+                  onReopenToast={() => setReopenToast('Shape re-opened — continue drawing or press Enter to commit')}
                 />
             }
 
@@ -377,6 +399,32 @@ function App(): React.JSX.Element {
                 <span>{copyToast}</span>
                 <button
                   onClick={() => setCopyToast(null)}
+                  style={{
+                    background: 'transparent', border: 'none',
+                    color: '#888', cursor: 'pointer', fontSize: 13
+                  }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+
+            {/* Phase 13 (D-11 / D-20): post-commit re-open toast. bottom: 148 avoids stacking
+                collision with saveToast (16), exportToast (60), copyToast (104). */}
+            {reopenToast !== null && (
+              <div
+                role="status"
+                aria-live="polite"
+                style={{
+                  position: 'absolute', bottom: 148, left: '50%', transform: 'translateX(-50%)',
+                  padding: '8px 16px', background: '#252526', border: '1px solid #3c3c3c',
+                  borderRadius: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.4)', zIndex: 15,
+                  display: 'flex', gap: 16, fontSize: 13, color: '#cccccc'
+                }}
+              >
+                <span>{reopenToast}</span>
+                <button
+                  onClick={() => setReopenToast(null)}
                   style={{
                     background: 'transparent', border: 'none',
                     color: '#888', cursor: 'pointer', fontSize: 13
