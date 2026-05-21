@@ -468,12 +468,34 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // Plan 09-02: single-click selection on any markup type.
   // D-03 guard: placement always wins — clicks during a non-'select' tool are
   // ignored here so placement/draw flows behave exactly as before.
+  //
+  // Phase 12 (D-04): second click on an already-selected single non-count markup
+  // enters vertex-edit mode. Count pins translate only (D-09) — they short-circuit
+  // to plain selection. The original points are snapshotted into
+  // vertexEditOriginalRef BEFORE entering vertex edit so cancelVertexEdit() can
+  // restore them on Escape without a store round-trip.
   const handleMarkupClick = useCallback(
     (id: string) => {
       if (activeTool !== 'select') return
+
+      // D-04: second click on an already-selected single markup enters vertex edit mode.
+      // Guard: count pins translate-only — no vertex edit (D-09 rule).
+      const markup = pageMarkups.find((m) => m.id === id)
+      if (!markup) return
+
+      if (markup.type !== 'count' && selectedMarkupIds.length === 1 && selectedMarkupIds[0] === id) {
+        // Store the original points for Escape-restore BEFORE entering vertex edit.
+        vertexEditOriginalRef.current = [...markup.points]
+        setVertexEditMarkupId(id)
+        return
+      }
+
+      // First click (or different markup): clear vertex edit, select the clicked markup.
+      clearVertexEdit()
+      vertexEditOriginalRef.current = null
       setSelectedMarkupIds([id])
     },
-    [activeTool, setSelectedMarkupIds]
+    [activeTool, selectedMarkupIds, pageMarkups, setSelectedMarkupIds, setVertexEditMarkupId, clearVertexEdit]
   )
 
   // Confirmation toast state
