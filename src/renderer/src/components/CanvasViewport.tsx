@@ -510,33 +510,35 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // D-03 guard: placement always wins — clicks during a non-'select' tool are
   // ignored here so placement/draw flows behave exactly as before.
   //
-  // Phase 12 (D-04): second click on an already-selected single non-count markup
-  // enters vertex-edit mode. Count pins translate only (D-09) — they short-circuit
-  // to plain selection. The original points are snapshotted into
+  // Phase 12 (D-04 revised post-UAT): single click on a line markup (linear/area/
+  // perimeter/wall) enters vertex-edit mode immediately — the vertex handles ARE
+  // the selection feedback, so the accent-color halo (which visually engulfs the
+  // 8px handles at low zoom) is no longer rendered for single-selected line markups.
+  // Count pins still translate-only (no vertex edit), so they keep the halo as
+  // their selection indicator. The original points are snapshotted into
   // vertexEditOriginalRef BEFORE entering vertex edit so cancelVertexEdit() can
   // restore them on Escape without a store round-trip.
   const handleMarkupClick = useCallback(
     (id: string) => {
       if (activeTool !== 'select') return
 
-      // D-04: second click on an already-selected single markup enters vertex edit mode.
-      // Guard: count pins translate-only — no vertex edit (D-09 rule).
       const markup = pageMarkups.find((m) => m.id === id)
       if (!markup) return
 
-      if (markup.type !== 'count' && selectedMarkupIds.length === 1 && selectedMarkupIds[0] === id) {
-        // Store the original points for Escape-restore BEFORE entering vertex edit.
+      // Line markup → enter vertex edit on first click (handles are the feedback).
+      if (markup.type !== 'count') {
         vertexEditOriginalRef.current = [...markup.points]
         setVertexEditMarkupId(id)
+        setSelectedMarkupIds([id])
         return
       }
 
-      // First click (or different markup): clear vertex edit, select the clicked markup.
+      // Count pin (no vertices) → select only; halo is the visual feedback.
       clearVertexEdit()
       vertexEditOriginalRef.current = null
       setSelectedMarkupIds([id])
     },
-    [activeTool, selectedMarkupIds, pageMarkups, setSelectedMarkupIds, setVertexEditMarkupId, clearVertexEdit]
+    [activeTool, pageMarkups, setSelectedMarkupIds, setVertexEditMarkupId, clearVertexEdit]
   )
 
   // Phase 12 (D-06): commit vertex edit — CLEANUP ONLY.
@@ -1670,23 +1672,34 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
           </Layer>
         )}
 
-        {/* Plan 09-02 / D-02: selection ring Layer. Reuses HoverRing with the
-            accent color at full opacity so a selected markup reads as a solid
-            blue outer ring while the panel-hover ring (white @ 40%) sits at a
-            different radius/opacity for visual distinction.
+        {/* Plan 09-02 / D-02 + Phase 12 D-04 revised post-UAT: selection ring Layer.
+            Originally rendered for every selected markup. After Phase 12 the
+            vertex handles themselves are the feedback for a single-selected line
+            markup (linear/area/perimeter/wall), so the halo would visually engulf
+            the 8px handles at low zoom. The halo is now reserved for:
+              • count pins (no vertices, so handles can't substitute), and
+              • multi-selection (≥2 markups, where each member needs a visual).
             CRITICAL: listening={false} on the Layer — without it the selection
             ring shapes would intercept clicks meant for the markup Groups in
-            Layer 1b below, breaking single-click selection and the
-            highlight-overlay-listening.test.ts regression contract (D-11). */}
+            Layer 1b below, breaking the highlight-overlay-listening.test.ts
+            regression contract (D-11). */}
         <Layer listening={false}>
-          {selectedMarkupIds.length > 0 && (
-            <HoverRing
-              markups={pageMarkups.filter((m) => selectedMarkupIds.includes(m.id))}
-              currentZoom={currentZoom}
-              color={COLORS.accent}
-              opacity={1.0}
-            />
-          )}
+          {selectedMarkupIds.length > 0 && (() => {
+            const selected = pageMarkups.filter((m) => selectedMarkupIds.includes(m.id))
+            const haloed =
+              selected.length > 1
+                ? selected
+                : selected.filter((m) => m.type === 'count')
+            if (haloed.length === 0) return null
+            return (
+              <HoverRing
+                markups={haloed}
+                currentZoom={currentZoom}
+                color={COLORS.accent}
+                opacity={1.0}
+              />
+            )
+          })()}
         </Layer>
 
         {/* Layer 2: Transient interactive polygon drawing (only mounted while drawing area/perimeter) */}
