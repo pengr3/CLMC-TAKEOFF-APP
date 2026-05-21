@@ -8,6 +8,7 @@ import { useViewportControls } from '../hooks/useViewportControls'
 import { useKeyboardShortcuts, isTextInputActive } from '../hooks/useKeyboardShortcuts'
 import { usePdfDocument } from '../hooks/usePdfDocument'
 import { useCalibrationMode } from '../hooks/useCalibrationMode'
+import type { StagePoint } from '../hooks/useCalibrationMode'
 import { useMarkupTool } from '../hooks/useMarkupTool'
 import { useMarkupStore } from '../stores/markupStore'
 import { ScalePopup } from './ScalePopup'
@@ -22,6 +23,7 @@ import { PerimeterMarkup } from './markup/PerimeterMarkup'
 import { WallMarkup } from './WallMarkup'
 import { HoverRing } from './HoverRing'
 import { PulseHighlight } from './PulseHighlight'
+import { VertexHandleOverlay } from './markup/VertexHandleOverlay'
 import { COLORS } from '../lib/constants'
 import { formatScaleRatio } from '../lib/scale-math'
 import { setMarkupUndoHandler, setMarkupRedoHandler } from '../lib/markup-undo-ref'
@@ -285,6 +287,12 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   const setSelectedMarkupIds = useViewerStore((s) => s.setSelectedMarkupIds)
   const clearSelection = useViewerStore((s) => s.clearSelection)
 
+  // Phase 12: vertex-edit mode store subscriptions (Wave 1 foundation).
+  // Drives VertexHandleOverlay mount/unmount and gates Enter/Escape behaviour.
+  const vertexEditMarkupId = useViewerStore((s) => s.vertexEditMarkupId)
+  const setVertexEditMarkupId = useViewerStore((s) => s.setVertexEditMarkupId)
+  const clearVertexEdit = useViewerStore((s) => s.clearVertexEdit)
+
   const {
     state: markupState,
     activate: activateMarkup,
@@ -337,6 +345,34 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // when _mouseListenClick=true, i.e. no Konva drag active) from wiping the selection.
   const rubberBandDraggedRef = useRef(false)
 
+  // Phase 12: drag-preview state for live rendering during vertex-drag or body-drag.
+  // setState drives re-renders; refs give event handlers stable reads without re-subscribing.
+  // - { type: 'vertex' } — single-markup vertex drag: preview points override that markup's points
+  //   via overridePoints prop (no store write).
+  // - { type: 'body' } — translate (single or group): per-markup pixel deltas applied at render.
+  // Wave 3b (plan 12-04) writes 'body' previews; Wave 3c (plan 12-05) writes 'vertex' previews.
+  type DragPreview =
+    | { type: 'vertex'; markupId: string; vertexIndex: number; points: StagePoint[] }
+    | { type: 'body'; deltas: Record<string, { x: number; y: number }> }
+    | null
+
+  const [dragPreview, setDragPreviewState] = useState<DragPreview>(null)
+  const dragPreviewRef = useRef<DragPreview>(null)
+  const setDragPreview = useCallback((val: DragPreview) => {
+    dragPreviewRef.current = val
+    setDragPreviewState(val)
+  }, [])
+
+  // Phase 12: markup body mousedown ref — set by markup components' onMarkupMouseDown prop.
+  // CanvasViewport reads this in handleStageMouseDown (before rubber-band check) to detect
+  // body-drag intent. Cleared immediately on read (consume-on-read pattern). Wired in 12-04.
+  const markupBodyDownRef = useRef<string | null>(null)
+
+  // Phase 12: snapshot of points when vertex edit mode was entered.
+  // Used by cancelVertexEdit() to restore on Escape (RESEARCH Finding 9).
+  // Set ONCE at session start in handleMarkupClick; never updated mid-session.
+  const vertexEditOriginalRef = useRef<StagePoint[] | null>(null)
+
   // Selection-mode click-vs-hold disambiguation. Konva fires `click` on every mouseup
   // that wasn't preceded by an internal Stage drag. After commit 4db36bb removed
   // LMB from Konva.dragButtons during markup tools, every mouseup fires `click` —
@@ -375,6 +411,17 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       cancelMarkup()
     }
   }, [activeTool, markupState.toolType, markupState.mode, activateMarkup, cancelMarkup])
+
+  // Phase 12: clear vertex-edit mode when activeTool moves away from 'select'.
+  // Separate effect so it does not entangle with the markup-tool sync above.
+  // Drag preview is also cleared so any in-progress overlay disappears.
+  useEffect(() => {
+    if (activeTool !== 'select') {
+      clearVertexEdit()
+      setDragPreview(null)
+      vertexEditOriginalRef.current = null
+    }
+  }, [activeTool, clearVertexEdit, setDragPreview])
 
   // Subscribe to markupStore for rendering committed markups on the current page
   const pageMarkups = useMarkupStore((s) => s.pageMarkups[currentPage] ?? EMPTY_MARKUPS)
@@ -452,6 +499,11 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     // persist across navigation. clearHover is handled by App.tsx via setHoverMatches([])
     // through TotalsPanel's onRowHover when the mouse leaves the row.
     props.onPulseComplete?.()
+    // Phase 12: clear vertex-edit mode and drag-preview on page change so handles
+    // and live drag overlays don't persist across navigation.
+    clearVertexEdit()
+    setDragPreview(null)
+    vertexEditOriginalRef.current = null
   }, [currentPage])
 
   // Dismiss toast when a new calibration run starts (MEDIUM #3)
