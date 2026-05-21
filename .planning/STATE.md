@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in_progress
-stopped_at: context exhaustion at 76% (2026-05-20)
-last_updated: "2026-05-20T09:50:56.665Z"
-last_activity: 2026-05-19
+status: Phase 12 complete
+stopped_at: Phase 12 complete — 7/7 plans, 14/14 UAT scenarios PASS (post-UAT fixes 000f9e3, 564f0cb, 72094dc)
+last_updated: "2026-05-21T16:45:00.000Z"
+last_activity: 2026-05-21
 progress:
-  total_phases: 15
-  completed_phases: 15
-  total_plans: 81
-  completed_plans: 81
+  total_phases: 16
+  completed_phases: 16
+  total_plans: 88
+  completed_plans: 88
   percent: 100
 ---
 
@@ -26,23 +26,23 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 11 planned — Scale Ratio Input (v1.1 first phase)
+**Current Focus:** Phase 12 complete — Markup Geometry Editing (vertex edit + drag-to-translate + group move + post-UAT D-04 revision)
 
 ---
 
 ## Current Position
 
-Phase: 11
-Plan: Not started (Ready to execute)
+Phase: 12 (markup-geometry-editing) — COMPLETE 2026-05-21
+Plan: 7 of 7 (UAT 14/14 PASS)
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
-| Phases complete | 12 / 12 |
-| Plans complete | 70 |
+| Phases complete | 13 / 13 |
+| Plans complete | 77 |
 | Requirements delivered | 25 / 25 |
-| Session count | 7 |
+| Session count | 8 |
 
 ---
 | Phase 01 P01 | 9min | 3 tasks | 19 files |
@@ -151,6 +151,15 @@ Plan: Not started (Ready to execute)
 | hiddenItemNames additive optional field on ProjectFileV2; hiddenItemSet: Set<string> derived in-memory for O(1) lookups; NO formatVersion bump (D-13) | validateV2 cast accepts the new field silently; old files load with [] default; hiddenItemSet kept in sync by toggleHiddenItem and hydrateStores. O(1) Set lookup required because skip-render runs every frame for every visible markup |
 | CROSSHAIR_CURSOR module-scope IIFE computed once (D-18) | URI-encoded SVG data-URL avoids quote nesting (Pitfall 8); 24×24 SVG with hotspot 12 12 (center of cross gap); cursor fallback in CSS value chain |
 | Edit popup callsite must pass toolType + initialWallHeight for wall markups (UAT bug 08-07) | MarkupNamePopup wall-height row is conditional on toolType==='wall' â€” any edit callsite that omits toolType silently drops the row. Fixed in commit 224f867; pattern: always pass toolType when opening MarkupNamePopup in mode='edit' |
+| D-04 revised: single click on a line markup = vertex edit (Phase 12 post-UAT) | Original "second click" gating hid handles behind a flow most users didn't intuit. With handles serving as selection feedback for line markups, two-step activation is redundant. Count pins still require single-click select-only (no vertex edit). |
+| Selection halo reserved for count pins and multi-select (Phase 12) | Single-selected line markups show vertex handles as feedback; the accent-color halo (10/zoom stroke width) visually engulfs the 8px handles at low zoom. Pins still need the halo (no vertices); rubber-band groups need it on every member. |
+| markupClickedRef handoff between handleMarkupClick and handleStageClick (Phase 12) | Konva markup Groups don't set an `id` Konva attr, so `e.target.getAttr('id')` returns undefined. The ref is the only reliable way to distinguish "click landed on a markup (transition already handled)" from "click landed on empty stage (commit vertex-edit)". |
+| vertexHandleLayer follows BOTH vertex-drag and body-drag previews (Phase 12) | Body-drag previously left handles behind because only `dragPreview.type === 'vertex'` was honored. Shifting every vertex by the body-drag delta keeps handles attached to the markup throughout the gesture. |
+| D-09 threshold computed as `4 / currentZoom` page-space units (Phase 12) | D-09's stated intent is "4 screen pixels" — distinguishing click from drag. dx/dy are page-space (inverse stage transform), so the threshold must be zoom-compensated. Applied uniformly to vertex-drag, body-drag, and rubber-band commits in handleStageMouseUp. |
+| commitVertexEdit is cleanup-only (Phase 12 blocking anti-pattern, locked) | Per-vertex moveVertex dispatch happens ONLY in handleStageMouseUp during the drag-release event. commitVertexEdit body is byte-identical across Waves 3a/3c: setDragPreview(null) + clearVertexEdit() + vertexEditOriginalRef = null. Iterating per-changed-vertex inside commitVertexEdit would create N undo entries per session. |
+| move-markups command normalises count pins to oldPoints/newPoints arrays | Uniform undo reducer — count pins become single-element arrays so the same redo/undo branch handles both point-bearing and points-bearing markup types. |
+| VertexHandleOverlay in own Layer above 1b (Phase 12) | Decoupled from markup components; handles are transient UI; layer ordering ensures handles intercept events before markup bodies (RESEARCH.md Pitfall 5). |
+| vertex-edit state in viewerStore (not local ref) | Render-driven — handles mount/unmount based on vertexEditMarkupId; useState-backed is superior to a bare ref when state drives React renders. |
 
 ### Critical Pitfalls to Watch
 
@@ -201,13 +210,15 @@ None.
 
 ## Session Continuity
 
-**Last activity:** 2026-05-19
+**Last activity:** 2026-05-21
 
-**Last session:** 2026-05-20T09:50:56.629Z
+**Last session:** 2026-05-21 (Phase 12 executed end-to-end in one session)
 
-**Stopped at:** context exhaustion at 76% (2026-05-20)
+**Stopped at:** Phase 12 complete — 7/7 plans, 14/14 UAT scenarios PASS after three post-UAT fixes (000f9e3, 564f0cb, 72094dc). v1.0-extended now reads 13/13 phases, 77/77 plans, 25/25 requirements; v1.1 enhancements GAP-T1-01 + GAP-T1-02 delivered.
 
-**Next action:** Run `/gsd-execute-phase 11` to implement Scale Ratio Input.
+**Next action:** v1.1 milestone planning — decide whether to start Phase 11 redux (ratio scale was scrapped; quick task 260520-rrf delivered draw-line-only) or open a new v1.1 phase from `.planning/phases/v1.1-planning/`.
+
+**Note:** Phase 11 (Scale Ratio Input) scrapped — replaced by quick task `260520-rrf` (commit `4156dee`). Phase 12 was the active phase through UAT closure.
 
 ---
 *State initialized: 2026-03-25*

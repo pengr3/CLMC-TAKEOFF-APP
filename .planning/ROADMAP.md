@@ -23,7 +23,7 @@
 - [x] **Phase 9: Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion** - Click-to-select + Delete-key deletion, drag-to-multi-select with group delete, all modals centered and draggable, ribbon-style tabbed toolbar (Home/Page/Tools/View/Estimating/Settings/Help), and Enter/double-click to finish in-progress markup (completed 2026-05-18)
 - [x] **Phase 10: Granular Undo Foundation** - Polish undo so that Ctrl+Z during an in-progress multi-point markup (linear, area, perimeter, wall) pops only the last placed point rather than deleting the entire markup; establish this step-level undo contract as the foundation for all future undo behavior (completed 2026-05-19)
 - [x] **Phase 11: Scale Ratio Input** - Scrapped — ratio calibration removed after UAT; draw-line method is sufficient (completed/closed 2026-05-20)
-- [ ] **Phase 12: Markup Geometry Editing** - Vertex edit mode (click selected markup again → drag square handles to reposition points) and drag-to-translate (drag selected markup to move it); group move for multi-select; all changes undoable via existing command pattern
+- [x] **Phase 12: Markup Geometry Editing** - Vertex edit mode (click selected markup again → drag square handles to reposition points) and drag-to-translate (drag selected markup to move it); group move for multi-select; all changes undoable via existing command pattern (completed 2026-05-21)
 
 ---
 
@@ -348,13 +348,13 @@ Plans:
   5. All geometry edits (vertex move, single translate, group translate) are undoable with Ctrl+Z as a single action
 **Plans**: 7 plans (12-00 through 12-06) across 5 waves
 Plans:
-- [ ] 12-00-PLAN.md -- Wave 0 RED test stubs (move-vertex-command, move-markups-command, vertex-edit-mode)
-- [ ] 12-01-PLAN.md -- Types + store actions (move-vertex, move-markups) + viewerStore vertexEditMarkupId
-- [ ] 12-02-PLAN.md -- Markup component drag props + VertexHandleOverlay component
-- [ ] 12-03-PLAN.md -- CanvasViewport: refs, vertex-edit activation, keyboard handlers, handle layer
-- [ ] 12-04-PLAN.md -- CanvasViewport: body-drag translate + group move (D-07/D-08)
-- [ ] 12-05-PLAN.md -- CanvasViewport: vertex drag flow + click-outside commit (D-04..D-09 complete)
-- [ ] 12-06-PLAN.md -- UAT checkpoint and phase closure
+- [x] 12-00-PLAN.md -- Wave 0 RED test stubs (move-vertex-command, move-markups-command, vertex-edit-mode)
+- [x] 12-01-PLAN.md -- Types + store actions (move-vertex, move-markups) + viewerStore vertexEditMarkupId
+- [x] 12-02-PLAN.md -- Markup component drag props + VertexHandleOverlay component
+- [x] 12-03-PLAN.md -- CanvasViewport: refs, vertex-edit activation, keyboard handlers, handle layer
+- [x] 12-04-PLAN.md -- CanvasViewport: body-drag translate + group move (D-07/D-08)
+- [x] 12-05-PLAN.md -- CanvasViewport: vertex drag flow + click-outside commit (D-04..D-09 complete)
+- [x] 12-06-PLAN.md -- UAT checkpoint and phase closure — 14/14 UAT scenarios PASS after three post-UAT fixes (single-click vertex edit + halo only for pins/groups 000f9e3; vertex handles appear on first click + follow body drag 564f0cb; zoom-compensate D-09 4px threshold 72094dc)
 
 ### Phase 11: Scale Ratio Input
 
@@ -409,7 +409,7 @@ Plans:
 | 9. Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion | 6/6 | Complete | 2026-05-18 |
 | 10. Granular Undo Foundation | 2/2 | Complete    | 2026-05-19 |
 | 11. Scale Ratio Input | —/— | Scrapped | 2026-05-20 |
-| 12. Markup Geometry Editing | 0/7 | In Progress | — |
+| 12. Markup Geometry Editing | 7/7 | Complete | 2026-05-21 |
 
 ---
 
