@@ -73,6 +73,12 @@ interface MarkupStoreState {
       newPoints: StagePoint[]
     }>
   ) => void
+  /** Phase 13 (D-16): single-command commit of a re-opened markup. */
+  commitReopen: (oldMarkup: Markup, newMarkup: Markup) => void
+  /** Phase 13 (D-14): silent removal at re-open trigger time. NOT a command. */
+  removeForReopen: (markup: Markup) => void
+  /** Phase 13 (D-14): silent restoration on Esc-cancel of re-open. NOT a command. */
+  restoreFromReopen: (markup: Markup) => void
   getColorForName: (name: string, page?: number) => string | null
 
   undo: () => void
@@ -320,6 +326,47 @@ export const useMarkupStore = create<MarkupStoreState>()(
       }
     }),
 
+  // Phase 13 (D-14, D-16): commit a re-opened markup as a single 'reopen-recommit' command.
+  // Replaces oldMarkup with newMarkup in pageMarkups; pushes ONE command; clears redoStack.
+  // Idempotent w.r.t. oldMarkup presence — the caller (commitShape via reopen-ref) may
+  // call after removeForReopen has already taken the markup off the page.
+  commitReopen: (oldMarkup, newMarkup) =>
+    set((s) => {
+      const page = oldMarkup.page
+      const pageList = s.pageMarkups[page] ?? []
+      const filtered = pageList.filter((m) => m.id !== oldMarkup.id)
+      return {
+        pageMarkups: { ...s.pageMarkups, [page]: [...filtered, newMarkup] },
+        undoStack: pushCommand(s.undoStack, { type: 'reopen-recommit', oldMarkup, newMarkup }),
+        redoStack: []
+      }
+    }),
+
+  // Phase 13 (D-14): silently remove a markup for the re-open gesture. NOT a command —
+  // the snapshot in markup-reopen-ref IS the recovery path. Distinct from deleteMarkup,
+  // which DOES push a 'delete' command. Defensive no-op if the markup is not present.
+  removeForReopen: (markup) =>
+    set((s) => {
+      const page = markup.page
+      const pageList = s.pageMarkups[page] ?? []
+      if (!pageList.some((m) => m.id === markup.id)) return s
+      return {
+        pageMarkups: { ...s.pageMarkups, [page]: pageList.filter((m) => m.id !== markup.id) }
+      }
+    }),
+
+  // Phase 13 (D-14, D-16): silently re-add a markup on Esc-cancel of a re-open gesture.
+  // NOT a command. Idempotent — duplicate ids are not added twice.
+  restoreFromReopen: (markup) =>
+    set((s) => {
+      const page = markup.page
+      const pageList = s.pageMarkups[page] ?? []
+      if (pageList.some((m) => m.id === markup.id)) return s
+      return {
+        pageMarkups: { ...s.pageMarkups, [page]: [...pageList, markup] }
+      }
+    }),
+
   getColorForName: (name, page) => {
     const pagesToScan =
       page !== undefined ? [page] : Object.keys(get().pageMarkups).map(Number)
@@ -429,6 +476,21 @@ export const useMarkupStore = create<MarkupStoreState>()(
         }
         return {
           pageMarkups: nextPageMarkups,
+          undoStack: s.undoStack.slice(0, -1),
+          redoStack: [...s.redoStack, cmd]
+        }
+      }
+
+      // Phase 13 (D-14, D-16): reopen-recommit branch MUST come BEFORE the
+      // `cmd.markup.page` access below — reopen-recommit carries `oldMarkup`
+      // and `newMarkup`, not `markup`. Undo removes newMarkup (added on commit),
+      // re-adds oldMarkup (removed at re-open trigger).
+      if (cmd.type === 'reopen-recommit') {
+        const page = cmd.oldMarkup.page
+        const pageList = s.pageMarkups[page] ?? []
+        const filtered = pageList.filter((m) => m.id !== cmd.newMarkup.id)
+        return {
+          pageMarkups: { ...s.pageMarkups, [page]: [...filtered, cmd.oldMarkup] },
           undoStack: s.undoStack.slice(0, -1),
           redoStack: [...s.redoStack, cmd]
         }
@@ -545,6 +607,20 @@ export const useMarkupStore = create<MarkupStoreState>()(
         }
         return {
           pageMarkups: nextPageMarkups,
+          undoStack: pushCommand(s.undoStack, cmd),
+          redoStack: s.redoStack.slice(0, -1)
+        }
+      }
+
+      // Phase 13 (D-14, D-16): reopen-recommit branch MUST come BEFORE the
+      // `cmd.markup.page` access below. Redo re-applies the recommit: remove
+      // oldMarkup, add newMarkup, push command back onto undoStack (with cap).
+      if (cmd.type === 'reopen-recommit') {
+        const page = cmd.oldMarkup.page
+        const pageList = s.pageMarkups[page] ?? []
+        const filtered = pageList.filter((m) => m.id !== cmd.oldMarkup.id)
+        return {
+          pageMarkups: { ...s.pageMarkups, [page]: [...filtered, cmd.newMarkup] },
           undoStack: pushCommand(s.undoStack, cmd),
           redoStack: s.redoStack.slice(0, -1)
         }
