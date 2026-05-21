@@ -368,6 +368,15 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // body-drag intent. Cleared immediately on read (consume-on-read pattern). Wired in 12-04.
   const markupBodyDownRef = useRef<string | null>(null)
 
+  // Phase 12 (post-UAT): markup-click handoff ref. handleMarkupClick sets this to the clicked
+  // markup id BEFORE updating vertexEditMarkupId. handleStageClick consumes it during the
+  // click-outside-commit branch so it can distinguish "click landed on a markup" (no commit —
+  // handleMarkupClick already routed the transition) from "click landed on empty stage" (commit).
+  // The native fallback (e.target.getAttr('id')) does not work because markup Groups never set
+  // an `id` Konva attr — without this ref, the click-outside guard would always fire on the
+  // first click of a markup and immediately undo handleMarkupClick's setVertexEditMarkupId.
+  const markupClickedRef = useRef<string | null>(null)
+
   // Phase 12 (12-04): body drag state — which markup ids are being dragged, start positions, origin.
   // Single translate uses ids.length === 1; group move uses ids.length === N. Both dispatch one
   // moveMarkups command with N entries at mouseup (D-08 — group move).
@@ -524,6 +533,12 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
 
       const markup = pageMarkups.find((m) => m.id === id)
       if (!markup) return
+
+      // Hand off to handleStageClick: it bubbles up next and would otherwise read
+      // vertexEditMarkupId === id and trigger commitVertexEdit (because e.target.getAttr('id')
+      // returns undefined on markup Groups). This ref tells handleStageClick the click
+      // landed on a markup; transition already handled here.
+      markupClickedRef.current = id
 
       // Line markup → enter vertex edit on first click (handles are the feedback).
       if (markup.type !== 'count') {
@@ -898,20 +913,23 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         // suppresses bubbling to the Stage onClick). So any click reaching this point is
         // either on empty stage (e.target === stage) or on a different markup body.
         const liveVeId = useViewerStore.getState().vertexEditMarkupId
+        // Consume the markup-click handoff ref. If non-null, the click landed on a markup
+        // and handleMarkupClick (which bubbles up FIRST per Konva event order) has already
+        // routed the vertex-edit transition correctly. In that case we must NOT call
+        // commitVertexEdit — it would clear the vertex-edit ID handleMarkupClick just set,
+        // and the handles would never become visible. Consume-on-read so the next click
+        // re-evaluates cleanly.
+        const clickedMarkupId = markupClickedRef.current
+        markupClickedRef.current = null
         if (
           liveVeId !== null &&
+          clickedMarkupId === null &&
           vertexDragRef.current === null &&
           !bodyDraggedRef.current &&
           !rubberBandDraggedRef.current
         ) {
-          const clickedId = e.target?.getAttr?.('id') as string | undefined
-          if (clickedId !== liveVeId) {
-            commitVertexEdit()
-            // Allow the click to continue — empty-stage path below clears selection
-            // (which is the correct outcome for "click on empty area" while in vertex
-            // edit mode), and a click on a DIFFERENT markup will route through the
-            // markup component's onClick → handleMarkupClick and select the new markup.
-          }
+          // Click landed on empty stage while a vertex-edit session was active → commit it.
+          commitVertexEdit()
         }
 
         if (rubberBandDraggedRef.current) {
@@ -1305,17 +1323,26 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // intercept pointer events before the markup body beneath them (RESEARCH Pitfall 5).
   // Count pins have no vertex handles (D-09). Computed as a named variable (not an inline
   // IIFE) so Plan 12-05's "replace stub onHandleMouseDown" is an unambiguous one-site edit.
+  //
+  // post-UAT: the handles must follow the markup during BOTH a per-vertex drag AND a
+  // body-drag translate. Previously only the 'vertex' drag preview branch was honored, so
+  // body-drag translates left the handles pinned to the markup's stored vertex positions
+  // while the body slid under the cursor. The body-drag branch shifts every vertex by the
+  // drag delta so the handles travel with the markup until mouseup commits the move.
   const vertexHandleLayer = (() => {
     if (vertexEditMarkupId === null) return null
     const veMarkup = pageMarkups.find((m) => m.id === vertexEditMarkupId)
     if (!veMarkup || veMarkup.type === 'count') return null
-    const preview =
-      dragPreview?.type === 'vertex' && dragPreview.markupId === vertexEditMarkupId
-        ? dragPreview
-        : null
-    const markupForHandles: Markup = preview
-      ? ({ ...veMarkup, points: preview.points } as Markup)
-      : veMarkup
+    let markupForHandles: Markup = veMarkup
+    if (dragPreview?.type === 'vertex' && dragPreview.markupId === vertexEditMarkupId) {
+      markupForHandles = { ...veMarkup, points: dragPreview.points } as Markup
+    } else if (dragPreview?.type === 'body') {
+      const delta = dragPreview.deltas[vertexEditMarkupId]
+      if (delta) {
+        const shifted = veMarkup.points.map((p) => ({ x: p.x + delta.x, y: p.y + delta.y }))
+        markupForHandles = { ...veMarkup, points: shifted } as Markup
+      }
+    }
     return (
       <Layer listening={true}>
         <VertexHandleOverlay
