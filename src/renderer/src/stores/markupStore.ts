@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import type { Markup, Category, MarkupCommand, CountMarkup } from '../types/markup'
 import { CATEGORY_PALETTE, UNDO_STACK_MAX } from '../types/markup'
+import type { StagePoint } from '../hooks/useCalibrationMode'
 
 interface MarkupStoreState {
   pageMarkups: Record<number, Markup[]>
@@ -41,6 +42,36 @@ interface MarkupStoreState {
     newColor: string,
     oldWallHeight?: number,
     newWallHeight?: number
+  ) => void
+  /**
+   * Move a single vertex of a non-count markup (linear/area/perimeter/wall).
+   * Pushes one 'move-vertex' command onto undoStack, clears redoStack.
+   * Defensive no-op on unknown markupId. Caller is responsible for ensuring
+   * the markup is not a count pin (count markups have `point`, not `points[]`).
+   */
+  moveVertex: (
+    markupId: string,
+    page: number,
+    vertexIndex: number,
+    newPoint: StagePoint
+  ) => void
+  /**
+   * Translate one or more markups by replacing their points/point with the
+   * supplied new values. Single-markup translate (moves.length === 1) and
+   * group-move (moves.length === N) both push exactly one 'move-markups'
+   * command onto undoStack and clear redoStack. Empty array is a no-op.
+   *
+   * For count pins: callers normalise the move as `oldPoints: [markup.point]`
+   * and `newPoints: [newPoint]`. The store detects count type and writes
+   * `markup.point` instead of `markup.points`.
+   */
+  moveMarkups: (
+    moves: Array<{
+      markupId: string
+      page: number
+      oldPoints: StagePoint[]
+      newPoints: StagePoint[]
+    }>
   ) => void
   getColorForName: (name: string, page?: number) => string | null
 
@@ -222,6 +253,73 @@ export const useMarkupStore = create<MarkupStoreState>()(
     })
   },
 
+  moveVertex: (markupId, page, vertexIndex, newPoint) =>
+    set((s) => {
+      const pageList = s.pageMarkups[page] ?? []
+      const target = pageList.find((m) => m.id === markupId)
+      if (!target) return s // defensive no-op (mirrors deleteMarkup pattern)
+
+      // move-vertex is undefined for count markups (no points[] field). Caller
+      // is responsible for not calling moveVertex on a count pin; defensively
+      // bail if the discriminant is wrong rather than throwing.
+      if (target.type === 'count') return s
+
+      const oldPoint = target.points[vertexIndex]
+      const updatedPoints: StagePoint[] = [
+        ...target.points.slice(0, vertexIndex),
+        newPoint,
+        ...target.points.slice(vertexIndex + 1)
+      ]
+      const updated: Markup = { ...target, points: updatedPoints } as Markup
+      const nextPageList = pageList.map((m) => (m.id === markupId ? updated : m))
+
+      const cmd: MarkupCommand = {
+        type: 'move-vertex',
+        markupId,
+        page,
+        vertexIndex,
+        oldPoint,
+        newPoint
+      }
+      return {
+        pageMarkups: { ...s.pageMarkups, [page]: nextPageList },
+        undoStack: pushCommand(s.undoStack, cmd),
+        redoStack: []
+      }
+    }),
+
+  moveMarkups: (moves) =>
+    set((s) => {
+      if (moves.length === 0) return s
+
+      const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+      for (const move of moves) {
+        const pageList = nextPageMarkups[move.page] ?? []
+        nextPageMarkups[move.page] = pageList.map((m) => {
+          if (m.id !== move.markupId) return m
+          if (m.type === 'count') {
+            return { ...m, point: move.newPoints[0] } as Markup
+          }
+          return { ...m, points: move.newPoints } as Markup
+        })
+      }
+
+      const cmd: MarkupCommand = {
+        type: 'move-markups',
+        moves: moves.map((m) => ({
+          markupId: m.markupId,
+          page: m.page,
+          oldPoints: m.oldPoints,
+          newPoints: m.newPoints
+        }))
+      }
+      return {
+        pageMarkups: nextPageMarkups,
+        undoStack: pushCommand(s.undoStack, cmd),
+        redoStack: []
+      }
+    }),
+
   getColorForName: (name, page) => {
     const pagesToScan =
       page !== undefined ? [page] : Object.keys(get().pageMarkups).map(Number)
@@ -276,6 +374,47 @@ export const useMarkupStore = create<MarkupStoreState>()(
         )
         return {
           pageMarkups: { ...s.pageMarkups, [cmd.page]: nextList },
+          undoStack: s.undoStack.slice(0, -1),
+          redoStack: [...s.redoStack, cmd]
+        }
+      }
+
+      // move-vertex / move-markups branches MUST come BEFORE the
+      // `cmd.markup.page` fallthrough below — they carry their own page info
+      // and have no `cmd.markup` field.
+      if (cmd.type === 'move-vertex') {
+        const pageList = s.pageMarkups[cmd.page] ?? []
+        const nextList = pageList.map((m) => {
+          if (m.id !== cmd.markupId) return m
+          if (m.type === 'count') return m // defensive: count has no points[]
+          const restoredPoints: StagePoint[] = [
+            ...m.points.slice(0, cmd.vertexIndex),
+            cmd.oldPoint,
+            ...m.points.slice(cmd.vertexIndex + 1)
+          ]
+          return { ...m, points: restoredPoints } as Markup
+        })
+        return {
+          pageMarkups: { ...s.pageMarkups, [cmd.page]: nextList },
+          undoStack: s.undoStack.slice(0, -1),
+          redoStack: [...s.redoStack, cmd]
+        }
+      }
+
+      if (cmd.type === 'move-markups') {
+        const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+        for (const move of cmd.moves) {
+          const pageList = nextPageMarkups[move.page] ?? []
+          nextPageMarkups[move.page] = pageList.map((m) => {
+            if (m.id !== move.markupId) return m
+            if (m.type === 'count') {
+              return { ...m, point: move.oldPoints[0] } as Markup
+            }
+            return { ...m, points: move.oldPoints } as Markup
+          })
+        }
+        return {
+          pageMarkups: nextPageMarkups,
           undoStack: s.undoStack.slice(0, -1),
           redoStack: [...s.redoStack, cmd]
         }
@@ -350,6 +489,47 @@ export const useMarkupStore = create<MarkupStoreState>()(
         )
         return {
           pageMarkups: { ...s.pageMarkups, [cmd.page]: nextList },
+          undoStack: pushCommand(s.undoStack, cmd),
+          redoStack: s.redoStack.slice(0, -1)
+        }
+      }
+
+      // move-vertex / move-markups branches MUST come BEFORE the
+      // `cmd.markup.page` fallthrough below — they carry their own page info
+      // and have no `cmd.markup` field.
+      if (cmd.type === 'move-vertex') {
+        const pageList = s.pageMarkups[cmd.page] ?? []
+        const nextList = pageList.map((m) => {
+          if (m.id !== cmd.markupId) return m
+          if (m.type === 'count') return m // defensive: count has no points[]
+          const reappliedPoints: StagePoint[] = [
+            ...m.points.slice(0, cmd.vertexIndex),
+            cmd.newPoint,
+            ...m.points.slice(cmd.vertexIndex + 1)
+          ]
+          return { ...m, points: reappliedPoints } as Markup
+        })
+        return {
+          pageMarkups: { ...s.pageMarkups, [cmd.page]: nextList },
+          undoStack: pushCommand(s.undoStack, cmd),
+          redoStack: s.redoStack.slice(0, -1)
+        }
+      }
+
+      if (cmd.type === 'move-markups') {
+        const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+        for (const move of cmd.moves) {
+          const pageList = nextPageMarkups[move.page] ?? []
+          nextPageMarkups[move.page] = pageList.map((m) => {
+            if (m.id !== move.markupId) return m
+            if (m.type === 'count') {
+              return { ...m, point: move.newPoints[0] } as Markup
+            }
+            return { ...m, points: move.newPoints } as Markup
+          })
+        }
+        return {
+          pageMarkups: nextPageMarkups,
           undoStack: pushCommand(s.undoStack, cmd),
           redoStack: s.redoStack.slice(0, -1)
         }
