@@ -424,10 +424,22 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     const cleanup = () => {
       if (rubberBandRef.current) setRubberBand(null)
       markupMouseDownPosRef.current = null
+      // Phase 12: clean up any active drag refs on out-of-bounds release. The Stage's own
+      // onMouseUp never fires when the user releases outside the canvas; without this
+      // window-level handler, a vertex- or body-drag started inside the Stage would leave
+      // the ref dangling and the next mousedown would observe a stale ref.
+      if (bodyDragRef.current) {
+        bodyDragRef.current = null
+        setDragPreview(null)
+      }
+      if (vertexDragRef.current) {
+        vertexDragRef.current = null
+        setDragPreview(null)
+      }
     }
     window.addEventListener('mouseup', cleanup)
     return () => window.removeEventListener('mouseup', cleanup)
-  }, [setRubberBand])
+  }, [setRubberBand, setDragPreview])
 
   // Sync viewerStore.activeTool with the markup tool state machine.
   // Guard: skip activateMarkup when mode is already non-idle — activatePreset may have
@@ -870,6 +882,36 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       // (no Konva drag was active so _mouseListenClick was never set to false).
       // Skip clearSelection() in that case so the rubber-band result survives.
       if (activeTool === 'select') {
+        // Phase 12 D-06: click-outside commits vertex edit mode.
+        // Guard: do NOT commit if a vertex drag is still active (the release of the drag
+        // fires a click event after handleStageMouseUp clears vertexDragRef — at that point
+        // bodyDraggedRef-style suppression would also work, but the natural guard here is
+        // simpler: vertexDragRef is already null by click-time and the prior drag's effect
+        // is already in the store). Also gate on body / rubber-band drag flags so a click
+        // that is the trailing release of a body drag or rubber-band gesture does NOT
+        // commit vertex edit.
+        //
+        // "Click outside" = anything that is not the vertex-edit markup's own handle. The
+        // handle clicks never reach this handler (Konva cancelBubble in VertexHandleOverlay
+        // suppresses bubbling to the Stage onClick). So any click reaching this point is
+        // either on empty stage (e.target === stage) or on a different markup body.
+        const liveVeId = useViewerStore.getState().vertexEditMarkupId
+        if (
+          liveVeId !== null &&
+          vertexDragRef.current === null &&
+          !bodyDraggedRef.current &&
+          !rubberBandDraggedRef.current
+        ) {
+          const clickedId = e.target?.getAttr?.('id') as string | undefined
+          if (clickedId !== liveVeId) {
+            commitVertexEdit()
+            // Allow the click to continue — empty-stage path below clears selection
+            // (which is the correct outcome for "click on empty area" while in vertex
+            // edit mode), and a click on a DIFFERENT markup will route through the
+            // markup component's onClick → handleMarkupClick and select the new markup.
+          }
+        }
+
         if (rubberBandDraggedRef.current) {
           rubberBandDraggedRef.current = false
           return
@@ -889,7 +931,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         }
       }
     },
-    [calibState.mode, markupState.mode, markupState.toolType, markupState.points.length, isOverStartPoint, stageRef, recordClick, recordMarkupClick, finishPolygon, activeTool, clearSelection]
+    [calibState.mode, markupState.mode, markupState.toolType, markupState.points.length, isOverStartPoint, stageRef, recordClick, recordMarkupClick, finishPolygon, activeTool, clearSelection, commitVertexEdit]
   )
 
   // Plan 09-03: rubber-band drag (D-06).
@@ -985,6 +1027,31 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       const pointer = stage.getPointerPosition()
       if (!pointer) return
 
+      // Phase 12 (12-05): vertex drag live preview — recompute the dragged markup's points
+      // with only the dragged vertex moved, push to dragPreview so the renderer reflects it.
+      // Read pageMarkups via getState() (stale-closure anti-pattern guard from .continue-here.md).
+      // Placed BEFORE body-drag check because vertex drag and body drag are mutually exclusive
+      // at the down event — defensive ordering only.
+      const vd = vertexDragRef.current
+      if (vd) {
+        const pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+        const livePageMarkups =
+          useMarkupStore.getState().pageMarkups[currentPage] ?? EMPTY_MARKUPS
+        const markup = livePageMarkups.find((m) => m.id === vd.markupId)
+        if (markup && markup.type !== 'count') {
+          const newPoints = markup.points.map((p, i) =>
+            i === vd.vertexIndex ? pt : p
+          )
+          setDragPreview({
+            type: 'vertex',
+            markupId: vd.markupId,
+            vertexIndex: vd.vertexIndex,
+            points: newPoints
+          })
+        }
+        return
+      }
+
       // Phase 12 (12-04): body-drag live preview — update delta for all dragged markups.
       // Read via bodyDragRef.current (stable across renders) so this callback's deps stay narrow.
       const bd = bodyDragRef.current
@@ -1015,7 +1082,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         updateMarkupPreview({ x: pointer.x, y: pointer.y })
       }
     },
-    [calibState.mode, calibState.startPoint, markupState.mode, markupState.points.length, stageRef, updatePreview, updateMarkupPreview, setRubberBand, setDragPreview]
+    [calibState.mode, calibState.startPoint, markupState.mode, markupState.points.length, stageRef, updatePreview, updateMarkupPreview, setRubberBand, setDragPreview, currentPage]
   )
 
   // Plan 09-03: rubber-band release (D-07, D-09).
@@ -1025,6 +1092,58 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // (Wave 1) — this handler only sets selectedMarkupIds and does not delete.
   // Reads rubberBandRef.current so this callback is stable across rubber-band updates.
   const handleStageMouseUp = useCallback(() => {
+    // Phase 12 (12-05): vertex drag commit — fires BEFORE body-drag and rubber-band checks
+    // because the three drag gestures are mutually exclusive at the down event, but defensive
+    // ordering (vertex → body → rubber-band) ensures the vertex commit path is isolated.
+    //
+    // Anti-pattern guard (.continue-here.md): the ONE moveVertex dispatch happens HERE,
+    // once per drag session — NOT inside commitVertexEdit (which stays cleanup-only). One
+    // drag = one undo entry. Vertex edit mode stays active after release so the user may
+    // drag another handle.
+    const vd = vertexDragRef.current
+    if (vd) {
+      const stage = stageRef.current
+      const pointer = stage?.getPointerPosition()
+      if (stage && pointer) {
+        const pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+        const dx = pt.x - vd.origin.x
+        const dy = pt.y - vd.origin.y
+        // D-09 4px movement threshold — below 4px is a click (no dispatch), above is a real drag.
+        const moved = Math.abs(dx) > 4 || Math.abs(dy) > 4
+        if (moved) {
+          // newPoint = the live preview's vertex position when available, else origin + delta.
+          // Either path gives the same result; preview is preferred because handleStageMouseMove
+          // writes it via the same inverse-transform path on every frame.
+          const previewPoints =
+            dragPreviewRef.current?.type === 'vertex'
+              ? dragPreviewRef.current.points
+              : null
+          const newPoint = previewPoints
+            ? previewPoints[vd.vertexIndex]
+            : {
+                x: vd.originalPoints[vd.vertexIndex].x + dx,
+                y: vd.originalPoints[vd.vertexIndex].y + dy
+              }
+          // Pitfall 7 no-op guard: only dispatch when the vertex actually moved relative to
+          // its original position. Prevents polluting the undo stack with no-op commands.
+          const orig = vd.originalPoints[vd.vertexIndex]
+          if (newPoint.x !== orig.x || newPoint.y !== orig.y) {
+            useMarkupStore
+              .getState()
+              .moveVertex(vd.markupId, currentPage, vd.vertexIndex, newPoint)
+          }
+        }
+        // Vertex edit mode stays active after a single vertex drag — the user may drag another
+        // handle. Drop only the live drag preview (the store now holds the new committed
+        // positions). vertexEditOriginalRef is set ONCE at session start in handleMarkupClick
+        // and NEVER updated mid-session — Escape always restores to the session-start state
+        // (.continue-here.md decisions section "vertexEditOriginalRef set ONCE at session start").
+        setDragPreview(null)
+      }
+      vertexDragRef.current = null
+      return
+    }
+
     // Phase 12 (12-04): body-drag commit — fires BEFORE the rubber-band check below
     // because a body drag and a rubber-band drag are mutually exclusive at mouseDown
     // (the body branch returns early before starting rubber-band), but defensive
