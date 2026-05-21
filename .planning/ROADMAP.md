@@ -24,7 +24,7 @@
 - [x] **Phase 10: Granular Undo Foundation** - Polish undo so that Ctrl+Z during an in-progress multi-point markup (linear, area, perimeter, wall) pops only the last placed point rather than deleting the entire markup; establish this step-level undo contract as the foundation for all future undo behavior (completed 2026-05-19)
 - [x] **Phase 11: Scale Ratio Input** - Scrapped — ratio calibration removed after UAT; draw-line method is sufficient (completed/closed 2026-05-20)
 - [x] **Phase 12: Markup Geometry Editing** - Vertex edit mode (click selected markup again → drag square handles to reposition points) and drag-to-translate (drag selected markup to move it); group move for multi-select; all changes undoable via existing command pattern (completed 2026-05-21)
-- [ ] **Phase 13: Post-Commit Step-Level Undo** - Ctrl+Z on a committed multi-point markup (linear, area, perimeter, wall) re-opens it in drawing mode with all points intact — undoing just the commit, not the shape. Estimator can add points, pop points with further Ctrl+Z, or re-commit with Enter. Brief ConfirmationToast on re-open.
+- [x] **Phase 13: Post-Commit Step-Level Undo** - Ctrl+Z on a committed multi-point markup (linear, area, perimeter, wall) re-opens it in drawing mode with all points intact — undoing just the commit, not the shape. Estimator can add points, pop points with further Ctrl+Z, or re-commit with Enter. Brief ConfirmationToast on re-open. (completed 2026-05-21)
 
 ---
 
@@ -371,13 +371,13 @@ Plans:
 **Plans**: 3 plans across 3 waves
 
 **Wave 0 *(prerequisite — RED tests + type extensions)*:**
-- [ ] 13-01-PLAN.md — TDD: RED test file src/tests/markup-post-commit-reopen.test.ts (15+ cases SC1-SC5 + EDGE-1/3/4/5 + module-ref round-trip + SC4 e2e Esc keydown); extend MarkupCommand union with reopen-recommit variant; add isMultiPointMarkup type guard
+- [x] 13-01-PLAN.md — TDD: RED test file src/tests/markup-post-commit-reopen.test.ts (15+ cases SC1-SC5 + EDGE-1/3/4/5 + module-ref round-trip + SC4 e2e Esc keydown); extend MarkupCommand union with reopen-recommit variant; add isMultiPointMarkup type guard
 
 **Wave 1 *(blocked on Wave 0 — store + ref-module foundation)*:**
-- [ ] 13-02-PLAN.md — Store + ref module: markup-reopen-ref.ts (handler + snapshot refs); markupStore commitReopen/removeForReopen/restoreFromReopen actions + reopen-recommit undo/redo branches
+- [x] 13-02-PLAN.md — Store + ref module: markup-reopen-ref.ts (handler + snapshot refs); markupStore commitReopen/removeForReopen/restoreFromReopen actions + reopen-recommit undo/redo branches
 
 **Wave 2 *(blocked on Waves 0 + 1 — dispatch + hook + viewport + toast — has hard runtime deps on 13-02's markup-reopen-ref module and removeForReopen/restoreFromReopen/commitReopen store actions)*:**
-- [ ] 13-03-PLAN.md — Dispatch + hook + viewport + toast: useMarkupTool activatePreset+commitShape extensions (consults getReopenSnapshot, dispatches commitReopen); useKeyboardShortcuts Ctrl+Z re-open branch (consults getMarkupReopenHandler); CanvasViewport handler registration + Esc + page-nav cancel + onReopenToast prop (uses removeForReopen/restoreFromReopen); App.tsx reopenToast slot (2500ms, bottom: 148)
+- [x] 13-03-PLAN.md — Dispatch + hook + viewport + toast: useMarkupTool activatePreset+commitShape extensions (consults getReopenSnapshot, dispatches commitReopen); useKeyboardShortcuts Ctrl+Z re-open branch (consults getMarkupReopenHandler); CanvasViewport handler registration + Esc + page-nav cancel + onReopenToast prop (uses removeForReopen/restoreFromReopen); App.tsx reopenToast slot (2500ms, bottom: 148)
 
 **Cross-cutting constraints:** chainArmed: false on re-open seed AND post-commit reset (Pitfall 2 — load-bearing); wallHeight preserved across re-open (D-15 + EDGE-5); isTextInputActive() guard on every Ctrl+Z / Ctrl+Y / Enter / Esc (locked across Phases 3/10); Stage inverse transform unchanged (no new pointer path); useEffect cleanup sets module ref to null on unmount (StrictMode-safe — Pitfall 9); no new IPC/persistence/file I/O (renderer-only); UNDO_STACK_MAX=50 cap applied normally to reopen-recommit commands; page-navigation during re-open treats as implicit Esc (D-26 — Pitfall 1); cross-page guard (D-17 condition 5 — A4).
 
@@ -435,7 +435,7 @@ Plans:
 | 10. Granular Undo Foundation | 2/2 | Complete    | 2026-05-19 |
 | 11. Scale Ratio Input | —/— | Scrapped | 2026-05-20 |
 | 12. Markup Geometry Editing | 7/7 | Complete | 2026-05-21 |
-| 13. Post-Commit Step-Level Undo | 0/3 | Planning | — |
+| 13. Post-Commit Step-Level Undo | 3/3 | Complete   | 2026-05-21 |
 
 ---
 
