@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useViewerStore } from '../stores/viewerStore'
 import { useMarkupStore } from '../stores/markupStore'
 import { getMarkupUndoHandler, getMarkupRedoHandler } from '../lib/markup-undo-ref'
+import { getMarkupReopenHandler } from '../lib/markup-reopen-ref'
 
 interface KeyboardShortcutHandlers {
   openPdf: () => void                          // kept for backwards compat
@@ -92,21 +93,28 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
       if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
         if (isTextInputActive()) return
         e.preventDefault()
+        // Phase 10: pop the last placed vertex of an in-progress draw — highest priority.
         const handledByDraw = getMarkupUndoHandler()?.() ?? false
-        if (!handledByDraw) {
-          // Phase 09 UAT gap (Test 9): peek the command being undone — if a
-          // delete or delete-group is about to be reversed, capture the
-          // restored markup IDs so we can re-apply selection rings after
-          // undo(). Without this, Ctrl+A → Delete → Ctrl+Z restores the
-          // markups but leaves selection empty, breaking the round-trip.
-          const top = useMarkupStore.getState().undoStack.at(-1)
-          let restoredIds: string[] = []
-          if (top?.type === 'delete') restoredIds = [top.markup.id]
-          else if (top?.type === 'delete-group') restoredIds = top.markups.map((m) => m.id)
-          useMarkupStore.getState().undo()
-          if (restoredIds.length > 0) {
-            useViewerStore.getState().setSelectedMarkupIds(restoredIds)
-          }
+        if (handledByDraw) return
+        // Phase 13 (D-21): post-commit re-open. Branch slots BETWEEN draw-undo and
+        // store-undo. The handler reads the undoStack top, applies D-17 all 5 conditions,
+        // and returns true when a re-open transition fired. On true we MUST return —
+        // calling store.undo() afterwards would double-pop the stack (Anti-Pattern in
+        // 13-RESEARCH.md §"Anti-Patterns to Avoid").
+        const handledByReopen = getMarkupReopenHandler()?.() ?? false
+        if (handledByReopen) return
+        // Phase 09 UAT gap (Test 9): peek the command being undone — if a
+        // delete or delete-group is about to be reversed, capture the
+        // restored markup IDs so we can re-apply selection rings after
+        // undo(). Without this, Ctrl+A → Delete → Ctrl+Z restores the
+        // markups but leaves selection empty, breaking the round-trip.
+        const top = useMarkupStore.getState().undoStack.at(-1)
+        let restoredIds: string[] = []
+        if (top?.type === 'delete') restoredIds = [top.markup.id]
+        else if (top?.type === 'delete-group') restoredIds = top.markups.map((m) => m.id)
+        useMarkupStore.getState().undo()
+        if (restoredIds.length > 0) {
+          useViewerStore.getState().setSelectedMarkupIds(restoredIds)
         }
         return
       }
