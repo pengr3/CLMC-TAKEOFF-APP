@@ -368,6 +368,21 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // body-drag intent. Cleared immediately on read (consume-on-read pattern). Wired in 12-04.
   const markupBodyDownRef = useRef<string | null>(null)
 
+  // Phase 12 (12-04): body drag state — which markup ids are being dragged, start positions, origin.
+  // Single translate uses ids.length === 1; group move uses ids.length === N. Both dispatch one
+  // moveMarkups command with N entries at mouseup (D-08 — group move).
+  type BodyDragState = {
+    ids: string[]
+    origin: StagePoint            // page-space point where drag started
+    startPositions: Record<string, StagePoint | StagePoint[]>  // id → point(s) snapshot
+  } | null
+  const bodyDragRef = useRef<BodyDragState>(null)
+
+  // Phase 12 (12-04): bodyDraggedRef mirrors rubberBandDraggedRef — suppresses Konva click after
+  // a body drag completes so clearSelection() does not immediately wipe the selection.
+  // Source: RESEARCH.md Pitfall 2 + rubberBandDraggedRef pattern (lines 343-346, 939 in this file).
+  const bodyDraggedRef = useRef(false)
+
   // Phase 12: snapshot of points when vertex edit mode was entered.
   // Used by cancelVertexEdit() to restore on Escape (RESEARCH Finding 9).
   // Set ONCE at session start in handleMarkupClick; never updated mid-session.
@@ -1191,6 +1206,15 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                 onHoverLeave={handleHoverLeave}
                 onContextMenu={handleContextMenu}
                 onClick={handleMarkupClick}
+                onMarkupMouseDown={(id) => { markupBodyDownRef.current = id }}
+                overridePoint={
+                  dragPreview?.type === 'body' && dragPreview.deltas[m.id]
+                    ? {
+                        x: (m as CountMarkup).point.x + dragPreview.deltas[m.id].x,
+                        y: (m as CountMarkup).point.y + dragPreview.deltas[m.id].y
+                      }
+                    : undefined
+                }
               />
             )
           })}
@@ -1210,6 +1234,17 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                 onHoverLeave={handleHoverLeave}
                 onContextMenu={handleContextMenu}
                 onClick={handleMarkupClick}
+                onMarkupMouseDown={(id) => { markupBodyDownRef.current = id }}
+                overridePoints={
+                  dragPreview?.type === 'body' && dragPreview.deltas[m.id]
+                    ? (m as LinearMarkupType).points.map(p => ({
+                        x: p.x + dragPreview.deltas[m.id].x,
+                        y: p.y + dragPreview.deltas[m.id].y
+                      }))
+                    : dragPreview?.type === 'vertex' && dragPreview.markupId === m.id
+                      ? dragPreview.points
+                      : undefined
+                }
               />
             )
           })}
@@ -1229,6 +1264,17 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                 onHoverLeave={handleHoverLeave}
                 onContextMenu={handleContextMenu}
                 onClick={handleMarkupClick}
+                onMarkupMouseDown={(id) => { markupBodyDownRef.current = id }}
+                overridePoints={
+                  dragPreview?.type === 'body' && dragPreview.deltas[m.id]
+                    ? (m as AreaMarkupType).points.map(p => ({
+                        x: p.x + dragPreview.deltas[m.id].x,
+                        y: p.y + dragPreview.deltas[m.id].y
+                      }))
+                    : dragPreview?.type === 'vertex' && dragPreview.markupId === m.id
+                      ? dragPreview.points
+                      : undefined
+                }
               />
             )
           })}
@@ -1248,6 +1294,17 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                 onHoverLeave={handleHoverLeave}
                 onContextMenu={handleContextMenu}
                 onClick={handleMarkupClick}
+                onMarkupMouseDown={(id) => { markupBodyDownRef.current = id }}
+                overridePoints={
+                  dragPreview?.type === 'body' && dragPreview.deltas[m.id]
+                    ? (m as PerimeterMarkupType).points.map(p => ({
+                        x: p.x + dragPreview.deltas[m.id].x,
+                        y: p.y + dragPreview.deltas[m.id].y
+                      }))
+                    : dragPreview?.type === 'vertex' && dragPreview.markupId === m.id
+                      ? dragPreview.points
+                      : undefined
+                }
               />
             )
           })}
@@ -1267,6 +1324,17 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                 onHoverLeave={handleHoverLeave}
                 onContextMenu={handleContextMenu}
                 onClick={handleMarkupClick}
+                onMarkupMouseDown={(id) => { markupBodyDownRef.current = id }}
+                overridePoints={
+                  dragPreview?.type === 'body' && dragPreview.deltas[m.id]
+                    ? (m as WallMarkupType).points.map(p => ({
+                        x: p.x + dragPreview.deltas[m.id].x,
+                        y: p.y + dragPreview.deltas[m.id].y
+                      }))
+                    : dragPreview?.type === 'vertex' && dragPreview.markupId === m.id
+                      ? dragPreview.points
+                      : undefined
+                }
               />
             )
           })}
