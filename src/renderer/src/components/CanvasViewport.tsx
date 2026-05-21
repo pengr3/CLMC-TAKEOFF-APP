@@ -498,6 +498,29 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     [activeTool, selectedMarkupIds, pageMarkups, setSelectedMarkupIds, setVertexEditMarkupId, clearVertexEdit]
   )
 
+  // Phase 12 (D-06): commit vertex edit — CLEANUP ONLY.
+  // Clears the live drag preview and exits vertex edit mode. The vertex-position
+  // store dispatch happens ONLY in handleStageMouseUp during the drag-release event
+  // (Plan 12-05). Do NOT add any per-vertex moveVertex forEach here — that would
+  // create N undo entries per session (one Enter requires N undos to reverse).
+  // See .planning/phases/12-markup-geometry-editing/.continue-here.md blocking anti-pattern.
+  const commitVertexEdit = useCallback(() => {
+    setDragPreview(null)
+    clearVertexEdit()
+    vertexEditOriginalRef.current = null
+  }, [clearVertexEdit, setDragPreview])
+
+  // Phase 12 (D-06): cancel vertex edit — restores via vertexEditOriginalRef snapshot.
+  // The renderer reads the snapshot through overridePoints (or the absence of a
+  // drag preview, which falls back to the markup's own points). On cancel we simply
+  // drop the drag preview and clear vertex edit; the underlying markup.points were
+  // never mutated during the session, so the markup reverts visually with no store work.
+  const cancelVertexEdit = useCallback(() => {
+    setDragPreview(null)
+    clearVertexEdit()
+    vertexEditOriginalRef.current = null
+  }, [clearVertexEdit, setDragPreview])
+
   // Confirmation toast state
   const [toast, setToast] = useState<{ ratioText: string } | null>(null)
 
@@ -557,6 +580,15 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent): void {
       if (e.key === 'Escape') {
+        // Phase 12 D-06: Escape in vertex edit mode restores original vertex positions
+        // (drag-preview is dropped; markup.points were never mutated mid-session, so
+        // the markup reverts visually with no store work).
+        // Read fresh from the store so this effect's dep array can omit vertexEditMarkupId.
+        if (useViewerStore.getState().vertexEditMarkupId !== null) {
+          e.preventDefault()
+          cancelVertexEdit()
+          return
+        }
         if (
           markupState.mode === 'drawing' ||
           markupState.mode === 'confirming' ||
@@ -579,6 +611,14 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
 
       // Plan 09-03 / D-26 / D-27: Enter key commits in-progress markup.
       if (e.key === 'Enter') {
+        // Phase 12 D-06: Enter commits vertex edit (cleanup-only — the vertex-position
+        // dispatch happens at drag-release in handleStageMouseUp, Plan 12-05).
+        if (useViewerStore.getState().vertexEditMarkupId !== null) {
+          if (isTextInputActive()) return
+          e.preventDefault()
+          commitVertexEdit()
+          return
+        }
         if (isTextInputActive()) return
         if (markupState.mode !== 'drawing') return
         if (markupState.toolType === 'linear' || markupState.toolType === 'wall') {
@@ -607,7 +647,9 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     cancelMarkup,
     clearSelection,
     finishLinear,
-    finishPolygon
+    finishPolygon,
+    cancelVertexEdit,
+    commitVertexEdit
   ])
 
   // Auto-dismiss error toast after 3s
@@ -979,6 +1021,35 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       ? (pageMarkups.find((mm) => mm.id === contextMenu.id) ?? null)
       : null
 
+  // Phase 12: vertex-edit handles layer — ABOVE Layer 1b, listening=true so handle Rects
+  // intercept pointer events before the markup body beneath them (RESEARCH Pitfall 5).
+  // Count pins have no vertex handles (D-09). Computed as a named variable (not an inline
+  // IIFE) so Plan 12-05's "replace stub onHandleMouseDown" is an unambiguous one-site edit.
+  const vertexHandleLayer = (() => {
+    if (vertexEditMarkupId === null) return null
+    const veMarkup = pageMarkups.find((m) => m.id === vertexEditMarkupId)
+    if (!veMarkup || veMarkup.type === 'count') return null
+    const preview =
+      dragPreview?.type === 'vertex' && dragPreview.markupId === vertexEditMarkupId
+        ? dragPreview
+        : null
+    const markupForHandles: Markup = preview
+      ? ({ ...veMarkup, points: preview.points } as Markup)
+      : veMarkup
+    return (
+      <Layer listening={true}>
+        <VertexHandleOverlay
+          markup={markupForHandles}
+          currentZoom={currentZoom}
+          onHandleMouseDown={(vertexIndex) => {
+            // Stub — wired in Plan 12-05 (vertex drag flow)
+            void vertexIndex
+          }}
+        />
+      </Layer>
+    )
+  })()
+
   return (
     <div
       ref={containerCallbackRef}
@@ -1218,6 +1289,13 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
             />
           </Layer>
         )}
+
+        {/* Phase 12: vertex-edit handles overlay. Mounts only when vertexEditMarkupId !== null
+            and the target markup is a points-array type (count pins are excluded per D-09).
+            Above Layer 1b with listening={true} so handle Rects intercept pointer events
+            BEFORE the markup body below. Computed as `vertexHandleLayer` above the JSX so
+            Plan 12-05's wiring of onHandleMouseDown is a single-site edit. */}
+        {vertexHandleLayer}
 
         {/* Phase 6: Layer 2 transient — panel-driven highlights (D-11 HoverRing + D-12 PulseHighlight).
             listening={false} on both the Layer and every shape inside so these overlays NEVER
