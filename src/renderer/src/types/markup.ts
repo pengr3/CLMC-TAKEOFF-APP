@@ -76,6 +76,29 @@ export type MarkupCommand =
       /** millimetres — present only when editing a WallMarkup */
       newWallHeight?: number
     }
+  | {
+      type: 'move-vertex'
+      markupId: string
+      page: number
+      /** 0-based index into markup.points[] */
+      vertexIndex: number
+      oldPoint: StagePoint
+      newPoint: StagePoint
+    }
+  | {
+      type: 'move-markups'
+      /**
+       * One entry per markup being moved. Single-markup translate and
+       * group-move both use this shape (moves.length === 1 vs N).
+       * Count pins use oldPoints/newPoints of length 1 — [markup.point].
+       */
+      moves: Array<{
+        markupId: string
+        page: number
+        oldPoints: StagePoint[]
+        newPoints: StagePoint[]
+      }>
+    }
 
 export const CATEGORY_PALETTE = [
   '#0078d4',
