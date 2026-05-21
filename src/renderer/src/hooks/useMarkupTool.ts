@@ -6,6 +6,7 @@ import { useViewerStore } from '../stores/viewerStore'
 import type { CountMarkup, LinearMarkup, AreaMarkup, PerimeterMarkup, WallMarkup } from '../types/markup'
 import { polygonCentroid } from '../lib/markup-math'
 import { MARKUP_PALETTE } from '../lib/markup-palette'
+import { getReopenSnapshot, setReopenSnapshot } from '../lib/markup-reopen-ref'
 
 const UNCATEGORIZED = 'Uncategorized'
 // DUPLICATE_POINT_EPSILON: kept for recordClick de-dup guard. Double-click finish
@@ -84,7 +85,14 @@ export interface UseMarkupToolReturn {
   repushLastPoint: () => boolean
   activatePreset: (
     tool: 'count' | 'linear' | 'area' | 'perimeter' | 'wall',
-    preset: { name: string; categoryName: string; color: string; wallHeight?: number }
+    preset: {
+      name: string
+      categoryName: string
+      color: string
+      wallHeight?: number
+      /** Phase 13 (D-13): pre-populate the in-progress points stack — used by post-commit re-open. */
+      points?: StagePoint[]
+    }
   ) => void
 }
 
@@ -119,9 +127,17 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
   const activatePreset = useCallback(
     (
       tool: 'count' | 'linear' | 'area' | 'perimeter' | 'wall',
-      preset: { name: string; categoryName: string; color: string; wallHeight?: number }
+      preset: {
+        name: string
+        categoryName: string
+        color: string
+        wallHeight?: number
+        /** Phase 13 (D-13): pre-populate the in-progress points stack — used by post-commit re-open. */
+        points?: StagePoint[]
+      }
     ) => {
       if (tool === 'count') {
+        // Count tools ignore preset.points (single-point — re-open semantics don't apply, D-12).
         setState({
           ...INITIAL_STATE,
           mode: 'placing',
@@ -132,6 +148,8 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
           chainArmed: true
         })
       } else {
+        // Phase 13: seeded-points branch (re-open) vs no-points branch (chain arm from totals panel).
+        const hasSeededPoints = preset.points !== undefined && preset.points.length > 0
         setState({
           ...INITIAL_STATE,
           mode: 'drawing',
@@ -139,8 +157,16 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
           pendingName: preset.name,
           pendingCategoryName: preset.categoryName || UNCATEGORIZED,
           pendingColor: preset.color,
-          chainArmed: true,
-          ...(tool === 'wall' ? { pendingWallHeight: preset.wallHeight ?? 2400 } : {})
+          // Pitfall 2 (LOAD-BEARING): chainArmed MUST be false on re-open. Otherwise Phase 8's
+          // auto-commit useEffect in CanvasViewport.tsx fires immediately on mode:'confirming',
+          // breaking the user's ability to add or pop points before re-commit.
+          chainArmed: hasSeededPoints ? false : true,
+          // Copy the array — mutating preset.points in place would corrupt the Esc-restore
+          // snapshot held in markup-reopen-ref.
+          points: hasSeededPoints ? [...(preset.points ?? [])] : [],
+          ...(tool === 'wall' ? { pendingWallHeight: preset.wallHeight ?? 2400 } : {}),
+          // Seed pendingPage at re-open time so commitShape doesn't fall through to currentPage default.
+          ...(hasSeededPoints ? { pendingPage: useViewerStore.getState().currentPage } : {})
         })
       }
     },
@@ -322,61 +348,32 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     const name = payload.name
     const color = payload.color
 
+    let newMarkup: LinearMarkup | AreaMarkup | PerimeterMarkup | WallMarkup | null = null
     if (prev.toolType === 'linear') {
-      const m: LinearMarkup = {
-        id,
-        type: 'linear',
-        page,
-        name,
-        categoryId: category.id,
-        color,
-        createdAt,
-        points: prev.points
-      }
-      store.placeMarkup(m)
+      newMarkup = { id, type: 'linear', page, name, categoryId: category.id, color, createdAt, points: prev.points }
     } else if (prev.toolType === 'area') {
-      const m: AreaMarkup = {
-        id,
-        type: 'area',
-        page,
-        name,
-        categoryId: category.id,
-        color,
-        createdAt,
-        points: prev.points
-      }
-      store.placeMarkup(m)
+      newMarkup = { id, type: 'area', page, name, categoryId: category.id, color, createdAt, points: prev.points }
     } else if (prev.toolType === 'perimeter') {
-      const m: PerimeterMarkup = {
-        id,
-        type: 'perimeter',
-        page,
-        name,
-        categoryId: category.id,
-        color,
-        createdAt,
-        points: prev.points
-      }
-      store.placeMarkup(m)
+      newMarkup = { id, type: 'perimeter', page, name, categoryId: category.id, color, createdAt, points: prev.points }
     } else if (prev.toolType === 'wall') {
-      const m: WallMarkup = {
-        id,
-        type: 'wall',
-        page,
-        name,
-        categoryId: category.id,
-        color,
-        createdAt,
-        points: prev.points,
-        wallHeight: payload.wallHeight ?? prev.pendingWallHeight
-      }
-      store.placeMarkup(m)
+      newMarkup = { id, type: 'wall', page, name, categoryId: category.id, color, createdAt, points: prev.points, wallHeight: payload.wallHeight ?? prev.pendingWallHeight }
+    }
+    if (!newMarkup) return
+
+    // Phase 13 (D-16): consult re-open ref. If a snapshot is held, this commit is the
+    // re-commit half of the gesture — dispatch reopen-recommit (ONE command) instead of
+    // place. Then clear the snapshot before the post-commit reset.
+    const reopenSnapshot = getReopenSnapshot()
+    if (reopenSnapshot) {
+      store.commitReopen(reopenSnapshot, newMarkup)
+      setReopenSnapshot(null)
+    } else {
+      store.placeMarkup(newMarkup)
     }
 
-    // Chain-aware post-commit reset (Pitfall 3: dispatch store.placeMarkup OUTSIDE setState).
-    // Always arm chain after first commit; preserve name/category/color/toolType and reset to
-    // drawing mode so the user can place successive markups without re-prompting.
-    // INITIAL_STATE resets chainArmed and pendingWallHeight per Pitfall 7.
+    // Chain-aware post-commit reset (Pitfall 3: dispatch store action OUTSIDE setState).
+    // Phase 13 (Pitfall 2): chainArmed false after a reopen-recommit — the user requested
+    // a geometry refinement, not a chain start. Phase 8 chain badge will not render.
     setState({
       ...INITIAL_STATE,
       toolType: prev.toolType,
@@ -385,7 +382,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
       pendingCategoryName: payload.categoryName,
       pendingColor: payload.color,
       pendingWallHeight: payload.wallHeight ?? prev.pendingWallHeight,
-      chainArmed: true
+      chainArmed: reopenSnapshot ? false : true
     })
   }, [])
 
