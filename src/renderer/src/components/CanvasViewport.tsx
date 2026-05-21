@@ -1120,6 +1120,16 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     // once per drag session — NOT inside commitVertexEdit (which stays cleanup-only). One
     // drag = one undo entry. Vertex edit mode stays active after release so the user may
     // drag another handle.
+    //
+    // D-09 threshold note (post-UAT): D-09 specifies "4 screen pixels". dx/dy below are
+    // page-space (the inverse stage transform converts screen → page), so the threshold
+    // must be divided by currentZoom to stay screen-pixel constant. Without this, at 800%
+    // zoom the threshold becomes 4 page-units × 8 = 32 screen pixels — small vertex nudges
+    // never register. Read currentZoom via getState() so this callback's dep list stays
+    // narrow (no re-registration on every zoom step).
+    const liveZoom =
+      useViewerStore.getState().pageViewports[currentPage]?.zoom ?? 1
+    const dragThreshold = 4 / liveZoom
     const vd = vertexDragRef.current
     if (vd) {
       const stage = stageRef.current
@@ -1128,8 +1138,9 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         const pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
         const dx = pt.x - vd.origin.x
         const dy = pt.y - vd.origin.y
-        // D-09 4px movement threshold — below 4px is a click (no dispatch), above is a real drag.
-        const moved = Math.abs(dx) > 4 || Math.abs(dy) > 4
+        // D-09 4-screen-pixel movement threshold — below threshold is a click (no dispatch),
+        // above is a real drag. dx/dy are page-space, so threshold is also page-space (4/zoom).
+        const moved = Math.abs(dx) > dragThreshold || Math.abs(dy) > dragThreshold
         if (moved) {
           // newPoint = the live preview's vertex position when available, else origin + delta.
           // Either path gives the same result; preview is preferred because handleStageMouseMove
@@ -1176,8 +1187,9 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         const pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
         const dx = pt.x - bd.origin.x
         const dy = pt.y - bd.origin.y
-        // D-09: 4px movement threshold — below threshold = click, above = real drag.
-        const moved = Math.abs(dx) > 4 || Math.abs(dy) > 4
+        // D-09: 4-screen-pixel movement threshold — dx/dy are page-space so the
+        // threshold is divided by currentZoom (see vertex-drag branch above).
+        const moved = Math.abs(dx) > dragThreshold || Math.abs(dy) > dragThreshold
         if (moved) {
           // Build the move-markups command entries. Read pageMarkups from the store
           // snapshot, NOT the closed-over React state — stale closure anti-pattern (per
@@ -1225,9 +1237,12 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
 
     const rb = rubberBandRef.current
     if (!rb) return
-    // Only treat as a rubber-band drag when the mouse moved more than 4px in any direction.
-    // A zero-size band (pure click) should not interfere with the click handler below.
-    const moved = Math.abs(rb.endX - rb.startX) > 4 || Math.abs(rb.endY - rb.startY) > 4
+    // Only treat as a rubber-band drag when the mouse moved more than 4 screen pixels in any
+    // direction. rb.start/end are page-space so the threshold is divided by currentZoom
+    // (otherwise micro-bands at high zoom never register as drags).
+    const moved =
+      Math.abs(rb.endX - rb.startX) > dragThreshold ||
+      Math.abs(rb.endY - rb.startY) > dragThreshold
     if (moved) {
       const matched = pageMarkups.filter((m) => isFullyInside(m, rb))
       if (matched.length > 0) setSelectedMarkupIds(matched.map((m) => m.id))
