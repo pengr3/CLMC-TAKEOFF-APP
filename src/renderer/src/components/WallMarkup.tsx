@@ -22,6 +22,7 @@
 import { Line, Text, Rect, Group } from 'react-konva'
 import type { WallMarkup as WallMarkupType, Category } from '../types/markup'
 import type { PageScale } from '../types/scale'
+import type { StagePoint } from '../hooks/useCalibrationMode'
 import {
   polylineMidpointByArcLength,
   wallAreaM2
@@ -38,6 +39,11 @@ export interface WallMarkupProps {
   onContextMenu?: (id: string, screenX: number, screenY: number) => void
   /** Plan 09-02: single-click selection. D-03 guard lives in CanvasViewport. */
   onClick?: (id: string) => void
+  /** Called on mousedown on the markup body (Group), forwarding the markup id.
+   *  CanvasViewport reads this ref to start body-drag before the Stage-level handler fires. */
+  onMarkupMouseDown?: (id: string) => void
+  /** When set, render these points instead of markup.points (live drag preview). */
+  overridePoints?: StagePoint[]
 }
 
 // World-anchored label sizing — labels scale with zoom (D-22/D-34).
@@ -71,7 +77,9 @@ export function WallMarkup({
   onHoverEnter,
   onHoverLeave,
   onContextMenu,
-  onClick
+  onClick,
+  onMarkupMouseDown,
+  overridePoints
 }: WallMarkupProps): React.JSX.Element | null {
   // Hidden-item skip — composite key "name|categoryId" prevents cross-category collision.
   // Place as the very first lines so the rest of the render body is not evaluated.
@@ -79,17 +87,21 @@ export function WallMarkup({
   const isHidden = useProjectStore((s) => s.hiddenItemSet.has(itemKey))
   if (isHidden) return null
 
+  // Live drag preview: render overridePoints when supplied, otherwise persistent geometry.
+  // Both primary line and hairline use effectivePoints; wallHeight unchanged.
+  const effectivePoints = overridePoints ?? markup.points
+
   // Pitfall 2: both stroke widths MUST divide by currentZoom — never use bare px.
   const primaryStroke = (STROKE_BASE_PX * WALL_STROKE_MULTIPLIER) / currentZoom
   const hairlineStroke = STROKE_BASE_PX / currentZoom
 
-  const flatPoints = markup.points.flatMap((p) => [p.x, p.y])
+  const flatPoints = effectivePoints.flatMap((p) => [p.x, p.y])
 
-  const midpoint = polylineMidpointByArcLength(markup.points)
+  const midpoint = polylineMidpointByArcLength(effectivePoints)
 
   let labelText = ''
   if (pageScale && pageScale.pixelsPerMm > 0) {
-    const areaM2 = wallAreaM2(markup.points, markup.wallHeight, pageScale.pixelsPerMm)
+    const areaM2 = wallAreaM2(effectivePoints, markup.wallHeight, pageScale.pixelsPerMm)
     labelText = `${areaM2.toFixed(2)} m²`
   }
 
@@ -115,6 +127,7 @@ export function WallMarkup({
         if (p && onContextMenu) onContextMenu(markup.id, p.x, p.y)
       }}
       onClick={() => onClick?.(markup.id)}
+      onMouseDown={() => onMarkupMouseDown?.(markup.id)}
     >
       {/* PRIMARY LINE — 2.5× base stroke, interactive hit area */}
       <Line

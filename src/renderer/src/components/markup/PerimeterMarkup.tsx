@@ -1,6 +1,7 @@
 import { Line, Text, Rect, Group } from 'react-konva'
 import type { PerimeterMarkup as PerimeterMarkupType, Category } from '../../types/markup'
 import type { PageScale } from '../../types/scale'
+import type { StagePoint } from '../../hooks/useCalibrationMode'
 import {
   polygonArea,
   polygonCentroid,
@@ -20,6 +21,11 @@ export interface PerimeterMarkupProps {
   onContextMenu?: (id: string, screenX: number, screenY: number) => void
   /** Plan 09-02: single-click selection. D-03 guard lives in CanvasViewport. */
   onClick?: (id: string) => void
+  /** Called on mousedown on the markup body (Group), forwarding the markup id.
+   *  CanvasViewport reads this ref to start body-drag before the Stage-level handler fires. */
+  onMarkupMouseDown?: (id: string) => void
+  /** When set, render these points instead of markup.points (live drag preview). */
+  overridePoints?: StagePoint[]
 }
 
 // Pure world-anchored label (D-34), dark rounded chip background for legibility
@@ -48,22 +54,27 @@ export function PerimeterMarkup({
   onHoverEnter,
   onHoverLeave,
   onContextMenu,
-  onClick
+  onClick,
+  onMarkupMouseDown,
+  overridePoints
 }: PerimeterMarkupProps): React.JSX.Element | null {
   // Composite key: "name|categoryId" — matches the key used by TotalsRow toggleHiddenItem.
   const itemKey = `${markup.name}|${markup.categoryId ?? ''}`
   const isHidden = useProjectStore((s) => s.hiddenItemSet.has(itemKey))
   if (isHidden) return null
 
+  // Live drag preview: render overridePoints when supplied, otherwise persistent geometry.
+  const effectivePoints = overridePoints ?? markup.points
+
   const strokeWidth = STROKE_BASE_PX / currentZoom
 
-  const flatPoints = markup.points.flatMap((p) => [p.x, p.y])
-  const centroid = polygonCentroid(markup.points)
+  const flatPoints = effectivePoints.flatMap((p) => [p.x, p.y])
+  const centroid = polygonCentroid(effectivePoints)
 
   let labelText = ''
   if (pageScale && pageScale.pixelsPerMm > 0) {
-    const pixelArea = polygonArea(markup.points)
-    const closedPoints = [...markup.points, markup.points[0]]
+    const pixelArea = polygonArea(effectivePoints)
+    const closedPoints = [...effectivePoints, effectivePoints[0]]
     const pixelPerim = polylineLength(closedPoints)
     const realPerim = pixelLengthToReal(pixelPerim, pageScale.pixelsPerMm, pageScale.displayUnit)
     const realArea = pixelAreaToReal(pixelArea, pageScale.pixelsPerMm, pageScale.displayUnit)
@@ -92,6 +103,7 @@ export function PerimeterMarkup({
         if (p && onContextMenu) onContextMenu(markup.id, p.x, p.y)
       }}
       onClick={() => onClick?.(markup.id)}
+      onMouseDown={() => onMarkupMouseDown?.(markup.id)}
     >
       <Line
         points={flatPoints}

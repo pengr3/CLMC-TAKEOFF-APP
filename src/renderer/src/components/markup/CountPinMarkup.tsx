@@ -1,5 +1,6 @@
 import { Circle, Text, Group } from 'react-konva'
 import type { CountMarkup, Category } from '../../types/markup'
+import type { StagePoint } from '../../hooks/useCalibrationMode'
 import { getContrastingInk } from '../../lib/color-utils'
 import { useProjectStore } from '../../stores/projectStore'
 
@@ -18,6 +19,11 @@ export interface CountPinMarkupProps {
    * handleMarkupClick, NOT here, so renderers stay policy-free.
    */
   onClick?: (id: string) => void
+  /** Called on mousedown on the markup body (Group), forwarding the markup id.
+   *  CanvasViewport reads this ref to start body-drag before the Stage-level handler fires. */
+  onMarkupMouseDown?: (id: string) => void
+  /** When set, render this point instead of markup.point (live drag preview). */
+  overridePoint?: StagePoint
 }
 
 // D-22: pins are "stamps on the plan" - pure world-anchored.
@@ -43,12 +49,17 @@ export function CountPinMarkup({
   onHoverEnter,
   onHoverLeave,
   onContextMenu,
-  onClick
+  onClick,
+  onMarkupMouseDown,
+  overridePoint
 }: CountPinMarkupProps): React.JSX.Element | null {
   // Composite key: "name|categoryId" — matches the key used by TotalsRow toggleHiddenItem.
   const itemKey = `${markup.name}|${markup.categoryId ?? ''}`
   const isHidden = useProjectStore((s) => s.hiddenItemSet.has(itemKey))
   if (isHidden) return null
+
+  // Live drag preview: render overridePoint when supplied, otherwise persistent geometry.
+  const effectivePoint = overridePoint ?? markup.point
 
   const fill = markup.color
   const ink = getContrastingInk(fill)
@@ -73,18 +84,19 @@ export function CountPinMarkup({
         if (p && onContextMenu) onContextMenu(markup.id, p.x, p.y)
       }}
       onClick={() => onClick?.(markup.id)}
+      onMouseDown={() => onMarkupMouseDown?.(markup.id)}
     >
       <Circle
-        x={markup.point.x}
-        y={markup.point.y}
+        x={effectivePoint.x}
+        y={effectivePoint.y}
         radius={PIN_RADIUS_WORLD}
         fill={fill}
         stroke="#ffffff"
         strokeWidth={PIN_STROKE_WORLD}
       />
       <Text
-        x={markup.point.x - PIN_RADIUS_WORLD}
-        y={markup.point.y - NUMBER_FONT_WORLD / 2}
+        x={effectivePoint.x - PIN_RADIUS_WORLD}
+        y={effectivePoint.y - NUMBER_FONT_WORLD / 2}
         width={boxW}
         text={label}
         fontSize={NUMBER_FONT_WORLD}

@@ -1,6 +1,7 @@
 import { Line, Text, Rect, Group } from 'react-konva'
 import type { LinearMarkup as LinearMarkupType, Category } from '../../types/markup'
 import type { PageScale } from '../../types/scale'
+import type { StagePoint } from '../../hooks/useCalibrationMode'
 import {
   polylineLength,
   pixelLengthToReal,
@@ -18,6 +19,11 @@ export interface LinearMarkupProps {
   onContextMenu?: (id: string, screenX: number, screenY: number) => void
   /** Plan 09-02: single-click selection. D-03 guard lives in CanvasViewport. */
   onClick?: (id: string) => void
+  /** Called on mousedown on the markup body (Group), forwarding the markup id.
+   *  CanvasViewport reads this ref to start body-drag before the Stage-level handler fires. */
+  onMarkupMouseDown?: (id: string) => void
+  /** When set, render these points instead of markup.points (live drag preview). */
+  overridePoints?: StagePoint[]
 }
 
 // Pure world-anchored label sizing — labels behave like count pins (D-22/D-34):
@@ -53,22 +59,27 @@ export function LinearMarkup({
   onHoverEnter,
   onHoverLeave,
   onContextMenu,
-  onClick
+  onClick,
+  onMarkupMouseDown,
+  overridePoints
 }: LinearMarkupProps): React.JSX.Element | null {
   // Composite key: "name|categoryId" — matches the key used by TotalsRow toggleHiddenItem.
   const itemKey = `${markup.name}|${markup.categoryId ?? ''}`
   const isHidden = useProjectStore((s) => s.hiddenItemSet.has(itemKey))
   if (isHidden) return null
 
+  // Live drag preview: render overridePoints when supplied, otherwise persistent geometry.
+  const effectivePoints = overridePoints ?? markup.points
+
   const strokeWidth = STROKE_BASE_PX / currentZoom
 
-  const flatPoints = markup.points.flatMap((p) => [p.x, p.y])
+  const flatPoints = effectivePoints.flatMap((p) => [p.x, p.y])
 
-  const midpoint = polylineMidpointByArcLength(markup.points)
+  const midpoint = polylineMidpointByArcLength(effectivePoints)
 
   let labelText = ''
   if (pageScale && pageScale.pixelsPerMm > 0) {
-    const pixelLen = polylineLength(markup.points)
+    const pixelLen = polylineLength(effectivePoints)
     const realLen = pixelLengthToReal(pixelLen, pageScale.pixelsPerMm, pageScale.displayUnit)
     labelText = `${realLen.toFixed(1)} ${pageScale.displayUnit}`
   }
@@ -95,6 +106,7 @@ export function LinearMarkup({
         if (p && onContextMenu) onContextMenu(markup.id, p.x, p.y)
       }}
       onClick={() => onClick?.(markup.id)}
+      onMouseDown={() => onMarkupMouseDown?.(markup.id)}
     >
       <Line
         points={flatPoints}
