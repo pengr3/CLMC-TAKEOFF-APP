@@ -1127,22 +1127,29 @@ export function getMarkupRedoHandler(): (() => boolean) | null { return _markupR
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should page navigation during re-open auto-cancel and restore?**
    - What we know: line 610 of CanvasViewport.tsx clears `vertexEditMarkupId`, drag preview, etc. on page change. In-progress markup state (`useMarkupTool`) is NOT cleared today because users may need to draw across pages (but in practice, every commit dispatch reads `currentPage` so a draw-across-page would mis-page the markup).
    - What's unclear: explicit user intent for re-open + page change. CONTEXT.md does not address it.
    - Recommendation: Auto-cancel and restore (treat as implicit Esc). Document as new D-26 once confirmed. Avoids "leaking" re-open state into another page's interaction graph.
+   - **RESOLVED 2026-05-21:** Locked as D-26 in 13-CONTEXT.md. Page-nav during an active re-open = implicit Esc: restore original, re-push place command, clear snapshot, dismiss toast, cancel in-progress draw.
 
 2. **Should the redo path of a `reopen-recommit` command preserve the user's intermediate point-pop / point-push state?**
    - What we know: D-16 says the whole gesture is ONE command. The intermediate point edits are transient. Undo of `reopen-recommit` restores the original markup. Redo re-applies the FINAL committed state — not the intermediate steps.
    - What's unclear: nothing actionable; this is the correct semantics per D-16. Just being explicit.
    - Recommendation: assert in SC5 round-trip that Ctrl+Y restores `newMarkup` (final state), NOT the intermediate point-by-point progression.
+   - **RESOLVED 2026-05-21:** Non-actionable — redo of `reopen-recommit` invokes the existing single-command redo path; no special handling needed. SC5 already asserts the final-state round-trip (oldMarkup ↔ newMarkup).
 
 3. **Confirm in-progress preview renderers do not consult `hiddenItemNames` (A1)**
    - What we know: D-25 says re-open does not change visibility behaviour. The committed-markup skip-render branch is gated on `hiddenItemNames.has(name)`.
    - What's unclear: whether the in-progress preview path is gated by the same check.
    - Recommendation: planner verifies by reading `LinearMarkup.tsx`, `AreaMarkup.tsx`, `PerimeterMarkup.tsx`, `WallMarkup.tsx` in Wave 1 Task 1. If gated, refactor to bypass for in-progress state.
+   - **RESOLVED 2026-05-21 (A1 verification performed by planner during revision):** **A1 HOLDS.** Verified by direct read of `src/renderer/src/components/`:
+     - There is NO `LinearMarkup.tsx`, `AreaMarkup.tsx`, or `PerimeterMarkup.tsx` file — only `WallMarkup.tsx` exists as a standalone component. Linear/area/perimeter are rendered inline in `CanvasViewport.tsx`.
+     - `WallMarkup.tsx` (the only committed-markup component) consults `hiddenItemSet` at line 87 (`const isHidden = useProjectStore((s) => s.hiddenItemSet.has(itemKey)); if (isHidden) return null`) — but it renders **committed** wall markups, NOT the in-progress preview.
+     - The in-progress preview (linear/area/perimeter/wall) is rendered directly in `CanvasViewport.tsx` at lines 1477-1505 and 1750-1795 from `markupState.points` and `markupState.previewPoint`. The preview path does NOT consult `hiddenItemSet`/`hiddenItemNames` (grep confirmed: `hiddenItemSet` does not appear in the inline preview blocks).
+     - **Conclusion:** Re-open of a hidden-named markup will show the in-progress shape on the canvas (because the inline preview ignores visibility); the committed shape is removed at re-open trigger time anyway. NO renderer refactor task is needed. NO Task 0 added to Plan 13-03.
 
 ---
 

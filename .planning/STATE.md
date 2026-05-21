@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 12 complete
-stopped_at: Phase 12 complete — 7/7 plans, 14/14 UAT scenarios PASS (post-UAT fixes 000f9e3, 564f0cb, 72094dc)
-last_updated: "2026-05-21T16:45:00.000Z"
+status: Phase 13 planned — Ready to execute
+stopped_at: Phase 13 planned — 3 plans across 3 waves (13-01 TDD Wave 0 / 13-02 store+ref Wave 1 / 13-03 dispatch+toast Wave 2)
+last_updated: "2026-05-21T18:00:00.000Z"
 last_activity: 2026-05-21
 progress:
-  total_phases: 16
+  total_phases: 17
   completed_phases: 16
-  total_plans: 88
+  total_plans: 91
   completed_plans: 88
-  percent: 100
+  percent: 97
 ---
 
 # Project State: CLMC Takeoff App
@@ -216,10 +216,10 @@ None.
 
 **Stopped at:** Phase 12 complete — 7/7 plans, 14/14 UAT scenarios PASS after three post-UAT fixes (000f9e3, 564f0cb, 72094dc). v1.0-extended now reads 13/13 phases, 77/77 plans, 25/25 requirements; v1.1 enhancements GAP-T1-01 + GAP-T1-02 delivered.
 
-**Next action:** v1.1 milestone planning — decide whether to start Phase 11 redux (ratio scale was scrapped; quick task 260520-rrf delivered draw-line-only) or open a new v1.1 phase from `.planning/phases/v1.1-planning/`.
+**Next action:** Execute Phase 13 — `/gsd-execute-phase 13`. Plans: 13-01 (Wave 0 TDD: RED tests + MarkupCommand `reopen-recommit` variant + `isMultiPointMarkup` type guard) → 13-02 (Wave 1: `markup-reopen-ref.ts` + `markupStore` actions/branches) → 13-03 (Wave 2: `useMarkupTool` / Ctrl+Z dispatch / `CanvasViewport` Esc + page-nav / `App.tsx` toast slot).
 
-**Note:** Phase 11 (Scale Ratio Input) scrapped — replaced by quick task `260520-rrf` (commit `4156dee`). Phase 12 was the active phase through UAT closure.
+**Note:** Phase 11 (Scale Ratio Input) scrapped — replaced by quick task `260520-rrf` (commit `4156dee`). Phase 13 = v1.1 Phase C from `.planning/phases/v1.1-planning/v1.1-CONTEXT.md` (D-10/D-11/D-12 plus new D-13–D-26 added during planning).
 
 ---
 *State initialized: 2026-03-25*
-*Last updated: 2026-05-18 — Phase 9 complete (selection model, ribbon toolbar, modal polish, markup completion — v1.0-extended milestone done, 12/12 phases, 70/70 plans, 25/25 requirements)*
+*Last updated: 2026-05-21 — Phase 13 planned (3 plans across 3 waves — post-commit step-level undo; verified PASS after 1 revision iteration)*

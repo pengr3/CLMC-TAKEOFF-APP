@@ -24,6 +24,7 @@
 - [x] **Phase 10: Granular Undo Foundation** - Polish undo so that Ctrl+Z during an in-progress multi-point markup (linear, area, perimeter, wall) pops only the last placed point rather than deleting the entire markup; establish this step-level undo contract as the foundation for all future undo behavior (completed 2026-05-19)
 - [x] **Phase 11: Scale Ratio Input** - Scrapped — ratio calibration removed after UAT; draw-line method is sufficient (completed/closed 2026-05-20)
 - [x] **Phase 12: Markup Geometry Editing** - Vertex edit mode (click selected markup again → drag square handles to reposition points) and drag-to-translate (drag selected markup to move it); group move for multi-select; all changes undoable via existing command pattern (completed 2026-05-21)
+- [ ] **Phase 13: Post-Commit Step-Level Undo** - Ctrl+Z on a committed multi-point markup (linear, area, perimeter, wall) re-opens it in drawing mode with all points intact — undoing just the commit, not the shape. Estimator can add points, pop points with further Ctrl+Z, or re-commit with Enter. Brief ConfirmationToast on re-open.
 
 ---
 
@@ -356,6 +357,30 @@ Plans:
 - [x] 12-05-PLAN.md -- CanvasViewport: vertex drag flow + click-outside commit (D-04..D-09 complete)
 - [x] 12-06-PLAN.md -- UAT checkpoint and phase closure — 14/14 UAT scenarios PASS after three post-UAT fixes (single-click vertex edit + halo only for pins/groups 000f9e3; vertex handles appear on first click + follow body drag 564f0cb; zoom-compensate D-09 4px threshold 72094dc)
 
+### Phase 13: Post-Commit Step-Level Undo
+
+**Goal:** Estimators can refine a committed multi-point markup (linear, area, perimeter, wall) by pressing Ctrl+Z to re-open it in drawing mode with all its points intact — undoing just the commit, not the shape. From the re-opened state they can add more points, pop points with further Ctrl+Z (Phase 10 behaviour), or re-commit with Enter. A brief ConfirmationToast confirms the state change so first-time users understand it.
+**Depends on:** Phase 10 (in-progress step-level undo), Phase 12 (markup geometry editing — vertex-edit mode shares the "edit a committed shape" mental model)
+**Requirements:** No new v1 requirements (v1.1 enhancement — Phase C in v1.1-CONTEXT.md, decisions D-10/D-11/D-12)
+**Success Criteria** (what must be TRUE):
+  1. With a multi-point markup committed and selected, pressing Ctrl+Z re-opens the most recently committed multi-point markup in drawing mode — all its existing vertices appear as the in-progress point stack, the originating tool becomes active, and the shape itself is removed from the committed-markup layer until re-committed
+  2. After re-opening, pressing Ctrl+Z again pops the last point (Phase 10 behaviour); Ctrl+Y re-adds it; pressing Enter commits the (possibly modified) shape back as a new committed markup using the original name/category/color
+  3. Re-opening shows a `ConfirmationToast` reading something like "Shape re-opened — continue drawing or press Enter to commit" (parent-owns-lifecycle pattern, auto-dismiss)
+  4. Pressing Esc while re-opened cancels the operation and restores the original committed markup exactly as it was before the re-open (no data loss, identical position and properties)
+  5. Post-commit undo works for all five (current) multi-point tools: linear, area, perimeter, wall — count pins are unchanged (single-point, no re-open semantics); the re-open / pop / re-commit cycle is undoable end-to-end via the existing command pattern so the user can step back across the whole gesture
+**Plans**: 3 plans across 3 waves
+
+**Wave 0 *(prerequisite — RED tests + type extensions)*:**
+- [ ] 13-01-PLAN.md — TDD: RED test file src/tests/markup-post-commit-reopen.test.ts (15+ cases SC1-SC5 + EDGE-1/3/4/5 + module-ref round-trip + SC4 e2e Esc keydown); extend MarkupCommand union with reopen-recommit variant; add isMultiPointMarkup type guard
+
+**Wave 1 *(blocked on Wave 0 — store + ref-module foundation)*:**
+- [ ] 13-02-PLAN.md — Store + ref module: markup-reopen-ref.ts (handler + snapshot refs); markupStore commitReopen/removeForReopen/restoreFromReopen actions + reopen-recommit undo/redo branches
+
+**Wave 2 *(blocked on Waves 0 + 1 — dispatch + hook + viewport + toast — has hard runtime deps on 13-02's markup-reopen-ref module and removeForReopen/restoreFromReopen/commitReopen store actions)*:**
+- [ ] 13-03-PLAN.md — Dispatch + hook + viewport + toast: useMarkupTool activatePreset+commitShape extensions (consults getReopenSnapshot, dispatches commitReopen); useKeyboardShortcuts Ctrl+Z re-open branch (consults getMarkupReopenHandler); CanvasViewport handler registration + Esc + page-nav cancel + onReopenToast prop (uses removeForReopen/restoreFromReopen); App.tsx reopenToast slot (2500ms, bottom: 148)
+
+**Cross-cutting constraints:** chainArmed: false on re-open seed AND post-commit reset (Pitfall 2 — load-bearing); wallHeight preserved across re-open (D-15 + EDGE-5); isTextInputActive() guard on every Ctrl+Z / Ctrl+Y / Enter / Esc (locked across Phases 3/10); Stage inverse transform unchanged (no new pointer path); useEffect cleanup sets module ref to null on unmount (StrictMode-safe — Pitfall 9); no new IPC/persistence/file I/O (renderer-only); UNDO_STACK_MAX=50 cap applied normally to reopen-recommit commands; page-navigation during re-open treats as implicit Esc (D-26 — Pitfall 1); cross-page guard (D-17 condition 5 — A4).
+
 ### Phase 11: Scale Ratio Input
 
 **Goal:** Estimators can enter a drawing scale directly from the title block (e.g. 1:100) without drawing a calibration line — a new "Type ratio" tab inside `ScalePopup.tsx` auto-derives the sheet size from PDF metadata and computes pixelsPerMm from the ratio.
@@ -410,6 +435,7 @@ Plans:
 | 10. Granular Undo Foundation | 2/2 | Complete    | 2026-05-19 |
 | 11. Scale Ratio Input | —/— | Scrapped | 2026-05-20 |
 | 12. Markup Geometry Editing | 7/7 | Complete | 2026-05-21 |
+| 13. Post-Commit Step-Level Undo | 0/3 | Planning | — |
 
 ---
 
