@@ -894,13 +894,48 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         markupMouseDownPosRef.current = { x: pointer.x, y: pointer.y }
       }
 
+      // Phase 12 D-07/D-08: body-drag branch — fires when a selected markup was mousedown'd.
+      // markupBodyDownRef is set by the markup component's onMarkupMouseDown BEFORE this
+      // Stage-level handler fires (Konva child events bubble up first).
+      // CRITICAL: read pageMarkups via useMarkupStore.getState() — the closed-over `pageMarkups`
+      // from the React selector is stale inside this useCallback at click-time.
+      const bodyTargetId = markupBodyDownRef.current
+      markupBodyDownRef.current = null  // consume immediately — prevent double-trigger
+      if (
+        bodyTargetId &&
+        activeTool === 'select' &&
+        !spaceHeld &&
+        selectedMarkupIds.includes(bodyTargetId)
+      ) {
+        e.evt.stopPropagation()  // prevent rubber-band from starting
+        const pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+        // Snapshot start positions for all selected markups — read from store snapshot, not stale closure.
+        const currentPageMarkups = useMarkupStore.getState().pageMarkups[currentPage] ?? []
+        const startPositions: Record<string, StagePoint | StagePoint[]> = {}
+        for (const id of selectedMarkupIds) {
+          const markup = currentPageMarkups.find((m) => m.id === id)
+          if (!markup) continue
+          if (markup.type === 'count') {
+            startPositions[id] = { ...markup.point }
+          } else {
+            startPositions[id] = [...markup.points]
+          }
+        }
+        bodyDragRef.current = {
+          ids: [...selectedMarkupIds],
+          origin: pt,
+          startPositions
+        }
+        return  // suppress rubber-band
+      }
+
       if (activeTool !== 'select') return
       if (spaceHeld) return // spacebar-held override: LMB pans the stage
       e.evt.stopPropagation()
       const pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
       setRubberBand({ startX: pt.x, startY: pt.y, endX: pt.x, endY: pt.y })
     },
-    [activeTool, spaceHeld, stageRef, setRubberBand]
+    [activeTool, spaceHeld, selectedMarkupIds, currentPage, stageRef, setRubberBand]
   )
 
   // Handle Stage mousemove — update preview point for calibration or markup drawing.
@@ -914,6 +949,21 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       if (!stage) return
       const pointer = stage.getPointerPosition()
       if (!pointer) return
+
+      // Phase 12 (12-04): body-drag live preview — update delta for all dragged markups.
+      // Read via bodyDragRef.current (stable across renders) so this callback's deps stay narrow.
+      const bd = bodyDragRef.current
+      if (bd) {
+        const pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+        const dx = pt.x - bd.origin.x
+        const dy = pt.y - bd.origin.y
+        const deltas: Record<string, { x: number; y: number }> = {}
+        for (const id of bd.ids) {
+          deltas[id] = { x: dx, y: dy }
+        }
+        setDragPreview({ type: 'body', deltas })
+        return
+      }
 
       const rb = rubberBandRef.current
       if (rb) {
@@ -930,7 +980,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         updateMarkupPreview({ x: pointer.x, y: pointer.y })
       }
     },
-    [calibState.mode, calibState.startPoint, markupState.mode, markupState.points.length, stageRef, updatePreview, updateMarkupPreview, setRubberBand]
+    [calibState.mode, calibState.startPoint, markupState.mode, markupState.points.length, stageRef, updatePreview, updateMarkupPreview, setRubberBand, setDragPreview]
   )
 
   // Plan 09-03: rubber-band release (D-07, D-09).
