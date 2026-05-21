@@ -60,6 +60,16 @@ export interface ViewerState {
   setSelectedMarkupIds: (ids: string[]) => void
   clearSelection: () => void
 
+  /**
+   * ID of the markup currently in vertex-edit mode (Phase 12 D-04), or null.
+   * Drives mount/unmount of the vertex handle overlay layer. Page-scoped:
+   * cleared automatically on page change (setPage/nextPage/prevPage),
+   * resetViewer(), hydrate(), and setFile() — mirrors selectedMarkupIds.
+   */
+  vertexEditMarkupId: string | null
+  setVertexEditMarkupId: (id: string) => void
+  clearVertexEdit: () => void
+
   hydrate: (data: { currentPage: number; pageViewports: Record<number, ViewportState> }) => void
 }
 

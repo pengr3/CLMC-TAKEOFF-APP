@@ -14,6 +14,7 @@ export const useViewerStore = create<ViewerState>()(
     pageScales: {},
     activeTool: 'select' as ActiveTool,
     selectedMarkupIds: [],
+    vertexEditMarkupId: null,
 
     setFile: (path, name, totalPages) =>
       set({
@@ -24,25 +25,27 @@ export const useViewerStore = create<ViewerState>()(
         pageViewports: {},
         pageScales: {},
         activeTool: 'select' as ActiveTool,
-        selectedMarkupIds: []
+        selectedMarkupIds: [],
+        vertexEditMarkupId: null
       }),
 
     setPage: (page) => {
       const { totalPages } = get()
       if (page >= 1 && page <= totalPages) {
-        set({ currentPage: page, selectedMarkupIds: [] })
+        set({ currentPage: page, selectedMarkupIds: [], vertexEditMarkupId: null })
       }
     },
 
     nextPage: () => {
       const { currentPage, totalPages } = get()
       if (currentPage < totalPages)
-        set({ currentPage: currentPage + 1, selectedMarkupIds: [] })
+        set({ currentPage: currentPage + 1, selectedMarkupIds: [], vertexEditMarkupId: null })
     },
 
     prevPage: () => {
       const { currentPage } = get()
-      if (currentPage > 1) set({ currentPage: currentPage - 1, selectedMarkupIds: [] })
+      if (currentPage > 1)
+        set({ currentPage: currentPage - 1, selectedMarkupIds: [], vertexEditMarkupId: null })
     },
 
     setViewport: (page, viewport) =>
@@ -77,7 +80,8 @@ export const useViewerStore = create<ViewerState>()(
         pdfBytes: null,
         pageScales: {},
         activeTool: 'select' as ActiveTool,
-        selectedMarkupIds: []
+        selectedMarkupIds: [],
+        vertexEditMarkupId: null
       }),
 
     setPageScale: (page, scale) =>
@@ -100,6 +104,10 @@ export const useViewerStore = create<ViewerState>()(
 
     clearSelection: () => set({ selectedMarkupIds: [] }),
 
+    setVertexEditMarkupId: (id) => set({ vertexEditMarkupId: id }),
+
+    clearVertexEdit: () => set({ vertexEditMarkupId: null }),
+
     /**
      * Hydrate viewer state from a loaded project.
      *
@@ -121,7 +129,8 @@ export const useViewerStore = create<ViewerState>()(
         currentPage: data.currentPage,
         pageViewports: {},
         activeTool: 'select' as ActiveTool,
-        selectedMarkupIds: []
+        selectedMarkupIds: [],
+        vertexEditMarkupId: null
       })
   }))
 )
