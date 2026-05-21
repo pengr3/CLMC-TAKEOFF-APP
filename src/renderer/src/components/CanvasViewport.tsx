@@ -383,6 +383,20 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // Source: RESEARCH.md Pitfall 2 + rubberBandDraggedRef pattern (lines 343-346, 939 in this file).
   const bodyDraggedRef = useRef(false)
 
+  // Phase 12 (12-05): vertex drag state — which markup/vertex is being dragged.
+  // Set by the onHandleMouseDown callback on VertexHandleOverlay (Konva child onMouseDown fires
+  // BEFORE the Stage handler, and the handle's `e.cancelBubble = true` suppresses the Stage event
+  // entirely — see VertexHandleOverlay.tsx:75-76). Cleared on mouseup or out-of-bounds release.
+  // One drag session = one moveVertex dispatch in handleStageMouseUp = one undo entry (D-06).
+  type VertexDragState = {
+    markupId: string
+    vertexIndex: number
+    origin: StagePoint        // page-space point where drag started
+    originalPoints: StagePoint[]  // snapshot for restore on out-of-bounds release
+  } | null
+
+  const vertexDragRef = useRef<VertexDragState>(null)
+
   // Phase 12: snapshot of points when vertex edit mode was entered.
   // Used by cancelVertexEdit() to restore on Escape (RESEARCH Finding 9).
   // Set ONCE at session start in handleMarkupClick; never updated mid-session.
@@ -939,6 +953,17 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         return  // suppress rubber-band
       }
 
+      // Phase 12 (12-05): defensive safety net — if vertexDragRef was set by
+      // onHandleMouseDown (child fires first via Konva bubbling, with cancelBubble=true on
+      // the Rect's mousedown that should suppress the Stage handler), make sure we don't
+      // ALSO start a rubber-band. Under normal flow cancelBubble keeps this branch from
+      // ever firing for handle clicks; this guard catches any edge case where bubble-cancel
+      // was missed (e.g. event replay, focus weirdness).
+      if (vertexDragRef.current !== null && activeTool === 'select') {
+        e.evt.stopPropagation()
+        return
+      }
+
       if (activeTool !== 'select') return
       if (spaceHeld) return // spacebar-held override: LMB pans the stage
       e.evt.stopPropagation()
@@ -1176,8 +1201,30 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
           markup={markupForHandles}
           currentZoom={currentZoom}
           onHandleMouseDown={(vertexIndex) => {
-            // Stub — wired in Plan 12-05 (vertex drag flow)
-            void vertexIndex
+            // Phase 12 (12-05): start a vertex drag. The mousedown on the Rect already set
+            // e.cancelBubble = true in VertexHandleOverlay (VertexHandleOverlay.tsx:75-76),
+            // so the Stage onMouseDown will NOT fire for this gesture. We use this callback
+            // (not the Stage handler) as the vertex drag entry point.
+            //
+            // Read pageMarkups via getState() — stale-closure anti-pattern guard from
+            // .planning/phases/12-markup-geometry-editing/.continue-here.md.
+            const liveId = useViewerStore.getState().vertexEditMarkupId
+            if (liveId === null) return
+            const livePageMarkups =
+              useMarkupStore.getState().pageMarkups[currentPage] ?? EMPTY_MARKUPS
+            const markup = livePageMarkups.find((m) => m.id === liveId)
+            if (!markup || markup.type === 'count') return
+            const stage = stageRef.current
+            if (!stage) return
+            const pointer = stage.getPointerPosition()
+            if (!pointer) return
+            const origin = stage.getAbsoluteTransform().copy().invert().point(pointer)
+            vertexDragRef.current = {
+              markupId: liveId,
+              vertexIndex,
+              origin,
+              originalPoints: [...markup.points]
+            }
           }}
         />
       </Layer>
