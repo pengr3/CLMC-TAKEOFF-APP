@@ -429,6 +429,37 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     return true
   }, [])
 
+  // Phase 13 (D-14 / Pitfall 6): window-level Escape listener for post-commit re-open cancel.
+  // When the module-level reopen snapshot is held, Esc restores the original markup byte-
+  // identically, re-pushes the original 'place' command (so Ctrl+Z afterwards behaves as if
+  // the re-open never happened), clears the snapshot, and resets the hook to idle.
+  //
+  // Why register here (in useMarkupTool) rather than only in CanvasViewport: the snapshot
+  // lifecycle is anchored to this hook (commitShape consumes via getReopenSnapshot, the
+  // CanvasViewport reopen handler sets it). Owning the Esc-cancel path here means the
+  // restore fires whenever the hook is mounted — including tests that mount the hook
+  // without CanvasViewport. CanvasViewport's existing keydown listener still handles the
+  // mode-based cancel + setActiveTool('select') tail.
+  useEffect(() => {
+    function handleEscape(e: KeyboardEvent): void {
+      if (e.key !== 'Escape') return
+      const snapshot = getReopenSnapshot()
+      if (!snapshot) return
+      useMarkupStore.getState().restoreFromReopen(snapshot)
+      useMarkupStore.setState((s) => ({
+        undoStack: [...s.undoStack, { type: 'place', markup: snapshot }]
+      }))
+      setReopenSnapshot(null)
+      // Reset hook state so the in-progress draw clears. Equivalent to cancel().
+      setState(INITIAL_STATE)
+      // Return to select tool so the user has a clean canvas; mirrors the CanvasViewport
+      // Esc handler's setActiveTool('select') tail.
+      useViewerStore.getState().setActiveTool('select')
+    }
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [])
+
   return {
     state,
     activate,
