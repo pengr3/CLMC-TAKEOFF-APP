@@ -1,35 +1,40 @@
 {
   "version": "1.0",
-  "timestamp": "2026-05-20T11:04:49.379Z",
-  "phase": "12",
-  "phase_name": "Markup Geometry Editing",
-  "phase_dir": ".planning/phases/12-markup-geometry-editing",
-  "plan": 0,
+  "timestamp": "2026-05-21T16:22:17.315Z",
+  "phase": "13",
+  "phase_name": "post-commit-step-level-undo",
+  "phase_dir": ".planning/phases/13-post-commit-step-level-undo",
+  "plan": 3,
   "task": 0,
-  "total_tasks": 7,
+  "total_tasks": 3,
   "status": "paused",
-  "completed_tasks": [],
-  "remaining_tasks": [
-    {"id": 0, "name": "12-00 RED test stubs", "status": "not_started"},
-    {"id": 1, "name": "12-01 Types + store commands + viewerStore", "status": "not_started"},
-    {"id": 2, "name": "12-02 Markup drag props + VertexHandleOverlay", "status": "not_started"},
-    {"id": 3, "name": "12-03 CanvasViewport: refs, vertex-edit activation, keyboard", "status": "not_started"},
-    {"id": 4, "name": "12-04 CanvasViewport: body-drag translate + group move", "status": "not_started"},
-    {"id": 5, "name": "12-05 CanvasViewport: vertex drag + click-outside commit", "status": "not_started"},
-    {"id": 6, "name": "12-06 UAT checkpoint + phase closure", "status": "not_started"}
+  "completed_tasks": [
+    {"id": "13-01", "name": "TDD RED tests + isMultiPointMarkup type guard + MarkupCommand reopen-recommit variant", "status": "done", "commit": "ad3947b"},
+    {"id": "13-02", "name": "markupStore commitReopen/removeForReopen/restoreFromReopen + markup-reopen-ref module", "status": "done", "commit": "e343fe9"},
+    {"id": "13-03", "name": "useMarkupTool activatePreset extension + Ctrl+Z dispatch + CanvasViewport reopen handler + App.tsx toast", "status": "done", "commit": "77bc00c"}
   ],
-  "blockers": [],
+  "remaining_tasks": [
+    {"id": "fix-blockers", "name": "Spawn gsd-code-fixer for CR-01 + CR-02 + WR-01 + WR-02 + WR-03 (user-approved scope)", "status": "not_started"},
+    {"id": "rerun-tests", "name": "Re-run vitest after fixes; confirm 23/23 still pass + no regressions", "status": "not_started"},
+    {"id": "verify-phase", "name": "Spawn gsd-verifier — goal-backward verification against ROADMAP.md phase 13 goal", "status": "not_started"},
+    {"id": "browser-uat", "name": "Start dev server and verify Ctrl+Z re-open works end-to-end in CanvasViewport (the bugs CR-01/CR-02 only manifest at integration level)", "status": "not_started"},
+    {"id": "complete-phase", "name": "Run phase.complete via gsd-tools; update STATE/ROADMAP/REQUIREMENTS", "status": "not_started"}
+  ],
+  "blockers": [
+    {"description": "CR-01 (Blocker): CanvasViewport reopen handler does not call setActiveTool(tool). After Ctrl+Z the tool-sync useEffect at CanvasViewport.tsx:516-522 fires cancelMarkup() and wipes the seeded state. Unit tests miss this (HookHost-only).", "type": "technical", "workaround": "Spawn gsd-code-fixer; add setActiveTool(tool) before/inside the activatePreset call in the reopen handler. Mirror App.tsx:281-289 setChainArmedFromTotals coupling pattern."},
+    {"description": "CR-02 (Blocker): useMarkupTool.ts:398-401 popLastPoint calls cancel() on last-vertex pop but cancel() does not clear _reopenSnapshot. During re-open, popping all vertices orphans the snapshot — a subsequent Ctrl+Z overwrites it and the original markup is lost forever (removeForReopen already ran).", "type": "technical", "workaround": "Spawn gsd-code-fixer; either (a) make cancel() clear _reopenSnapshot too, or (b) add explicit setReopenSnapshot(null) in the popLastPoint last-vertex branch."}
+  ],
   "human_actions_pending": [
-    {"action": "UAT testing of Phase 12 (Plan 12-06)", "context": "14-scenario UAT (A-N) covering vertex edit, translate, group move, undo, Escape restore", "blocking": false}
+    {"action": "Browser UAT — load a PDF, draw a multi-point markup (linear/area/perimeter/wall), commit with Enter, press Ctrl+Z, confirm shape re-opens in drawing mode with points seeded + toast appears. Try Esc to restore, Ctrl+Z then page-nav (implicit Esc), and full pop-all-points edge case.", "context": "CLAUDE.md mandates browser testing for UI changes. CR-01 in particular would not appear in unit tests (HookHost-only) — only by exercising CanvasViewport mounted via the real App tree.", "blocking": false}
   ],
   "decisions": [
-    {"decision": "Phase 11 Scale Ratio Input scrapped", "rationale": "Draw-line calibration is robust; ratio feature produced unreliable values in UAT", "phase": "11"},
-    {"decision": "Phase 12 vertex edit activates by second click on already-selected markup", "rationale": "D-04 from v1.1-CONTEXT.md — first click = selection ring, second = handles", "phase": "12"},
-    {"decision": "WallMarkup.tsx lives at src/renderer/src/components/WallMarkup.tsx not markup/ subdir", "rationale": "Confirmed by plan-checker review; plan 12-02 corrected accordingly", "phase": "12"},
-    {"decision": "commitVertexEdit is cleanup-only — vertex dispatch only in handleStageMouseUp", "rationale": "Prevents multiple undo commands per drag session (plan-checker blocker fix)", "phase": "12"},
-    {"decision": "vertexEditOriginalRef set once at session start, never mid-session", "rationale": "Escape restores to pre-session state; undo stack handles Ctrl+Z granularity", "phase": "12"}
+    {"decision": "User chose 'Fix blockers + real warnings, then verify' from the 3-option presentation", "rationale": "2 blockers (CR-01 self-cancel, CR-02 snapshot orphan) are real browser-broken bugs. WR-01/02/03 are real bugs too (cap bypass, store-reset leak, missing deps). WR-04/05 + IN-01/02/03 deferred as cosmetic/style.", "phase": "13"},
+    {"decision": "Mode=yolo + no branching — all 3 plans merged directly to master", "rationale": "Project config: branching_strategy=none, mode=yolo. Confirmed in .planning/config.json.", "phase": "13"},
+    {"decision": "Worktree isolation used despite single-plan-per-wave layout", "rationale": "workflow.use_worktrees defaults to true. Worked correctly for Waves 1 and 2; Wave 0 had a pre-reset edit leak (anti-pattern recorded below) that was caught and resolved manually.", "phase": "13"}
   ],
-  "uncommitted_files": [],
-  "next_action": "Run /gsd-execute-phase 12 to start Wave 0 (12-00 RED test stubs)",
-  "context_notes": "Phase 12 fully planned and plan-checker reviewed (6 blockers fixed, 3 warnings addressed). All 7 PLAN.md files committed. No code written yet — ready to execute Wave 0."
+  "uncommitted_files": [
+    ".planning/phases/13-post-commit-step-level-undo/13-REVIEW.md"
+  ],
+  "next_action": "1) Stage and WIP-commit 13-REVIEW.md. 2) Spawn gsd-code-fixer with scope = CR-01, CR-02, WR-01, WR-02, WR-03 from 13-REVIEW.md. 3) Re-run vitest + tsc. 4) Spawn gsd-verifier with phase_dir=.planning/phases/13-post-commit-step-level-undo. 5) On pass, run phase.complete via gsd-tools.",
+  "context_notes": "Phase 13 implements post-commit step-level undo (Ctrl+Z on a committed multi-point markup re-opens it in drawing mode). All 3 plans landed + merged. Unit suite 534/534 GREEN. But code-reviewer caught 2 integration-level blockers that unit tests cannot reach (CanvasViewport is never mounted in the test file). User has approved fixing these. Verifier has not yet run — fixes must land before verification + UAT."
 }
