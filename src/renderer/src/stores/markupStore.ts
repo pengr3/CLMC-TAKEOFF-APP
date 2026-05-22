@@ -3,6 +3,7 @@ import { subscribeWithSelector } from 'zustand/middleware'
 import type { Markup, Category, MarkupCommand, CountMarkup } from '../types/markup'
 import { CATEGORY_PALETTE, UNDO_STACK_MAX } from '../types/markup'
 import type { StagePoint } from '../hooks/useCalibrationMode'
+import { setReopenSnapshot } from '../lib/markup-reopen-ref'
 
 interface MarkupStoreState {
   pageMarkups: Record<number, Markup[]>
@@ -652,16 +653,19 @@ export const useMarkupStore = create<MarkupStoreState>()(
   canUndo: () => get().undoStack.length > 0,
   canRedo: () => get().redoStack.length > 0,
 
-  hydrate: (data) =>
+  hydrate: (data) => {
+    setReopenSnapshot(null)
     set({
       pageMarkups: data.pageMarkups,
       categories: data.categories,
       categoryOrder: data.categoryOrder,
       undoStack: [],
       redoStack: []
-    }),
+    })
+  },
 
-  reset: () =>
+  reset: () => {
+    setReopenSnapshot(null)
     set({
       pageMarkups: {},
       categories: {},
@@ -669,5 +673,6 @@ export const useMarkupStore = create<MarkupStoreState>()(
       undoStack: [],
       redoStack: []
     })
+  }
 }))
 )
