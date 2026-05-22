@@ -682,7 +682,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     clearVertexEdit()
     setDragPreview(null)
     vertexEditOriginalRef.current = null
-  }, [currentPage])
+  }, [currentPage, cancelMarkup, clearVertexEdit, setDragPreview, props.onPulseComplete])
 
   // Dismiss toast when a new calibration run starts (MEDIUM #3)
   useEffect(() => {
