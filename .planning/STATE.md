@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Executing Phase 13
-stopped_at: Phase 12 complete — 7/7 plans, 14/14 UAT scenarios PASS after three post-UAT fixes (000f9e3, 564f0cb, 72094dc). v1.0-extended now reads 13/13 phases, 77/77 plans, 25/25 requirements; v1.1 enhancements GAP-T1-01 + GAP-T1-02 delivered.
-last_updated: "2026-05-21T10:19:16.849Z"
-last_activity: 2026-05-21
+status: Milestone complete
+stopped_at: Phase 13 complete — 3/3 plans, UAT PASS (4 scenarios PASS, 1 skipped/inconclusive). Post-commit step-level undo (Ctrl+Z reopen) fully delivered. 5 code-review fixes (CR-01, CR-02, WR-01, WR-02, WR-03) applied. Milestone complete — 17/17 phases, 91/91 plans.
+last_updated: "2026-05-22T03:32:07.662Z"
+last_activity: 2026-05-22
 progress:
   total_phases: 17
-  completed_phases: 16
+  completed_phases: 17
   total_plans: 91
-  completed_plans: 88
-  percent: 97
+  completed_plans: 91
+  percent: 100
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 13 — post-commit-step-level-undo
+**Current Focus:** Milestone complete — no active phase
 
 ---
 
 ## Current Position
 
-Phase: 13 (post-commit-step-level-undo) — EXECUTING
-Plan: 1 of 3
+Phase: 13
+Plan: Not started
 
 ## Performance Metrics
 
@@ -210,16 +210,16 @@ None.
 
 ## Session Continuity
 
-**Last activity:** 2026-05-21
+**Last activity:** 2026-05-22
 
-**Last session:** 2026-05-21 (Phase 12 executed end-to-end in one session)
+**Last session:** 2026-05-22 (Phase 13 fixes + UAT executed across two sessions)
 
-**Stopped at:** Phase 12 complete — 7/7 plans, 14/14 UAT scenarios PASS after three post-UAT fixes (000f9e3, 564f0cb, 72094dc). v1.0-extended now reads 13/13 phases, 77/77 plans, 25/25 requirements; v1.1 enhancements GAP-T1-01 + GAP-T1-02 delivered.
+**Stopped at:** Phase 13 complete — 3/3 plans, all code-review fixes applied (CR-01 tool-sync cancel, CR-02 snapshot orphan, WR-01 UNDO_STACK_MAX bypass, WR-02 store reset leak, WR-03 missing deps), 13/13 VERIFICATION checks PASS, browser UAT scenarios 1+2+4 PASS. Milestone complete — all 17 phases done, 91/91 plans.
 
-**Next action:** Execute Phase 13 — `/gsd-execute-phase 13`. Plans: 13-01 (Wave 0 TDD: RED tests + MarkupCommand `reopen-recommit` variant + `isMultiPointMarkup` type guard) → 13-02 (Wave 1: `markup-reopen-ref.ts` + `markupStore` actions/branches) → 13-03 (Wave 2: `useMarkupTool` / Ctrl+Z dispatch / `CanvasViewport` Esc + page-nav / `App.tsx` toast slot).
+**Next action:** None — milestone is complete. Consider `/gsd-new-milestone` for v1.2 planning.
 
 **Note:** Phase 11 (Scale Ratio Input) scrapped — replaced by quick task `260520-rrf` (commit `4156dee`). Phase 13 = v1.1 Phase C from `.planning/phases/v1.1-planning/v1.1-CONTEXT.md` (D-10/D-11/D-12 plus new D-13–D-26 added during planning).
 
 ---
 *State initialized: 2026-03-25*
-*Last updated: 2026-05-21 — Phase 13 planned (3 plans across 3 waves — post-commit step-level undo; verified PASS after 1 revision iteration)*
+*Last updated: 2026-05-22 — Phase 13 complete (post-commit step-level undo; 5 CR/WR fixes applied; VERIFICATION 13/13 PASS; milestone 100% complete)*

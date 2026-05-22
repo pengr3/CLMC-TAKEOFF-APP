@@ -435,7 +435,7 @@ Plans:
 | 10. Granular Undo Foundation | 2/2 | Complete    | 2026-05-19 |
 | 11. Scale Ratio Input | —/— | Scrapped | 2026-05-20 |
 | 12. Markup Geometry Editing | 7/7 | Complete | 2026-05-21 |
-| 13. Post-Commit Step-Level Undo | 3/3 | Complete   | 2026-05-21 |
+| 13. Post-Commit Step-Level Undo | 3/3 | Complete    | 2026-05-22 |
 
 ---
 
