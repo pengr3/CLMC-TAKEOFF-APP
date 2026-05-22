@@ -369,6 +369,11 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       // already excluded 'count' so this narrow is safe.
       const tool = original.type as 'linear' | 'area' | 'perimeter' | 'wall'
       const cat = store.getCategory(original.categoryId)
+      // CR-01: must align viewerStore.activeTool BEFORE activatePreset so the
+      // tool-sync useEffect below sees isMarkupTool(activeTool)===true and
+      // short-circuits instead of firing cancelMarkup(). Same coupling as
+      // App.tsx setChainArmedFromTotals (see App.tsx:281-289).
+      useViewerStore.getState().setActiveTool(tool)
       activatePreset(tool, {
         name: original.name,
         categoryName: cat?.name ?? '',
