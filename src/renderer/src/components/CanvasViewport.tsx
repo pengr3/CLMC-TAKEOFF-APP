@@ -661,9 +661,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     const reopenSnapshot = getReopenSnapshot()
     if (reopenSnapshot) {
       useMarkupStore.getState().restoreFromReopen(reopenSnapshot)
-      useMarkupStore.setState((s) => ({
-        undoStack: [...s.undoStack, { type: 'place', markup: reopenSnapshot }]
-      }))
+      useMarkupStore.getState().repushPlaceForReopenCancel(reopenSnapshot)
       setReopenSnapshot(null)
       cancelMarkup()
     }

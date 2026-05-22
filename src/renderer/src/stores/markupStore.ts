@@ -79,6 +79,8 @@ interface MarkupStoreState {
   removeForReopen: (markup: Markup) => void
   /** Phase 13 (D-14): silent restoration on Esc-cancel of re-open. NOT a command. */
   restoreFromReopen: (markup: Markup) => void
+  /** Phase 13 (WR-01): re-push a place command via pushCommand so UNDO_STACK_MAX is respected. */
+  repushPlaceForReopenCancel: (markup: Markup) => void
   getColorForName: (name: string, page?: number) => string | null
 
   undo: () => void
@@ -366,6 +368,12 @@ export const useMarkupStore = create<MarkupStoreState>()(
         pageMarkups: { ...s.pageMarkups, [page]: [...pageList, markup] }
       }
     }),
+
+  // Phase 13 (WR-01): re-push a place command through pushCommand so UNDO_STACK_MAX
+  // is respected. Direct setState callers bypass the cap; routing through this action
+  // keeps the 50-command discipline enforced uniformly.
+  repushPlaceForReopenCancel: (markup) =>
+    set((s) => ({ undoStack: pushCommand(s.undoStack, { type: 'place', markup }) })),
 
   getColorForName: (name, page) => {
     const pagesToScan =

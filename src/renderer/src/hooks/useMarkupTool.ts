@@ -402,9 +402,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
       const snapshot = getReopenSnapshot()
       if (snapshot) {
         useMarkupStore.getState().restoreFromReopen(snapshot)
-        useMarkupStore.setState((s) => ({
-          undoStack: [...s.undoStack, { type: 'place', markup: snapshot }]
-        }))
+        useMarkupStore.getState().repushPlaceForReopenCancel(snapshot)
         setReopenSnapshot(null)
       }
       cancel()
@@ -457,9 +455,7 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
       const snapshot = getReopenSnapshot()
       if (!snapshot) return
       useMarkupStore.getState().restoreFromReopen(snapshot)
-      useMarkupStore.setState((s) => ({
-        undoStack: [...s.undoStack, { type: 'place', markup: snapshot }]
-      }))
+      useMarkupStore.getState().repushPlaceForReopenCancel(snapshot)
       setReopenSnapshot(null)
       // Reset hook state so the in-progress draw clears. Equivalent to cancel().
       setState(INITIAL_STATE)
