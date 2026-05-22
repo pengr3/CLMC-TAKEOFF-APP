@@ -394,8 +394,19 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     const current = stateRef.current
     if (current.mode !== 'drawing') return false
     if (current.points.length === 0) return false
-    // SC3: popping the first point exits the tool entirely (same as Escape)
+    // SC3: popping the first point exits the tool entirely (same as Escape).
+    // CR-02: if mid re-open, treat pop-to-zero as implicit Esc — restore the
+    // original markup and re-push its place command before cancelling so the
+    // snapshot is never orphaned. Mirrors the useMarkupTool Esc handler.
     if (current.points.length === 1) {
+      const snapshot = getReopenSnapshot()
+      if (snapshot) {
+        useMarkupStore.getState().restoreFromReopen(snapshot)
+        useMarkupStore.setState((s) => ({
+          undoStack: [...s.undoStack, { type: 'place', markup: snapshot }]
+        }))
+        setReopenSnapshot(null)
+      }
       cancel()
       return true
     }
