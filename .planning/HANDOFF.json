@@ -1,33 +1,35 @@
 {
   "version": "1.0",
-  "timestamp": "2026-05-22T19:01:57",
+  "timestamp": "2026-06-16T10:06:38.797Z",
   "phase": "14",
-  "phase_name": "Pricing and Item Library",
-  "phase_dir": ".planning/phases/14-pricing-and-item-library",
-  "plan": 0,
+  "phase_name": "Markup Geometry Precision — Snapping + Curved-Edge Measurement",
+  "phase_dir": ".planning/phases/14-markup-geometry-precision",
+  "plan": null,
   "task": 0,
   "total_tasks": 0,
   "status": "planning_not_started",
-  "completed_tasks": [],
+  "completed_tasks": [
+    {"id": 1, "name": "Measurement/markup gap analysis -> BACKLOG.md (MM-01..MM-12)", "status": "done", "commit": "62a1025"},
+    {"id": 2, "name": "Spike 001 auto-count (NCC) — VALIDATED but PARKED", "status": "done", "commit": "62a1025"},
+    {"id": 3, "name": "Spike 002 snapping-engine (grid hash) — VALIDATED", "status": "done", "commit": "62a1025"},
+    {"id": 4, "name": "Spike 003 arc-segment-measure — VALIDATED", "status": "done", "commit": "62a1025"},
+    {"id": 5, "name": "Spike 003b curved-polygon-area + interactive demo.html — VALIDATED", "status": "done", "commit": "1422447"},
+    {"id": 6, "name": "Redefine Phase 14: drop Pricing, set Markup Geometry Precision (ROADMAP + dir swap + STATE evolution)", "status": "done", "commit": "wip pause"}
+  ],
   "remaining_tasks": [
-    {"id": 1, "name": "Answer CONTEXT.md question in plan-phase workflow", "status": "not_started"},
-    {"id": 2, "name": "Research Phase 14 (gsd-phase-researcher)", "status": "not_started"},
-    {"id": 3, "name": "Pattern mapping (gsd-pattern-mapper)", "status": "not_started"},
-    {"id": 4, "name": "Plan Phase 14 (gsd-planner)", "status": "not_started"},
-    {"id": 5, "name": "Verify plans (gsd-plan-checker)", "status": "not_started"},
-    {"id": 6, "name": "Commit plans", "status": "not_started"}
+    {"id": 7, "name": "Plan Phase 14 via /gsd-plan-phase 14 (optionally /gsd-discuss-phase 14 first)", "status": "not_started"},
+    {"id": 8, "name": "PARKED: spike 001b — auto-count detect+review workflow to settle the >=98% accuracy question", "status": "not_started"},
+    {"id": 9, "name": "OPTIONAL: commit/clean throwaway demo.html, or leave as spike artifact", "status": "not_started"}
   ],
   "blockers": [],
   "human_actions_pending": [],
   "decisions": [
-    {"decision": "Phase E = Phase 14 (sequential ROADMAP numbering)", "rationale": "Phase numbering is sequential integers in ROADMAP", "phase": "14"},
-    {"decision": "Phase 14 scope is D-16 through D-22 from v1.1-CONTEXT.md", "rationale": "Already captured in spike analysis; no discuss-phase needed", "phase": "14"},
-    {"decision": "phase add accepts positional string only — no named flags", "rationale": "Flags are interpreted as part of description string", "phase": "14"}
+    {"decision": "Drop Pricing & Item Library entirely from active roadmap", "rationale": "User chose measurement work as Phase 14 instead; pricing decisions D-16-D-22 preserved in v1.1-CONTEXT.md and revivable", "phase": "14"},
+    {"decision": "Phase 14 scope = spiked-and-validated only (snapping MM-06 + curved-edge measurement MM-05)", "rationale": "De-risked; auto-count (spike 001/001b) explicitly deferred", "phase": "14"},
+    {"decision": "Snapping design: uniform grid-hash, cell = zoom-compensated tolerance (screenTolPx/zoom), segments indexed by tolerance-padded bbox, intersection-snap deferred", "rationale": "Spike 002: 2-15us at N=1k-50k, 0 mismatches; smaller-than-tolerance cells waste time", "phase": "14"},
+    {"decision": "Arc design: 3-point gesture, per-segment arc metadata carrying on-arc midpoint; area = shoelace +/- circular-segment with sign rule OUTWARD iff sign(cross)!=sign(shoelace); self-intersection guard on commit", "rationale": "Spikes 003 + 003b validated math to ~1e-10 / ~2.9e-8", "phase": "14"}
   ],
-  "uncommitted_files": [
-    ".planning/HANDOFF.json",
-    ".planning/phases/14-pricing-and-item-library/.continue-here.md"
-  ],
-  "next_action": "Run /gsd-plan-phase 14 — choose 'Continue without context' at the CONTEXT.md prompt",
-  "context_notes": "Phase 13 complete, milestone done. Phase 14 planning initialized but immediately paused. User preference: resume with /gsd-plan-phase 14 on fresh context."
+  "uncommitted_files": [".planning/ROADMAP.md", ".planning/STATE.md", ".planning/phases/14-markup-geometry-precision/", ".planning/HANDOFF.json"],
+  "next_action": "Run /gsd-plan-phase 14 (consider /gsd-discuss-phase 14 first to settle: snap toggle/keybind, 3-click-arc vs drag-to-bulge input, which snap types ship first).",
+  "context_notes": "Came in cold (3.5 weeks away). v1.0 milestone is 100% complete (17 phases). Did a /gsd-spike gap analysis of measurement/markup, validated 3 feasibility spikes, then repurposed the empty Phase 14 slot from Pricing to the validated measurement work. Spikes are terminal — the live thread is planning Phase 14. User also has an UNRELATED untracked spike 004-toolbar-redesign + a throwaway demo.html in the tree; leave both alone."
 }

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Milestone complete
-stopped_at: Phase 13 complete — 3/3 plans, UAT PASS (4 scenarios PASS, 1 skipped/inconclusive). Post-commit step-level undo (Ctrl+Z reopen) fully delivered. 5 code-review fixes (CR-01, CR-02, WR-01, WR-02, WR-03) applied. Milestone complete — 17/17 phases, 91/91 plans.
-last_updated: "2026-05-22T03:32:07.662Z"
+stopped_at: context exhaustion at 80% (2026-05-22)
+last_updated: "2026-06-16T08:53:47.760Z"
 last_activity: 2026-05-22
 progress:
-  total_phases: 17
+  total_phases: 19
   completed_phases: 17
   total_plans: 91
   completed_plans: 91
-  percent: 100
+  percent: 89
 ---
 
 # Project State: CLMC Takeoff App
@@ -207,14 +207,15 @@ None.
 - Phase 7.1 inserted after Phase 7 (2026-05-19) and completed (2026-05-19): Resume Markup Group from Totals Panel — one-click totals panel row arms the matching markup tool with that item's name, category, and color; eliminates retyping group names when adding more markups to an existing group. 7 plans across 4 waves; 7/7 UAT scenarios PASS.
 - Phase 10 added (2026-05-19): Granular Undo Foundation — Ctrl+Z during in-progress multi-point drawing pops the last placed point; Ctrl+Y re-adds it; first-point Ctrl+Z cancels; post-commit undo/redo unchanged. Sets the step-level undo/redo base for future work.
 - Phase 9 added (2026-05-15) and completed (2026-05-18): five UX improvements — click-to-select + Delete-key deletion, rubber-band multi-select with group delete, every modal centred + draggable, 7-tab Office-style ribbon (Home/Page/Tools/View/Estimating/Settings/Help) replacing the flat Toolbar, and Enter / double-click commit for in-progress linear / area / perimeter / wall markups. 6 plans across 3 waves; 12/12 UAT scenarios PASS after two fix loops — quick task 260518-uat (commit 4db36bb) addressed Ctrl+Z selection-restore + LMB-no-pan-during-markup, and debug session lmb-hold-drops-markup-on-release (commit 665835f) added a 4px movement-threshold click-vs-hold gate mirroring the rubber-band suppression pattern. No new v1 requirements (pure quality-of-life). v1.0-extended milestone now reads 12/12 phases, 70/70 plans, 25/25 requirements delivered.
+- Phase 14 edited: Dropped Pricing and Item Library; Phase 14 redefined as Markup Geometry Precision (snapping MM-06 + curved-edge measurement MM-05), validated by spikes 002/003/003b. Pricing decisions D-16-D-22 retained in v1.1-CONTEXT.md.
 
 ## Session Continuity
 
 **Last activity:** 2026-05-22
 
-**Last session:** 2026-05-22 (Phase 13 fixes + UAT executed across two sessions)
+**Last session:** 2026-05-22T07:26:32.037Z
 
-**Stopped at:** Phase 13 complete — 3/3 plans, all code-review fixes applied (CR-01 tool-sync cancel, CR-02 snapshot orphan, WR-01 UNDO_STACK_MAX bypass, WR-02 store reset leak, WR-03 missing deps), 13/13 VERIFICATION checks PASS, browser UAT scenarios 1+2+4 PASS. Milestone complete — all 17 phases done, 91/91 plans.
+**Stopped at:** context exhaustion at 80% (2026-05-22)
 
 **Next action:** None — milestone is complete. Consider `/gsd-new-milestone` for v1.2 planning.
 

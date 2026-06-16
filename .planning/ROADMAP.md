@@ -437,6 +437,29 @@ Plans:
 | 12. Markup Geometry Editing | 7/7 | Complete | 2026-05-21 |
 | 13. Post-Commit Step-Level Undo | 3/3 | Complete    | 2026-05-22 |
 
+### Phase 14: Markup Geometry Precision — Snapping + Curved-Edge Measurement
+
+**Goal:** Estimators can place and trace markups precisely and measure curved geometry correctly — the cursor snaps to existing endpoints/vertices and to the nearest point on existing segments during placement and editing, and any linear / perimeter / area / wall edge can be a true circular arc whose real arc length and enclosed area are measured exactly, closing the straight-line under-measurement gap on curved walls, bay windows, and radii.
+**Depends on:** Phase 13
+**Requirements:** No new v1 requirements (quality-of-life — backlog MM-06 snapping, MM-05 curved-edge measurement)
+
+**Validated by spikes** (`.planning/spikes/`):
+- `002-snapping-engine` — uniform grid-hash spatial index; vertex snap 2–15µs at N=1k–50k (~130× under frame budget), 0 correctness mismatches vs brute force; cell = zoom-compensated tolerance; segments indexed by tolerance-padded bbox; intersection-snap deferred.
+- `003-arc-segment-measure` — 3-point circular arc; arc length accurate ~1e-10 vs numerical oracle; straight chord under-measures a 90° bend ~10%; per-segment arc metadata carries the on-arc midpoint.
+- `003b-curved-polygon-area` — curved AREA = shoelace ± circular-segment, accurate ~2.9e-8 for inward+outward bulges; sign rule OUTWARD ⟺ sign(cross) ≠ sign(shoelace); guard self-intersecting shapes.
+
+**Success Criteria** (what must be TRUE):
+  1. While placing or editing any markup, the cursor snaps to nearby existing endpoints/vertices and to the nearest point on existing segments within a tolerance that stays constant in screen pixels at every zoom level; a visible indicator shows the active snap target
+  2. Snapping stays instant (no perceptible lag) on a page with thousands of existing vertices — driven by a spatial index, not a linear scan
+  3. A linear, perimeter, area, or wall edge can be made a circular arc via a 3-point gesture (start / on-arc point / end); the rendered curve passes through the on-arc point and arc edges coexist freely with straight edges in one markup
+  4. Reported length uses true arc length and reported area applies the circular-segment correction with the correct sign for both outward and inward bulges (matching the validated math); straight-only values are no longer reported for curved edges
+  5. Committing an area/perimeter markup whose boundary self-intersects is detected and warned (rather than reporting a wrong quantity); arc geometry round-trips through save/reload and BOQ export intact
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 14 to break down)
+
 ---
 
 ## Coverage
@@ -472,18 +495,4 @@ Plans:
 **Total v1 requirements:** 25
 **Mapped:** 25
 **Unmapped:** 0
-
----
-*Created: 2026-03-25*
-*Updated: 2026-04-21 â€" Phase 03.1 plans finalized (6 plans across 4 waves)*
-*Updated: 2026-05-02 â€" Phase 4.1 closed (8 plans incl. 04.1-07 gap closure for UAT Test 3 detached-buffer blocker)*
-*Updated: 2026-05-05 â€" Phase 6 plans finalized (9 plans across 7 waves)*
-*Updated: 2026-05-05 â€" Phase 6 Plan 00 complete (Wave 0 RED scaffold, 15 stubs)*
-*Updated: 2026-05-05 â€" Phase 6 Plan 01 complete (Wave 1 hook foundations: useBoqLive + usePageLabels + useUiPanels)*
-*Updated: 2026-05-05 â€" Phase 6 Plan 02 complete (Wave 1 glue primitives: useMarkupHighlight + Splitter + CanvasHeaderBar â€" Wave 1 of Phase 6 now complete)*
-*Updated: 2026-05-12 â€" Phase 6 complete (all 9 plans, UAT Aâ€"F passed, VIEW-01 + PDF-05 delivered â€" v1 milestone complete, 25/25 requirements)*
-*Updated: 2026-05-13 â€" Phase 7 complete (5 plans, UAT Aâ€"F passed â€" all five live-use delinquencies resolved)*
-*Updated: 2026-05-15 â€" Phase 8 complete (8 plans, UAT 10/10 passed â€" chain mode, wall tool, show/hide visibility, crosshair cursor)*
-*Updated: 2026-05-18 â€" Phase 9 added (selection model, ribbon toolbar, modal polish, markup completion â€" 5 items)*
-*Updated: 2026-05-19 â€" Phase 10 added (granular undo foundation â€" step-level point pop during in-progress markup drawing)*
-*Updated: 2026-05-19 â€" Phase 7.1 planned (7 plans across 4 waves — arm-from-totals-panel feature)*
+
