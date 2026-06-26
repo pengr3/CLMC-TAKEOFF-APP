@@ -1,35 +1,50 @@
 {
   "version": "1.0",
-  "timestamp": "2026-06-16T10:06:38.797Z",
+  "timestamp": "2026-06-26T10:05:40.219Z",
   "phase": "14",
-  "phase_name": "Markup Geometry Precision — Snapping + Curved-Edge Measurement",
+  "phase_name": "markup-geometry-precision",
   "phase_dir": ".planning/phases/14-markup-geometry-precision",
   "plan": null,
-  "task": 0,
-  "total_tasks": 0,
-  "status": "planning_not_started",
+  "task": 3,
+  "total_tasks": 4,
+  "status": "paused",
+  "context": "discuss-phase (gray-area discussion in progress; no PLAN.md yet)",
   "completed_tasks": [
-    {"id": 1, "name": "Measurement/markup gap analysis -> BACKLOG.md (MM-01..MM-12)", "status": "done", "commit": "62a1025"},
-    {"id": 2, "name": "Spike 001 auto-count (NCC) — VALIDATED but PARKED", "status": "done", "commit": "62a1025"},
-    {"id": 3, "name": "Spike 002 snapping-engine (grid hash) — VALIDATED", "status": "done", "commit": "62a1025"},
-    {"id": 4, "name": "Spike 003 arc-segment-measure — VALIDATED", "status": "done", "commit": "62a1025"},
-    {"id": 5, "name": "Spike 003b curved-polygon-area + interactive demo.html — VALIDATED", "status": "done", "commit": "1422447"},
-    {"id": 6, "name": "Redefine Phase 14: drop Pricing, set Markup Geometry Precision (ROADMAP + dir swap + STATE evolution)", "status": "done", "commit": "wip pause"}
+    {"id": 1, "name": "Area: Arc drawing gesture", "status": "done"},
+    {"id": 2, "name": "Area: Snap on/off & override", "status": "done"},
+    {"id": 3, "name": "Area: Which snap targets ship", "status": "done"},
+    {"id": 4, "name": "Area: Self-intersect & arc editing", "status": "in_progress", "progress": "Arc+vertex editing decided IN; self-intersection=block (proposed, not objected); ONE open sub-decision remains"}
   ],
   "remaining_tasks": [
-    {"id": 7, "name": "Plan Phase 14 via /gsd-plan-phase 14 (optionally /gsd-discuss-phase 14 first)", "status": "not_started"},
-    {"id": 8, "name": "PARKED: spike 001b — auto-count detect+review workflow to settle the >=98% accuracy question", "status": "not_started"},
-    {"id": 9, "name": "OPTIONAL: commit/clean throwaway demo.html, or leave as spike artifact", "status": "not_started"}
+    {"id": 4, "name": "Resolve Area 4 open sub-decision: include vs defer post-hoc straight<->arc edge conversion; confirm self-intersection = block-on-commit", "status": "not_started"},
+    {"id": 5, "name": "write_context: 14-CONTEXT.md + 14-DISCUSSION-LOG.md", "status": "not_started"},
+    {"id": 6, "name": "git_commit context, update STATE.md, delete checkpoint", "status": "not_started"},
+    {"id": 7, "name": "confirm_creation: next step is /gsd-plan-phase 14", "status": "not_started"}
   ],
   "blockers": [],
-  "human_actions_pending": [],
-  "decisions": [
-    {"decision": "Drop Pricing & Item Library entirely from active roadmap", "rationale": "User chose measurement work as Phase 14 instead; pricing decisions D-16-D-22 preserved in v1.1-CONTEXT.md and revivable", "phase": "14"},
-    {"decision": "Phase 14 scope = spiked-and-validated only (snapping MM-06 + curved-edge measurement MM-05)", "rationale": "De-risked; auto-count (spike 001/001b) explicitly deferred", "phase": "14"},
-    {"decision": "Snapping design: uniform grid-hash, cell = zoom-compensated tolerance (screenTolPx/zoom), segments indexed by tolerance-padded bbox, intersection-snap deferred", "rationale": "Spike 002: 2-15us at N=1k-50k, 0 mismatches; smaller-than-tolerance cells waste time", "phase": "14"},
-    {"decision": "Arc design: 3-point gesture, per-segment arc metadata carrying on-arc midpoint; area = shoelace +/- circular-segment with sign rule OUTWARD iff sign(cross)!=sign(shoelace); self-intersection guard on commit", "rationale": "Spikes 003 + 003b validated math to ~1e-10 / ~2.9e-8", "phase": "14"}
+  "human_actions_pending": [
+    {"action": "Answer Area 4 open sub-decision: include post-hoc straight<->arc edge conversion, or defer it? (+ confirm self-intersection = block)", "context": "Final open item before CONTEXT.md can be written", "blocking": true}
   ],
-  "uncommitted_files": [".planning/ROADMAP.md", ".planning/STATE.md", ".planning/phases/14-markup-geometry-precision/", ".planning/HANDOFF.json"],
-  "next_action": "Run /gsd-plan-phase 14 (consider /gsd-discuss-phase 14 first to settle: snap toggle/keybind, 3-click-arc vs drag-to-bulge input, which snap types ship first).",
-  "context_notes": "Came in cold (3.5 weeks away). v1.0 milestone is 100% complete (17 phases). Did a /gsd-spike gap analysis of measurement/markup, validated 3 feasibility spikes, then repurposed the empty Phase 14 slot from Pricing to the validated measurement work. Spikes are terminal — the live thread is planning Phase 14. User also has an UNRELATED untracked spike 004-toolbar-redesign + a throwaway demo.html in the tree; leave both alone."
+  "decisions": [
+    {"decision": "Arc gesture = 3-click (start / on-arc / end)", "rationale": "Validated by interactive demo (spike 003c); 1:1 with the spike-003 solver; only gesture that reaches major arcs (>180deg)", "phase": "14"},
+    {"decision": "Straight<->arc switching while drawing = BOTH momentary hold-key + sticky toggle; default edge straight", "rationale": "Hold-key for one-off curves, toggle for runs; user wanted full flexibility", "phase": "14"},
+    {"decision": "Snap activation = ON by default + hold-key suspend (1 point) + persistent toggle; keys (Alt/F3) TBD vs Phase 9 bindings", "rationale": "CAD-standard; precise default with easy escape", "phase": "14"},
+    {"decision": "Snap indicator = per-type glyphs (square=vertex/endpoint, triangle=on-segment, X reserved for intersection)", "rationale": "Shape conveys snap type so estimator trusts what was grabbed", "phase": "14"},
+    {"decision": "Snap targets SHIP = vertex/endpoint + nearest-point-on-segment + close-the-loop (own start vertex); DEFER intersection + grid", "rationale": "Success-criteria + spike 002; intersection is costliest (O(k^2)) and validated separately later", "phase": "14"},
+    {"decision": "Snap rule: snap to OTHER markups freely; for in-progress/edited markup snap only to its own START vertex (never own intermediate vertex / actively-dragged vertex). Applies in placement AND editing", "rationale": "Avoids a shape snapping to itself", "phase": "14"},
+    {"decision": "Arc + vertex editing IN this phase: drag endpoint vertex re-solves arc, drag on-arc bulge handle reshapes; snapping + sagitta cap + self-intersection guard apply on edit; all undoable; round-trips save/BOQ", "rationale": "User requested editing; reuses Phase 12 drag infra + spike-003 solver; absorbs drag-to-bulge as the EDIT gesture", "phase": "14"},
+    {"decision": "Self-intersection on area/perimeter commit = BLOCK + keep editing (proposed; sagitta cap prevents most)", "rationale": "Never store/export a wrong quantity; success criterion 5 says detect+warn", "phase": "14"},
+    {"decision": "Cross-cutting: every new tool/gesture/shortcut/indicator must be documented manual-ready as built (How-To-Manual is its own future phase)", "rationale": "User requirement 2026-06-26; saved to memory project-howto-manual", "phase": "14"}
+  ],
+  "uncommitted_files": [
+    ".planning/phases/14-markup-geometry-precision/14-DISCUSS-CHECKPOINT.json",
+    ".planning/spikes/003c-arc-input-gesture/demo.html",
+    ".planning/spikes/003c-arc-input-gesture/README.md"
+  ],
+  "untracked_leave_alone": [
+    ".planning/spikes/004-toolbar-redesign/ (user's separate WIP spike)",
+    ".planning/spikes/003b-curved-polygon-area/demo.html (throwaway from prior session)"
+  ],
+  "next_action": "Re-run /gsd-discuss-phase 14 — it detects 14-DISCUSS-CHECKPOINT.json (3/4 areas) and resumes at Area 4. Answer the one open sub-decision (post-hoc straight<->arc conversion: include or defer) + confirm self-intersection=block, then it writes 14-CONTEXT.md.",
+  "context_notes": "Phase is fully de-risked by spikes 002/003/003b; 003c (built this session) settled the arc gesture by demo. Only the Area-4 conversion sub-decision is open. Memory project-howto-manual added. Decisions also live structured in 14-DISCUSS-CHECKPOINT.json."
 }

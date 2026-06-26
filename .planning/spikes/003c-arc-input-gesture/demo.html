@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spike 003c — Arc input gesture demo</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --line:#262b36; --ink:#e6e9ef; --muted:#9aa4b2;
+    --accent:#4ea1ff; --arc:#39d98a; --chord:#f0a23b; --bad:#ff6b6b; --grid:#1d2230;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:14px/1.5 system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  header{padding:14px 20px;border-bottom:1px solid var(--line)}
+  header h1{margin:0;font-size:16px;font-weight:650}
+  header p{margin:4px 0 0;color:var(--muted);font-size:12.5px;max-width:900px}
+  .wrap{display:flex;gap:0;align-items:stretch;min-height:620px}
+  .stage{flex:1;padding:16px 0 16px 20px}
+  canvas{background:var(--bg);border:1px solid var(--line);border-radius:10px;
+    display:block;cursor:crosshair;touch-action:none}
+  .side{width:330px;padding:16px 20px;border-left:1px solid var(--line);background:var(--panel)}
+  .tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+  .tab{appearance:none;border:1px solid var(--line);background:#10131a;color:var(--muted);
+    padding:8px 11px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:600}
+  .tab.active{background:var(--accent);color:#05101f;border-color:var(--accent)}
+  h2{font-size:13px;margin:18px 0 8px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+  ol.steps{margin:0;padding-left:18px}
+  ol.steps li{margin:3px 0;color:var(--ink)}
+  .controls{display:flex;flex-direction:column;gap:9px;margin:8px 0}
+  .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  label.ck{display:flex;gap:8px;align-items:center;cursor:pointer;user-select:none}
+  button.act{appearance:none;border:1px solid var(--line);background:#10131a;color:var(--ink);
+    padding:7px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+  button.act:hover{border-color:var(--accent)}
+  input[type=number]{width:64px;background:#10131a;border:1px solid var(--line);color:var(--ink);
+    border-radius:6px;padding:5px 7px}
+  .readout{background:#10131a;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:6px}
+  .kv{display:flex;justify-content:space-between;padding:3px 0;font-variant-numeric:tabular-nums}
+  .kv .k{color:var(--muted)}
+  .kv .v{font-weight:650}
+  .v.arc{color:var(--arc)} .v.chord{color:var(--chord)} .v.bad{color:var(--bad)} .v.accent{color:var(--accent)}
+  .hint{color:var(--muted);font-size:12px;margin-top:10px;min-height:18px}
+  .legend{display:flex;gap:14px;margin:10px 0 0;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .legend span{display:inline-flex;gap:6px;align-items:center}
+  .sw{width:14px;height:3px;border-radius:2px;display:inline-block}
+  .note{font-size:12px;color:var(--muted);background:#10131a;border:1px dashed var(--line);
+    border-radius:8px;padding:9px 11px;margin-top:12px}
+  code{background:#10131a;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Spike 003c — Arc input gesture (Phase 14 decision aid)</h1>
+  <p>Same validated math as spike 003 (<code>solveCircle</code> + major/minor disambiguation).
+     Compare how each gesture <em>feels</em> and watch how much a straight-line takeoff under-measures a curve.
+     Nothing here is production code — it exists to settle the gesture choice.</p>
+</header>
+
+<div class="wrap">
+  <div class="stage">
+    <canvas id="cv" width="900" height="560"></canvas>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--arc)"></i> true arc</span>
+      <span><i class="sw" style="background:var(--chord)"></i> straight chord (what 2-point takeoff measures)</span>
+      <span><i class="sw" style="background:var(--accent)"></i> placed points / handles</span>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="tabs">
+      <button class="tab active" data-tab="arc3">1 · 3-click arc</button>
+      <button class="tab" data-tab="bulge">2 · Drag-to-bulge</button>
+      <button class="tab" data-tab="wall">3 · Mixed wall</button>
+    </div>
+
+    <div id="help"></div>
+
+    <div class="controls" id="controls"></div>
+
+    <h2>Live measurement</h2>
+    <div class="readout" id="readout"></div>
+
+    <div class="row" style="margin-top:12px">
+      <span class="k" style="color:var(--muted)">Scale</span>
+      <input type="number" id="scale" value="80" min="1" step="1" />
+      <span class="k" style="color:var(--muted)">px = 1 m</span>
+    </div>
+
+    <div class="hint" id="hint"></div>
+    <div class="note" id="note"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ---------------------------------------------------------------------------
+ * Geometry — ported VERBATIM from .planning/spikes/003-arc-segment-measure
+ * (validated to ~1e-10 vs a numerical oracle). One source of truth for both
+ * measurement and rendering, so the demo behaves exactly like the real feature.
+ * ------------------------------------------------------------------------- */
+const EPS = 1e-9;
+const dist = (a,b)=>Math.hypot(a.x-b.x, a.y-b.y);
+
+function solveCircle(p1,p2,p3){
+  const ax=p1.x,ay=p1.y,bx=p2.x,by=p2.y,cx=p3.x,cy=p3.y;
+  const d = 2*(ax*(by-cy)+bx*(cy-ay)+cx*(ay-by));
+  const spread = Math.max(dist(p1,p2),dist(p2,p3),dist(p1,p3))||1;
+  const collinearTol = EPS*spread*spread;
+  if(Math.abs(d)<=collinearTol) return {degenerate:true,center:null,radius:Infinity};
+  const a2=ax*ax+ay*ay,b2=bx*bx+by*by,c2=cx*cx+cy*cy;
+  const ux=(a2*(by-cy)+b2*(cy-ay)+c2*(ay-by))/d;
+  const uy=(a2*(cx-bx)+b2*(ax-cx)+c2*(bx-ax))/d;
+  const center={x:ux,y:uy};
+  return {degenerate:false,center,radius:dist(center,p1)};
+}
+
+/* Arc through 3 points (p2 is the on-arc / middle point). Returns measurement
+ * plus the params needed to draw it (a1, sweep, dir). */
+function solveArc(p1,p2,p3){
+  const circ = solveCircle(p1,p2,p3);
+  if(circ.degenerate){
+    return {mode:'chord',degenerate:true,length:dist(p1,p2)+dist(p2,p3),
+            radius:Infinity,center:null,sweepDeg:0,a1:0,sweep:0,dir:1};
+  }
+  const {center,radius}=circ;
+  const a1=Math.atan2(p1.y-center.y,p1.x-center.x);
+  const a2=Math.atan2(p2.y-center.y,p2.x-center.x);
+  const a3=Math.atan2(p3.y-center.y,p3.x-center.x);
+  const ccw=(from,to)=>{let d=to-from;while(d<0)d+=2*Math.PI;while(d>=2*Math.PI)d-=2*Math.PI;return d;};
+  const sweepToMid=ccw(a1,a2), sweepToEnd=ccw(a1,a3);
+  let sweep,dir;
+  if(sweepToMid<sweepToEnd){ sweep=sweepToEnd; dir=+1; }   // CCW arc contains p2
+  else { sweep=2*Math.PI-sweepToEnd; dir=-1; }             // CW arc contains p2
+  return {mode:'arc',degenerate:false,length:radius*sweep,radius,center,
+          sweepDeg:sweep*180/Math.PI,a1,sweep,dir};
+}
+
+/* Sample the solved arc into a polyline so rendering matches the math exactly. */
+function arcPoints(p1,p2,p3,n=110){
+  const s=solveArc(p1,p2,p3);
+  if(s.degenerate) return [p1,p2,p3];
+  const pts=[];
+  for(let i=0;i<=n;i++){
+    const ang=s.a1 + s.dir*(s.sweep*i/n);
+    pts.push({x:s.center.x+s.radius*Math.cos(ang), y:s.center.y+s.radius*Math.sin(ang)});
+  }
+  return pts;
+}
+
+/* ---------------------------------------------------------------------------
+ * Canvas plumbing
+ * ------------------------------------------------------------------------- */
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const CW = cv.width, CH = cv.height;
+(function hidpi(){
+  const dpr = Math.max(1, window.devicePixelRatio||1);
+  cv.width = CW*dpr; cv.height = CH*dpr;
+  cv.style.width = CW+'px'; cv.style.height = CH+'px';
+  ctx.scale(dpr,dpr);
+})();
+
+function mouse(e){
+  const r = cv.getBoundingClientRect();
+  return { x:(e.clientX-r.left)*(CW/r.width), y:(e.clientY-r.top)*(CH/r.height) };
+}
+
+function drawGrid(){
+  ctx.clearRect(0,0,CW,CH);
+  ctx.strokeStyle = getCss('--grid'); ctx.lineWidth = 1;
+  for(let x=0;x<=CW;x+=40){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CH); ctx.stroke(); }
+  for(let y=0;y<=CH;y+=40){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
+}
+const getCss = (v)=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+function stroke(points,color,width=2.5,dash=null){
+  if(points.length<2) return;
+  ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=width; ctx.lineJoin='round'; ctx.lineCap='round';
+  if(dash) ctx.setLineDash(dash);
+  ctx.beginPath(); ctx.moveTo(points[0].x,points[0].y);
+  for(let i=1;i<points.length;i++) ctx.lineTo(points[i].x,points[i].y);
+  ctx.stroke(); ctx.restore();
+}
+function dot(p,color,r=5,label){
+  ctx.save(); ctx.fillStyle=color; ctx.beginPath(); ctx.arc(p.x,p.y,r,0,7); ctx.fill();
+  if(label){ ctx.fillStyle=getCss('--ink'); ctx.font='11px system-ui'; ctx.fillText(label,p.x+8,p.y-8); }
+  ctx.restore();
+}
+
+/* ---------------------------------------------------------------------------
+ * Readout helpers
+ * ------------------------------------------------------------------------- */
+const readoutEl = document.getElementById('readout');
+const scaleEl = document.getElementById('scale');
+const pxPerM = ()=>Math.max(1, Number(scaleEl.value)||80);
+const m = (px)=>(px/pxPerM());
+
+function kv(k,v,cls){ return `<div class="kv"><span class="k">${k}</span><span class="v ${cls||''}">${v}</span></div>`; }
+function showArcReadout(s){
+  if(!s){ readoutEl.innerHTML = `<div class="kv"><span class="k">—</span><span class="v">place points to measure</span></div>`; return; }
+  const chord = s.chord, arc = s.length;
+  const under = arc>0 ? (arc-chord)/arc*100 : 0;
+  readoutEl.innerHTML =
+    kv('True arc length', `${arc.toFixed(1)} px · ${m(arc).toFixed(2)} m`, 'arc') +
+    kv('Straight chord', `${chord.toFixed(1)} px · ${m(chord).toFixed(2)} m`, 'chord') +
+    kv('Under-measured by', `${under.toFixed(1)} %`, under>0.05?'bad':'') +
+    kv('Radius', s.degenerate?'∞ (straight)':`${s.radius.toFixed(0)} px`, '') +
+    kv('Sweep', s.degenerate?'0°':`${s.sweepDeg.toFixed(0)}°${s.sweepDeg>180?' (major)':''}`, 'accent');
+}
+
+/* ===========================================================================
+ * TAB 1 — 3-click arc
+ * ========================================================================= */
+const Arc3 = (()=>{
+  let pts=[];           // up to 3 placed
+  let cur=null;         // cursor preview
+  const help = `
+    <h2>3-click arc</h2>
+    <ol class="steps">
+      <li><b>Click 1</b> — start of the curve</li>
+      <li><b>Click 2</b> — a point <b>on</b> the curve (sets the bulge + which way it bends)</li>
+      <li><b>Click 3</b> — end of the curve</li>
+    </ol>`;
+  const note = `Why the middle click matters: it's the only thing that tells a gentle bend apart from
+    a <b>major</b> arc (&gt;180°). Try click 2 far out — you can sweep past a semicircle, which drag-to-bulge can't.`;
+  function reset(){ pts=[]; cur=null; render(); }
+  function onClick(p){ if(pts.length>=3) pts=[]; pts.push(p); render(); }
+  function onMove(p){ cur=p; if(pts.length>=1 && pts.length<3) render(); }
+  function triple(){
+    if(pts.length===3) return [pts[0],pts[1],pts[2]];
+    if(pts.length===2 && cur) return [pts[0],pts[1],cur];   // preview end with cursor
+    return null;
+  }
+  function draw(){
+    const t=triple();
+    if(pts.length===1 && cur) stroke([pts[0],cur], getCss('--line'), 1.5, [5,5]);
+    if(t){
+      const s=solveArc(t[0],t[1],t[2]);
+      stroke([t[0],t[2]], getCss('--chord'), 2, [6,5]);   // chord
+      stroke(arcPoints(t[0],t[1],t[2]), getCss('--arc'), 3); // true arc
+      s.chord = dist(t[0],t[2]); showArcReadout(s);
+    } else showArcReadout(null);
+    const labels=['start','on-arc','end'];
+    pts.forEach((p,i)=>dot(p,getCss('--accent'),5,labels[i]));
+    if(pts.length===2 && cur) dot(cur,getCss('--muted'),4,'end?');
+  }
+  return {help,note,reset,onClick,onMove,draw,controls:()=>`<button class="act" id="resetBtn">Reset</button>`};
+})();
+
+/* ===========================================================================
+ * TAB 2 — Drag-to-bulge
+ * ========================================================================= */
+const Bulge = (()=>{
+  let a=null,b=null,mid=null,dragging=false;
+  const help = `
+    <h2>Drag-to-bulge</h2>
+    <ol class="steps">
+      <li><b>Click 1</b> — start point</li>
+      <li><b>Click 2</b> — end point (makes a straight edge)</li>
+      <li><b>Drag the handle</b> on the edge to bend it into an arc</li>
+    </ol>`;
+  const note = `Feels fluid for shallow curves, but the handle can only push to a semicircle —
+    you <b>cannot</b> reach a major arc (&gt;180°, e.g. a bay window past half-round) by dragging. It's
+    really an <em>edit</em> gesture on an existing straight edge.`;
+  function reset(){ a=b=mid=null; dragging=false; render(); }
+  function defaultMid(){ return {x:(a.x+b.x)/2, y:(a.y+b.y)/2}; }
+  function onClick(p){
+    if(!a){ a=p; }
+    else if(!b){ b=p; mid=defaultMid(); }
+    render();
+  }
+  function near(p,q,r=12){ return p&&q&&dist(p,q)<=r; }
+  function onDown(p){ if(mid && near(p,mid,14)) dragging=true; }
+  function onMove(p){ if(dragging && mid){ mid=p; render(); } }
+  function onUp(){ dragging=false; }
+  function draw(){
+    if(a&&!b) dot(a,getCss('--accent'),5,'start');
+    if(a&&b){
+      const s=solveArc(a,mid,b);
+      stroke([a,b], getCss('--chord'), 2, [6,5]);
+      stroke(arcPoints(a,mid,b), getCss('--arc'), 3);
+      s.chord=dist(a,b); showArcReadout(s);
+      dot(a,getCss('--accent'),5,'start'); dot(b,getCss('--accent'),5,'end');
+      // handle
+      ctx.save(); ctx.fillStyle=getCss('--bg'); ctx.strokeStyle=getCss('--accent'); ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(mid.x,mid.y,7,0,7); ctx.fill(); ctx.stroke(); ctx.restore();
+      dot(mid,getCss('--accent'),2,'drag');
+    } else showArcReadout(null);
+  }
+  return {help,note,reset,onClick,onMove,onDown,onUp,draw,
+          controls:()=>`<button class="act" id="resetBtn">Reset</button>`};
+})();
+
+/* ===========================================================================
+ * TAB 3 — Mixed wall (the real workflow: straight + arc edges in one markup)
+ * ========================================================================= */
+const Wall = (()=>{
+  let verts=[];                 // committed vertices
+  let segs=[];                  // {from,to,arcMid|null}
+  let armed=false, keyA=false;  // arc-arm via checkbox or holding A
+  let pendingMid=null;          // on-arc point captured, waiting for end click
+  let cur=null, finished=false;
+  const help = `
+    <h2>Mixed wall</h2>
+    <ol class="steps">
+      <li><b>Click</b> to add straight segments (1 click each)</li>
+      <li>Turn on <b>Arc next</b> (or hold <code>A</code>) → next edge is an arc:
+          click the <b>on-arc</b> point, then the <b>end</b></li>
+      <li><b>Double-click</b> or <b>Finish</b> to stop</li>
+    </ol>`;
+  const note = `This is the question that matters for the planner: how do you tell one edge in a wall
+    to be curved? Here it's a <b>toggle / hold-key</b>. Watch the running total — the straight-only
+    number is what the app reports <em>today</em>.`;
+  const isArmed = ()=> armed || keyA;
+  function reset(){ verts=[]; segs=[]; pendingMid=null; cur=null; finished=false; render(); syncTotals(); }
+  function onClick(p){
+    if(finished) return;
+    if(verts.length===0){ verts.push(p); render(); return; }
+    const last = verts[verts.length-1];
+    if(isArmed()){
+      if(!pendingMid){ pendingMid=p; }       // captured on-arc point
+      else{ segs.push({from:last,to:p,arcMid:pendingMid}); verts.push(p); pendingMid=null;
+            if(!document.getElementById('stay')?.checked) { armed=false; syncArm(); } }
+    } else {
+      segs.push({from:last,to:p,arcMid:null}); verts.push(p);
+    }
+    render(); syncTotals();
+  }
+  function onMove(p){ cur=p; if(verts.length>=1 && !finished) render(); }
+  function onDbl(){ finished=true; pendingMid=null; render(); }
+  function totals(){
+    let trueLen=0, straight=0;
+    for(const s of segs){
+      straight += dist(s.from,s.to);
+      trueLen += s.arcMid ? solveArc(s.from,s.arcMid,s.to).length : dist(s.from,s.to);
+    }
+    return {trueLen,straight};
+  }
+  function syncTotals(){
+    const {trueLen,straight}=totals();
+    const under = trueLen>0 ? (trueLen-straight)/trueLen*100 : 0;
+    readoutEl.innerHTML =
+      kv('Segments', `${segs.length}`, '') +
+      kv('True total (arc-aware)', `${trueLen.toFixed(1)} px · ${m(trueLen).toFixed(2)} m`, 'arc') +
+      kv('Straight-only (today)', `${straight.toFixed(1)} px · ${m(straight).toFixed(2)} m`, 'chord') +
+      kv('Under-measured by', `${under.toFixed(1)} %`, under>0.05?'bad':'');
+  }
+  function draw(){
+    for(const s of segs){
+      if(s.arcMid) stroke(arcPoints(s.from,s.arcMid,s.to), getCss('--arc'), 3);
+      else stroke([s.from,s.to], getCss('--ink'), 2.5);
+    }
+    // preview of the in-progress segment
+    if(verts.length>=1 && cur && !finished){
+      const last=verts[verts.length-1];
+      if(isArmed() && pendingMid) stroke(arcPoints(last,pendingMid,cur), getCss('--arc'), 2, [7,5]);
+      else stroke([last,cur], isArmed()?getCss('--arc'):getCss('--ink'), 1.8, [6,5]);
+    }
+    verts.forEach((v,i)=>dot(v,getCss('--accent'),4.5, i===0?'start':''));
+    if(pendingMid) dot(pendingMid,getCss('--arc'),5,'on-arc');
+    // status flag
+    ctx.save(); ctx.font='12px system-ui'; ctx.fillStyle = isArmed()?getCss('--arc'):getCss('--muted');
+    ctx.fillText(finished?'finished':(isArmed()? (pendingMid?'arc: click END':'arc: click ON-ARC point') :'straight: click next point'), 14, 22);
+    ctx.restore();
+  }
+  function controls(){
+    return `<label class="ck"><input type="checkbox" id="armck"/> Arc next segment <span style="color:var(--muted)">(or hold A)</span></label>
+            <label class="ck"><input type="checkbox" id="stay"/> Stay in arc mode</label>
+            <div class="row"><button class="act" id="finishBtn">Finish wall</button>
+            <button class="act" id="resetBtn">Reset</button></div>`;
+  }
+  function bind(){
+    const ck=document.getElementById('armck');
+    if(ck) ck.addEventListener('change',()=>{ armed=ck.checked; render(); });
+    const fb=document.getElementById('finishBtn'); if(fb) fb.addEventListener('click',onDbl);
+  }
+  function syncArm(){ const ck=document.getElementById('armck'); if(ck) ck.checked=armed; render(); }
+  function keydown(e){ if(e.key==='a'||e.key==='A'){ keyA=true; render(); } }
+  function keyup(e){ if(e.key==='a'||e.key==='A'){ keyA=false; render(); } }
+  return {help,note,reset,onClick,onMove,onDbl,draw,controls,bind,keydown,keyup,
+          enter:syncTotals};
+})();
+
+/* ---------------------------------------------------------------------------
+ * Tab wiring
+ * ------------------------------------------------------------------------- */
+const TABS = {arc3:Arc3, bulge:Bulge, wall:Wall};
+let active = Arc3;
+
+function render(){ drawGrid(); active.draw(); }
+
+function mountTab(key){
+  active = TABS[key];
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===key));
+  document.getElementById('help').innerHTML = active.help;
+  document.getElementById('note').innerHTML = active.note||'';
+  document.getElementById('controls').innerHTML = active.controls?active.controls():'';
+  // reset state for clean comparison
+  if(active.reset) active.reset();
+  // bind control buttons
+  const rb=document.getElementById('resetBtn'); if(rb) rb.addEventListener('click',()=>active.reset());
+  if(active.bind) active.bind();
+  if(active.enter) active.enter();
+  render();
+}
+
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>mountTab(t.dataset.tab)));
+
+cv.addEventListener('mousedown', e=>{ if(active.onDown) active.onDown(mouse(e)); });
+cv.addEventListener('mouseup',   e=>{ if(active.onUp) active.onUp(mouse(e)); });
+cv.addEventListener('mousemove', e=>{ if(active.onMove) active.onMove(mouse(e)); });
+cv.addEventListener('click',     e=>{ if(active.onClick) active.onClick(mouse(e)); });
+cv.addEventListener('dblclick',  e=>{ if(active.onDbl) active.onDbl(mouse(e)); });
+window.addEventListener('keydown', e=>{ if(active.keydown) active.keydown(e); });
+window.addEventListener('keyup',   e=>{ if(active.keyup) active.keyup(e); });
+scaleEl.addEventListener('input', ()=>{ if(active.enter) active.enter(); render(); });
+
+document.getElementById('hint').textContent = 'Tip: try the same curve in tab 1 vs tab 2 to feel the difference.';
+mountTab('arc3');
+</script>
+</body>
+</html>
