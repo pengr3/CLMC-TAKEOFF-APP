@@ -27,6 +27,8 @@
 - [x] **Phase 12: Markup Geometry Editing** - Vertex edit mode (click selected markup again → drag square handles to reposition points) and drag-to-translate (drag selected markup to move it); group move for multi-select; all changes undoable via existing command pattern (completed 2026-05-21)
 - [x] **Phase 13: Post-Commit Step-Level Undo** - Ctrl+Z on a committed multi-point markup (linear, area, perimeter, wall) re-opens it in drawing mode with all points intact — undoing just the commit, not the shape. Estimator can add points, pop points with further Ctrl+Z, or re-commit with Enter. Brief ConfirmationToast on re-open.
  (completed 2026-05-21)
+- [x] **Phase 14: Markup Geometry Precision — Snapping + Curved-Edge Measurement** - Cursor snapping (endpoint/vertex/segment, screen-constant tolerance, F3/Alt) during placement and editing, plus true circular-arc edges (3-click gesture, bulge reshaping) with exact arc length and circular-segment area; arcs round-trip through save/reload and BOQ export (completed 2026-06-29)
+- [ ] **Phase 15: BOQ Pricing & Perimeter Simplification** - Priced BOQ (per-(name,type) unit rate × quantity = cost, category cost subtotals, ₱ grand total) in the totals panel and xlsx/csv export; Perimeter tool narrowed to length-only (perimeter-area removed) so every markup maps to exactly one priceable row
 
 ---
 
@@ -560,6 +562,26 @@ Plans:
 **Wave 5** *(blocked on Wave 4 completion)*
 
 - [x] 14-06-PLAN.md — Integration: arc-aware BOQ + Area/Perimeter/Linear/Wall arc-drawing renderers (buildArcAwareFlatPoints) + arc-roundtrip test (save/reload deep-equal + arc-aware-vs-chord BOQ) + 14-MANUAL-NOTES.md (Wave 5) — autonomous engineering complete, build green + 586 tests; Task 3 human UAT prepared + returned as checkpoint (Phase 14 checkbox gated on UAT approval)
+
+---
+
+### Phase 15: BOQ Pricing & Perimeter Simplification
+
+**Goal:** Turn the quantity-only BOQ into a priced BOQ — every BOQ row carries a unit rate and a computed cost (rate × quantity), with per-category cost subtotals and a grand-total cost shown in the totals panel and in the .xlsx/.csv exports, denominated in ₱ — and narrow the Perimeter tool to a length-only measurement so each markup maps to exactly one priceable BOQ row.
+**Depends on:** Phase 14 (BOQ aggregator + perimeter/area measurement engine)
+**Requirements:** Reverses PROJECT.md "Unit cost / pricing — Out of Scope (v1)"; opens the v1.1 "Estimating" milestone. Source: GAP-002 re-audit (`.planning/spikes/GAP-002-post-precision-gaps.md`).
+**Locked decisions:** see `.planning/phases/15-boq-pricing-perimeter-simplification/15-CONTEXT.md`
+
+**Success Criteria** (what must be TRUE):
+
+  1. Each BOQ row (totals panel, .xlsx, .csv) shows a unit Rate and a Cost = Rate × Quantity; each category shows a cost subtotal and the BOQ shows a grand-total cost, all denominated in ₱
+  2. A user can set/edit a rate inline on any totals-panel row; the rate is stored in the .clmc project (keyed by `name|type`), survives save/reload, and the same (name, type) shares one rate across categories and pages
+  3. The Perimeter tool emits exactly ONE BOQ row (length only); the `perimeter-area` row and type are removed from the aggregator, BOQ types, export writers, totals UI, and the affected tests
+  4. A perimeter markup renders on canvas as an unfilled closed outline with a length-only label (`P: 24.6 m`) — no area fill, no `A:` value
+  5. A perimeter BOQ row is labeled by its plain item name, gaining a `(perimeter)` suffix only when a same-named count/linear/area row exists (perimeter now participates in the shared collision-suffix rule)
+  6. Existing `.clmc` projects with perimeter markups reload with length-only BOQ output and no errors (area was computed live, never stored — no data loss); the test suite is updated and green, and PROJECT.md reflects pricing as in-scope
+
+**Plans:** _to be created by /gsd:plan-phase_
 
 ---
 
