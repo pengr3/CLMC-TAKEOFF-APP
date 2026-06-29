@@ -92,6 +92,39 @@ describe('aggregateBoq — D-01..D-13 / EXPRT-01', () => {
     expect(area.uom).toBe('mm²')
   })
 
+  it('WR-07: perimeter with an arc on the CLOSING edge — length AND area both reflect it', () => {
+    // Square side 100 (CCW): v0(0,0) v1(100,0) v2(100,100) v3(0,100).
+    // Closing edge is v3→v0 (a vertical chord, length 100); the arc keys on
+    // index n-1 = 3 in BOTH the LENGTH (n+1 closing-augmented array) and the
+    // AREA (n-point) conventions — the dual convention WR-07 flags as untested.
+    // Arc mid at (-50, 50) → a left-bulging semicircle on the closing edge:
+    // R = 50, outward from the interior (x > 0).
+    const s = 100
+    const arcedClosing: PerimeterMarkup = {
+      id: 'pc', type: 'perimeter', page: 1, name: 'Curved', categoryId: 'cat-c',
+      color: '#107c10', createdAt: 0,
+      points: [{ x: 0, y: 0 }, { x: s, y: 0 }, { x: s, y: s }, { x: 0, y: s }],
+      arcs: { 3: { midX: -50, midY: 50 } }
+    }
+    const result = aggregateBoq({
+      markups: { 1: [arcedClosing] },
+      pageScales: { 1: { pixelsPerMm: PIXELS_PER_MM, displayUnit: 'mm' } },
+      globalUnit: 'mm', totalPages: 1,
+      categoriesById: { 'cat-c': { id: 'cat-c', name: 'Civil' } },
+      categoryOrder: ['cat-c'], pdfOriginalFilename: 'plan.pdf',
+      currentFilePath: null, getColorForName: () => '#107c10'
+    })
+    const perim = result.categories[0].items.find(i => i.label === 'Curved (perimeter)')!
+    const area = result.categories[0].items.find(i => i.label === 'Curved (area)')!
+    // LENGTH oracle: three straight sides (300) + semicircle arc on the closing
+    // edge (π·R = π·50 ≈ 157.0796) = 457.0796.
+    const R = 50
+    expect(perim.quantity).toBeCloseTo(300 + Math.PI * R, 4)
+    // AREA oracle: base square (10000) + an OUTWARD semicircle bulge on the
+    // closing edge adds (π·R²)/2 ≈ 3926.99.
+    expect(area.quantity).toBeCloseTo(s * s + (Math.PI * R * R) / 2, 4)
+  })
+
   it('same name with two non-perimeter types triggers (type) suffix on both rows — D-02', () => {
     const result = aggregateBoq({
       markups: {
