@@ -39,10 +39,11 @@ function uomFor(t: BoqRowType, globalUnit: string): string {
   return globalUnit + '²' // U+00B2 SUPERSCRIPT TWO — 'm²', 'ft²', etc.
 }
 
-function typeWord(t: BoqRowType): 'count' | 'linear' | 'area' | 'perimeter' {
+function typeWord(t: BoqRowType): 'count' | 'linear' | 'area' | 'perimeter' | 'wall' {
   if (t === 'count') return 'count'
   if (t === 'linear') return 'linear'
   if (t === 'perimeter') return 'perimeter'
+  if (t === 'wall') return 'wall'
   return 'area' // only 'area' reaches this branch given the caller's type set
 }
 
