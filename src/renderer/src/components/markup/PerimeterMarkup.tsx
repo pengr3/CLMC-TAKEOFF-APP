@@ -13,7 +13,7 @@ import { useProjectStore } from '../../stores/projectStore'
 export interface PerimeterMarkupProps {
   markup: PerimeterMarkupType
   category: Category   // legacy prop compat
-  currentZoom: number  // legacy prop compat — not used; labels are world-anchored per D-34
+  currentZoom: number  // used to keep strokeWidth visually constant across zoom levels (STROKE_BASE_PX / currentZoom); labels are world-anchored per D-34
   pageScale: PageScale | null
   onHoverEnter?: (id: string, screenX: number, screenY: number) => void
   onHoverLeave?: (id: string) => void
