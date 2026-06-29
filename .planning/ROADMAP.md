@@ -581,7 +581,24 @@ Plans:
   5. A perimeter BOQ row is labeled by its plain item name, gaining a `(perimeter)` suffix only when a same-named count/linear/area row exists (perimeter now participates in the shared collision-suffix rule)
   6. Existing `.clmc` projects with perimeter markups reload with length-only BOQ output and no errors (area was computed live, never stored — no data loss); the test suite is updated and green, and PROJECT.md reflects pricing as in-scope
 
-**Plans:** _to be created by /gsd:plan-phase_
+**Plans:** 4/4 plans created
+
+Plans:
+**Wave 0**
+
+- [ ] 15-01-PLAN.md — RED Nyquist tests first: aggregator rate/cost + perimeter one-row + collision-suffix, rates save/reload round-trip, writer Rate/Cost columns, inline-rate render + stopPropagation — written before any source touched
+
+**Wave 1**
+
+- [ ] 15-02-PLAN.md — Data model + types + aggregator: `rates?` additive field (mirrors `hiddenItemNames`, no formatVersion bump) + `setRate`; `BoqItemRow.rate/cost` + `costSubtotal`/`grandTotalCost` across all 4 type-duplication files (boq-types, boq-writers, preload ×2); perimeter-area removal + one-row + perimeter joins D-02 collision set; arc-aware length preserved
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 15-03-PLAN.md — Totals UI: inline ₱ rate field (`e.stopPropagation`, `name|type` rateKey) + `useBoqLive` rates subscription (live recompute) + net-new per-category cost subtotal + grand-total cost bar; PerimeterMarkup → unfilled outline + length-only `P:` label
+
+**Wave 3** *(blocked on Wave 1 completion)*
+
+- [ ] 15-04-PLAN.md — Export: xlsx/csv Rate + Cost columns (₱ numFmt native numbers, A:E merge, cost subtotals + grand-total, CSV BOM kept) + PROJECT.md pricing scope flip + 15-MANUAL-NOTES.md (perimeter back-compat + ₱ + UAT)
 
 ---
 
