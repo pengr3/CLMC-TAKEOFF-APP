@@ -50,9 +50,12 @@ describe('arcLength', () => {
     const len = arcLength(p1, mid, p2)
     const trueArc = R * (Math.PI / 2)
     expect(len).toBeCloseTo(trueArc, 3) // 3141.5926…
+    expect(len).toBeCloseTo(3141.593, 3)
     const chord = Math.hypot(p2.x - p1.x, p2.y - p1.y) // 2828.427…
-    const pctOver = (len - chord) / chord
-    expect(pctOver).toBeCloseTo(0.0997, 3) // under-measurement closed: ~9.97%
+    expect(chord).toBeCloseTo(2828.427, 3)
+    // Spike-003 under-measurement: a straight takeoff under-reports by (arc−chord)/arc ≈ 9.968%
+    const underMeasurePct = (len - chord) / len
+    expect(underMeasurePct).toBeCloseTo(0.09968, 4)
   })
 
   it('major/reflex arc (sweep > 180°) matches the spike value 593.41 within 1e-6', () => {
