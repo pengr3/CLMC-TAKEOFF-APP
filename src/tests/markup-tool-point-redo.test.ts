@@ -193,6 +193,36 @@ describe('useMarkupTool.repushLastPoint (in-progress Ctrl+Y redo, MARK-09 SC1-SC
     unmount()
   })
 
+  it('WR-06 — committing an arc edge clears redoPoints (no stale repush across an arc)', () => {
+    const probe: Probe = { current: null }
+    const { unmount } = mount(probe)
+    act(() => {
+      probe.current!.activate('linear')
+      probe.current!.recordClick({ x: 0, y: 0 })
+      probe.current!.recordClick({ x: 50, y: 0 })
+      probe.current!.recordClick({ x: 100, y: 0 })
+    })
+    // Pop a point so redoPoints is non-empty.
+    act(() => { probe.current!.popLastPoint() })
+    expect(probe.current!.state.points).toHaveLength(2)
+
+    // Now draw an ARC edge (on-arc capture + end click). The end-click branch
+    // must invalidate the mid-draw redo stack so a later Ctrl+Y cannot re-push a
+    // pre-arc point and desync the point/arc index alignment.
+    act(() => {
+      probe.current!.recordArcClick({ x: 75, y: 20 }) // on-arc
+      probe.current!.recordArcClick({ x: 150, y: 0 }) // end click → appends vertex
+    })
+    expect(probe.current!.state.points).toHaveLength(3)
+
+    let repushed = true
+    act(() => {
+      repushed = probe.current!.repushLastPoint()
+    })
+    expect(repushed).toBe(false)
+    unmount()
+  })
+
   it('SC3 — Ctrl+Z on first point cancels markup and resets to idle', () => {
     const probe: Probe = { current: null }
     const { unmount } = mount(probe)
