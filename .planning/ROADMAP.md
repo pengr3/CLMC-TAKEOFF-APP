@@ -581,7 +581,7 @@ Plans:
   5. A perimeter BOQ row is labeled by its plain item name, gaining a `(perimeter)` suffix only when a same-named count/linear/area row exists (perimeter now participates in the shared collision-suffix rule)
   6. Existing `.clmc` projects with perimeter markups reload with length-only BOQ output and no errors (area was computed live, never stored — no data loss); the test suite is updated and green, and PROJECT.md reflects pricing as in-scope
 
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 **Wave 0**
@@ -590,7 +590,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 15-02-PLAN.md — Data model + types + aggregator: `rates?` additive field (mirrors `hiddenItemNames`, no formatVersion bump) + `setRate`; `BoqItemRow.rate/cost` + `costSubtotal`/`grandTotalCost` across all 4 type-duplication files (boq-types, boq-writers, preload ×2); perimeter-area removal + one-row + perimeter joins D-02 collision set; arc-aware length preserved
+- [x] 15-02-PLAN.md — Data model + types + aggregator: `rates?` additive field (mirrors `hiddenItemNames`, no formatVersion bump) + `setRate`; `BoqItemRow.rate/cost` + `costSubtotal`/`grandTotalCost` across the 3 in-scope type-duplication files (boq-types + preload ×2; **boq-writers deferred to Wave 2/15-04**); perimeter-area removal + one-row + perimeter joins D-02 collision set; arc-aware length preserved. Done 2026-06-29 — commits ac1c97f/c9a5d79/85b1ade; aggregator/serialize/schema GREEN, typecheck clean
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
