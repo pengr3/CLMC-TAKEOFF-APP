@@ -581,7 +581,7 @@ Plans:
   5. A perimeter BOQ row is labeled by its plain item name, gaining a `(perimeter)` suffix only when a same-named count/linear/area row exists (perimeter now participates in the shared collision-suffix rule)
   6. Existing `.clmc` projects with perimeter markups reload with length-only BOQ output and no errors (area was computed live, never stored — no data loss); the test suite is updated and green, and PROJECT.md reflects pricing as in-scope
 
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 **Wave 0**
@@ -594,7 +594,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 15-03-PLAN.md — Totals UI: inline ₱ rate field (`e.stopPropagation`, `name|type` rateKey) + `useBoqLive` rates subscription (live recompute) + net-new per-category cost subtotal + grand-total cost bar; PerimeterMarkup → unfilled outline + length-only `P:` label
+- [x] 15-03-PLAN.md — Totals UI: inline ₱ rate field (`e.stopPropagation`, `name|type` rateKey) + `useBoqLive` rates subscription (live recompute) + net-new per-category cost subtotal + grand-total cost bar; PerimeterMarkup → unfilled outline + length-only `P:` label. Done 2026-06-29 — commits ffbd168/1da21b0/380f762; NEW src/renderer/src/lib/currency.ts ₱ seam; inline input is uncontrolled + native listeners (React synthetic onChange value-tracker-suppressed under native dispatch); both Wave 0 proofs (use-boq-live rates recompute + totals-row-rate-edit) GREEN, full suite 621 pass (only 15-04 writer reds remain), typecheck clean; resolved 15-02 stale-comment deferred item
 
 **Wave 3** *(blocked on Wave 1 completion)*
 

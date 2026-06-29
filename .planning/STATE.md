@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: milestone_complete
-stopped_at: Completed 15-02 (Wave 1 — BOQ data-model + aggregator spine). rates plumbed end-to-end (projectStore.rates+setRate, ProjectFileV2.rates? additive no-bump, snapshot+hydrate w/ finite-≥0 coercion guard); rate/cost/costSubtotal/grandTotalCost on boq-types + both preload mirrors; aggregator threads cost + perimeter is length-only (arc-aware kept) AND a first-class D-02 collision member (perimeter-length→perimeter rename, perimeter-area deleted). boq-aggregator/project-serialize/project-schema GREEN (36/36); npm run typecheck clean; git grep perimeter-area|perimeter-length src/renderer/src/lib+src/preload = zero. 3 atomic commits ac1c97f/c9a5d79/85b1ade. Writers/totals-row-rate-edit/use-boq-live correctly still RED for Waves 2/3.
-last_updated: "2026-06-29T10:05:20.697Z"
+stopped_at: Completed 15-03 (Wave 2 renderer half — totals-panel pricing UI + perimeter render). Inline ₱ rate input on TotalsRow (uncontrolled + native listeners, rateKey ${name}|${type}, setRate + stopPropagation), rates wired into useBoqLive for live recompute, per-category ₱ cost subtotal + pinned ₱ grand-total bar, PerimeterMarkup unfilled outline + length-only label (area math removed). The two Wave 0 target proofs GREEN; full suite 621 pass / 7 fail (only the 15-04-owned boq-writers reds; boq-writers.ts untouched); typecheck clean. 3 atomic commits ffbd168/1da21b0/380f762. NEXT: 15-04 (writers half).
+last_updated: "2026-06-29T10:26:58.389Z"
 last_activity: 2026-06-29
 progress:
   total_phases: 20
   completed_phases: 18
   total_plans: 101
-  completed_plans: 99
+  completed_plans: 100
   percent: 90
 ---
 
@@ -33,7 +33,7 @@ progress:
 ## Current Position
 
 Phase: 15 (boq-pricing-perimeter-simplification) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 
 ## Performance Metrics
 
@@ -82,6 +82,7 @@ Plan: 3 of 4
 | Phase 14 P06 | ~10min | 2 auto tasks + 1 UAT checkpoint | 8 files |
 | Phase 15 P15-01 | 13min | 3 tasks | 9 files |
 | Phase 15 P15-02 | 11min | 3 tasks | 8 files |
+| Phase 15 P15-03 | 14min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -187,6 +188,10 @@ Plan: 3 of 4
 | Phase 15 Wave 1 (15-02): rates plumbed as a hiddenItemNames twin minus the derived Set (the map IS the O(1) lookup) | projectStore.rates + setRate (trailing get().markDirty() is load-bearing for Save) + reset-{}; ProjectFileV2.rates? additive — NO formatVersion bump, NO validateV2 branch (rides the `return raw as ProjectFileV2` cast); snapshot emits rates, hydrate restores inside the dirty-suspend bracket with a per-value finite-≥0 coercion guard (T-15-02-01: drops negative/NaN/Infinity/non-number, non-object→{}). Key is `${name}|${type}`, category-INDEPENDENT |
 | Phase 15 (15-02): BoqRowType perimeter-length→perimeter RENAME + perimeter-area DELETE (row type now equals markup type) | Applied in lockstep across the 3 in-scope type-duplication files (boq-types canonical + preload/index.ts + preload/index.d.ts); preload mirrors keep their categoryId omission, preload/index.ts keeps its pre-existing 'wall' drift untouched. boq-writers.ts (4th, main-process) LEFT to Wave 2 — compiles independently so the boq-export-ipc structural lock + full typecheck stay green. rowTypeToMarkupType collapsed to identity (Rule 3 blocking fix — rename removed the literals it compared) |
 | Phase 15 (15-02): aggregator threads cost + perimeter is length-only AND a first-class D-02 collision member | rate=opts.rates??store[`${name}|${type}`]??0, cost=rate×qty per row; per-category costSubtotal (Σ row costs) + project grandTotalCost (Σ subtotals), both unit-agnostic single ₱ numbers parallel to the per-UoM quantity subtotals. Perimeter LENGTH add kept verbatim (arc-aware, WR-07 300+π·R intact); area synthesis deleted; nameNonPerimTypes→nameTypes (perimeter skip removed); nonPerimeterTypeWord→typeWord (+ 'perimeter' case) under the unified suffix rule. boq-aggregator/project-serialize/project-schema GREEN; writers/totals-row-rate-edit/use-boq-live correctly still RED (Waves 2/3) |
+| Phase 15 Wave 2 (15-03): single renderer-side CURRENCY_SYMBOL='₱' seam in src/renderer/src/lib/currency.ts; useBoqLive subscribes to rates (selector + useMemo deps) → inline rate edit recomputes cost live (proof b) | currency.ts is renderer-only (writers keep their own copy, Wave 3); useBoqLive went 8→9 primitive selectors, threading rates into aggregateBoq + its dep array — passing rates WITHOUT the dep leaves cost stale; both required. use-boq-live 'recomputes when rates change' GREEN |
+| Phase 15 (15-03): inline ₱ rate input is UNCONTROLLED + native event listeners (input/change/blur/keydown via a ref), NOT React onChange/onBlur | React 19's input value-tracker suppresses synthetic onChange when a caller sets .value then dispatches a native 'input' event, and React delegates blur as 'focusout' so a raw 'blur' never reaches a synthetic onBlur — proven by a throwaway probe (setRate calls=[] via onChange path). Native listeners fire on exactly the events dispatched; all 4 do-not-edit rate-edit assertions pass with zero test change. Field re-seeds imperatively from the store only when the DOM value differs (mid-typing never clobbered) |
+| Phase 15 (15-03): rateKey `${name}\|${type}` is category-INDEPENDENT and DISTINCT from the visibility itemKey `${name}\|${categoryId}`; setRate dispatched on input/change/blur+Enter; stopPropagation on click/mousedown/keydown so the field never fires row cycle-nav/onArmTool | parseFloat NaN/empty→0 keeps a string out of the Record<string,number> rate map (T-15-03-01); stopPropagation mirrors the lightbulb pattern, asserted by the render-test spies on onArmTool+setPage (T-15-03-02); distinct rateKey prevents category-dependent mis-scoping (T-15-03-03). Row cost reads item.cost directly — no rate×quantity in the UI |
+| Phase 15 (15-03): ₱ cost formatters coerce non-finite→0 (formatCost, category costSubtotal, grand-total) so rows/categories render ₱0.00 instead of throwing | Rule 1/2 hardening — the migrated do-not-edit fixtures (totals-row-cycle/context-menu) build BoqItemRow without the required 15-02 rate/cost fields, so item.cost is undefined at runtime; a bare .toFixed() threw and broke green fixtures. Also the correct production behavior (locked 'no rate set = ₱0.00'). Grand-total bar lives in TotalsPanel (pinned bottom bar, shown when totalPages>0), not the header rows[]. PerimeterMarkup: unfilled outline + length-only 'P: <len> <unit>' label, polygonArea/pixelAreaToReal removed, arc-aware length kept. Full suite 621 pass; only writer reds remain (15-04). Resolved 15-02's stale-comment deferred item |
 
 ### Critical Pitfalls to Watch
 
@@ -240,11 +245,11 @@ None.
 
 **Last activity:** 2026-06-29
 
-**Last session:** 2026-06-29T10:05:20.676Z
+**Last session:** 2026-06-29T10:23:14.232Z
 
-**Stopped at:** Completed 15-01 (Wave 0 Nyquist RED surface) — 9 test files (1 new totals-row-rate-edit.test.ts + 8 modified); 22 RED assertions across boq-aggregator/project-serialize/use-boq-live/boq-writers-xlsx/boq-writers-csv mapping to Wave 1-3; tsc clean (0 errors); git grep perimeter-area|perimeter-length src/tests = zero. 3 atomic commits b5a2751/aff8301/5e1bb96.
+**Stopped at:** Completed 15-03 (Wave 2 renderer half — totals-panel pricing UI + perimeter render simplification). NEW src/renderer/src/lib/currency.ts (single ₱ seam); useBoqLive subscribes to rates (selector + memo deps) for live cost recompute; TotalsRow inline ₱ rate input (uncontrolled + native input/change/blur/keydown listeners, rateKey `${name}|${type}` distinct from the visibility itemKey, setRate dispatch + stopPropagation, ₱ cost from item.cost); TotalsCategoryBlock per-category ₱ cost subtotal; TotalsPanel pinned ₱ grand-total bar; PerimeterMarkup unfilled closed outline + length-only `P: <len> <unit>` label (polygonArea/pixelAreaToReal removed, arc-aware length kept). The two Wave 0 proofs (use-boq-live 'recomputes when rates change' + totals-row-rate-edit) GREEN; full suite 621 pass / 7 fail (all 7 are the 15-04-owned boq-writers xlsx/csv reds — boq-writers.ts untouched); typecheck clean. 3 atomic commits ffbd168/1da21b0/380f762. Resolved the 15-02 stale-comment deferred item.
 
-**Next action:** Run the Phase-14 human UAT (8 hands-on steps mapped to the 5 ROADMAP success criteria — snapping+indicator, instant-at-scale, 3-click arc coexisting with straight, true arc length+signed area, self-intersection blocked + arc round-trips save/reload+BOQ). On "approved", mark ROADMAP Phase 14 [x] + milestone complete in STATE; on failures, gap-closure via /gsd:plan-phase 14 --gaps.
+**Next action:** Execute 15-04 (Wave 2 writers half — runs after 15-03 in sequential mode): turn the 7 remaining boq-writers reds GREEN — align src/main/boq-writers.ts BoqRowType (drop the old perimeter-length/perimeter-area split, its own deferred item), add Item·Quantity·UoM·Rate·Cost columns with a ₱ numFmt (native-number cells), per-category cost-subtotal + grand-total-cost rows, A:E heading merge, and a main-process-local CURRENCY_SYMBOL='₱' copy. Then phase verification + UAT (SC-4 perimeter render + live inline-pricing).
 
 **Note:** Phase 11 (Scale Ratio Input) scrapped — replaced by quick task `260520-rrf` (commit `4156dee`). Phase 13 = v1.1 Phase C from `.planning/phases/v1.1-planning/v1.1-CONTEXT.md` (D-10/D-11/D-12 plus new D-13–D-26 added during planning).
 

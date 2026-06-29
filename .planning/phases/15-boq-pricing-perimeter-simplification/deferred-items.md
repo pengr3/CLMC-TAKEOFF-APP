@@ -5,14 +5,13 @@ Logged by the executor during plan execution. NOT fixed in the originating plan
 
 ## From Plan 15-02 (Wave 1 — data-model/aggregator spine)
 
-- **Stale comments in `src/renderer/src/components/TotalsCategoryBlock.tsx` (lines 26, 45)**
-  reference the removed `perimeter-length`/`perimeter-area` split. These are
-  comment-only (Removal-Map row 13 = "no logic"); `matchesForRow` already routes
-  through `rowTypeToMarkupType`, which Plan 15-02 collapsed to identity. The file is
-  not in 15-02's `files_modified` and belongs to the totals-UI wave. **Owner: Plan
-  15-03 (TotalsRow/TotalsCategoryBlock UI).** No functional impact — typecheck clean,
-  tests green, and the zero-token gate (scoped to `src/renderer/src/lib` + `src/preload`)
-  is unaffected.
+- ~~**Stale comments in `src/renderer/src/components/TotalsCategoryBlock.tsx` (lines 26, 45)**
+  reference the removed `perimeter-length`/`perimeter-area` split.~~ **RESOLVED by
+  Plan 15-03 (commit `380f762`).** The match-resolution docstring was reworded to
+  "the perimeter row type equals the underlying 'perimeter' markup type — one row",
+  and the orphaned `rowTypeToMarkupType` doc block (which described the deleted
+  split mapping) was deleted. `git grep "perimeter-length\|perimeter-area"` over
+  `TotalsCategoryBlock.tsx` now returns zero matches.
 
 - **`src/main/boq-writers.ts:18` still carries the old `BoqRowType` split**
   (`'perimeter-length' | 'perimeter-area'`). This is the **main-process** type
