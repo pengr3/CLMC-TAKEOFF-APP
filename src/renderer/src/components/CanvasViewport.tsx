@@ -1152,7 +1152,14 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         return pt
       }
       const liveZoom = useViewerStore.getState().pageViewports[currentPage]?.zoom ?? 1
-      const tol = 12 / liveZoom
+      // WR-01: clamp the query tolerance to the index's OWN cell size. The index
+      // is rebuilt by a useEffect on currentZoom (cell = 12/currentZoom), but the
+      // effect lags during an active zoom gesture, so liveZoom can be smaller than
+      // the baked-in currentZoom → tol = 12/liveZoom > cell. The 3×3 neighbourhood
+      // query is only exhaustive when cell >= tolerance (snapping-engine.ts:10-12);
+      // clamping keeps that invariant so snapping never silently drops valid
+      // vertices just outside the 3×3 window mid-zoom.
+      const tol = Math.min(12 / liveZoom, index.cell)
       const candidate = resolveSnap(index, pt, tol, exclude)
       setSnapCandidate(candidate)
       // Override the cursor's page-point with the snapped point so the placed/
