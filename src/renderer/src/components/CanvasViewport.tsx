@@ -27,7 +27,11 @@ import { VertexHandleOverlay } from './markup/VertexHandleOverlay'
 import { BulgeHandle } from './markup/BulgeHandle'
 import { SnapIndicator } from './markup/SnapIndicator'
 import { ArcPreview } from './markup/ArcPreview'
-import { clampBulgeToSagittaCap, resolveArcMidForMovedEndpoint } from '../lib/arc-math'
+import {
+  clampBulgeToSagittaCap,
+  resolveArcMidForMovedEndpoint,
+  buildArcAwareFlatPoints
+} from '../lib/arc-math'
 import { buildSnapIndex, resolveSnap, type SnapIndex, type SnapCandidate, type SnapExclude } from '../lib/snapping-engine'
 import { COLORS } from '../lib/constants'
 import { formatScaleRatio } from '../lib/scale-math'
@@ -2126,9 +2130,12 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
             markupState.mode === 'drawing' &&
             markupState.points.length > 0 && (
               <>
-                {/* Solid committed segments */}
+                {/* Solid committed segments — arc-aware so a placed arc edge keeps
+                    its curve mid-draw (after its end click clears the ArcPreview),
+                    matching the committed renderer. Open chain (closed=false): the
+                    closing edge is the dashed/cursor preview, not yet placed. */}
                 <Line
-                  points={markupState.points.flatMap((p) => [p.x, p.y])}
+                  points={buildArcAwareFlatPoints(markupState.points, markupState.arcs, false)}
                   stroke={COLORS.accent}
                   strokeWidth={2 / currentZoom}
                   lineCap="round"
