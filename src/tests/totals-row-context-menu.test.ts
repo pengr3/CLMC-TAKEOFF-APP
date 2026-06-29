@@ -242,7 +242,7 @@ describe('TotalsRowContextMenu — Copy as text (D-14, UI-SPEC clipboard payload
     }
   })
 
-  it('perimeter-length row → payload uses .toFixed(2)', async () => {
+  it('perimeter row → payload uses .toFixed(2)', async () => {
     const spy = installClipboardMock('resolve')
     const { container, unmount } = mount(
       React.createElement(TotalsRowContextMenu, {
@@ -252,7 +252,7 @@ describe('TotalsRowContextMenu — Copy as text (D-14, UI-SPEC clipboard payload
           quantity: 8,
           uom: 'm',
           color: '#5c2d91',
-          type: 'perimeter-length'
+          type: 'perimeter'
         }),
         onClose: vi.fn(),
         onCopy: vi.fn(),

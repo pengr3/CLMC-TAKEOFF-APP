@@ -284,8 +284,8 @@ describe('TotalsRow click cycle (D-10)', () => {
     }
   })
 
-  it('perimeter-area row resolves underlying markup type "perimeter" for cycle navigation', () => {
-    // Underlying perimeter markups on pages 2 and 3 (BoqRowType perimeter-area maps to Markup.type 'perimeter')
+  it('perimeter row resolves underlying markup type "perimeter" for cycle navigation', () => {
+    // Underlying perimeter markups on pages 2 and 3 (BoqRowType 'perimeter' maps to Markup.type 'perimeter')
     const perimA: Markup = {
       id: 'p-a',
       type: 'perimeter',
@@ -324,13 +324,14 @@ describe('TotalsRow click cycle (D-10)', () => {
     })
 
     const setPageSpy = vi.spyOn(useViewerStore.getState(), 'setPage')
-    // categoryId matches the markups' categoryId='cat-1'
+    // categoryId matches the markups' categoryId='cat-1'.
+    // Phase 15: perimeter is a single length row labelled plainly (no '(area)' split).
     const item: BoqItemRow = {
-      label: 'Wall (area)',
+      label: 'Wall',
       quantity: 15,
-      uom: 'm²',
+      uom: 'm',
       color: '#107c10',
-      type: 'perimeter-area',
+      type: 'perimeter',
       categoryId: 'cat-1'
     }
 
