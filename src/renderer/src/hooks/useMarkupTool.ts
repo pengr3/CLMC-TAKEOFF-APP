@@ -294,6 +294,9 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
           return {
             ...prev,
             points: [...prev.points, stagePoint],
+            // A straight vertex click cancels any partial arc capture so a stale
+            // on-arc point can't curve this (or the next) straight edge.
+            arcOnArc: null,
             pendingPage: prev.pendingPage ?? useViewerStore.getState().currentPage,
             redoPoints: []    // new placement invalidates in-progress redo history
           }
@@ -385,14 +388,27 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
   )
 
   const setArcHeld = useCallback((held: boolean) => {
-    setState((prev) => (prev.arcHeld === held ? prev : { ...prev, arcHeld: held }))
+    setState((prev) => {
+      if (prev.arcHeld === held) return prev
+      // Releasing the one-off arc hold cancels any in-flight arc capture (unless
+      // sticky keeps arc mode on) so the curved preview never lingers over the
+      // straight edge that follows.
+      if (!held && prev.arcMode !== 'sticky') {
+        return { ...prev, arcHeld: held, arcOnArc: null }
+      }
+      return { ...prev, arcHeld: held }
+    })
   }, [])
 
   const toggleArcSticky = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      arcMode: prev.arcMode === 'sticky' ? 'off' : 'sticky'
-    }))
+    setState((prev) => {
+      const nextMode = prev.arcMode === 'sticky' ? 'off' : 'sticky'
+      // Turning arc mode OFF cancels any in-flight arc capture so the curved
+      // preview doesn't persist over the straight edges that follow.
+      return nextMode === 'off'
+        ? { ...prev, arcMode: nextMode, arcOnArc: null }
+        : { ...prev, arcMode: nextMode }
+    })
   }, [])
 
   const updatePreview = useCallback(

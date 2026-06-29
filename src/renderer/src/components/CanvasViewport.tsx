@@ -1509,7 +1509,12 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         updatePreview({ x: pointer.x, y: pointer.y })
         return
       }
-      if (markupState.mode === 'drawing' && markupState.points.length > 0) {
+      const isMultiPointMarkupTool =
+        markupState.toolType === 'linear' ||
+        markupState.toolType === 'area' ||
+        markupState.toolType === 'perimeter' ||
+        markupState.toolType === 'wall'
+      if (markupState.mode === 'drawing' && isMultiPointMarkupTool) {
         // Placement preview: convert the raw pointer to page-space, resolve the
         // snap (D-05), then feed the snapped page-point back to the preview as
         // SCREEN coords (updateMarkupPreview converts screen→page internally).
@@ -1524,13 +1529,12 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         // point is the free shaping point — snapping is SUPPRESSED so the live
         // 2-point preview tracks the raw cursor. Once the on-arc point is set,
         // the cursor is the provisional END (an endpoint) and snapping applies.
+        // The very FIRST vertex (points.length === 0) always snaps — arc shaping
+        // only begins from the second click onward.
         const arcShapingMove =
+          markupState.points.length > 0 &&
           (markupState.arcHeld || markupState.arcMode === 'sticky') &&
-          markupState.arcOnArc === null &&
-          (markupState.toolType === 'linear' ||
-            markupState.toolType === 'area' ||
-            markupState.toolType === 'perimeter' ||
-            markupState.toolType === 'wall')
+          markupState.arcOnArc === null
         const rawPt = stage.getAbsoluteTransform().copy().invert().point(pointer)
         const resolved = arcShapingMove
           ? rawPt
@@ -1538,8 +1542,14 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
               markupId: IN_PROGRESS_MARKUP_ID,
               allowVertexIndices: [0]
             })
-        const screen = stage.getAbsoluteTransform().copy().point(resolved)
-        updateMarkupPreview({ x: screen.x, y: screen.y })
+        // Before the first vertex there is no dashed preview to update — but
+        // resolveSnapAt above already set the □/△ glyph, so the user can land the
+        // FIRST vertex on an existing endpoint/segment. (The first click always
+        // snapped; this restores the missing live visual feedback.)
+        if (markupState.points.length > 0) {
+          const screen = stage.getAbsoluteTransform().copy().point(resolved)
+          updateMarkupPreview({ x: screen.x, y: screen.y })
+        }
       } else {
         // Not placing — clear any lingering glyph (snapping shows only during
         // an active placement/edit gesture).
@@ -1832,6 +1842,10 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // by the solved ArcPreview through start → onArc → cursor.
   const arcCaptureActive =
     markupState.mode === 'drawing' &&
+    // Tie the curved preview to arc mode being ACTIVE — so toggling arc off
+    // (Shift+A) or releasing the one-off hold hides the curve immediately,
+    // even if an on-arc point was already captured.
+    (markupState.arcHeld || markupState.arcMode === 'sticky') &&
     markupState.arcOnArc !== null &&
     markupState.points.length > 0 &&
     markupState.previewPoint !== null
@@ -2644,6 +2658,49 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
           </button>
         </div>
       )}
+
+      {/* Phase 14 (14-04 D-02): arc-edge mode badge — top-center, accent-filled so
+          the active arc gesture is unmissable (the cursor change alone is easy to
+          miss). Shows whether it is the one-off hold or the sticky toggle, plus the
+          gesture hint. pointerEvents:none so it never blocks the canvas. */}
+      {markupState.mode === 'drawing' &&
+        (markupState.arcHeld || markupState.arcMode === 'sticky') && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              position: 'absolute',
+              top: 12,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: COLORS.accent,
+              color: '#ffffff',
+              borderRadius: 999,
+              padding: '6px 14px',
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: 0.3,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              zIndex: 9,
+              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.45)',
+              pointerEvents: 'none',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <span aria-hidden="true" style={{ fontSize: 15, lineHeight: 1 }}>
+              ◜
+            </span>
+            <span>
+              ARC EDGE{markupState.arcMode === 'sticky' ? ' · STICKY' : ' · HOLD A'}
+            </span>
+            <span style={{ opacity: 0.85, fontWeight: 600 }}>
+              click on-arc point → end · Shift+A to{' '}
+              {markupState.arcMode === 'sticky' ? 'turn off' : 'keep on'}
+            </span>
+          </div>
+        )}
 
       {/* Hover tooltip — 200ms delay + immediate hide (plan 03.1-05 / D-30 / D-33) */}
       {tooltipShown && hoverState && hoveredMarkup && (
