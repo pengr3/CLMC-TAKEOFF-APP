@@ -24,6 +24,8 @@ import { WallMarkup } from './WallMarkup'
 import { HoverRing } from './HoverRing'
 import { PulseHighlight } from './PulseHighlight'
 import { VertexHandleOverlay } from './markup/VertexHandleOverlay'
+import { SnapIndicator } from './markup/SnapIndicator'
+import { buildSnapIndex, resolveSnap, type SnapIndex, type SnapCandidate, type SnapExclude } from '../lib/snapping-engine'
 import { COLORS } from '../lib/constants'
 import { formatScaleRatio } from '../lib/scale-math'
 import { setMarkupUndoHandler, setMarkupRedoHandler } from '../lib/markup-undo-ref'
@@ -43,6 +45,12 @@ import { isMultiPointMarkup } from '../types/markup'
 // A fresh `[]` literal inside a Zustand selector breaks useSyncExternalStore's
 // Object.is snapshot check and causes an infinite re-render loop.
 const EMPTY_MARKUPS: Markup[] = []
+
+// Phase 14 (14-03 D-07): sentinel markupId for the in-progress (not-yet-
+// committed) markup. Its vertices are not in the committed snap index, so this
+// id is never matched there; passing it with allowVertexIndices=[0] documents
+// the close-the-loop-only restriction without affecting committed-geometry snaps.
+const IN_PROGRESS_MARKUP_ID = '__in_progress__'
 
 // Plan 09-03: Rubber-band selection (D-06, D-07, D-08, D-09).
 // Stage-space coordinates of the in-progress rubber-band drag rectangle.
@@ -297,6 +305,11 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   const setVertexEditMarkupId = useViewerStore((s) => s.setVertexEditMarkupId)
   const clearVertexEdit = useViewerStore((s) => s.clearVertexEdit)
 
+  // Phase 14 (14-03 D-03): snapping flags (snapEnabled/snapSuspended) are read
+  // inside resolveSnapAt via useViewerStore.getState() so the pointer callbacks'
+  // dep lists stay narrow — no subscription needed here. The StatusBar (Task 3)
+  // subscribes to them for the ON/held-off/OFF pill.
+
   const {
     state: markupState,
     activate: activateMarkup,
@@ -427,6 +440,14 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     setDragPreviewState(val)
   }, [])
 
+  // Phase 14 (14-03 D-04/D-05): snapping spatial index + active snap glyph.
+  // The index is held in a module-style ref (mirroring vertexDragRef) so
+  // handleStageMouseMove can read it without widening its dependency list; it is
+  // rebuilt by a useEffect keyed on the current page's geometry + zoom (below).
+  // snapCandidate drives the □/△ SnapIndicator on the transient overlay layer.
+  const snapIndexRef = useRef<SnapIndex | null>(null)
+  const [snapCandidate, setSnapCandidate] = useState<SnapCandidate | null>(null)
+
   // Phase 12: markup body mousedown ref — set by markup components' onMarkupMouseDown prop.
   // CanvasViewport reads this in handleStageMouseDown (before rubber-band check) to detect
   // body-drag intent. Cleared immediately on read (consume-on-read pattern). Wired in 12-04.
@@ -540,6 +561,41 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   // Subscribe to markupStore for rendering committed markups on the current page
   const pageMarkups = useMarkupStore((s) => s.pageMarkups[currentPage] ?? EMPTY_MARKUPS)
   const getCategory = useMarkupStore((s) => s.getCategory)
+
+  // Phase 14 (14-03 D-04/D-05): rebuild the snap spatial index whenever the
+  // current page's committed geometry OR the live zoom changes (rebuild-on-change,
+  // <120ms at 50k vertices per spike-002). Every markup vertex becomes a snap
+  // vertex (markupId + vertexIndex); every edge a→b becomes a snap segment
+  // (markupId + segmentIndex). cell = 12/currentZoom keeps the grid bucket size
+  // equal to the screen-constant tolerance at the current zoom. The built index
+  // is written into snapIndexRef so handleStageMouseMove reads it without taking
+  // pageMarkups/zoom into its dep list (stale-closure-safe, mirrors vertexDragRef).
+  useEffect(() => {
+    const cell = 12 / currentZoom
+    const vertices: Array<{ point: StagePoint; markupId: string; vertexIndex: number }> = []
+    const segments: Array<{ a: StagePoint; b: StagePoint; markupId: string; segmentIndex: number }> = []
+    for (const m of pageMarkups) {
+      if (m.type === 'count') {
+        // A count pin is a single snappable point (no segments).
+        vertices.push({ point: m.point, markupId: m.id, vertexIndex: 0 })
+        continue
+      }
+      const pts = m.points
+      pts.forEach((p, i) => {
+        vertices.push({ point: p, markupId: m.id, vertexIndex: i })
+      })
+      // Open polylines (linear/wall) → n-1 edges; closed polygons (area/
+      // perimeter) → also include the closing edge last→first.
+      const closed = m.type === 'area' || m.type === 'perimeter'
+      const edgeCount = closed ? pts.length : pts.length - 1
+      for (let i = 0; i < edgeCount; i++) {
+        const a = pts[i]
+        const b = pts[(i + 1) % pts.length]
+        segments.push({ a, b, markupId: m.id, segmentIndex: i })
+      }
+    }
+    snapIndexRef.current = buildSnapIndex({ vertices, segments, cell })
+  }, [pageMarkups, currentZoom])
 
   // Hover + context-menu state for committed markups (plan 03.1-05)
   const [hoverState, setHoverState] = useState<{ id: string; x: number; y: number } | null>(null)
@@ -927,6 +983,33 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     exportBoq: () => {}
   })
 
+  // Phase 14 (14-03 D-04/D-05/D-07): resolve a snap candidate for a page-space
+  // cursor point and publish the glyph state. Returns the snapped page-point to
+  // use in place of the raw cursor (or the raw cursor unchanged when nothing is
+  // in tolerance or snapping is off/suspended). `exclude` carries the D-07
+  // in-progress/edited-markup restriction (start-vertex-only + dragged-vertex
+  // block). Reads snapEnabled/snapSuspended via getState() so the callers' dep
+  // lists stay narrow; the index lives in snapIndexRef (rebuilt by the effect).
+  const resolveSnapAt = useCallback(
+    (pt: StagePoint, exclude?: SnapExclude): StagePoint => {
+      const enabled = useViewerStore.getState().snapEnabled
+      const suspended = useViewerStore.getState().snapSuspended
+      const index = snapIndexRef.current
+      if (!enabled || suspended || !index) {
+        setSnapCandidate(null)
+        return pt
+      }
+      const liveZoom = useViewerStore.getState().pageViewports[currentPage]?.zoom ?? 1
+      const tol = 12 / liveZoom
+      const candidate = resolveSnap(index, pt, tol, exclude)
+      setSnapCandidate(candidate)
+      // Override the cursor's page-point with the snapped point so the placed/
+      // dragged geometry lands exactly where the □/△ glyph is drawn.
+      return candidate ? candidate.point : pt
+    },
+    [currentPage]
+  )
+
   // Handle Stage click — routes to calibration or markup tool as appropriate
   const handleStageClick = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -970,7 +1053,17 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
           setIsOverStartPoint(false)
           return
         }
-        recordMarkupClick({ x: pointer.x, y: pointer.y })
+        // Phase 14 (14-03 D-05/D-07): snap the placed point so the committed
+        // vertex lands exactly where the □/△ glyph was drawn on the preview.
+        // Convert pointer→page, resolve snap, convert the snapped page-point
+        // back to screen coords for recordMarkupClick (which converts internally).
+        const rawClickPt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+        const snappedClick = resolveSnapAt(rawClickPt, {
+          markupId: IN_PROGRESS_MARKUP_ID,
+          allowVertexIndices: [0]
+        })
+        const screenClick = stage.getAbsoluteTransform().copy().point(snappedClick)
+        recordMarkupClick({ x: screenClick.x, y: screenClick.y })
         return
       }
 
@@ -1033,7 +1126,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         }
       }
     },
-    [calibState.mode, markupState.mode, markupState.toolType, markupState.points.length, isOverStartPoint, stageRef, recordClick, recordMarkupClick, finishPolygon, activeTool, clearSelection, commitVertexEdit]
+    [calibState.mode, markupState.mode, markupState.toolType, markupState.points.length, isOverStartPoint, stageRef, recordClick, recordMarkupClick, finishPolygon, activeTool, clearSelection, commitVertexEdit, resolveSnapAt]
   )
 
   // Plan 09-03: rubber-band drag (D-06).
@@ -1136,7 +1229,11 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       // at the down event — defensive ordering only.
       const vd = vertexDragRef.current
       if (vd) {
-        const pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+        let pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+        // D-07: while dragging a vertex, snap to OTHER markups freely but never
+        // to this markup's own dragged vertex (blockVertexIndex). The override
+        // mutates pt BEFORE it flows into the live preview below.
+        pt = resolveSnapAt(pt, { markupId: vd.markupId, blockVertexIndex: vd.vertexIndex })
         const livePageMarkups =
           useMarkupStore.getState().pageMarkups[currentPage] ?? EMPTY_MARKUPS
         const markup = livePageMarkups.find((m) => m.id === vd.markupId)
@@ -1158,7 +1255,12 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       // Read via bodyDragRef.current (stable across renders) so this callback's deps stay narrow.
       const bd = bodyDragRef.current
       if (bd) {
-        const pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+        let pt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+        // D-07: a body-drag moves the whole markup(s); exclude every dragged
+        // markup from snapping (passing each id would require multiple excludes,
+        // so we exclude the first/primary dragged id — the dragged markups never
+        // self-snap). The override mutates pt BEFORE the deltas are computed.
+        pt = resolveSnapAt(pt, { markupId: bd.ids[0] })
         const dx = pt.x - bd.origin.x
         const dy = pt.y - bd.origin.y
         const deltas: Record<string, { x: number; y: number }> = {}
@@ -1181,10 +1283,28 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         return
       }
       if (markupState.mode === 'drawing' && markupState.points.length > 0) {
-        updateMarkupPreview({ x: pointer.x, y: pointer.y })
+        // Placement preview: convert the raw pointer to page-space, resolve the
+        // snap (D-05), then feed the snapped page-point back to the preview as
+        // SCREEN coords (updateMarkupPreview converts screen→page internally).
+        // The override mutates the placed point BEFORE updateMarkupPreview
+        // consumes it. D-07: the in-progress markup contributes only its start
+        // vertex (close-the-loop) — passed via allowVertexIndices=[0] on the
+        // IN_PROGRESS_MARKUP_ID sentinel (never present in the committed index,
+        // so this only documents the close-the-loop restriction).
+        const rawPt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+        const snapped = resolveSnapAt(rawPt, {
+          markupId: IN_PROGRESS_MARKUP_ID,
+          allowVertexIndices: [0]
+        })
+        const screen = stage.getAbsoluteTransform().copy().point(snapped)
+        updateMarkupPreview({ x: screen.x, y: screen.y })
+      } else {
+        // Not placing — clear any lingering glyph (snapping shows only during
+        // an active placement/edit gesture).
+        if (snapCandidate !== null) setSnapCandidate(null)
       }
     },
-    [calibState.mode, calibState.startPoint, markupState.mode, markupState.points.length, stageRef, updatePreview, updateMarkupPreview, setRubberBand, setDragPreview, currentPage]
+    [calibState.mode, calibState.startPoint, markupState.mode, markupState.points.length, stageRef, updatePreview, updateMarkupPreview, setRubberBand, setDragPreview, currentPage, resolveSnapAt, snapCandidate]
   )
 
   // Plan 09-03: rubber-band release (D-07, D-09).
@@ -1825,6 +1945,25 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
             )
           })()}
         </Layer>
+
+        {/* Phase 14 (14-03 D-04): snap glyph overlay. Above committed markups and
+            above the selection ring, below nothing interactive. listening={false}
+            on the Layer + every glyph shape so it NEVER steals pointer events
+            (same discipline as HoverRing/PulseHighlight). The underlying color is
+            the in-progress markup's pending color (or the snapped markup's color)
+            so the halo contrast picker reads against the right backdrop. */}
+        {snapCandidate !== null && (
+          <Layer listening={false}>
+            <SnapIndicator
+              candidate={snapCandidate}
+              currentZoom={currentZoom}
+              underlyingColor={
+                markupState.pendingColor ??
+                pageMarkups.find((m) => m.id === snapCandidate.markupId)?.color
+              }
+            />
+          </Layer>
+        )}
 
         {/* Layer 2: Transient interactive polygon drawing (only mounted while drawing area/perimeter) */}
         {(markupState.toolType === 'area' || markupState.toolType === 'perimeter') &&
