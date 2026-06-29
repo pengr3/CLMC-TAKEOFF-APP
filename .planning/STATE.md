@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: Milestone complete
 stopped_at: Phase 14 UI-SPEC approved
-last_updated: "2026-06-29T03:31:22.992Z"
+last_updated: "2026-06-29T03:46:10.422Z"
 last_activity: 2026-06-29
 progress:
   total_phases: 19
   completed_phases: 17
   total_plans: 97
-  completed_plans: 92
-  percent: 90
+  completed_plans: 93
+  percent: 89
 ---
 
 # Project State: CLMC Takeoff App
@@ -33,7 +33,7 @@ progress:
 ## Current Position
 
 Phase: 14 (markup-geometry-precision) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 
 ## Performance Metrics
 
@@ -75,6 +75,7 @@ Plan: 2 of 6
 | Phase 06 P03 | spans 2 sessions (PC restart between Task 1 GREEN + Task 2 GREEN) | 2 tasks (both TDD RED+GREEN) | 4 files |
 | Phase 06.1 P01 | 15min | 2 tasks | 9 files |
 | Phase 14 P01 | 6min | 3 tasks (all TDD RED+GREEN) | 5 files |
+| Phase 14 P02 | 5min | 2 tasks (both TDD RED+GREEN) | 4 files |
 
 ## Accumulated Context
 
@@ -164,6 +165,9 @@ Plan: 2 of 6
 | arcs?: Record<number,{midX,midY}> additive on Linear/Area/Perimeter/Wall (14-01, D-01/D-08) | Keyed by segment start-vertex index; absent → straight edge; pre-Phase-14 .clmc files load all-straight. No formatVersion bump, no validateV2 change — rides the existing Markup[] cast exactly like wallHeight/hiddenItemNames? |
 | arc-math.ts is the pure 3-point arc oracle; markup-math.ts the only consumer (14-01) | solveCircle (perp-bisector determinant + CCW major/minor sweep) / arcLength=R·sweep / circularSegmentMagnitude=(R²/2)(θ−sinθ); matches spike-003/003b to ≤1e-6; all inputs finite-guarded (NaN/Inf → chord/zero, never throw) per threat model T-14-01-01 |
 | polygonArea arc sign rule: subtract sign(cross)·2·segMag from doubled signed shoelace, abs at end (14-01) | OUTWARD ⟺ sign(cross)≠sign(2·S); winding-independent; correct for both bulge directions. Both arc-aware fns keep their single-arg signature so boq-aggregator + save/load callers compile unchanged |
+| snapping-engine.ts grid hash inserts segments into EVERY cell their cell-padded bbox overlaps, not endpoints only (14-02, spike-002) | A single-cell cursor query is then exhaustive for on-segment hits; endpoint-only silently misses long segments crossing a cell with distant endpoints (44–77 missed hits/2000 in spike). resolveSnap scans 3×3 for vertices, single cell for segments, vertex preferred over segment (D-04 □/△) |
+| resolveSnap excludes the WHOLE in-progress markup from segment-snap; vertex-snap gated by allowVertexIndices/blockVertexIndex (14-02, D-07) | Keeps the close-the-loop affordance (caller passes allowVertexIndices=[0]) while preventing mid-draw self-snapping; blockVertexIndex drops the dragged vertex |
+| findSelfIntersection counts collinear-overlap as a crossing; skips adjacent edges via (i+1)%n / (j+1)%n adjacency test (14-02, spike-003b, D-09) | Closed-boundary O(n²) sign-of-cross test; returns {i,j,point} edge indices feeding the D-09 red highlight directly; non-finite input / <4 points → null, never throws (T-14-02-02) |
 
 ### Critical Pitfalls to Watch
 
@@ -217,7 +221,7 @@ None.
 
 **Last activity:** 2026-06-29
 
-**Last session:** 2026-06-29T02:29:44.882Z
+**Last session:** 2026-06-29T03:46:10.402Z
 
 **Stopped at:** Phase 14 UI-SPEC approved
 
