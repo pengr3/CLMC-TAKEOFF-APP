@@ -74,6 +74,66 @@ describe('findSelfIntersection — collinear / self-touching', () => {
   })
 })
 
+// CR-02: the geometric epsilon must be SCALE-RELATIVE. At page-scale coordinates
+// (tens of thousands of px) an absolute 1e-9 tolerance made the collinear/grazing
+// branch unreliable: a "≈0, collinear" cross product reads 1e-3–1e1 from float
+// error, and the ±1e-9 px onSegment pad cannot absorb rounding on large coords.
+describe('findSelfIntersection — page-scale coordinates (0–30000 px)', () => {
+  it('detects a bowtie quad (clean X) at page scale', () => {
+    // Same topology as the small bowtie, scaled to 30k px.
+    const bowtie: StagePoint[] = [
+      { x: 0, y: 0 },
+      { x: 30000, y: 30000 },
+      { x: 30000, y: 0 },
+      { x: 0, y: 30000 }
+    ]
+    const hit = findSelfIntersection(bowtie)
+    expect(hit).not.toBeNull()
+    const pair = [hit!.i, hit!.j].sort((a, b) => a - b)
+    expect(pair).toEqual([0, 2])
+    expect(hit!.point.x).toBeCloseTo(15000, 3)
+    expect(hit!.point.y).toBeCloseTo(15000, 3)
+  })
+
+  it('detects a T-junction where a vertex lands on a non-adjacent edge at page scale', () => {
+    // Edge v1→v2 is collinear with (and overlaps) edge v0→v1's line between
+    // x=15000 and x=30000 — a self-touching boundary that must be blocked.
+    const ring: StagePoint[] = [
+      { x: 0, y: 0 },
+      { x: 30000, y: 0 },
+      { x: 15000, y: 0 },
+      { x: 15000, y: 22000 }
+    ]
+    const hit = findSelfIntersection(ring)
+    expect(hit).not.toBeNull()
+  })
+
+  it('does NOT false-positive on a simple convex quad at page scale (near-miss)', () => {
+    // A large convex quad whose edges come close but never cross. With an
+    // absolute 1e-9 epsilon the orientation signs are still correct here, but
+    // this pins that the scale-relative tolerance does not over-trigger.
+    const quad: StagePoint[] = [
+      { x: 100, y: 100 },
+      { x: 29900, y: 200 },
+      { x: 29800, y: 19900 },
+      { x: 150, y: 20000 }
+    ]
+    expect(findSelfIntersection(quad)).toBeNull()
+  })
+
+  it('does NOT false-positive when two edges pass within a few px without crossing', () => {
+    // Two arms of an open-ish ring that graze (gap ~10px) at page scale. A
+    // collinear-overlap false positive here would block a legitimate boundary.
+    const ring: StagePoint[] = [
+      { x: 0, y: 0 },
+      { x: 30000, y: 0 },
+      { x: 30000, y: 10000 },
+      { x: 10, y: 10000 } // returns just 10px shy of x=0, no crossing
+    ]
+    expect(findSelfIntersection(ring)).toBeNull()
+  })
+})
+
 describe('findSelfIntersection — non-finite guard', () => {
   it('returns null (no throw) when a ring point is non-finite', () => {
     const bad: StagePoint[] = [
