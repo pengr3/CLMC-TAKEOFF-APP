@@ -1658,8 +1658,16 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
               // (start = i-1) and the outgoing edge (start = i). Arc metadata keys on
               // the edge's START-vertex index (14-01 contract).
               const newPts = oldPts.map((p, idx) => (idx === vd.vertexIndex ? newPoint : p))
-              const resolved: Record<number, { midX: number; midY: number }> = {
-                ...dragged.arcs
+              // WR-04: seed only with IN-RANGE arc entries. A stale entry keyed on
+              // an index that no longer maps to an edge (possible if points were
+              // popped/edited earlier without pruning arcs) would otherwise be
+              // copied verbatim into the new arc map and committed. Valid edge keys:
+              // closed → 0..n-1 (the closing edge keys on n-1); open → 0..n-2.
+              const maxArcKey = closed ? n - 1 : n - 2
+              const resolved: Record<number, { midX: number; midY: number }> = {}
+              for (const key of Object.keys(dragged.arcs)) {
+                const k = Number(key)
+                if (k >= 0 && k <= maxArcKey) resolved[k] = dragged.arcs[k]
               }
               const incomingStart = vd.vertexIndex === 0 ? (closed ? n - 1 : -1) : vd.vertexIndex - 1
               const outgoingStart = vd.vertexIndex
