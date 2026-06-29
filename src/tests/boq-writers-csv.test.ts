@@ -89,9 +89,12 @@ describe('buildBoqCsv — D-14 / EXPRT-02', () => {
     expect(lines[4]).toMatch(/^Markups: /)
     // Row 6 is blank spacer
     expect(lines[5]).toBe('')
-    // Row 7 is title
-    expect(lines[6]).toBe('Item,Quantity,UoM')
-    // Then category heading row "Electrical,,"
+    // Row 7 is title — Phase 15 priced layout (Item · Quantity · UoM · Rate · Cost).
+    // (Migrated from the legacy 3-column 'Item,Quantity,UoM' header that Wave 0
+    // [15-01] left un-updated when it added the 5-column priced assertion below;
+    // both are in this file and were mutually exclusive — see line ~131.)
+    expect(lines[6]).toBe('Item,Quantity,UoM,Rate,Cost')
+    // Then category heading row "Electrical,,,,"
     expect(lines[7].startsWith('Electrical')).toBe(true)
   })
 })
