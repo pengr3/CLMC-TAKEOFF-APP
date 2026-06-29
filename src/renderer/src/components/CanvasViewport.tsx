@@ -25,10 +25,12 @@ import { HoverRing } from './HoverRing'
 import { PulseHighlight } from './PulseHighlight'
 import { VertexHandleOverlay } from './markup/VertexHandleOverlay'
 import { SnapIndicator } from './markup/SnapIndicator'
+import { ArcPreview } from './markup/ArcPreview'
 import { buildSnapIndex, resolveSnap, type SnapIndex, type SnapCandidate, type SnapExclude } from '../lib/snapping-engine'
 import { COLORS } from '../lib/constants'
 import { formatScaleRatio } from '../lib/scale-math'
 import { setMarkupUndoHandler, setMarkupRedoHandler } from '../lib/markup-undo-ref'
+import { setArcHeldHandler, setArcStickyToggleHandler } from '../lib/markup-arc-ref'
 import { setMarkupReopenHandler, getReopenSnapshot, setReopenSnapshot } from '../lib/markup-reopen-ref'
 import {
   polylineLength,
@@ -190,6 +192,30 @@ const CROSSHAIR_CURSOR: string = (() => {
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}") 12 12, crosshair`
 })()
 
+// Phase 14 (14-04 D-02): arc-mode crosshair — the standard crosshair plus a
+// small accent arc tick in the top-right quadrant so the estimator always knows
+// the next edge will curve (UI-SPEC § "Active arc-mode cursor"). Reuses the
+// same two-pass (black outline + white foreground) crosshair, then overlays a
+// blue quarter-arc. Computed ONCE at module load.
+const ARC_CROSSHAIR_CURSOR: string = (() => {
+  const svg =
+    `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'>` +
+    `<line x1='0' y1='12' x2='10' y2='12' stroke='black' stroke-width='3'/>` +
+    `<line x1='14' y1='12' x2='24' y2='12' stroke='black' stroke-width='3'/>` +
+    `<line x1='12' y1='0' x2='12' y2='10' stroke='black' stroke-width='3'/>` +
+    `<line x1='12' y1='14' x2='12' y2='24' stroke='black' stroke-width='3'/>` +
+    `<line x1='0' y1='12' x2='10' y2='12' stroke='white' stroke-width='1.5'/>` +
+    `<line x1='14' y1='12' x2='24' y2='12' stroke='white' stroke-width='1.5'/>` +
+    `<line x1='12' y1='0' x2='12' y2='10' stroke='white' stroke-width='1.5'/>` +
+    `<line x1='12' y1='14' x2='12' y2='24' stroke='white' stroke-width='1.5'/>` +
+    // Arc tick: a quarter-arc from (18,6) to (22,10), accent blue, white halo
+    // first so it reads on any background.
+    `<path d='M18 6 A 6 6 0 0 1 22 10' fill='none' stroke='white' stroke-width='3'/>` +
+    `<path d='M18 6 A 6 6 0 0 1 22 10' fill='none' stroke='#0078d4' stroke-width='1.75'/>` +
+    `</svg>`
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}") 12 12, crosshair`
+})()
+
 export interface CanvasViewportProps {
   /** Phase 6 D-11: markups to show a steady white outer ring on (from TotalsRow hover). */
   hoverMatches?: Markup[]
@@ -315,6 +341,9 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     activate: activateMarkup,
     cancel: cancelMarkup,
     recordClick: recordMarkupClick,
+    recordArcClick,
+    setArcHeld,
+    toggleArcSticky,
     updatePreview: updateMarkupPreview,
     finishLinear,
     finishPolygon,
@@ -335,6 +364,19 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       setMarkupUndoHandler(null)
     }
   }, [popLastPoint])
+
+  // Phase 14 (14-04 D-02): expose the arc-mode setters to useKeyboardShortcuts
+  // via module-level refs (the arc flags live in useMarkupTool React state, not
+  // a store, so the global key handler reads them through these refs). Mirrors
+  // the setMarkupUndoHandler registration above.
+  useEffect(() => {
+    setArcHeldHandler(setArcHeld)
+    setArcStickyToggleHandler(toggleArcSticky)
+    return () => {
+      setArcHeldHandler(null)
+      setArcStickyToggleHandler(null)
+    }
+  }, [setArcHeld, toggleArcSticky])
 
   useEffect(() => {
     setMarkupRedoHandler(repushLastPoint)
@@ -1053,6 +1095,36 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
           setIsOverStartPoint(false)
           return
         }
+        // Phase 14 (14-04 D-01/D-02): arc-edge 3-click gesture routing. When arc
+        // mode is active (one-off held OR sticky) and a multi-point shape is mid-
+        // draw with at least one vertex placed, feed the click into the arc
+        // capture state machine instead of placing a plain straight vertex.
+        const arcActive =
+          (markupState.arcHeld || markupState.arcMode === 'sticky') &&
+          markupState.mode === 'drawing' &&
+          (markupState.toolType === 'linear' ||
+            markupState.toolType === 'area' ||
+            markupState.toolType === 'perimeter' ||
+            markupState.toolType === 'wall') &&
+          markupState.points.length > 0
+        if (arcActive) {
+          const rawArcPt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+          // The SECOND click is the on-arc shaping point — a FREE point (D-01,
+          // UI-SPEC): snapping is SUPPRESSED for it. The THIRD (end) click is an
+          // endpoint and DOES snap. arcOnArc===null ⟺ the next click is the
+          // on-arc shaping click.
+          const isOnArcClick = markupState.arcOnArc === null
+          const arcPt = isOnArcClick
+            ? rawArcPt
+            : resolveSnapAt(rawArcPt, {
+                markupId: IN_PROGRESS_MARKUP_ID,
+                allowVertexIndices: [0]
+              })
+          const screenArc = stage.getAbsoluteTransform().copy().point(arcPt)
+          recordArcClick({ x: screenArc.x, y: screenArc.y })
+          return
+        }
+
         // Phase 14 (14-03 D-05/D-07): snap the placed point so the committed
         // vertex lands exactly where the □/△ glyph was drawn on the preview.
         // Convert pointer→page, resolve snap, convert the snapped page-point
@@ -1126,7 +1198,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         }
       }
     },
-    [calibState.mode, markupState.mode, markupState.toolType, markupState.points.length, isOverStartPoint, stageRef, recordClick, recordMarkupClick, finishPolygon, activeTool, clearSelection, commitVertexEdit, resolveSnapAt]
+    [calibState.mode, markupState.mode, markupState.toolType, markupState.points.length, markupState.arcHeld, markupState.arcMode, markupState.arcOnArc, isOverStartPoint, stageRef, recordClick, recordMarkupClick, recordArcClick, finishPolygon, activeTool, clearSelection, commitVertexEdit, resolveSnapAt]
   )
 
   // Plan 09-03: rubber-band drag (D-06).
@@ -1291,12 +1363,27 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         // vertex (close-the-loop) — passed via allowVertexIndices=[0] on the
         // IN_PROGRESS_MARKUP_ID sentinel (never present in the committed index,
         // so this only documents the close-the-loop restriction).
+        //
+        // Phase 14 (14-04 D-01): while moving toward the ON-ARC shaping click
+        // (arc mode active AND no on-arc point captured yet), the provisional
+        // point is the free shaping point — snapping is SUPPRESSED so the live
+        // 2-point preview tracks the raw cursor. Once the on-arc point is set,
+        // the cursor is the provisional END (an endpoint) and snapping applies.
+        const arcShapingMove =
+          (markupState.arcHeld || markupState.arcMode === 'sticky') &&
+          markupState.arcOnArc === null &&
+          (markupState.toolType === 'linear' ||
+            markupState.toolType === 'area' ||
+            markupState.toolType === 'perimeter' ||
+            markupState.toolType === 'wall')
         const rawPt = stage.getAbsoluteTransform().copy().invert().point(pointer)
-        const snapped = resolveSnapAt(rawPt, {
-          markupId: IN_PROGRESS_MARKUP_ID,
-          allowVertexIndices: [0]
-        })
-        const screen = stage.getAbsoluteTransform().copy().point(snapped)
+        const resolved = arcShapingMove
+          ? rawPt
+          : resolveSnapAt(rawPt, {
+              markupId: IN_PROGRESS_MARKUP_ID,
+              allowVertexIndices: [0]
+            })
+        const screen = stage.getAbsoluteTransform().copy().point(resolved)
         updateMarkupPreview({ x: screen.x, y: screen.y })
       } else {
         // Not placing — clear any lingering glyph (snapping shows only during
@@ -1304,7 +1391,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         if (snapCandidate !== null) setSnapCandidate(null)
       }
     },
-    [calibState.mode, calibState.startPoint, markupState.mode, markupState.points.length, stageRef, updatePreview, updateMarkupPreview, setRubberBand, setDragPreview, currentPage, resolveSnapAt, snapCandidate]
+    [calibState.mode, calibState.startPoint, markupState.mode, markupState.points.length, markupState.arcHeld, markupState.arcMode, markupState.arcOnArc, markupState.toolType, stageRef, updatePreview, updateMarkupPreview, setRubberBand, setDragPreview, currentPage, resolveSnapAt, snapCandidate]
   )
 
   // Plan 09-03: rubber-band release (D-07, D-09).
@@ -1472,7 +1559,12 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     ) {
       return 'pointer'
     }
-    if (markupState.mode === 'drawing') return CROSSHAIR_CURSOR
+    if (markupState.mode === 'drawing') {
+      // Phase 14 (14-04 D-02): arc-mode crosshair when a one-off (held) or
+      // sticky arc is armed for the next edge.
+      if (markupState.arcHeld || markupState.arcMode === 'sticky') return ARC_CROSSHAIR_CURSOR
+      return CROSSHAIR_CURSOR
+    }
     if (markupState.toolType === 'count' && markupState.mode === 'placing') return CROSSHAIR_CURSOR
     return 'default'
   }
@@ -1488,6 +1580,30 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
   const POINT_STROKE_WIDTH = 1 / currentZoom
   const LINE_STROKE_WIDTH = 2 / currentZoom
   const LINE_DASH = [8 / currentZoom, 4 / currentZoom]
+
+  // Phase 14 (14-04 D-01): the arc edge currently being shaped. Active between
+  // the on-arc click and the end click (arcOnArc captured), with a live cursor
+  // preview point standing in as the provisional end. When active, the straight
+  // dashed last-vertex→cursor preview is SUPPRESSED for that edge and replaced
+  // by the solved ArcPreview through start → onArc → cursor.
+  const arcCaptureActive =
+    markupState.mode === 'drawing' &&
+    markupState.arcOnArc !== null &&
+    markupState.points.length > 0 &&
+    markupState.previewPoint !== null
+  const arcCaptureStart = arcCaptureActive
+    ? markupState.points[markupState.points.length - 1]
+    : null
+  const arcPreviewElement =
+    arcCaptureActive && arcCaptureStart && markupState.arcOnArc && markupState.previewPoint ? (
+      <ArcPreview
+        start={arcCaptureStart}
+        onArc={markupState.arcOnArc}
+        end={markupState.previewPoint}
+        currentZoom={currentZoom}
+        color={markupState.pendingColor ?? COLORS.accent}
+      />
+    ) : null
   // Note: REFERENCE_LINE_STROKE and REFERENCE_LINE_DASH will be used in Phase 4
   // when the persistent calibration line is wired to the new scaleStore API.
 
@@ -1687,8 +1803,11 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                   lineJoin="round"
                   listening={false}
                 />
-                {/* Dashed preview segment from last vertex to cursor */}
-                {markupState.previewPoint && (
+                {/* Dashed preview segment from last vertex to cursor.
+                    Phase 14 (14-04): suppressed while an arc edge is being
+                    shaped — the ArcPreview below renders the solved curve for
+                    that edge instead. */}
+                {markupState.previewPoint && !arcCaptureActive && (
                   <Line
                     points={[
                       markupState.points[markupState.points.length - 1].x,
@@ -1703,6 +1822,9 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                     listening={false}
                   />
                 )}
+                {/* Phase 14 (14-04 D-01): live solved-arc preview for the edge
+                    currently being shaped (start → onArc → cursor). */}
+                {arcPreviewElement}
                 {/* Vertex dots */}
                 {markupState.points.map((p, i) => (
                   <Circle
@@ -1979,8 +2101,10 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
               lineJoin="round"
               listening={false}
             />
-            {/* Dashed preview segment from last point to cursor */}
-            {markupState.previewPoint && (
+            {/* Dashed preview segment from last point to cursor.
+                Phase 14 (14-04): suppressed while an arc edge is being shaped —
+                ArcPreview renders the solved curve for that edge instead. */}
+            {markupState.previewPoint && !arcCaptureActive && (
               <Line
                 points={[
                   markupState.points[markupState.points.length - 1].x,
@@ -1995,6 +2119,9 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
                 listening={false}
               />
             )}
+            {/* Phase 14 (14-04 D-01): live solved-arc preview for the edge
+                currently being shaped (start → onArc → cursor). */}
+            {arcPreviewElement}
             {/* Non-start vertex dots (non-interactive) */}
             {markupState.points.slice(1).map((p, i) => (
               <Circle

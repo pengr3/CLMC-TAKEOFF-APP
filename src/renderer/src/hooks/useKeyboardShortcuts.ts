@@ -3,6 +3,7 @@ import { useViewerStore } from '../stores/viewerStore'
 import { useMarkupStore } from '../stores/markupStore'
 import { getMarkupUndoHandler, getMarkupRedoHandler } from '../lib/markup-undo-ref'
 import { getMarkupReopenHandler } from '../lib/markup-reopen-ref'
+import { getArcHeldHandler, getArcStickyToggleHandler } from '../lib/markup-arc-ref'
 
 interface KeyboardShortcutHandlers {
   openPdf: () => void                          // kept for backwards compat
@@ -204,6 +205,28 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
         return
       }
 
+      // Phase 14 (14-04 D-02): Shift+A — sticky arc-mode toggle. Checked BEFORE
+      // bare 'A' (arc hold) and gated to NOT collide with Ctrl+A (select-all) by
+      // requiring !e.ctrlKey. Shift+A produces an uppercase 'A' e.key. Guarded by
+      // isTextInputActive() so typing a capital A never toggles arc mode.
+      if (!e.ctrlKey && !e.altKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        if (isTextInputActive()) return
+        e.preventDefault()
+        getArcStickyToggleHandler()?.()
+        return
+      }
+
+      // Phase 14 (14-04 D-02): bare 'A' (keydown) — momentary one-off arc hold.
+      // Makes the NEXT edge an arc, then auto-reverts to straight. Released via
+      // the keyup listener below. Must come AFTER Ctrl+A and Shift+A so neither
+      // is shadowed. e.repeat keydowns are harmless (setArcHeld is idempotent).
+      if (!e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'a' || e.key === 'A')) {
+        if (isTextInputActive()) return
+        e.preventDefault()
+        getArcHeldHandler()?.(true)
+        return
+      }
+
       // Plan 09-02: Ctrl+A — select every markup on the current page while in
       // 'select' mode. isTextInputActive() guard preserves the OS-standard
       // "Select All" inside any focused text input (T-09-02-01 / D-27 pattern).
@@ -268,12 +291,21 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
         if (isTextInputActive()) return
         useViewerStore.getState().setSnapSuspended(false)
       }
+      // Phase 14 (14-04 D-02): releasing bare 'A' clears the one-off arc hold.
+      // Match both cases since Shift state may differ between keydown and keyup.
+      if (e.key === 'a' || e.key === 'A') {
+        if (isTextInputActive()) return
+        getArcHeldHandler()?.(false)
+      }
     }
     const handleBlur = (): void => {
       // Window lost focus — any held Alt is gone; restore snapping.
       if (useViewerStore.getState().snapSuspended) {
         useViewerStore.getState().setSnapSuspended(false)
       }
+      // Window lost focus mid hold-A — clear the arc-held flag so the next
+      // edge is not unexpectedly an arc (mirrors the Alt blur safety net).
+      getArcHeldHandler()?.(false)
     }
 
     window.addEventListener('keydown', handleKeyDown)
