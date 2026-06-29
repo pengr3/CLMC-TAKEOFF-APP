@@ -12,6 +12,12 @@ interface ProjectStoreState {
   hiddenItemNames: string[]
   /** Derived in-memory O(1) lookup — NOT persisted in .clmc. Kept in sync with hiddenItemNames. */
   hiddenItemSet: Set<string>
+  /**
+   * Per-(name|type) unit rate in ₱ (Phase 15). The map IS the O(1) lookup — no
+   * derived Set needed (unlike hiddenItemNames). Persisted in .clmc, category-
+   * INDEPENDENT (key is `${name}|${type}`, NOT name|categoryId).
+   */
+  rates: Record<string, number>
 
   setSaved: (filePath: string) => void
   setSaving: (v: boolean) => void
@@ -27,6 +33,12 @@ interface ProjectStoreState {
   toggleHiddenItem: (name: string) => void
   /** Set hiddenItemNames + hiddenItemSet atomically. Used by hydrateStores during load — dirty tracking already suspended. */
   setHiddenItemNames: (names: string[]) => void
+  /**
+   * Set the ₱ rate for a `${name}|${type}` key and mark the project dirty so Save
+   * persists the edit (Phase 15). Mirrors toggleHiddenItem incl. the trailing
+   * get().markDirty() — without it an edited rate would not survive Save.
+   */
+  setRate: (key: string, rate: number) => void
 }
 
 // Module-level guard — Pitfall 1 protection.
@@ -53,6 +65,7 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
   lastSavedAt: null,
   hiddenItemNames: [],
   hiddenItemSet: new Set<string>(),
+  rates: {},
 
   setSaved: (filePath) =>
     set({ currentFilePath: filePath, isDirty: false, lastSavedAt: Date.now() }),
@@ -76,7 +89,8 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     isExporting: false,
     lastSavedAt: null,
     hiddenItemNames: [],
-    hiddenItemSet: new Set()
+    hiddenItemSet: new Set(),
+    rates: {}
   }),
 
   toggleHiddenItem: (name) => {
@@ -92,6 +106,11 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
 
   setHiddenItemNames: (names) => {
     set({ hiddenItemNames: names, hiddenItemSet: new Set(names) })
+  },
+
+  setRate: (key, rate) => {
+    set((s) => ({ rates: { ...s.rates, [key]: rate } }))
+    get().markDirty()
   }
 }))
 

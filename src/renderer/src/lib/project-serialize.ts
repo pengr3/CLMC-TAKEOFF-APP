@@ -57,7 +57,8 @@ export function snapshotProject(params: SnapshotParams): ProjectFileV2 {
     categoryOrder: markup.categoryOrder,
     currentPage: viewer.currentPage,
     pages,
-    hiddenItemNames: useProjectStore.getState().hiddenItemNames
+    hiddenItemNames: useProjectStore.getState().hiddenItemNames,
+    rates: useProjectStore.getState().rates
   }
 }
 
@@ -109,12 +110,26 @@ export function hydrateStores(data: ProjectFileV2): void {
       pageViewports
     })
 
+    // Hydrate rates — additive Phase 15 field (threat-model mitigation T-15-02-01).
+    // A crafted/corrupt .clmc could carry negative, NaN/Infinity, non-number, or a
+    // non-object `rates`; those values flow into cost math (rate × quantity) and ₱
+    // export cells, so sanitize here. This is the Record analog of the Array.isArray
+    // guard below, hardened with a per-value finite-≥0 filter: keep only entries whose
+    // value is a finite number ≥ 0; default to {} when data.rates is absent/non-object.
+    const safeRates: Record<string, number> = {}
+    if (data.rates && typeof data.rates === 'object') {
+      for (const [k, v] of Object.entries(data.rates)) {
+        if (typeof v === 'number' && Number.isFinite(v) && v >= 0) safeRates[k] = v
+      }
+    }
+
     // Hydrate visibility state — additive Phase 8 field.
     // Array.isArray guard tolerates pre-Phase 8 files where the field is absent (defaults to []).
     // MUST run inside the suspend/resume bracket so markDirty stays suppressed.
     useProjectStore.setState({
       hiddenItemNames: Array.isArray(data.hiddenItemNames) ? data.hiddenItemNames : [],
-      hiddenItemSet: new Set(Array.isArray(data.hiddenItemNames) ? data.hiddenItemNames : [])
+      hiddenItemSet: new Set(Array.isArray(data.hiddenItemNames) ? data.hiddenItemNames : []),
+      rates: safeRates
     })
   } finally {
     resumeDirtyTracking()

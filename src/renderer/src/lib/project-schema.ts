@@ -85,6 +85,14 @@ export interface ProjectFileV2 {
    * Per-project visibility filter for canvas markup rendering (D-13).
    */
   hiddenItemNames?: string[]
+  /**
+   * Additive in Phase 15 — absent in pre-Phase-15 files; defaults to {} on load.
+   * Per-(name|type) unit rate in ₱, keyed by the string `${name}|${type}`
+   * (category-INDEPENDENT). NO formatVersion bump — validateV2 adds no branch,
+   * the field rides the trailing `return raw as ProjectFileV2` cast exactly like
+   * hiddenItemNames. Malformed values are sanitized at hydrate, not here.
+   */
+  rates?: Record<string, number>
 }
 
 export type ProjectFile = ProjectFileV2
