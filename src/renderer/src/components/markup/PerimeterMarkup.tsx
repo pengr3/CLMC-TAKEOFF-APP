@@ -9,6 +9,7 @@ import {
   pixelAreaToReal,
   pixelLengthToReal
 } from '../../lib/markup-math'
+import { buildArcAwareFlatPoints } from '../../lib/arc-math'
 import { useProjectStore } from '../../stores/projectStore'
 
 export interface PerimeterMarkupProps {
@@ -68,14 +69,18 @@ export function PerimeterMarkup({
 
   const strokeWidth = STROKE_BASE_PX / currentZoom
 
-  const flatPoints = effectivePoints.flatMap((p) => [p.x, p.y])
+  // Arc-aware boundary (incl. the closing edge) — matches the arc-corrected
+  // perimeter length + area in the label and BOQ. Live drag preview falls back
+  // to straight chords (the arcs map no longer aligns with the moved points).
+  const effectiveArcs = overridePoints ? undefined : markup.arcs
+  const flatPoints = buildArcAwareFlatPoints(effectivePoints, effectiveArcs, true)
   const centroid = polygonCentroid(effectivePoints)
 
   let labelText = ''
   if (pageScale && pageScale.pixelsPerMm > 0) {
-    const pixelArea = polygonArea(effectivePoints)
+    const pixelArea = polygonArea(effectivePoints, effectiveArcs)
     const closedPoints = [...effectivePoints, effectivePoints[0]]
-    const pixelPerim = polylineLength(closedPoints)
+    const pixelPerim = polylineLength(closedPoints, effectiveArcs)
     const realPerim = pixelLengthToReal(pixelPerim, pageScale.pixelsPerMm, pageScale.displayUnit)
     const realArea = pixelAreaToReal(pixelArea, pageScale.pixelsPerMm, pageScale.displayUnit)
     const u = pageScale.displayUnit

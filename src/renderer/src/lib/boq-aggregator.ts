@@ -128,24 +128,33 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
       const catId = m.categoryId && m.categoryId.length > 0 ? m.categoryId : null
 
       if (m.type === 'linear') {
-        const px = polylineLength((m as LinearMarkup).points)
+        // Arc-aware (SC #4): pass m.arcs so a curved edge measures its true arc
+        // length (R·sweep), not the straight chord. Straight markups have no
+        // arcs field → identical to the previous single-arg call.
+        const px = polylineLength((m as LinearMarkup).points, m.arcs)
         const real = pixelLengthToReal(px, scale.pixelsPerMm, globalUnit)
         add(catId, m.name, 'linear', real)
       } else if (m.type === 'area') {
-        const pxA = polygonArea((m as AreaMarkup).points)
+        // Arc-aware (SC #4): m.arcs applies the circular-segment area correction
+        // (winding-independent sign rule) for curved edges.
+        const pxA = polygonArea((m as AreaMarkup).points, m.arcs)
         const real = pixelAreaToReal(pxA, scale.pixelsPerMm, globalUnit)
         add(catId, m.name, 'area', real)
       } else if (m.type === 'perimeter') {
         // Perimeter LENGTH must include the closing segment to match the
         // PerimeterMarkup label (STATE.md decision: PerimeterMarkup appends
         // points[0] to polylineLength input).
+        // Arc-aware: the closing edge n-1→0 keys on index n-1 (14-01 contract);
+        // in the closing-augmented array the closing edge IS index n-1
+        // (pts[n-1]→pts[n]=pts[0]), so m.arcs maps onto closingPts directly.
         const pts = (m as PerimeterMarkup).points
         const closingPts = [...pts, pts[0]]
-        const pxL = polylineLength(closingPts)
+        const pxL = polylineLength(closingPts, m.arcs)
         const realL = pixelLengthToReal(pxL, scale.pixelsPerMm, globalUnit)
         add(catId, m.name, 'perimeter-length', realL)
-        // Perimeter AREA uses the original closed polygon (NOT the closing-augmented points)
-        const pxA = polygonArea(pts)
+        // Perimeter AREA uses the original closed polygon (NOT the closing-augmented
+        // points); polygonArea keys the closing edge on n-1 internally.
+        const pxA = polygonArea(pts, m.arcs)
         const realA = pixelAreaToReal(pxA, scale.pixelsPerMm, globalUnit)
         add(catId, m.name, 'perimeter-area', realA)
       } else if (m.type === 'wall') {
@@ -153,7 +162,8 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
         const wallM = m as WallMarkup
         // Defensive guard — popup validates, but crafted .clmc could have 0/negative wallHeight
         if (wallM.wallHeight <= 0) continue
-        const pixelLen = polylineLength(wallM.points)
+        // Arc-aware (SC #4): curved wall runs measure along the true arc.
+        const pixelLen = polylineLength(wallM.points, m.arcs)
         const lengthM = pixelLen / scale.pixelsPerMm / 1000 // px → mm → m
         const heightM = wallM.wallHeight / 1000
         add(catId, m.name, 'wall', lengthM * heightM)

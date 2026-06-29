@@ -7,6 +7,7 @@ import {
   pixelLengthToReal,
   polylineMidpointByArcLength
 } from '../../lib/markup-math'
+import { buildArcAwareFlatPoints } from '../../lib/arc-math'
 import { useProjectStore } from '../../stores/projectStore'
 
 export interface LinearMarkupProps {
@@ -73,13 +74,21 @@ export function LinearMarkup({
 
   const strokeWidth = STROKE_BASE_PX / currentZoom
 
-  const flatPoints = effectivePoints.flatMap((p) => [p.x, p.y])
+  // Arc-aware path: for any edge with an arcs[i] entry, draw the true sampled
+  // arc curve (matching the live ArcPreview + the BOQ quantity), not the chord.
+  // During a live drag preview (overridePoints) the arcs map no longer aligns
+  // with the moved points, so fall back to straight chords for the preview.
+  const flatPoints = buildArcAwareFlatPoints(
+    effectivePoints,
+    overridePoints ? undefined : markup.arcs,
+    false
+  )
 
   const midpoint = polylineMidpointByArcLength(effectivePoints)
 
   let labelText = ''
   if (pageScale && pageScale.pixelsPerMm > 0) {
-    const pixelLen = polylineLength(effectivePoints)
+    const pixelLen = polylineLength(effectivePoints, overridePoints ? undefined : markup.arcs)
     const realLen = pixelLengthToReal(pixelLen, pageScale.pixelsPerMm, pageScale.displayUnit)
     labelText = `${realLen.toFixed(1)} ${pageScale.displayUnit}`
   }

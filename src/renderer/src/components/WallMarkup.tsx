@@ -24,9 +24,10 @@ import type { WallMarkup as WallMarkupType, Category } from '../types/markup'
 import type { PageScale } from '../types/scale'
 import type { StagePoint } from '../hooks/useCalibrationMode'
 import {
-  polylineMidpointByArcLength,
-  wallAreaM2
+  polylineLength,
+  polylineMidpointByArcLength
 } from '../lib/markup-math'
+import { buildArcAwareFlatPoints } from '../lib/arc-math'
 import { useProjectStore } from '../stores/projectStore'
 
 export interface WallMarkupProps {
@@ -95,13 +96,22 @@ export function WallMarkup({
   const primaryStroke = (STROKE_BASE_PX * WALL_STROKE_MULTIPLIER) / currentZoom
   const hairlineStroke = STROKE_BASE_PX / currentZoom
 
-  const flatPoints = effectivePoints.flatMap((p) => [p.x, p.y])
+  // Arc-aware: curved wall runs draw + measure along the true arc (matches the
+  // arc-corrected m² in the BOQ). Live drag preview falls back to straight
+  // chords (the arcs map no longer aligns with the moved points).
+  const effectiveArcs = overridePoints ? undefined : markup.arcs
+  const flatPoints = buildArcAwareFlatPoints(effectivePoints, effectiveArcs, false)
 
   const midpoint = polylineMidpointByArcLength(effectivePoints)
 
   let labelText = ''
-  if (pageScale && pageScale.pixelsPerMm > 0) {
-    const areaM2 = wallAreaM2(effectivePoints, markup.wallHeight, pageScale.pixelsPerMm)
+  if (pageScale && pageScale.pixelsPerMm > 0 && markup.wallHeight > 0) {
+    // Inline arc-aware wall area (length × height in m²) — mirrors the BOQ
+    // aggregator's wall branch so the on-canvas label matches the export.
+    const pixelLen = polylineLength(effectivePoints, effectiveArcs)
+    const lengthM = pixelLen / pageScale.pixelsPerMm / 1000 // px → mm → m
+    const heightM = markup.wallHeight / 1000
+    const areaM2 = lengthM * heightM
     labelText = `${areaM2.toFixed(2)} m²`
   }
 

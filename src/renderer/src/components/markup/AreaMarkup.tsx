@@ -3,6 +3,7 @@ import type { AreaMarkup as AreaMarkupType, Category } from '../../types/markup'
 import type { PageScale } from '../../types/scale'
 import type { StagePoint } from '../../hooks/useCalibrationMode'
 import { polygonArea, polygonCentroid, pixelAreaToReal } from '../../lib/markup-math'
+import { buildArcAwareFlatPoints } from '../../lib/arc-math'
 import { useProjectStore } from '../../stores/projectStore'
 
 export interface AreaMarkupProps {
@@ -61,12 +62,20 @@ export function AreaMarkup({
 
   const strokeWidth = STROKE_BASE_PX / currentZoom
 
-  const flatPoints = effectivePoints.flatMap((p) => [p.x, p.y])
+  // Arc-aware boundary: sample the true arc for any edge (incl. the closing
+  // edge n-1→0) that has an arcs entry, so the drawn polygon matches the
+  // arc-corrected BOQ area. During a live drag preview the arcs map no longer
+  // aligns with the moved points → fall back to straight chords.
+  const flatPoints = buildArcAwareFlatPoints(
+    effectivePoints,
+    overridePoints ? undefined : markup.arcs,
+    true
+  )
   const centroid = polygonCentroid(effectivePoints)
 
   let labelText = ''
   if (pageScale && pageScale.pixelsPerMm > 0) {
-    const pixelArea = polygonArea(effectivePoints)
+    const pixelArea = polygonArea(effectivePoints, overridePoints ? undefined : markup.arcs)
     const realArea = pixelAreaToReal(pixelArea, pageScale.pixelsPerMm, pageScale.displayUnit)
     labelText = `${realArea.toFixed(1)} ${pageScale.displayUnit}²`
   }

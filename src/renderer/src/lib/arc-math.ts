@@ -228,6 +228,101 @@ export function resolveArcMidForMovedEndpoint(
   return { midX, midY }
 }
 
+/** Per-edge arc midpoints, keyed by the segment's start-vertex index. */
+type ArcMidMap = Record<number, { midX: number; midY: number }>
+
+/** Samples per arc edge for on-canvas rendering — matches ArcPreview's density. */
+const RENDER_ARC_SAMPLES = 24
+
+/**
+ * Sample `count` interior+boundary points along the solved circle from `from`
+ * to `to`, walking the way that passes THROUGH `mid` (so major / reflex arcs are
+ * rendered the long way round, matching solveCircle's sweep disambiguation).
+ * Returns a flat [x0,y0,...] array INCLUDING both endpoints. Falls back to the
+ * straight 2-point chord on collinear / non-finite input (never a NaN-radius arc).
+ */
+function sampleArcEdge(
+  from: StagePoint,
+  mid: StagePoint,
+  to: StagePoint,
+  count: number
+): number[] {
+  const c = solveCircle(from, mid, to)
+  if (c.collinear) return [from.x, from.y, to.x, to.y]
+
+  const aStart = Math.atan2(from.y - c.cy, from.x - c.cx)
+  const aEnd = Math.atan2(to.y - c.cy, to.x - c.cx)
+  const aMid = Math.atan2(mid.y - c.cy, mid.x - c.cx)
+
+  const ccw = (a: number, b: number): number => {
+    let d = b - a
+    while (d < 0) d += 2 * Math.PI
+    while (d >= 2 * Math.PI) d -= 2 * Math.PI
+    return d
+  }
+  const ccwToMid = ccw(aStart, aMid)
+  const ccwToEnd = ccw(aStart, aEnd)
+  const goCcw = ccwToMid <= ccwToEnd
+  const sweep = goCcw ? ccwToEnd : -(2 * Math.PI - ccwToEnd)
+
+  const out: number[] = []
+  for (let i = 0; i <= count; i++) {
+    const a = aStart + (sweep * i) / count
+    const x = c.cx + c.r * Math.cos(a)
+    const y = c.cy + c.r * Math.sin(a)
+    if (Number.isFinite(x) && Number.isFinite(y)) out.push(x, y)
+  }
+  // Defensive: degenerate sample → straight chord.
+  if (out.length < 4) return [from.x, from.y, to.x, to.y]
+  return out
+}
+
+/**
+ * Build a flat Konva-`Line` point array [x0,y0,x1,y1,...] for a markup whose
+ * edges may be circular arcs. For every segment i→i+1 that has an `arcs[i]`
+ * entry, the path follows the sampled arc curve THROUGH the on-arc midpoint;
+ * segments without an arc entry stay straight (just the two endpoints).
+ *
+ * `closed=true` (area / perimeter) appends the closing edge n-1→0, which keys
+ * its arc on index n-1 (14-01 contract). `closed=false` (linear / wall) renders
+ * only the open polyline edges. The on-canvas drawn shape thus matches the
+ * arc-aware BOQ quantity exactly. Pure, finite-guarded (degrades to straight).
+ */
+export function buildArcAwareFlatPoints(
+  points: StagePoint[],
+  arcs: ArcMidMap | undefined,
+  closed: boolean
+): number[] {
+  const n = points.length
+  if (n === 0) return []
+  if (n === 1) return [points[0].x, points[0].y]
+
+  // No arcs → fast path: the plain flattened chord polyline (byte-identical to
+  // the previous straight renderer output).
+  if (!arcs) {
+    const flat: number[] = []
+    for (const p of points) flat.push(p.x, p.y)
+    return flat
+  }
+
+  const flat: number[] = [points[0].x, points[0].y]
+  const lastEdge = closed ? n : n - 1
+  for (let i = 0; i < lastEdge; i++) {
+    const from = points[i]
+    const to = points[(i + 1) % n]
+    const arc = arcs[i]
+    if (arc) {
+      const sampled = sampleArcEdge(from, { x: arc.midX, y: arc.midY }, to, RENDER_ARC_SAMPLES)
+      // sampled includes the start point (already pushed for i=0; for i>0 it is
+      // the previous edge's endpoint) → skip its first coordinate pair.
+      for (let k = 2; k < sampled.length; k++) flat.push(sampled[k])
+    } else {
+      flat.push(to.x, to.y)
+    }
+  }
+  return flat
+}
+
 /**
  * Magnitude of the circular-segment area between the chord and its arc:
  * `(R²/2)·(sweep − sin(sweep))`. Holds for major arcs (sweep > π) too.
