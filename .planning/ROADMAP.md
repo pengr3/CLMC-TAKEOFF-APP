@@ -28,7 +28,7 @@
 - [x] **Phase 13: Post-Commit Step-Level Undo** - Ctrl+Z on a committed multi-point markup (linear, area, perimeter, wall) re-opens it in drawing mode with all points intact — undoing just the commit, not the shape. Estimator can add points, pop points with further Ctrl+Z, or re-commit with Enter. Brief ConfirmationToast on re-open.
  (completed 2026-05-21)
 - [x] **Phase 14: Markup Geometry Precision — Snapping + Curved-Edge Measurement** - Cursor snapping (endpoint/vertex/segment, screen-constant tolerance, F3/Alt) during placement and editing, plus true circular-arc edges (3-click gesture, bulge reshaping) with exact arc length and circular-segment area; arcs round-trip through save/reload and BOQ export (completed 2026-06-29)
-- [ ] **Phase 15: BOQ Pricing & Perimeter Simplification** - Priced BOQ (per-(name,type) unit rate × quantity = cost, category cost subtotals, ₱ grand total) in the totals panel and xlsx/csv export; Perimeter tool narrowed to length-only (perimeter-area removed) so every markup maps to exactly one priceable row
+- [x] **Phase 15: BOQ Pricing & Perimeter Simplification** - Priced BOQ (per-(name,type) unit rate × quantity = cost, category cost subtotals, ₱ grand total) in the totals panel and xlsx/csv export; Perimeter tool narrowed to length-only (perimeter-area removed) so every markup maps to exactly one priceable row (completed 2026-06-29)
 
 ---
 
@@ -581,7 +581,7 @@ Plans:
   5. A perimeter BOQ row is labeled by its plain item name, gaining a `(perimeter)` suffix only when a same-named count/linear/area row exists (perimeter now participates in the shared collision-suffix rule)
   6. Existing `.clmc` projects with perimeter markups reload with length-only BOQ output and no errors (area was computed live, never stored — no data loss); the test suite is updated and green, and PROJECT.md reflects pricing as in-scope
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 0**
@@ -598,7 +598,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 1 completion)*
 
-- [ ] 15-04-PLAN.md — Export: xlsx/csv Rate + Cost columns (₱ numFmt native numbers, A:E merge, cost subtotals + grand-total, CSV BOM kept) + PROJECT.md pricing scope flip + 15-MANUAL-NOTES.md (perimeter back-compat + ₱ + UAT)
+- [x] 15-04-PLAN.md — Export: xlsx/csv Rate + Cost columns (₱ numFmt native numbers, A:E merge, cost subtotals + grand-total, CSV BOM kept) + PROJECT.md pricing scope flip + 15-MANUAL-NOTES.md (perimeter back-compat + ₱ + UAT)
 
 ---
 

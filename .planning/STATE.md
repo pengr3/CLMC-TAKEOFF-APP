@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: milestone_complete
-stopped_at: Completed 15-03 (Wave 2 renderer half — totals-panel pricing UI + perimeter render). Inline ₱ rate input on TotalsRow (uncontrolled + native listeners, rateKey ${name}|${type}, setRate + stopPropagation), rates wired into useBoqLive for live recompute, per-category ₱ cost subtotal + pinned ₱ grand-total bar, PerimeterMarkup unfilled outline + length-only label (area math removed). The two Wave 0 target proofs GREEN; full suite 621 pass / 7 fail (only the 15-04-owned boq-writers reds; boq-writers.ts untouched); typecheck clean. 3 atomic commits ffbd168/1da21b0/380f762. NEXT: 15-04 (writers half).
-last_updated: "2026-06-29T10:26:58.389Z"
+stopped_at: "Completed 15-04 (Wave 2/3 writers half + scope flip + manual notes) — final plan of Phase 15. buildBoqXlsx/buildBoqCsv now emit the locked 5-column priced layout (Item·Quantity·UoM·Rate·Cost): xlsx Rate/Cost are native numbers with a local NUMFMT_PESO ₱#,##0.00 (SUM-safe), per-category ₱ cost-subtotal + grand-total-cost rows, A:E heading merge; csv Rate/Cost numeric with the UTF-8 BOM preserved. Reconciled the final main-process BoqRowType to single 'perimeter' (15-02 deferred item closed). money() non-finite→0 guard at all ₱ write points. PROJECT.md pricing flipped Out-of-Scope→Validated. NEW 15-MANUAL-NOTES.md. 7 writer reds GREEN; full suite 628/628; typecheck clean. 3 atomic commits 3e2b31f/2a3003f/69fb1a0. Phase 15 feature-complete — ready for verification/UAT."
+last_updated: "2026-06-29T10:42:51.697Z"
 last_activity: 2026-06-29
 progress:
   total_phases: 20
-  completed_phases: 18
+  completed_phases: 19
   total_plans: 101
-  completed_plans: 100
-  percent: 90
+  completed_plans: 101
+  percent: 95
 ---
 
 # Project State: CLMC Takeoff App
@@ -32,8 +32,8 @@ progress:
 
 ## Current Position
 
-Phase: 15 (boq-pricing-perimeter-simplification) — EXECUTING
-Plan: 4 of 4
+Phase: 15 (boq-pricing-perimeter-simplification) — ALL PLANS COMPLETE, ready for verification
+Plan: 4 of 4 (15-04 complete — final plan of the phase)
 
 ## Performance Metrics
 
@@ -83,6 +83,7 @@ Plan: 4 of 4
 | Phase 15 P15-01 | 13min | 3 tasks | 9 files |
 | Phase 15 P15-02 | 11min | 3 tasks | 8 files |
 | Phase 15 P15-03 | 14min | 3 tasks | 6 files |
+| Phase 15 P15-04 | 8min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -192,6 +193,8 @@ Plan: 4 of 4
 | Phase 15 (15-03): inline ₱ rate input is UNCONTROLLED + native event listeners (input/change/blur/keydown via a ref), NOT React onChange/onBlur | React 19's input value-tracker suppresses synthetic onChange when a caller sets .value then dispatches a native 'input' event, and React delegates blur as 'focusout' so a raw 'blur' never reaches a synthetic onBlur — proven by a throwaway probe (setRate calls=[] via onChange path). Native listeners fire on exactly the events dispatched; all 4 do-not-edit rate-edit assertions pass with zero test change. Field re-seeds imperatively from the store only when the DOM value differs (mid-typing never clobbered) |
 | Phase 15 (15-03): rateKey `${name}\|${type}` is category-INDEPENDENT and DISTINCT from the visibility itemKey `${name}\|${categoryId}`; setRate dispatched on input/change/blur+Enter; stopPropagation on click/mousedown/keydown so the field never fires row cycle-nav/onArmTool | parseFloat NaN/empty→0 keeps a string out of the Record<string,number> rate map (T-15-03-01); stopPropagation mirrors the lightbulb pattern, asserted by the render-test spies on onArmTool+setPage (T-15-03-02); distinct rateKey prevents category-dependent mis-scoping (T-15-03-03). Row cost reads item.cost directly — no rate×quantity in the UI |
 | Phase 15 (15-03): ₱ cost formatters coerce non-finite→0 (formatCost, category costSubtotal, grand-total) so rows/categories render ₱0.00 instead of throwing | Rule 1/2 hardening — the migrated do-not-edit fixtures (totals-row-cycle/context-menu) build BoqItemRow without the required 15-02 rate/cost fields, so item.cost is undefined at runtime; a bare .toFixed() threw and broke green fixtures. Also the correct production behavior (locked 'no rate set = ₱0.00'). Grand-total bar lives in TotalsPanel (pinned bottom bar, shown when totalPages>0), not the header rows[]. PerimeterMarkup: unfilled outline + length-only 'P: <len> <unit>' label, polygonArea/pixelAreaToReal removed, arc-aware length kept. Full suite 621 pass; only writer reds remain (15-04). Resolved 15-02's stale-comment deferred item |
+| Phase 15 Wave 2/3 (15-04): priced BOQ writers — buildBoqXlsx/buildBoqCsv emit the locked 5-column layout (Item·Quantity·UoM·Rate·Cost) | xlsx Rate/Cost are NATIVE numbers with a writer-LOCAL NUMFMT_PESO='₱#,##0.00' (main process can't import the renderer CURRENCY_SYMBOL — own copy per the duplication-with-test-lock convention, like NUMFMT_DECIMAL) so SUM() works; per-category ₱ cost-subtotal + grand-total-cost rows are unit-agnostic single numbers PARALLEL to the per-UoM qty subtotals; category-heading merge widened A:C→A:E. csv Rate/Cost are plain numerics (no ₱ glyph) with the UTF-8 BOM on line 1 preserved verbatim. money()=Number.isFinite?n:0 at all 8 ₱ write points = the locked 'no rate set=₱0.00' rule AND keeps the do-not-edit pre-Phase-15 fixtures (no rate/cost fields) from throwing (mirrors 15-03 formatCost). Closed the 15-02 deferred item: main-process BoqRowType reconciled to single 'perimeter' (4-way type lock complete). Rule-3 blocking fix: migrated ONE stale Wave-0 csv title assertion (3-col 'Item,Quantity,UoM' → 5-col) that contradicted the new priced assertion in the same file. 7 writer reds GREEN; full suite 628/628; typecheck clean |
+| Phase 15 (15-04): pricing scope flipped Out-of-Scope→Validated in PROJECT.md (GAP-002 reversal) + 15-MANUAL-NOTES.md written | Removed the 'pricing happens in separate tools' OoS bullet; added a Validated/Phase-15 pricing entry + a Key-Decision reversal row; Item Library + Settings currency picker remain explicitly deferred (no false 'currency picker shipped' claim). 15-MANUAL-NOTES.md documents old-.clmc perimeter back-compat (area computed live/never stored → NO data loss; arc-aware length kept; no formatVersion bump), the hardcoded ₱ constant + its two future-picker seams (renderer currency.ts + writer NUMFMT_PESO), and a numbered priced-BOQ/xlsx UAT checklist. Phase 15 feature-complete (all 4 plans landed); ROADMAP plan 4/4 Complete; status ready_for_verification |
 
 ### Critical Pitfalls to Watch
 
@@ -245,9 +248,9 @@ None.
 
 **Last activity:** 2026-06-29
 
-**Last session:** 2026-06-29T10:23:14.232Z
+**Last session:** 2026-06-29T10:42:22.943Z
 
-**Stopped at:** Completed 15-03 (Wave 2 renderer half — totals-panel pricing UI + perimeter render simplification). NEW src/renderer/src/lib/currency.ts (single ₱ seam); useBoqLive subscribes to rates (selector + memo deps) for live cost recompute; TotalsRow inline ₱ rate input (uncontrolled + native input/change/blur/keydown listeners, rateKey `${name}|${type}` distinct from the visibility itemKey, setRate dispatch + stopPropagation, ₱ cost from item.cost); TotalsCategoryBlock per-category ₱ cost subtotal; TotalsPanel pinned ₱ grand-total bar; PerimeterMarkup unfilled closed outline + length-only `P: <len> <unit>` label (polygonArea/pixelAreaToReal removed, arc-aware length kept). The two Wave 0 proofs (use-boq-live 'recomputes when rates change' + totals-row-rate-edit) GREEN; full suite 621 pass / 7 fail (all 7 are the 15-04-owned boq-writers xlsx/csv reds — boq-writers.ts untouched); typecheck clean. 3 atomic commits ffbd168/1da21b0/380f762. Resolved the 15-02 stale-comment deferred item.
+**Stopped at:** Completed 15-04 (Wave 2/3 writers half + scope flip + manual notes) — final plan of Phase 15. buildBoqXlsx/buildBoqCsv now emit the locked 5-column priced layout (Item·Quantity·UoM·Rate·Cost): xlsx Rate/Cost are native numbers with a local NUMFMT_PESO ₱#,##0.00 (SUM-safe), per-category ₱ cost-subtotal + grand-total-cost rows, A:E heading merge; csv Rate/Cost numeric with the UTF-8 BOM preserved. Reconciled the final main-process BoqRowType to single 'perimeter' (15-02 deferred item closed). money() non-finite→0 guard at all ₱ write points. PROJECT.md pricing flipped Out-of-Scope→Validated. NEW 15-MANUAL-NOTES.md. 7 writer reds GREEN; full suite 628/628; typecheck clean. 3 atomic commits 3e2b31f/2a3003f/69fb1a0. Phase 15 feature-complete — ready for verification/UAT.
 
 **Next action:** Execute 15-04 (Wave 2 writers half — runs after 15-03 in sequential mode): turn the 7 remaining boq-writers reds GREEN — align src/main/boq-writers.ts BoqRowType (drop the old perimeter-length/perimeter-area split, its own deferred item), add Item·Quantity·UoM·Rate·Cost columns with a ₱ numFmt (native-number cells), per-category cost-subtotal + grand-total-cost rows, A:E heading merge, and a main-process-local CURRENCY_SYMBOL='₱' copy. Then phase verification + UAT (SC-4 perimeter render + live inline-pricing).
 
