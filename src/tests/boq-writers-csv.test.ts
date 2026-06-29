@@ -95,3 +95,57 @@ describe('buildBoqCsv — D-14 / EXPRT-02', () => {
     expect(lines[7].startsWith('Electrical')).toBe(true)
   })
 })
+
+// =============================================================================
+// Phase 15 — Rate/Cost columns (proof a, csv side). RED until Plan 15-05 adds
+// the Rate and Cost columns to buildBoqCsv. The fixture carries rate/cost/
+// costSubtotal/grandTotalCost (cast through `unknown`). Do NOT "fix" the source
+// to make these green — Wave 1-3 does.
+// =============================================================================
+
+function pricedStructure(): BoqStructure {
+  return {
+    metadata: {
+      projectName: 'Test', planFilename: 'plan.pdf',
+      exportedDate: '2026-05-02', totalPages: 1, totalMarkups: 2
+    },
+    categories: [{
+      name: 'Electrical',
+      items: [
+        { label: 'Outlet', quantity: 5, uom: 'ea', color: '#0078d4', type: 'count', rate: 3, cost: 15 },
+        { label: 'Wire', quantity: 12.345, uom: 'm', color: '#d13438', type: 'linear', rate: 2, cost: 24.69 }
+      ],
+      subtotals: [{ uom: 'ea', total: 5 }, { uom: 'm', total: 12.345 }],
+      costSubtotal: 39.69
+    }],
+    grandTotals: [{ uom: 'ea', total: 5 }, { uom: 'm', total: 12.345 }],
+    grandTotalCost: 39.69
+  } as unknown as BoqStructure
+}
+
+describe('buildBoqCsv — Phase 15 Rate/Cost columns (proof a)', () => {
+  it('title row contains Rate and Cost (Item,Quantity,UoM,Rate,Cost)', () => {
+    const csv = buildBoqCsv(pricedStructure())
+    const lines = csv.replace(/^﻿/, '').split('\r\n')
+    // Title is the first row after the 5 metadata rows + blank spacer.
+    expect(lines[6]).toBe('Item,Quantity,UoM,Rate,Cost')
+    expect(lines[6]).toContain('Rate')
+    expect(lines[6]).toContain('Cost')
+  })
+
+  it('rate/cost are emitted as numeric values (not a "₱…"-prefixed string)', () => {
+    const csv = buildBoqCsv(pricedStructure())
+    // Outlet: count qty 5 (int), rate 3, cost 15 → "Outlet,5,ea,3,15"
+    expect(csv).toMatch(/Outlet,5,ea,3,15/)
+    // Wire: 12.345 at 2dp, rate 2, cost 24.69 → "Wire,12.35,m,2,24.69" (cost 2dp)
+    expect(csv).toMatch(/Wire,12\.35,m,2,24\.69/)
+    // No ₱ glyph leaks into the data cells — currency lives in display, not CSV.
+    expect(csv).not.toContain('₱')
+  })
+
+  it('UTF-8 BOM still leads byte 0 with the wider 5-column layout', () => {
+    const csv = buildBoqCsv(pricedStructure())
+    expect(csv.charCodeAt(0)).toBe(0xfeff)
+    expect(csv.startsWith('﻿')).toBe(true)
+  })
+})

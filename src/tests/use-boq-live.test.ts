@@ -175,4 +175,45 @@ describe('useBoqLive — VIEW-01 live aggregator subscription', () => {
       harness.cleanup()
     }
   })
+
+  // ===========================================================================
+  // Phase 15 — live cost recompute (proof b). RED until Plan 15-04 adds `rates`
+  // to useBoqLive's selector + memo deps so editing a rate flows into the live
+  // BoqStructure. Casts to `any` where `rates`/`cost` are referenced before the
+  // types land. Do NOT "fix" the source to make this green — Wave 1-3 does.
+  // ===========================================================================
+
+  it('recomputes when rates change', async () => {
+    useViewerStore.setState({ totalPages: 1, fileName: 'demo.pdf' })
+    useScaleStore.setState({ pageScales: { 1: { pixelsPerMm: 1, displayUnit: 'mm' } }, globalUnit: 'mm' })
+    useMarkupStore.setState({
+      pageMarkups: {
+        1: [countMarkup({ id: 'c1', page: 1, name: 'Outlet', categoryId: 'cat-e', color: '#0078d4' })]
+      },
+      categories: { 'cat-e': { id: 'cat-e', name: 'Electrical', color: '#0078d4', paletteIndex: 0 } },
+      categoryOrder: ['cat-e']
+    })
+    // Seed an initial rate of ₱5 for the single Outlet → live cost should be 5.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(useProjectStore as any).setState({ rates: { 'Outlet|count': 5 } })
+
+    const harness = await callHook()
+    try {
+      // First render — cost reads the seeded rate (1 × 5 = 5).
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((harness.current().categories[0].items[0] as any).cost).toBe(5)
+
+      // Edit the rate to ₱9 — useBoqLive must re-subscribe and recompute cost → 9.
+      await act(async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(useProjectStore as any).setState({ rates: { 'Outlet|count': 9 } })
+        await new Promise<void>((res) => setTimeout(res, 0))
+      })
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((harness.current().categories[0].items[0] as any).cost).toBe(9)
+    } finally {
+      harness.cleanup()
+    }
+  })
 })

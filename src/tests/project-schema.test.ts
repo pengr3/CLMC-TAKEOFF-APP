@@ -89,4 +89,30 @@ describe('project-schema v2', () => {
   it('migrate(_, 999) throws Unsupported formatVersion', () => {
     expect(() => migrate(VALID_V2, 999)).toThrow(/Unsupported formatVersion: 999/)
   })
+
+  // ===========================================================================
+  // Phase 15 — `rates` is an ADDITIVE optional field (NO formatVersion bump),
+  // mirroring the pre-Phase-8 hiddenItemNames absent-field tolerance. validateV2
+  // stays throw-free for additive fields (locked decision); coercion of a
+  // malformed map is tested via hydrate, NOT here. These assert that validateV2
+  // ACCEPTS a rates-bearing object and tolerates its absence. RED until Plan
+  // 15-04 threads `rates` through the V2 schema type.
+  // ===========================================================================
+
+  it('validateV2 ACCEPTS a ProjectFileV2 carrying a rates field (additive, no throw)', () => {
+    const withRates = { ...VALID_V2, rates: { 'Outlet|count': 5, 'Skirting|perimeter': 12 } }
+    // MUST NOT throw — rates is additive and validateV2 stays throw-free for it.
+    expect(() => validateV2(withRates as unknown as ProjectFileV2)).not.toThrow()
+    // And the field survives validation (round-trips through the validator).
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((validateV2(withRates as unknown as ProjectFileV2) as any).rates).toEqual({
+      'Outlet|count': 5,
+      'Skirting|perimeter': 12
+    })
+  })
+
+  it('validateV2 passes a fixture LACKING rates (legacy tolerance)', () => {
+    // VALID_V2 has no `rates` key — a pre-Phase-15 file must still validate.
+    expect(() => validateV2(VALID_V2)).not.toThrow()
+  })
 })

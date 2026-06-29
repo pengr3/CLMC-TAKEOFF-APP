@@ -3,7 +3,9 @@ import { snapshotProject, hydrateStores } from '@renderer/lib/project-serialize'
 import { useMarkupStore } from '@renderer/stores/markupStore'
 import { useScaleStore } from '@renderer/stores/scaleStore'
 import { useViewerStore } from '@renderer/stores/viewerStore'
+import { useProjectStore } from '@renderer/stores/projectStore'
 import type { CountMarkup } from '@renderer/types/markup'
+import type { ProjectFileV2 } from '@renderer/lib/project-schema'
 
 const sampleMarkup: CountMarkup = {
   id: 'm1',
@@ -160,5 +162,58 @@ describe('project-serialize', () => {
     const text = JSON.stringify(snap)
     const parsed = JSON.parse(text)
     expect(parsed.pages[0].markups[0].point).toEqual(sampleMarkup.point)
+  })
+
+  // ===========================================================================
+  // Phase 15 — rates round-trip (proof b). RED until Plan 15-04 adds `rates` to
+  // projectStore + snapshotProject/hydrateStores. Mirrors the hiddenItemNames
+  // analog in project-schema-hidden.test.ts; casts to `any` where the field is
+  // referenced before the types land. Do NOT "fix" the source — Wave 1-3 does.
+  // ===========================================================================
+
+  // Minimal V2 fixture for the hydrate-side rates tests (mirrors the
+  // project-schema-hidden.test.ts MINIMAL_V2 shape).
+  const MINIMAL_V2: ProjectFileV2 = {
+    formatVersion: 2,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    pdf: { originalFilename: 'test.pdf', sha256: 'abc', totalPages: 1 },
+    globalUnit: 'm',
+    categories: {},
+    categoryOrder: [],
+    currentPage: 1,
+    pages: [{ pageIndex: 1, dimensions: { width: 800, height: 600 }, scale: null, viewport: { zoom: 1, panX: 0, panY: 0 }, markups: [] }]
+  }
+
+  it('snapshotProject emits rates read from projectStore (Phase 15)', () => {
+    // MUST FAIL — snapshotProject does not yet read `rates` from projectStore.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(useProjectStore as any).setState({ rates: { 'Skirting|perimeter': 12 } })
+    const snap = snapshotProject({
+      pdfOriginalFilename: 'plans.pdf',
+      pdfSha256: 'abc',
+      pdfTotalPages: 1,
+      perPageDimensions: { 1: { width: 595, height: 842 } }
+    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((snap as any).rates).toEqual({ 'Skirting|perimeter': 12 })
+  })
+
+  it('hydrateStores accepts rates and writes them to projectStore (Phase 15)', () => {
+    // MUST FAIL — hydrateStores does not yet consume `rates`.
+    const data: ProjectFileV2 & { rates?: Record<string, number> } = {
+      ...MINIMAL_V2,
+      rates: { 'Outlet|count': 7 }
+    }
+    hydrateStores(data)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((useProjectStore.getState() as any).rates).toEqual({ 'Outlet|count': 7 })
+  })
+
+  it('hydrateStores defaults rates to {} when absent (legacy .clmc, Phase 15)', () => {
+    // MUST FAIL — `rates` state field does not yet exist on projectStore.
+    hydrateStores(MINIMAL_V2)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((useProjectStore.getState() as any).rates).toEqual({})
   })
 })
