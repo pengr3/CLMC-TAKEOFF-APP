@@ -65,9 +65,12 @@ export function labelToName(label: string): string {
   return label.replace(/\s*\((count|linear|area|perimeter|wall)\)\s*$/, '')
 }
 
-/** Map a BoqRowType (perimeter-length / perimeter-area split) back to underlying Markup.type. */
+/**
+ * Map a BoqRowType back to the underlying Markup.type. Since Phase 15 the
+ * perimeter row type equals the markup type ('perimeter'), so this is an
+ * identity mapping — kept as a named seam for callsite clarity.
+ */
 export function rowTypeToMarkupType(t: BoqRowType): MarkupType {
-  if (t === 'perimeter-length' || t === 'perimeter-area') return 'perimeter'
   return t
 }
 

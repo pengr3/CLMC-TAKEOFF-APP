@@ -3,7 +3,7 @@ type ReadProjectResult =
   | { kind: 'v1-json'; text: string }
   | { kind: 'unknown'; reason: string }
 
-type BoqRowType = 'count' | 'linear' | 'area' | 'perimeter-length' | 'perimeter-area' | 'wall'
+type BoqRowType = 'count' | 'linear' | 'area' | 'perimeter' | 'wall'
 interface BoqMetadata {
   projectName: string
   planFilename: string
@@ -15,6 +15,8 @@ interface BoqItemRow {
   label: string
   quantity: number
   uom: string
+  rate: number
+  cost: number
   color: string | null
   type: BoqRowType
 }
@@ -23,11 +25,13 @@ interface BoqCategoryGroup {
   name: string
   items: BoqItemRow[]
   subtotals: BoqSubtotal[]
+  costSubtotal: number
 }
 interface BoqStructure {
   metadata: BoqMetadata
   categories: BoqCategoryGroup[]
   grandTotals: BoqSubtotal[]
+  grandTotalCost: number
 }
 
 interface ElectronAPI {

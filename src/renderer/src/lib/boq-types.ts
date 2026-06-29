@@ -15,13 +15,16 @@ export interface BoqMetadata {
   totalMarkups: number
 }
 
-/** Aggregation row type. Perimeter markups synthesize TWO virtual types per shape (D-01). */
+/**
+ * Aggregation row type. A perimeter markup maps to exactly ONE row (length only,
+ * Phase 15) — the row type equals the markup type 'perimeter'. The pre-Phase-15
+ * two-row perimeter split (a separate length type and area type) was removed.
+ */
 export type BoqRowType =
   | 'count'
   | 'linear'
   | 'area'
-  | 'perimeter-length'
-  | 'perimeter-area'
+  | 'perimeter'
   | 'wall'
 
 /**
@@ -37,6 +40,10 @@ export interface BoqItemRow {
   quantity: number
   /** 'ea' for count; globalUnit for length; globalUnit + '²' for area. */
   uom: string
+  /** Unit rate in ₱ for this (name,type); 0 when unset. */
+  rate: number
+  /** rate × quantity, ₱. */
+  cost: number
   /** '#RRGGBB' or null. Item-cell fill in XLSX (D-13). */
   color: string | null
   /** Used for like-typed subtotal grouping (D-12). */
@@ -65,6 +72,8 @@ export interface BoqCategoryGroup {
   items: BoqItemRow[]
   /** One subtotal per distinct UoM in this group. */
   subtotals: BoqSubtotal[]
+  /** Σ row costs in the category, ₱; unit-agnostic. */
+  costSubtotal: number
 }
 
 /**
@@ -78,6 +87,8 @@ export interface BoqStructure {
   categories: BoqCategoryGroup[]
   /** One per distinct UoM project-wide (D-12). */
   grandTotals: BoqSubtotal[]
+  /** Σ all category costSubtotals, ₱. */
+  grandTotalCost: number
 }
 
 /**
@@ -95,6 +106,8 @@ export interface AggregateOptions {
   pdfOriginalFilename?: string
   currentFilePath?: string | null
   getColorForName?: (name: string) => string | null
+  /** Per-(name|type) unit rate map; default useProjectStore.getState().rates. */
+  rates?: Record<string, number>
 }
 
 /**
