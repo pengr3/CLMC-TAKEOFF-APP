@@ -3,26 +3,69 @@ import type { ScaleUnit } from '../types/scale'
 import { MM_PER_UNIT } from '../types/scale'
 import { euclideanDistance, fromMm } from './scale-math'
 import { LABEL_FONT_BASE, LABEL_FONT_FLOOR } from '../types/markup'
+import { arcLength, circularSegmentMagnitude } from './arc-math'
 
-export function polylineLength(points: StagePoint[]): number {
+/** Per-edge arc midpoints, keyed by the segment's start-vertex index. */
+type ArcMap = Record<number, { midX: number; midY: number }>
+
+/**
+ * Total length of a polyline. Arc-aware: pass an optional per-edge `arcs` map
+ * (keyed by the segment start-vertex index) to measure curved edges by their
+ * true arc length (R·sweep) instead of the straight chord. Edges without an arc
+ * entry use the straight chord. The single-arg form is preserved verbatim for
+ * straight callers (boq-aggregator, save/load) — load-bearing back-compat.
+ */
+export function polylineLength(points: StagePoint[], arcs?: ArcMap): number {
   if (points.length < 2) return 0
   let total = 0
   for (let i = 1; i < points.length; i++) {
-    total += euclideanDistance(points[i - 1].x, points[i - 1].y, points[i].x, points[i].y)
+    const from = points[i - 1]
+    const to = points[i]
+    const arc = arcs?.[i - 1]
+    if (arc) {
+      total += arcLength(from, { x: arc.midX, y: arc.midY }, to)
+    } else {
+      total += euclideanDistance(from.x, from.y, to.x, to.y)
+    }
   }
   return total
 }
 
-export function polygonArea(points: StagePoint[]): number {
+/**
+ * Enclosed area of a closed polygon. Arc-aware: pass an optional per-edge `arcs`
+ * map to apply the circular-segment correction for curved edges. The closing
+ * edge n-1→0 keys on index n-1.
+ *
+ * Sign rule (spike-003b, load-bearing): accumulate the DOUBLED signed shoelace
+ * `2·S` (no pre-abs); for each arc edge subtract `sign(cross)·2·segMag` where
+ * `cross = (to−from)×(mid−from)` and `segMag = (R²/2)(θ−sinθ)`; take `abs` at the
+ * very end → winding-independent, correct for both OUTWARD and INWARD bulges
+ * (OUTWARD ⟺ sign(cross) ≠ sign(2·S)). The single-arg form is preserved verbatim
+ * for straight callers.
+ */
+export function polygonArea(points: StagePoint[], arcs?: ArcMap): number {
   if (points.length < 3) return 0
-  let area = 0
   const n = points.length
+  // Doubled signed shoelace (NOT pre-absed — the sign drives the arc correction).
+  let doubled = 0
   for (let i = 0; i < n; i++) {
     const j = (i + 1) % n
-    area += points[i].x * points[j].y
-    area -= points[j].x * points[i].y
+    doubled += points[i].x * points[j].y
+    doubled -= points[j].x * points[i].y
   }
-  return Math.abs(area) / 2
+  if (arcs) {
+    for (let i = 0; i < n; i++) {
+      const arc = arcs[i]
+      if (!arc) continue
+      const from = points[i]
+      const to = points[(i + 1) % n]
+      const mid = { x: arc.midX, y: arc.midY }
+      const cross = (to.x - from.x) * (mid.y - from.y) - (to.y - from.y) * (mid.x - from.x)
+      const segMag = circularSegmentMagnitude(from, mid, to)
+      doubled -= Math.sign(cross) * 2 * segMag
+    }
+  }
+  return Math.abs(doubled) / 2
 }
 
 export function polygonCentroid(points: StagePoint[]): StagePoint {
