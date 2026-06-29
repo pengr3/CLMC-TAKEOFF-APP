@@ -30,12 +30,34 @@ export interface CircleSolution {
   cx: number
   cy: number
   r: number
-  /** CCW sweep angle (radians) of the arc through `mid`, in (0, 2π). 0 when collinear. */
+  /** UNSIGNED sweep magnitude (radians) of the arc through `mid`, in (0, 2π). 0 when collinear. */
   sweep: number
+  /**
+   * Signed start angle (radians, `atan2` of `from` about the center). Pair with
+   * `sweepSigned` to sample the SAME arc the measurement (`sweep`) describes:
+   * `a = startAngle + sweepSigned * i / count`. 0 when collinear.
+   */
+  startAngle: number
+  /**
+   * SIGNED sweep (radians): positive ⇒ the arc through `mid` runs CCW from
+   * `from`, negative ⇒ CW. `Math.abs(sweepSigned) === sweep`. This is the single
+   * disambiguation source shared by measurement AND rendering (CR-01): callers
+   * must sample from `startAngle`/`sweepSigned` rather than re-deriving the
+   * tie-break, which previously diverged (`<` vs `<=`) at the semicircle boundary.
+   */
+  sweepSigned: number
   collinear: boolean
 }
 
-const COLLINEAR: CircleSolution = { cx: NaN, cy: NaN, r: Infinity, sweep: 0, collinear: true }
+const COLLINEAR: CircleSolution = {
+  cx: NaN,
+  cy: NaN,
+  r: Infinity,
+  sweep: 0,
+  startAngle: 0,
+  sweepSigned: 0,
+  collinear: true
+}
 
 /**
  * Solve the circle through three page-space points and disambiguate the arc that
@@ -93,11 +115,19 @@ export function solveCircle(p1: StagePoint, mid: StagePoint, p2: StagePoint): Ci
     return delta
   }
 
-  const sweepToMid = ccw(a1, aMid)
-  const sweepToEnd = ccw(a1, aEnd)
-  const sweep = sweepToMid < sweepToEnd ? sweepToEnd : 2 * Math.PI - sweepToEnd
+  // Single sweep disambiguation, shared verbatim by measurement and rendering
+  // (CR-01). The arc through `mid` runs CCW from `from` when `mid` is reached
+  // (CCW) at or before `end`; otherwise it runs CW. `sweepSigned` carries the
+  // direction; `sweep` is its magnitude (used by arcLength / circularSegment).
+  // Callers MUST sample from `startAngle`/`sweepSigned` instead of re-deriving
+  // this tie-break (the previous `<` vs `<=` divergence is what CR-01 fixed).
+  const ccwToMid = ccw(a1, aMid)
+  const ccwToEnd = ccw(a1, aEnd)
+  const goCcw = ccwToMid <= ccwToEnd
+  const sweepSigned = goCcw ? ccwToEnd : -(2 * Math.PI - ccwToEnd)
+  const sweep = Math.abs(sweepSigned)
 
-  return { cx: ux, cy: uy, r, sweep, collinear: false }
+  return { cx: ux, cy: uy, r, sweep, startAngle: a1, sweepSigned, collinear: false }
 }
 
 /**
@@ -250,20 +280,10 @@ function sampleArcEdge(
   const c = solveCircle(from, mid, to)
   if (c.collinear) return [from.x, from.y, to.x, to.y]
 
-  const aStart = Math.atan2(from.y - c.cy, from.x - c.cx)
-  const aEnd = Math.atan2(to.y - c.cy, to.x - c.cx)
-  const aMid = Math.atan2(mid.y - c.cy, mid.x - c.cx)
-
-  const ccw = (a: number, b: number): number => {
-    let d = b - a
-    while (d < 0) d += 2 * Math.PI
-    while (d >= 2 * Math.PI) d -= 2 * Math.PI
-    return d
-  }
-  const ccwToMid = ccw(aStart, aMid)
-  const ccwToEnd = ccw(aStart, aEnd)
-  const goCcw = ccwToMid <= ccwToEnd
-  const sweep = goCcw ? ccwToEnd : -(2 * Math.PI - ccwToEnd)
+  // CR-01: sample directly from solveCircle's signed start angle + signed sweep
+  // (the SAME disambiguation measurement uses) — never re-derive the tie-break.
+  const aStart = c.startAngle
+  const sweep = c.sweepSigned
 
   const out: number[] = []
   for (let i = 0; i <= count; i++) {

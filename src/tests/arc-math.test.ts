@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { solveCircle, arcLength, circularSegmentMagnitude } from '@renderer/lib/arc-math'
+import {
+  solveCircle,
+  arcLength,
+  circularSegmentMagnitude,
+  buildArcAwareFlatPoints
+} from '@renderer/lib/arc-math'
+import type { StagePoint } from '@renderer/hooks/useCalibrationMode'
 
 // Spike-003 / 003b oracle-pinned tests.
 // All geometry is page-space pixels (StagePoint {x,y}), exactly like polylineLength.
@@ -128,6 +134,82 @@ describe('finite-guard (T-14-01-01 — malformed .clmc arc metadata)', () => {
     for (const bad of NANS) {
       const c = solveCircle({ x: bad, y: 0 }, { x: 50, y: 50 }, { x: 100, y: 0 })
       expect(c.collinear).toBe(true)
+    }
+  })
+})
+
+// CR-01: measurement (arcLength) and rendering (buildArcAwareFlatPoints) must
+// describe the SAME arc. Sum the sampled chord polyline and assert it converges
+// to arcLength within sampling error, for cases that exercise the sweep
+// tie-break: minor, near-π (semicircle boundary), and reflex (> π) arcs.
+describe('CR-01: rendered arc matches measured arc length', () => {
+  function chordSum(flat: number[]): number {
+    let total = 0
+    for (let i = 2; i < flat.length; i += 2) {
+      const dx = flat[i] - flat[i - 2]
+      const dy = flat[i + 1] - flat[i - 1]
+      total += Math.hypot(dx, dy)
+    }
+    return total
+  }
+
+  // The sampled chord-sum always UNDER-estimates a convex arc; with 24 samples
+  // the relative gap is bounded well under 1% even for a full near-2π reflex arc.
+  function expectMatches(from: StagePoint, mid: StagePoint, to: StagePoint): void {
+    const measured = arcLength(from, mid, to)
+    const flat = buildArcAwareFlatPoints([from, to], { 0: { midX: mid.x, midY: mid.y } }, false)
+    const rendered = chordSum(flat)
+    expect(rendered).toBeGreaterThan(0)
+    // Chord-sum ≤ true arc length; convergence within 1% at 24 samples.
+    expect(rendered).toBeLessThanOrEqual(measured + 1e-6)
+    expect(measured - rendered).toBeLessThan(measured * 0.01 + 1e-6)
+  }
+
+  it('minor arc (sweep < π)', () => {
+    expectMatches({ x: 0, y: 0 }, { x: 30, y: 12 }, { x: 60, y: 0 })
+  })
+
+  it('semicircle boundary (sweep === π) — the exact tie-break case', () => {
+    expectMatches({ x: 0, y: 0 }, { x: 50, y: 50 }, { x: 100, y: 0 })
+  })
+
+  it('reflex arc (sweep > π)', () => {
+    const R = 100
+    const a1 = (10 * Math.PI) / 180
+    const a3 = (-10 * Math.PI) / 180
+    const p1 = { x: R * Math.cos(a1), y: R * Math.sin(a1) }
+    const p3 = { x: R * Math.cos(a3), y: R * Math.sin(a3) }
+    const mid = { x: R * Math.cos(Math.PI), y: R * Math.sin(Math.PI) }
+    expectMatches(p1, mid, p3)
+  })
+
+  it('randomized arcs (including near-π and reflex) — rendered ≈ measured', () => {
+    let seed = 1234567
+    const rand = (): number => {
+      // Deterministic LCG so the property test is reproducible.
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff
+      return seed / 0x7fffffff
+    }
+    for (let k = 0; k < 200; k++) {
+      const cx = (rand() - 0.5) * 20000
+      const cy = (rand() - 0.5) * 20000
+      const r = 50 + rand() * 5000
+      const aStart = rand() * 2 * Math.PI
+      // Sweep magnitude across the full (0, 2π) range to hit near-π and reflex.
+      const sweepMag = 0.1 + rand() * (2 * Math.PI - 0.2)
+      const dir = rand() < 0.5 ? 1 : -1
+      const from = { x: cx + r * Math.cos(aStart), y: cy + r * Math.sin(aStart) }
+      const aMid = aStart + dir * sweepMag * 0.5
+      const aEnd = aStart + dir * sweepMag
+      const mid = { x: cx + r * Math.cos(aMid), y: cy + r * Math.sin(aMid) }
+      const to = { x: cx + r * Math.cos(aEnd), y: cy + r * Math.sin(aEnd) }
+      const measured = arcLength(from, mid, to)
+      if (measured === 0) continue
+      const flat = buildArcAwareFlatPoints([from, to], { 0: { midX: mid.x, midY: mid.y } }, false)
+      const rendered = chordSum(flat)
+      // Chord-sum under-estimates; both describe the same arc within sampling error.
+      expect(rendered).toBeLessThanOrEqual(measured + 1e-3)
+      expect(measured - rendered).toBeLessThan(measured * 0.02 + 1e-3)
     }
   })
 })

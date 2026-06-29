@@ -53,42 +53,24 @@ export interface ArcPreviewProps {
 }
 
 /**
- * Sample `count + 1` points evenly along the solved circle from the angle of
- * `start` to the angle of `end`, walking in the direction that passes through
- * `onArc` (so major / reflex arcs are sampled the long way round, matching the
- * sweep solveCircle disambiguated). Returns a flat [x0,y0,x1,y1,...] array.
+ * Sample `count + 1` points evenly along the solved circle using solveCircle's
+ * own signed start angle + signed sweep, so the previewed curve is the EXACT arc
+ * the measurement (`sweep` magnitude) describes. CR-01: never re-derive the
+ * start→onArc→end tie-break here — the previous independent re-derivation
+ * (`<` vs `<=`) could diverge from solveCircle at the semicircle boundary.
+ * Returns a flat [x0,y0,x1,y1,...] array.
  */
 function sampleArc(
   cx: number,
   cy: number,
   r: number,
-  start: StagePoint,
-  onArc: StagePoint,
-  end: StagePoint,
+  startAngle: number,
+  sweepSigned: number,
   count: number
 ): number[] {
-  const aStart = Math.atan2(start.y - cy, start.x - cx)
-  const aEnd = Math.atan2(end.y - cy, end.x - cx)
-  const aMid = Math.atan2(onArc.y - cy, onArc.x - cx)
-
-  // CCW delta in [0, 2π).
-  const ccw = (from: number, to: number): number => {
-    let d = to - from
-    while (d < 0) d += 2 * Math.PI
-    while (d >= 2 * Math.PI) d -= 2 * Math.PI
-    return d
-  }
-
-  // Walk start→end the way that passes through onArc: if onArc is reached
-  // (CCW) before end, the sweep is the CCW one; otherwise go clockwise.
-  const ccwToMid = ccw(aStart, aMid)
-  const ccwToEnd = ccw(aStart, aEnd)
-  const goCcw = ccwToMid <= ccwToEnd
-  const sweep = goCcw ? ccwToEnd : -(2 * Math.PI - ccwToEnd)
-
   const pts: number[] = []
   for (let i = 0; i <= count; i++) {
-    const a = aStart + (sweep * i) / count
+    const a = startAngle + (sweepSigned * i) / count
     pts.push(cx + r * Math.cos(a), cy + r * Math.sin(a))
   }
   return pts
@@ -122,14 +104,14 @@ export function ArcPreview({
     )
   }
 
-  // Non-collinear → sampled curve through start → onArc → end.
+  // Non-collinear → sampled curve through start → onArc → end, driven by
+  // solveCircle's signed start angle + signed sweep (CR-01).
   const points = sampleArc(
     solution.cx,
     solution.cy,
     solution.r,
-    start,
-    onArc,
-    end,
+    solution.startAngle,
+    solution.sweepSigned,
     ARC_SAMPLES
   )
 
