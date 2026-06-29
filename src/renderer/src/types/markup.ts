@@ -18,19 +18,41 @@ export interface CountMarkup extends BaseMarkup {
   sequence: number
 }
 
+/**
+ * Optional per-edge arc metadata, keyed by the segment's start-vertex index.
+ *
+ * Edge i→i+1 keys on index `i`. For closed area/perimeter markups the closing
+ * edge n-1→0 keys on index `n-1`. Each entry carries the on-arc midpoint
+ * (the third point of the 3-point circle solve); the start/end vertices come
+ * from `points[i]` / `points[i+1]`.
+ *
+ * Absence of an entry (or of the whole map) means the edge is straight.
+ *
+ * Additive in Phase 14 (D-01/D-08): pre-Phase-14 `.clmc` files omit this field
+ * entirely and load all-straight. Optional, so `formatVersion` stays at 2 and
+ * `validateV2` needs no version bump — same strategy as `hiddenItemNames?`.
+ */
+export type ArcMap = Record<number, { midX: number; midY: number }>
+
 export interface LinearMarkup extends BaseMarkup {
   type: 'linear'
   points: StagePoint[]
+  /** Optional per-edge arc midpoints; absent → all edges straight (additive, no formatVersion bump). */
+  arcs?: Record<number, { midX: number; midY: number }>
 }
 
 export interface AreaMarkup extends BaseMarkup {
   type: 'area'
   points: StagePoint[]
+  /** Optional per-edge arc midpoints; absent → all edges straight (additive, no formatVersion bump). */
+  arcs?: Record<number, { midX: number; midY: number }>
 }
 
 export interface PerimeterMarkup extends BaseMarkup {
   type: 'perimeter'
   points: StagePoint[]
+  /** Optional per-edge arc midpoints; absent → all edges straight (additive, no formatVersion bump). */
+  arcs?: Record<number, { midX: number; midY: number }>
 }
 
 export interface WallMarkup extends BaseMarkup {
@@ -38,6 +60,8 @@ export interface WallMarkup extends BaseMarkup {
   points: StagePoint[]
   /** millimetres */
   wallHeight: number
+  /** Optional per-edge arc midpoints; absent → all edges straight (additive, no formatVersion bump). */
+  arcs?: Record<number, { midX: number; midY: number }>
 }
 
 export type Markup = CountMarkup | LinearMarkup | AreaMarkup | PerimeterMarkup | WallMarkup
@@ -84,6 +108,19 @@ export type MarkupCommand =
       vertexIndex: number
       oldPoint: StagePoint
       newPoint: StagePoint
+    }
+  | {
+      type: 'reshape-arc'
+      markupId: string
+      page: number
+      /**
+       * Full pre-edit arc map (or undefined if the markup had no arcs). Mirrors
+       * move-vertex's old/new symmetry so undo restores the exact prior arc state,
+       * including removing an arc that the edit added (newArcs set, oldArcs undefined).
+       */
+      oldArcs?: Record<number, { midX: number; midY: number }>
+      /** Full post-edit arc map (or undefined if the edit cleared all arcs). */
+      newArcs?: Record<number, { midX: number; midY: number }>
     }
   | {
       type: 'move-markups'
