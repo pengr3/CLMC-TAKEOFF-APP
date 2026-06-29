@@ -179,6 +179,31 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
         return
       }
 
+      // Phase 14 (14-03 D-03): F3 — persistent snapping toggle. Bare F3 is free
+      // (Ctrl+A is select-all; no other binding uses F3). isTextInputActive()
+      // guard mirrors every other shortcut. NOT bound to bare 'A' — that key is
+      // reserved for arc mode in 14-04.
+      if (e.key === 'F3') {
+        if (isTextInputActive()) return
+        e.preventDefault()
+        const { snapEnabled, setSnapEnabled } = useViewerStore.getState()
+        setSnapEnabled(!snapEnabled)
+        return
+      }
+
+      // Phase 14 (14-03 D-03): Alt (keydown) — momentary snap suspend for one
+      // point. Released via the keyup listener registered below. Guarded by
+      // isTextInputActive() so an Alt-mnemonic press inside a text field never
+      // suspends snapping. e.key === 'Alt' fires on the bare Alt press.
+      if (e.key === 'Alt') {
+        if (isTextInputActive()) return
+        // Do NOT preventDefault — Alt is also an OS menu-mnemonic modifier; we
+        // only observe it. setSnapSuspended is idempotent so repeat keydowns
+        // (auto-repeat) are harmless.
+        useViewerStore.getState().setSnapSuspended(true)
+        return
+      }
+
       // Plan 09-02: Ctrl+A — select every markup on the current page while in
       // 'select' mode. isTextInputActive() guard preserves the OS-standard
       // "Select All" inside any focused text input (T-09-02-01 / D-27 pattern).
@@ -232,7 +257,32 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
       }
     }
 
+    // Phase 14 (14-03 D-03): Alt keyup restores snapping after a momentary
+    // suspend. Registered symmetrically with the keydown listener and cleaned up
+    // together. Guarded by isTextInputActive() so it never fires while typing.
+    // A safety net: if the window loses focus mid-suspend (Alt+Tab), the keyup
+    // may never arrive — the blur handler clears the flag so snapping is never
+    // left stuck-off.
+    const handleKeyUp = (e: KeyboardEvent): void => {
+      if (e.key === 'Alt') {
+        if (isTextInputActive()) return
+        useViewerStore.getState().setSnapSuspended(false)
+      }
+    }
+    const handleBlur = (): void => {
+      // Window lost focus — any held Alt is gone; restore snapping.
+      if (useViewerStore.getState().snapSuspended) {
+        useViewerStore.getState().setSnapSuspended(false)
+      }
+    }
+
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('blur', handleBlur)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('blur', handleBlur)
+    }
   }, [handlers, totalPages])
 }

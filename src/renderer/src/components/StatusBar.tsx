@@ -21,10 +21,30 @@ export function StatusBar(): React.JSX.Element {
   const { fileName, totalPages, currentPage } = useViewerStore()
   const getViewport = useViewerStore((s) => s.getViewport)
   const getScale = useScaleStore((s) => s.getScale)
+  // Phase 14 (14-03 D-03): snap state for the ON / held-off / OFF pill.
+  const snapEnabled = useViewerStore((s) => s.snapEnabled)
+  const snapSuspended = useViewerStore((s) => s.snapSuspended)
 
   const hasFile = totalPages > 0
   const zoomPct = hasFile ? Math.round(getViewport(currentPage).zoom * 100) : 0
   const pageScale = hasFile ? getScale(currentPage) : null
+
+  // Snap pill copy + color (14-UI-SPEC § "Snap status indicator"):
+  //   OFF (persistent)  → "Snap: OFF"      amber #e8a838 (COLORS.warning)
+  //   held off (Alt)    → "Snap: held off" dimmed #808080 (COLORS.textSecondary)
+  //   ON (default)      → "Snap: ON"       #cccccc text + accent #0078d4 dot
+  let snapText: string
+  let snapColor: string
+  if (!snapEnabled) {
+    snapText = 'OFF'
+    snapColor = COLORS.warning
+  } else if (snapSuspended) {
+    snapText = 'held off'
+    snapColor = COLORS.textSecondary
+  } else {
+    snapText = 'ON'
+    snapColor = COLORS.textPrimary
+  }
 
   let scaleText: string
   let scaleColor: string
@@ -83,6 +103,28 @@ export function StatusBar(): React.JSX.Element {
       {/* Scale */}
       <span aria-live="polite">
         Scale: <span style={{ color: scaleColor }}>{scaleText}</span>
+      </span>
+
+      <Divider />
+
+      {/* Snap (Phase 14 D-03): ON shows an accent dot; held-off is dimmed; OFF is amber. */}
+      <span
+        aria-live="polite"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+      >
+        Snap: <span style={{ color: snapColor }}>{snapText}</span>
+        {snapEnabled && !snapSuspended && (
+          <span
+            aria-hidden="true"
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: COLORS.accent,
+              display: 'inline-block'
+            }}
+          />
+        )}
       </span>
     </div>
   )
