@@ -24,7 +24,8 @@
 - [x] **Phase 10: Granular Undo Foundation** - Polish undo so that Ctrl+Z during an in-progress multi-point markup (linear, area, perimeter, wall) pops only the last placed point rather than deleting the entire markup; establish this step-level undo contract as the foundation for all future undo behavior (completed 2026-05-19)
 - [x] **Phase 11: Scale Ratio Input** - Scrapped — ratio calibration removed after UAT; draw-line method is sufficient (completed/closed 2026-05-20)
 - [x] **Phase 12: Markup Geometry Editing** - Vertex edit mode (click selected markup again → drag square handles to reposition points) and drag-to-translate (drag selected markup to move it); group move for multi-select; all changes undoable via existing command pattern (completed 2026-05-21)
-- [x] **Phase 13: Post-Commit Step-Level Undo** - Ctrl+Z on a committed multi-point markup (linear, area, perimeter, wall) re-opens it in drawing mode with all points intact — undoing just the commit, not the shape. Estimator can add points, pop points with further Ctrl+Z, or re-commit with Enter. Brief ConfirmationToast on re-open. (completed 2026-05-21)
+- [x] **Phase 13: Post-Commit Step-Level Undo** - Ctrl+Z on a committed multi-point markup (linear, area, perimeter, wall) re-opens it in drawing mode with all points intact — undoing just the commit, not the shape. Estimator can add points, pop points with further Ctrl+Z, or re-commit with Enter. Brief ConfirmationToast on re-open.
+ (completed 2026-05-21)
 
 ---
 
@@ -455,10 +456,15 @@ Plans:
   4. Reported length uses true arc length and reported area applies the circular-segment correction with the correct sign for both outward and inward bulges (matching the validated math); straight-only values are no longer reported for curved edges
   5. Committing an area/perimeter markup whose boundary self-intersects is detected and warned (rather than reporting a wrong quantity); arc geometry round-trips through save/reload and BOQ export intact
 
-**Plans:** 0 plans
+**Plans:** 6 plans across 5 waves
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 14 to break down)
+- [ ] 14-01-PLAN.md — Foundation: arc metadata on the Markup model + arc-math.ts (3-point solver) + arc-aware markup-math length/area (Wave 1)
+- [ ] 14-02-PLAN.md — Foundation: snapping-engine.ts grid-hash spatial index + self-intersection.ts detector (Wave 1)
+- [ ] 14-03-PLAN.md — Snapping integration: SnapIndicator glyphs + handleStageMouseMove injection + Alt/F3 controls + StatusBar pill (Wave 2)
+- [ ] 14-04-PLAN.md — Arc drawing: 3-click gesture + ArcPreview + hold-A/sticky arc mode (Wave 3)
+- [ ] 14-05-PLAN.md — Arc editing: BulgeHandle + endpoint re-solve (undoable) + self-intersection blocked commit (Wave 4)
+- [ ] 14-06-PLAN.md — Integration: arc-aware BOQ + renderers + save/reload round-trip + manual-ready docs + UAT (Wave 5)
 
 ---
 
@@ -495,4 +501,4 @@ Plans:
 **Total v1 requirements:** 25
 **Mapped:** 25
 **Unmapped:** 0
-
+
