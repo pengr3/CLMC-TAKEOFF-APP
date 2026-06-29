@@ -65,13 +65,13 @@ Speed up quantity takeoff — let the estimator focus on reading the plan, not d
 
 ## Current State
 
-Phase 10 complete (2026-05-19) — Granular Undo Foundation. Ctrl+Z during in-progress multi-point markup drawing now pops only the last placed point; Ctrl+Y re-adds it; Ctrl+Z on the first point cancels the whole markup. All five multi-point tools (linear, area, perimeter, wall, and future tools) share the same step-level undo/redo logic. All 10 v1 phases complete — the app is feature-complete for the v1 milestone.
+Phase 14 complete (2026-06-29) — Markup Geometry Precision (final phase of this milestone). Cursor snapping to existing endpoints/vertices and nearest-point-on-segment (grid-hash spatial index, screen-constant tolerance, □/△ glyphs, F3 toggle / Alt suspend) now applies during placement and editing; any linear/perimeter/area/wall edge can be a true circular arc via a 3-click gesture with live preview, bulge-handle reshaping, and endpoint re-solve, all undoable; arc length and circular-segment area are measured exactly (outward + inward), self-intersecting boundaries are blocked on commit, and arc geometry round-trips through save/reload and BOQ export. Human UAT approved. All phases complete — the milestone is feature-complete.
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
-Last updated: 2026-05-19
+Last updated: 2026-06-29
 
 **After each phase transition** (via `/gsd:transition`):
 1. Requirements invalidated? → Move to Out of Scope with reason
