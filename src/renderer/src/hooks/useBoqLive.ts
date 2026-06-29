@@ -7,15 +7,19 @@ import { useProjectStore } from '../stores/projectStore'
 import type { BoqStructure } from '../lib/boq-types'
 
 /**
- * useBoqLive — live, memoized BoqStructure derive over the eight Zustand
+ * useBoqLive — live, memoized BoqStructure derive over the nine Zustand
  * primitives that aggregateBoq() reads.
  *
  * Each store slice is a top-level primitive selector — never `(s) => s` —
- * so React only re-runs this component when one of those eight references
+ * so React only re-runs this component when one of those nine references
  * changes (Object.is). The aggregator is pure and synchronous; useMemo
- * captures the result with the same eight values as its dependency list,
+ * captures the result with the same nine values as its dependency list,
  * so a new BoqStructure is computed exactly when (and only when) any
  * input would have caused a different result.
+ *
+ * `rates` (Phase 15) is the per-(name|type) ₱ rate map; it must be BOTH a
+ * top-level selector AND a useMemo dependency so an inline rate edit
+ * recomputes row/category/grand-total cost live, with no other store change.
  *
  * `getColorForName` is intentionally NOT a selector — it's read via
  * `useMarkupStore.getState()` inside the memo so its identity does not
@@ -35,6 +39,7 @@ export function useBoqLive(): BoqStructure {
   const totalPages      = useViewerStore((s) => s.totalPages)
   const fileName        = useViewerStore((s) => s.fileName)
   const currentFilePath = useProjectStore((s) => s.currentFilePath)
+  const rates           = useProjectStore((s) => s.rates)
 
   return useMemo(
     () =>
@@ -47,8 +52,9 @@ export function useBoqLive(): BoqStructure {
         categoryOrder,
         pdfOriginalFilename: fileName ?? 'plan.pdf',
         currentFilePath,
+        rates,
         getColorForName: (n) => useMarkupStore.getState().getColorForName(n)
       }),
-    [pageMarkups, categories, categoryOrder, pageScales, globalUnit, totalPages, fileName, currentFilePath]
+    [pageMarkups, categories, categoryOrder, pageScales, globalUnit, totalPages, fileName, currentFilePath, rates]
   )
 }
