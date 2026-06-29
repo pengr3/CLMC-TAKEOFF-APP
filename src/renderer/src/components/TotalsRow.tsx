@@ -196,14 +196,16 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
     }
     const onStop = (e: Event): void => e.stopPropagation()
     el.addEventListener('input', onCommit)
-    el.addEventListener('change', onCommit)
+    // 'change' intentionally omitted (WR-02): 'input' already fires per keystroke
+    // for live updates, and 'blur' + Enter-'keydown' cover commit-on-leave. A
+    // 'change' listener would re-fire onCommit (a full aggregateBoq) redundantly
+    // on every blur after typing.
     el.addEventListener('blur', onCommit)
     el.addEventListener('keydown', onKeyDown)
     el.addEventListener('click', onStop)
     el.addEventListener('mousedown', onStop)
     return () => {
       el.removeEventListener('input', onCommit)
-      el.removeEventListener('change', onCommit)
       el.removeEventListener('blur', onCommit)
       el.removeEventListener('keydown', onKeyDown)
       el.removeEventListener('click', onStop)
