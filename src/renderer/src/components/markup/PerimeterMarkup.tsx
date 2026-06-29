@@ -3,10 +3,8 @@ import type { PerimeterMarkup as PerimeterMarkupType, Category } from '../../typ
 import type { PageScale } from '../../types/scale'
 import type { StagePoint } from '../../hooks/useCalibrationMode'
 import {
-  polygonArea,
   polygonCentroid,
   polylineLength,
-  pixelAreaToReal,
   pixelLengthToReal
 } from '../../lib/markup-math'
 import { buildArcAwareFlatPoints } from '../../lib/arc-math'
@@ -40,10 +38,14 @@ const STROKE_BASE_PX = 2
 
 /**
  * Perimeter polygon renderer per D-24/D-31/D-34.
- * - Stroke/fill from markup.color (D-29)
- * - Single-line label: "P: 24.6 m  A: 38.2 m²"  (no name, D-24)
+ * - UNFILLED closed outline; stroke from markup.color (D-29). Since Phase 15 the
+ *   perimeter is a length-only measurement, so there is no translucent fill.
+ * - Single-line label: "P: 24.6 m"  (length only, no area, no name — D-24)
  * - Label pure world-anchored with dark chip background
  * - Positioned at centroid
+ *
+ * Length stays arc-aware (Phase 14): the closing-augmented polyline length is
+ * computed over arc-flattened points so curved edges measure correctly.
  *
  * Visibility key: composite `name|categoryId` so that items sharing a name
  * in different categories are hidden/shown independently.
@@ -70,21 +72,20 @@ export function PerimeterMarkup({
   const strokeWidth = STROKE_BASE_PX / currentZoom
 
   // Arc-aware boundary (incl. the closing edge) — matches the arc-corrected
-  // perimeter length + area in the label and BOQ. Live drag preview falls back
-  // to straight chords (the arcs map no longer aligns with the moved points).
+  // perimeter LENGTH in the label and BOQ. Live drag preview falls back to
+  // straight chords (the arcs map no longer aligns with the moved points).
   const effectiveArcs = overridePoints ? undefined : markup.arcs
   const flatPoints = buildArcAwareFlatPoints(effectivePoints, effectiveArcs, true)
   const centroid = polygonCentroid(effectivePoints)
 
   let labelText = ''
   if (pageScale && pageScale.pixelsPerMm > 0) {
-    const pixelArea = polygonArea(effectivePoints, effectiveArcs)
+    // Arc-aware closing-augmented perimeter length (Phase 14 — do not regress).
     const closedPoints = [...effectivePoints, effectivePoints[0]]
     const pixelPerim = polylineLength(closedPoints, effectiveArcs)
     const realPerim = pixelLengthToReal(pixelPerim, pageScale.pixelsPerMm, pageScale.displayUnit)
-    const realArea = pixelAreaToReal(pixelArea, pageScale.pixelsPerMm, pageScale.displayUnit)
     const u = pageScale.displayUnit
-    labelText = `P: ${realPerim.toFixed(1)} ${u}  A: ${realArea.toFixed(1)} ${u}²`
+    labelText = `P: ${realPerim.toFixed(1)} ${u}`
   }
 
   const textWidth = labelText.length * LABEL_FONT_WORLD * CHAR_ADVANCE_RATIO
@@ -115,7 +116,6 @@ export function PerimeterMarkup({
         closed
         stroke={markup.color}
         strokeWidth={strokeWidth}
-        fill={`${markup.color}33`}
         lineJoin="round"
       />
       {labelText && (

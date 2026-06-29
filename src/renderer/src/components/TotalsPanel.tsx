@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { COLORS } from '../lib/constants'
+import { CURRENCY_SYMBOL } from '../lib/currency'
 import { useBoqLive } from '../hooks/useBoqLive'
 import { useViewerStore } from '../stores/viewerStore'
 import { useMarkupStore } from '../stores/markupStore'
@@ -260,6 +261,35 @@ export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
               onArmTool={onArmTool}
             />
           ))}
+        </div>
+      )}
+
+      {/* Pinned grand-total ₱ cost bar (Phase 15) — Σ all category costSubtotals.
+          Reads boq.grandTotalCost directly (aggregator-computed). Matches the
+          Totals header chrome (secondary bg, 600 weight, top border). Shown once
+          a PDF is open; suppressed in the pure no-project state to avoid a stray
+          ₱0.00. */}
+      {totalPages > 0 && (
+        <div
+          data-testid="totals-grand-total"
+          style={{
+            height: 32,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 16px',
+            borderTop: `1px solid ${COLORS.border}`,
+            background: COLORS.secondary,
+            fontSize: 13,
+            fontWeight: 600,
+            color: COLORS.textPrimary,
+            flexShrink: 0
+          }}
+        >
+          <span>Grand Total:</span>
+          <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+            {`${CURRENCY_SYMBOL}${(Number.isFinite(boq.grandTotalCost) ? boq.grandTotalCost : 0).toFixed(2)}`}
+          </span>
         </div>
       )}
 

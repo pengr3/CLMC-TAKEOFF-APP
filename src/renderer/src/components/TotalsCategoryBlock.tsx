@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type React from 'react'
 import { COLORS } from '../lib/constants'
+import { CURRENCY_SYMBOL } from '../lib/currency'
 import { useUiPanels } from '../hooks/useUiPanels'
 import { TotalsRow, labelToName, rowTypeToMarkupType } from './TotalsRow'
 import type { BoqCategoryGroup, BoqItemRow } from '../lib/boq-types'
@@ -22,8 +23,8 @@ import type { Markup } from '../types/markup'
  * Match resolution: `pageMarkups` is the current page's markup list. For each
  * row we filter to markups whose `name` matches the row's name-portion of the
  * label, whose `categoryId` matches the row's categoryId (name-collision fix),
- * and whose `type` matches the row's underlying markup type
- * (perimeter-length / perimeter-area both map to underlying 'perimeter').
+ * and whose `type` matches the row's underlying markup type (since Phase 15 the
+ * perimeter row type equals the underlying 'perimeter' markup type — one row).
  * Filtering on the parent side keeps TotalsRow ignorant of stores.
  */
 export interface TotalsCategoryBlockProps {
@@ -40,11 +41,6 @@ export interface TotalsCategoryBlockProps {
   /** Phase 7.1: arms the matching markup tool with item name/category/color. */
   onArmTool?: (item: BoqItemRow, categoryName: string) => void
 }
-
-/**
- * Map a BoqRowType (which carries both perimeter-length and perimeter-area)
- * back to the concrete underlying Markup.type used by the canvas store.
- */
 
 export function TotalsCategoryBlock(props: TotalsCategoryBlockProps): React.JSX.Element {
   const { category, pageMarkups, cycleIndexByKey, onRowHover, onRowClick, onRowContextMenu, onTriggerPulse, onArmTool } = props
@@ -132,6 +128,33 @@ export function TotalsCategoryBlock(props: TotalsCategoryBlockProps): React.JSX.
             )
           })}
 
+          {/* Per-category ₱ cost subtotal (Phase 15) — Σ row costs, unit-agnostic.
+              Reads category.costSubtotal directly (aggregator-computed). Bold
+              secondary row mirroring the heading chrome; right-aligned ₱ value
+              (tabular-nums) so it lines up under the per-row cost column. */}
+          <div
+            data-testid="totals-category-cost-subtotal"
+            style={{
+              height: 28,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              padding: '0 16px',
+              fontSize: 13,
+              fontWeight: 600,
+              color: COLORS.textPrimary,
+              flexShrink: 0
+            }}
+          >
+            <span
+              style={{
+                fontVariantNumeric: 'tabular-nums',
+                textAlign: 'right'
+              }}
+            >
+              {`${CURRENCY_SYMBOL}${(Number.isFinite(category.costSubtotal) ? category.costSubtotal : 0).toFixed(2)}`}
+            </span>
+          </div>
         </>
       )}
     </div>
