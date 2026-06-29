@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: Milestone complete
 stopped_at: Completed 14-03-PLAN.md (snap pointer-pipeline wiring + controls)
-last_updated: "2026-06-29T04:03:43.908Z"
+last_updated: "2026-06-29T04:18:42.659Z"
 last_activity: 2026-06-29
 progress:
   total_phases: 19
   completed_phases: 17
   total_plans: 97
-  completed_plans: 94
+  completed_plans: 95
   percent: 89
 ---
 
@@ -33,14 +33,14 @@ progress:
 ## Current Position
 
 Phase: 14 (markup-geometry-precision) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
 | Phases complete | 13 / 13 |
-| Plans complete | 77 |
+| Plans complete | 81 |
 | Requirements delivered | 25 / 25 |
 | Session count | 8 |
 
@@ -77,6 +77,7 @@ Plan: 4 of 6
 | Phase 14 P01 | 6min | 3 tasks (all TDD RED+GREEN) | 5 files |
 | Phase 14 P02 | 5min | 2 tasks (both TDD RED+GREEN) | 4 files |
 | Phase 14 P03 | 13min | 3 tasks | 6 files |
+| Phase 14 P04 | 12min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -172,6 +173,9 @@ Plan: 4 of 6
 | snapEnabled/snapSuspended read via useViewerStore.getState() inside resolveSnapAt, NOT subscribed in CanvasViewport (14-03, D-03) | Subscribing produced TS6133 unused-var errors and would widen pointer-callback deps; getState() reads keep deps narrow (mirrors the liveZoom getState idiom). StatusBar is the only subscriber — it needs re-render on flag change for the ON/held-off/OFF pill |
 | resolveSnapAt(pt, exclude) is the single snap entry point for placement, vertex-drag, body-drag, AND the committed click (14-03, D-05/D-07) | One helper does gate-check → resolveSnap → publish glyph → return overridden page-point. Applying it to recordMarkupClick (not just the preview) guarantees the placed vertex matches the □/△ glyph; D-07 exclusion passed per-branch (start-vertex-only sentinel for placement, blockVertexIndex for vertex-drag, whole-markup for body-drag) |
 | snapEnabled/snapSuspended are runtime-only viewerStore state, never serialized to .clmc (14-03, T-14-03-02) | project-serialize.ts reads explicit fields only (currentPage, per-page viewport) — the snap flags are absent from the serialize path, so snapping is a session/workstation preference that never persists into the project file |
+| 3-click arc gesture via dedicated recordArcClick (14-04, D-01) | An arc edge consumes ONE extra click (start / on-arc / end) vs a straight edge; arcOnArc===null is the phase signal the viewport reads to suppress snapping on the on-arc (free) click and to mount/unmount ArcPreview. recordArcClick is a separate entry point so the straight-drawing path stays byte-for-byte unchanged (chain-mode/pop-last-point pass). On END click: append vertex + write arcs[startVertexIndex]={midX,midY}; commitShape attaches arcs only when ≥1 arc edge drawn |
+| Arc-mode keys: bare A = one-off hold, Shift+A = sticky toggle (14-04, D-02) | bare A makes the next edge an arc then auto-reverts; Shift+A keeps a run on until toggled off (preserved across chained commits). Both isTextInputActive-guarded + window-blur safety net; bridged to useMarkupTool React state via markup-arc-ref.ts (arc flags are NOT in a store). No collision: Ctrl+A=select-all, F3=snap. Affordance = ARC_CROSSHAIR_CURSOR (crosshair + accent arc tick) since StatusBar is propless |
+| ArcPreview samples solveCircle as a 64-segment dashed Line, never a Konva Arc (14-04, T-14-04-01) | One render path serves curved + collinear; the collinear branch degrades to a straight 2-point dashed Line so a degenerate/non-finite input can never produce a NaN-radius Arc. Re-solves every mousemove; listening=false; stroke = pending markup color; zoom-compensated |
 
 ### Critical Pitfalls to Watch
 
@@ -227,9 +231,9 @@ None.
 
 **Last session:** 2026-06-29T04:03:43.889Z
 
-**Stopped at:** Completed 14-03-PLAN.md (snap pointer-pipeline wiring + controls)
+**Stopped at:** Completed 14-04-PLAN.md (curved-edge DRAWING — 3-click arc gesture + arc-mode controls + ArcPreview)
 
-**Next action:** None — milestone is complete. Consider `/gsd-new-milestone` for v1.2 planning.
+**Next action:** Execute 14-05 (self-intersection commit guard D-09 + the 4 deferred markupStore reshape-arc wiring errors) and/or the bulge-handle edit gesture (D-08). Drawing now populates markup.arcs so those plans have real arc data.
 
 **Note:** Phase 11 (Scale Ratio Input) scrapped — replaced by quick task `260520-rrf` (commit `4156dee`). Phase 13 = v1.1 Phase C from `.planning/phases/v1.1-planning/v1.1-CONTEXT.md` (D-10/D-11/D-12 plus new D-13–D-26 added during planning).
 

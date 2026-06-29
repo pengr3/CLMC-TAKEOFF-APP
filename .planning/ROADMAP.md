@@ -537,7 +537,7 @@ Plans:
   4. Reported length uses true arc length and reported area applies the circular-segment correction with the correct sign for both outward and inward bulges (matching the validated math); straight-only values are no longer reported for curved edges
   5. Committing an area/perimeter markup whose boundary self-intersects is detected and warned (rather than reporting a wrong quantity); arc geometry round-trips through save/reload and BOQ export intact
 
-**Plans:** 3/6 plans executed
+**Plans:** 4/6 plans executed
 
 Plans:
 **Wave 1**
@@ -551,7 +551,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 14-04-PLAN.md — Arc drawing: 3-click gesture + ArcPreview + hold-A/sticky arc mode (Wave 3)
+- [x] 14-04-PLAN.md — Arc drawing: 3-click gesture + ArcPreview + hold-A/sticky arc mode (Wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
