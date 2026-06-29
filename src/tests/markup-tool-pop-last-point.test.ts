@@ -181,6 +181,30 @@ describe('useMarkupTool.popLastPoint (mid-draw Ctrl+Z)', () => {
     unmount()
   })
 
+  it('clears an in-flight arcOnArc when popping mid arc-edge (WR-05)', () => {
+    const probe: Probe = { current: null }
+    const { unmount } = mount(probe)
+    act(() => {
+      probe.current!.activate('linear')
+      // Two committed vertices, then the SECOND arc click captures the on-arc
+      // shaping point (end click still pending).
+      probe.current!.recordClick({ x: 0, y: 0 })
+      probe.current!.recordClick({ x: 100, y: 0 })
+      probe.current!.recordArcClick({ x: 50, y: 30 }) // on-arc capture
+    })
+    expect(probe.current!.state.arcOnArc).not.toBeNull()
+    expect(probe.current!.state.points).toHaveLength(2)
+
+    act(() => {
+      expect(probe.current!.popLastPoint()).toBe(true)
+    })
+    // The pending arc capture must be cancelled so the next click is not
+    // misread as an arc end-click against a shifted start index.
+    expect(probe.current!.state.arcOnArc).toBeNull()
+    expect(probe.current!.state.points).toHaveLength(1)
+    unmount()
+  })
+
   it('does NOT touch committed markups when popping in-progress vertices', () => {
     // Seed a committed count pin so the undo stack is non-empty
     const store = useMarkupStore.getState()

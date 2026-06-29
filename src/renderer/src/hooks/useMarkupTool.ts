@@ -561,6 +561,11 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
         ...prev,
         points: prev.points.slice(0, -1),
         previewPoint: null,
+        // WR-05: cancel any in-flight arc capture. If the user is mid arc-edge
+        // (on-arc point captured, end click pending) and pops a prior vertex, a
+        // stale arcOnArc would make the next click resolve as the arc end-click
+        // against a shifted start index → arc attached to the wrong edge.
+        arcOnArc: null,
         redoPoints: [popped, ...prev.redoPoints]   // push front → LIFO repush
       }
     })
