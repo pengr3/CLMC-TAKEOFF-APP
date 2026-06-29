@@ -31,6 +31,31 @@ export interface MarkupDrawState {
   pendingWallHeight: number
   /** Points popped by Ctrl+Z during an in-progress draw; cleared on new recordClick */
   redoPoints: StagePoint[]
+  // ── Arc-edge drawing (Phase 14, D-01/D-02) ──────────────────────────────
+  /**
+   * Sticky arc-mode toggle. When 'sticky', every new edge is captured as an arc
+   * (3-click gesture) until toggled back to 'off'. Default 'off' → straight.
+   */
+  arcMode: 'off' | 'sticky'
+  /**
+   * Transient one-off arc flag (hold-A). When true, the NEXT edge is an arc then
+   * arcMode reverts to straight after it commits. OR'd with arcMode==='sticky'
+   * to decide whether the current edge is an arc.
+   */
+  arcHeld: boolean
+  /**
+   * The on-arc shaping point captured by the SECOND click of an arc edge (the
+   * point the curve must pass through). Non-null only between the on-arc click
+   * and the end click — i.e. while an arc edge is mid-capture. The viewport
+   * reads this to render the live ArcPreview and to know an arc is in flight.
+   */
+  arcOnArc: StagePoint | null
+  /**
+   * Accumulated per-edge arc metadata for the in-progress markup, keyed by the
+   * arc edge's START-vertex index (matching the 14-01 arcs map contract).
+   * Carried into commitShape so the committed markup measures as true arcs.
+   */
+  arcs: Record<number, { midX: number; midY: number }>
 }
 
 const INITIAL_STATE: MarkupDrawState = {
@@ -46,7 +71,11 @@ const INITIAL_STATE: MarkupDrawState = {
   errorToast: null,
   chainArmed: false,
   pendingWallHeight: 2400,
-  redoPoints: []
+  redoPoints: [],
+  arcMode: 'off',
+  arcHeld: false,
+  arcOnArc: null,
+  arcs: {}
 }
 
 function screenToStagePoint(stage: Konva.Stage, sx: number, sy: number): StagePoint {
@@ -70,6 +99,22 @@ export interface UseMarkupToolReturn {
   activate: (tool: 'count' | 'linear' | 'area' | 'perimeter' | 'wall') => void
   cancel: () => void
   recordClick: (screenPos: { x: number; y: number }) => void
+  /**
+   * Feed a click into the arc-edge 3-click gesture (D-01). The START point is
+   * the last committed vertex (or the very first click, placed as a plain
+   * vertex). This handles the SECOND click (on-arc shaping point) and the THIRD
+   * click (end vertex):
+   *  - if no on-arc point is captured yet → capture it (arcOnArc), place nothing;
+   *  - if an on-arc point IS captured → append the END vertex to points AND
+   *    write arcs[startVertexIndex] = { midX, midY } from the captured on-arc
+   *    point, then clear arcOnArc. If arcHeld (one-off) revert arcMode→off.
+   * Returns the phase so the caller can decide preview vs placement behavior.
+   */
+  recordArcClick: (screenPos: { x: number; y: number }) => void
+  /** Set the transient one-off (hold-A) arc flag. */
+  setArcHeld: (held: boolean) => void
+  /** Toggle the sticky arc-mode run between 'off' and 'sticky'. */
+  toggleArcSticky: () => void
   updatePreview: (screenPos: { x: number; y: number }) => void
   finishLinear: () => void
   finishPolygon: () => void
@@ -261,6 +306,95 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     [stageRef]
   )
 
+  const recordArcClick = useCallback(
+    (screenPos: { x: number; y: number }) => {
+      const stage = stageRef.current
+      if (!stage) return
+      const stagePoint = screenToStagePoint(stage, screenPos.x, screenPos.y)
+
+      setState((prev) => {
+        // Arc edges only apply to the multi-point line/polygon tools while drawing.
+        if (
+          prev.mode !== 'drawing' ||
+          (prev.toolType !== 'linear' &&
+            prev.toolType !== 'area' &&
+            prev.toolType !== 'perimeter' &&
+            prev.toolType !== 'wall')
+        ) {
+          return prev
+        }
+
+        // No start vertex yet → this click is the START vertex; place it like a
+        // plain vertex. The arc gesture proper begins from the next click.
+        if (prev.points.length === 0) {
+          return {
+            ...prev,
+            points: [stagePoint],
+            previewPoint: null,
+            arcOnArc: null,
+            pendingPage: prev.pendingPage ?? useViewerStore.getState().currentPage,
+            redoPoints: []
+          }
+        }
+
+        // Mid-edge: no on-arc point captured yet → this is the SECOND (on-arc)
+        // click. Capture the shaping point; place no vertex.
+        if (prev.arcOnArc === null) {
+          return { ...prev, arcOnArc: stagePoint, previewPoint: null }
+        }
+
+        // On-arc point already captured → this is the THIRD (end) click.
+        // De-duplicate against the start vertex of this edge (an end click on
+        // top of the start would be degenerate).
+        const startIndex = prev.points.length - 1
+        const startVertex = prev.points[startIndex]
+        if (
+          startVertex &&
+          distanceSquared(startVertex, stagePoint) <
+            DUPLICATE_POINT_EPSILON * DUPLICATE_POINT_EPSILON
+        ) {
+          // Ignore a degenerate end click; keep the on-arc point for a retry.
+          return prev
+        }
+
+        // Append the END vertex and record the on-arc midpoint keyed by the
+        // edge's start-vertex index (14-01 arcs contract).
+        const nextArcs = {
+          ...prev.arcs,
+          [startIndex]: { midX: prev.arcOnArc.x, midY: prev.arcOnArc.y }
+        }
+
+        // One-off (held) arc reverts to straight after this edge; sticky stays.
+        const nextArcMode = prev.arcHeld ? 'off' : prev.arcMode
+
+        return {
+          ...prev,
+          points: [...prev.points, stagePoint],
+          arcs: nextArcs,
+          arcOnArc: null,
+          arcHeld: false,
+          arcMode: nextArcMode,
+          previewPoint: null,
+          pendingPage: prev.pendingPage ?? useViewerStore.getState().currentPage,
+          redoPoints: []
+        }
+      })
+      lastClickTimeRef.current = Date.now()
+    },
+    [stageRef]
+  )
+
+  const setArcHeld = useCallback((held: boolean) => {
+    setState((prev) => (prev.arcHeld === held ? prev : { ...prev, arcHeld: held }))
+  }, [])
+
+  const toggleArcSticky = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      arcMode: prev.arcMode === 'sticky' ? 'off' : 'sticky'
+    }))
+  }, [])
+
   const updatePreview = useCallback(
     (screenPos: { x: number; y: number }) => {
       setState((prev) => {
@@ -348,15 +482,23 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     const name = payload.name
     const color = payload.color
 
+    // Phase 14 (D-01): carry any accumulated per-edge arc metadata onto the
+    // committed markup so 14-01's arc-aware measurement reports true arc
+    // length/area. Only attach when at least one arc edge was drawn — a
+    // straight-only shape leaves `arcs` absent (matching the optional-field
+    // contract; absent key ⟺ straight edge).
+    const hasArcs = Object.keys(prev.arcs).length > 0
+    const arcsField = hasArcs ? { arcs: { ...prev.arcs } } : {}
+
     let newMarkup: LinearMarkup | AreaMarkup | PerimeterMarkup | WallMarkup | null = null
     if (prev.toolType === 'linear') {
-      newMarkup = { id, type: 'linear', page, name, categoryId: category.id, color, createdAt, points: prev.points }
+      newMarkup = { id, type: 'linear', page, name, categoryId: category.id, color, createdAt, points: prev.points, ...arcsField }
     } else if (prev.toolType === 'area') {
-      newMarkup = { id, type: 'area', page, name, categoryId: category.id, color, createdAt, points: prev.points }
+      newMarkup = { id, type: 'area', page, name, categoryId: category.id, color, createdAt, points: prev.points, ...arcsField }
     } else if (prev.toolType === 'perimeter') {
-      newMarkup = { id, type: 'perimeter', page, name, categoryId: category.id, color, createdAt, points: prev.points }
+      newMarkup = { id, type: 'perimeter', page, name, categoryId: category.id, color, createdAt, points: prev.points, ...arcsField }
     } else if (prev.toolType === 'wall') {
-      newMarkup = { id, type: 'wall', page, name, categoryId: category.id, color, createdAt, points: prev.points, wallHeight: payload.wallHeight ?? prev.pendingWallHeight }
+      newMarkup = { id, type: 'wall', page, name, categoryId: category.id, color, createdAt, points: prev.points, wallHeight: payload.wallHeight ?? prev.pendingWallHeight, ...arcsField }
     }
     if (!newMarkup) return
 
@@ -382,7 +524,11 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
       pendingCategoryName: payload.categoryName,
       pendingColor: payload.color,
       pendingWallHeight: payload.wallHeight ?? prev.pendingWallHeight,
-      chainArmed: reopenSnapshot ? false : true
+      chainArmed: reopenSnapshot ? false : true,
+      // Preserve the sticky arc-mode run across a chained commit (D-02). A
+      // one-off (held) arc has already reverted arcMode to 'off' at edge commit,
+      // so this only keeps a genuinely sticky run alive into the next shape.
+      arcMode: prev.arcMode
     })
   }, [])
 
@@ -473,6 +619,9 @@ export function useMarkupTool(stageRef: RefObject<Konva.Stage | null>): UseMarku
     activatePreset,
     cancel,
     recordClick,
+    recordArcClick,
+    setArcHeld,
+    toggleArcSticky,
     updatePreview,
     finishLinear,
     finishPolygon,
