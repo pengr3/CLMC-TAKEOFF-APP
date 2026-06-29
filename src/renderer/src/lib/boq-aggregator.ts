@@ -34,14 +34,15 @@ function stripExt(s: string): string {
 
 function uomFor(t: BoqRowType, globalUnit: string): string {
   if (t === 'count') return 'ea'
-  if (t === 'linear' || t === 'perimeter-length') return globalUnit
+  if (t === 'linear' || t === 'perimeter') return globalUnit
   if (t === 'wall') return 'm²' // D-12: walls always produce m² regardless of project globalUnit
   return globalUnit + '²' // U+00B2 SUPERSCRIPT TWO — 'm²', 'ft²', etc.
 }
 
-function nonPerimeterTypeWord(t: BoqRowType): 'count' | 'linear' | 'area' {
+function typeWord(t: BoqRowType): 'count' | 'linear' | 'area' | 'perimeter' {
   if (t === 'count') return 'count'
   if (t === 'linear') return 'linear'
+  if (t === 'perimeter') return 'perimeter'
   return 'area' // only 'area' reaches this branch given the caller's type set
 }
 
@@ -88,6 +89,9 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
   const categoryOrder = opts.categoryOrder ?? useMarkupStore.getState().categoryOrder
   const getColorForName =
     opts.getColorForName ?? ((n: string): string | null => useMarkupStore.getState().getColorForName(n))
+  // Phase 15: per-(name|type) ₱ rate map. An injected map wins; otherwise read the
+  // project store (the persisted, category-INDEPENDENT rates). cost = rate × quantity.
+  const rates = opts.rates ?? useProjectStore.getState().rates
 
   // 1. First pass: bucket by (categoryId, name|type) — sums quantities,
   //    captures color from getColorForName once per (cat, name, type) pair.
@@ -141,22 +145,19 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
         const real = pixelAreaToReal(pxA, scale.pixelsPerMm, globalUnit)
         add(catId, m.name, 'area', real)
       } else if (m.type === 'perimeter') {
+        // Phase 15: perimeter is LENGTH-ONLY — one row, no area synthesis.
         // Perimeter LENGTH must include the closing segment to match the
         // PerimeterMarkup label (STATE.md decision: PerimeterMarkup appends
         // points[0] to polylineLength input).
         // Arc-aware: the closing edge n-1→0 keys on index n-1 (14-01 contract);
         // in the closing-augmented array the closing edge IS index n-1
         // (pts[n-1]→pts[n]=pts[0]), so m.arcs maps onto closingPts directly.
+        // (Phase-14 arc behavior MUST NOT regress — do not touch this length path.)
         const pts = (m as PerimeterMarkup).points
         const closingPts = [...pts, pts[0]]
         const pxL = polylineLength(closingPts, m.arcs)
         const realL = pixelLengthToReal(pxL, scale.pixelsPerMm, globalUnit)
-        add(catId, m.name, 'perimeter-length', realL)
-        // Perimeter AREA uses the original closed polygon (NOT the closing-augmented
-        // points); polygonArea keys the closing edge on n-1 internally.
-        const pxA = polygonArea(pts, m.arcs)
-        const realA = pixelAreaToReal(pxA, scale.pixelsPerMm, globalUnit)
-        add(catId, m.name, 'perimeter-area', realA)
+        add(catId, m.name, 'perimeter', realL)
       } else if (m.type === 'wall') {
         // scale === null already filtered upstream (if (scale === null) continue above)
         const wallM = m as WallMarkup
@@ -179,6 +180,8 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
 
   const categories: BoqCategoryGroup[] = []
   const grandByUom = new Map<string, number>()
+  // Phase 15: project-wide ₱ cost accumulator (unit-agnostic single number).
+  let grandCost = 0
 
   for (const catKey of orderedCatKeys) {
     const bucket = buckets.get(catKey)!
@@ -186,38 +189,40 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
     // The categoryId for this group — null for uncategorized.
     const groupCategoryId: string | null = catKey === UNCAT_BUCKET_KEY ? null : catKey
 
-    // 2a. Per-name collision detection (excluding perimeter — D-02)
-    const nameNonPerimTypes = new Map<string, Set<BoqRowType>>()
+    // 2a. Per-name collision detection (Phase 15: perimeter is a first-class member —
+    //     no longer excluded from the D-02 collision set).
+    const nameTypes = new Map<string, Set<BoqRowType>>()
     for (const k of bucket.keys()) {
       const [name, type] = k.split('|') as [string, BoqRowType]
-      if (type === 'perimeter-length' || type === 'perimeter-area') continue
-      let s = nameNonPerimTypes.get(name)
+      let s = nameTypes.get(name)
       if (!s) {
         s = new Set()
-        nameNonPerimTypes.set(name, s)
+        nameTypes.set(name, s)
       }
       s.add(type)
     }
 
-    // 2b. Build item rows with D-02 label rules
+    // 2b. Build item rows with the unified D-02 label rule (Phase 15: perimeter
+    //     follows the same collision-suffix logic as count/linear/area — plain
+    //     {name}, gaining {name} ({typeWord}) only when ≥2 types collide on a name).
     const items: BoqItemRow[] = []
     for (const [k, acc] of bucket.entries()) {
       const [name, type] = k.split('|') as [string, BoqRowType]
       let label = name
-      if (type === 'perimeter-length') {
-        label = `${name} (perimeter)`
-      } else if (type === 'perimeter-area') {
-        label = `${name} (area)`
-      } else {
-        const nonPerimSet = nameNonPerimTypes.get(name)
-        if (nonPerimSet && nonPerimSet.size >= 2) {
-          label = `${name} (${nonPerimeterTypeWord(type)})`
-        }
+      const typeSet = nameTypes.get(name)
+      if (typeSet && typeSet.size >= 2) {
+        label = `${name} (${typeWord(type)})`
       }
+      // Phase 15: rate keyed by `${name}|${type}` (same shape as the bucket key,
+      // category-INDEPENDENT). Missing key → 0; cost = rate × quantity.
+      const rate = rates[`${name}|${type}`] ?? 0
+      const cost = rate * acc.quantity
       items.push({
         label,
         quantity: acc.quantity,
         uom: uomFor(type, globalUnit),
+        rate,
+        cost,
         color: acc.color,
         type,
         categoryId: groupCategoryId
@@ -227,12 +232,16 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
     // 2c. Alphabetical sort by post-suffix label (Claude's discretion confirmed)
     items.sort((a, b) => a.label.localeCompare(b.label))
 
-    // 2d. Subtotals — one per distinct UoM (D-12, Q3)
+    // 2d. Subtotals — one per distinct UoM (D-12, Q3) + a single ₱ cost subtotal
+    //     (Phase 15: cost is unit-agnostic, so one number per category, not per UoM).
     const byUom = new Map<string, number>()
+    let catCost = 0
     for (const it of items) {
       byUom.set(it.uom, (byUom.get(it.uom) ?? 0) + it.quantity)
       grandByUom.set(it.uom, (grandByUom.get(it.uom) ?? 0) + it.quantity)
+      catCost += it.cost
     }
+    grandCost += catCost
     const subtotals: BoqSubtotal[] = Array.from(byUom.entries()).map(([uom, total]) => ({
       uom,
       total
@@ -242,7 +251,7 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
       catKey === UNCAT_BUCKET_KEY
         ? UNCATEGORIZED_LABEL
         : (categoriesById[catKey]?.name ?? UNCATEGORIZED_LABEL)
-    categories.push({ name: catName, items, subtotals })
+    categories.push({ name: catName, items, subtotals, costSubtotal: catCost })
   }
 
   // 3. Metadata (D-09)
@@ -271,5 +280,5 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
     total
   }))
 
-  return { metadata, categories, grandTotals }
+  return { metadata, categories, grandTotals, grandTotalCost: grandCost }
 }
