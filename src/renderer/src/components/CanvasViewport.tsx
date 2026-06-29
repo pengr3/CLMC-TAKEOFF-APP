@@ -38,8 +38,11 @@ import {
   polylineLength,
   polygonArea,
   pixelLengthToReal,
-  pixelAreaToReal
+  pixelAreaToReal,
+  polygonCentroid
 } from '../lib/markup-math'
+import { findSelfIntersection } from '../lib/self-intersection'
+import { BlockedCommitMessage } from './BlockedCommitMessage'
 import { isMarkupTool } from '../types/viewer'
 import type { ScaleUnit } from '../types/scale'
 import type { Markup, CountMarkup, LinearMarkup as LinearMarkupType, AreaMarkup as AreaMarkupType, PerimeterMarkup as PerimeterMarkupType, WallMarkup as WallMarkupType } from '../types/markup'
@@ -65,6 +68,12 @@ type RubberBandState = { startX: number; startY: number; endX: number; endY: num
 // "COLORS tokens only / no raw hex" rule — opacity variants of accent are not
 // part of the COLORS palette, and a named constant makes the intent obvious.
 const RUBBER_BAND_FILL = 'rgba(0,120,212,0.1)'
+
+// Phase 14 (14-05 D-09): problem red for the self-intersection crossing highlight
+// and the blocked-commit message lead. Reuses MARKUP_PALETTE[0] red-600 (UI-SPEC
+// Color §). Named constant so the literal does not violate the "COLORS tokens
+// only" rule — this red is the palette's problem color, not part of COLORS.
+const PROBLEM_RED = '#dc2626'
 
 // PIN_RADIUS_WORLD mirrors CountPinMarkup.tsx:25 and HoverRing.tsx:21 — pins
 // are world-anchored at radius 10 stage-units, so a count markup's axis-
@@ -566,6 +575,17 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     setBulgePreviewState(val)
   }, [])
 
+  // Phase 14 (14-05 D-09): blocked self-intersection commit state. When an
+  // area/perimeter commit is refused (its closed boundary self-crosses), this
+  // holds the two offending edge indices (for the red highlight on the transient
+  // layer) and the screen-space anchor for the BlockedCommitMessage. Cleared when
+  // the user resolves the crossing and re-commits, or on cancel/Esc/page-change.
+  const [blockedCommit, setBlockedCommit] = useState<{
+    edgeI: number
+    edgeJ: number
+    anchor: { x: number; y: number }
+  } | null>(null)
+
   // Phase 12: snapshot of points when vertex edit mode was entered.
   // Used by cancelVertexEdit() to restore on Escape (RESEARCH Finding 9).
   // Set ONCE at session start in handleMarkupClick; never updated mid-session.
@@ -783,6 +803,49 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     vertexEditOriginalRef.current = null
   }, [clearVertexEdit, setDragPreview])
 
+  // Phase 14 (14-05 D-09): self-intersection commit GUARD for area/perimeter.
+  // Runs findSelfIntersection on the CLOSED boundary BEFORE finishing. If the
+  // boundary self-crosses, the commit is BLOCKED — finishPolygon is NOT called,
+  // the markup stays in drawing mode, the offending edges are flagged red, and the
+  // blocked-commit message is anchored at the boundary centroid. Returns true when
+  // the commit was blocked (so callers skip their own finish side effects). Linear
+  // and wall markups are open shapes and are NOT guarded (D-09 scope). Defined
+  // BEFORE the Enter/Escape keydown effect so the effect's dep array can reference
+  // it without a temporal-dead-zone error.
+  const tryFinishPolygon = useCallback((): boolean => {
+    const pts = markupState.points
+    if (pts.length < 3) {
+      // Defer to finishPolygon's own degenerate-shape error path.
+      finishPolygon()
+      return false
+    }
+    const crossing = findSelfIntersection(pts)
+    if (crossing) {
+      const stage = stageRef.current
+      const centroid = polygonCentroid(pts)
+      let anchor = { x: 0, y: 0 }
+      if (stage) {
+        const screen = stage.getAbsoluteTransform().copy().point(centroid)
+        anchor = { x: screen.x, y: screen.y + 20 }
+      }
+      setBlockedCommit({ edgeI: crossing.i, edgeJ: crossing.j, anchor })
+      return true // BLOCKED — stay in drawing mode, no finishPolygon
+    }
+    // Boundary is simple — clear any prior block and finish normally.
+    setBlockedCommit(null)
+    finishPolygon()
+    return false
+  }, [markupState.points, finishPolygon, stageRef])
+
+  // Phase 14 (14-05 D-09): clear the blocked-commit highlight + message whenever
+  // the in-progress boundary changes (a vertex was added/popped/dragged) or the
+  // draw flow leaves 'drawing' mode (commit succeeded / cancelled). The estimator
+  // edits the shape to remove the crossing, then re-commits; the next commit
+  // re-runs findSelfIntersection. Keyed on points (count + identity) and mode.
+  useEffect(() => {
+    setBlockedCommit(null)
+  }, [markupState.points, markupState.mode])
+
   // Confirmation toast state
   const [toast, setToast] = useState<{ ratioText: string } | null>(null)
 
@@ -915,7 +978,9 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         if (markupState.toolType === 'area' || markupState.toolType === 'perimeter') {
           if (markupState.points.length >= 3) {
             e.preventDefault()
-            finishPolygon()
+            // Phase 14 (14-05 D-09): guard the Enter-commit — block a self-
+            // intersecting boundary (stays in drawing mode + red highlight).
+            tryFinishPolygon()
           }
           // else: silent ignore per D-26 (degenerate shape)
         }
@@ -930,7 +995,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     cancelMarkup,
     clearSelection,
     finishLinear,
-    finishPolygon,
+    tryFinishPolygon,
     cancelVertexEdit,
     commitVertexEdit
   ])
@@ -1136,7 +1201,9 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
           isOverStartPoint &&
           markupState.points.length >= 3
         ) {
-          finishPolygon()
+          // Phase 14 (14-05 D-09): guard the close-the-loop commit — a self-
+          // intersecting boundary is blocked here (stays in drawing mode).
+          tryFinishPolygon()
           setIsOverStartPoint(false)
           return
         }
@@ -1243,7 +1310,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         }
       }
     },
-    [calibState.mode, markupState.mode, markupState.toolType, markupState.points.length, markupState.arcHeld, markupState.arcMode, markupState.arcOnArc, isOverStartPoint, stageRef, recordClick, recordMarkupClick, recordArcClick, finishPolygon, activeTool, clearSelection, commitVertexEdit, resolveSnapAt]
+    [calibState.mode, markupState.mode, markupState.toolType, markupState.points.length, markupState.arcHeld, markupState.arcMode, markupState.arcOnArc, isOverStartPoint, stageRef, recordClick, recordMarkupClick, recordArcClick, tryFinishPolygon, activeTool, clearSelection, commitVertexEdit, resolveSnapAt]
   )
 
   // Plan 09-03: rubber-band drag (D-06).
@@ -1912,6 +1979,37 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     )
   })()
 
+  // Phase 14 (14-05 D-09): red highlight for the offending crossing edge(s) of a
+  // blocked area/perimeter commit. Drawn on a transient listening=false layer at
+  // (markupStroke 2 + 2)/zoom = 4/zoom, problem red. Edge k = points[k]→
+  // points[(k+1)%n] of the in-progress boundary.
+  const blockedHighlightElement = (() => {
+    if (!blockedCommit) return null
+    const pts = markupState.points
+    const n = pts.length
+    if (n < 3) return null
+    const edges = [blockedCommit.edgeI, blockedCommit.edgeJ]
+    return (
+      <Layer listening={false}>
+        {edges.map((k) => {
+          const a = pts[k]
+          const b = pts[(k + 1) % n]
+          if (!a || !b) return null
+          return (
+            <Line
+              key={k}
+              points={[a.x, a.y, b.x, b.y]}
+              stroke={PROBLEM_RED}
+              strokeWidth={(2 + 2) / currentZoom}
+              lineCap="round"
+              listening={false}
+            />
+          )
+        })}
+      </Layer>
+    )
+  })()
+
   return (
     <div
       ref={containerCallbackRef}
@@ -2222,6 +2320,10 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
             arc; amber at the sagitta cap). Transient, listening=false. */}
         {bulgePreviewElement}
 
+        {/* Phase 14 (14-05 D-09): blocked self-intersection crossing highlight
+            (red, (stroke+2)/zoom). Transient, listening=false. */}
+        {blockedHighlightElement}
+
         {/* Phase 6: Layer 2 transient — panel-driven highlights (D-11 HoverRing + D-12 PulseHighlight).
             listening={false} on both the Layer and every shape inside so these overlays NEVER
             steal hover events from the underlying committed-markup Layer 1b shapes.
@@ -2439,6 +2541,16 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         >
           {markupState.errorToast}
         </div>
+      )}
+
+      {/* Phase 14 (14-05 D-09): blocked self-intersection commit message — anchored
+          at the boundary centroid+20px. Parent-owned lifecycle (cleared when the
+          crossing is resolved / re-committed, or on cancel/page-change). */}
+      {blockedCommit && (
+        <BlockedCommitMessage
+          anchor={blockedCommit.anchor}
+          onDismiss={() => setBlockedCommit(null)}
+        />
       )}
 
       {/* Confirmation toast — persistent until user acts, page changes, or new calibration starts */}
