@@ -428,7 +428,7 @@ export function RibbonToolbar({
         active={activeTool === 'perimeter'}
         disabled={setScaleDisabled}
         onClick={() => handleMarkupToolClick('perimeter')}
-        title="Perimeter tool — trace polygons for perimeter + area"
+        title="Perimeter tool — trace a closed outline; measures perimeter length"
       >
         {activeTool === 'perimeter' && getChainArmedItem() !== null && (
           <ChainBadge color={getChainArmedItem()!.color} name={getChainArmedItem()!.name} />

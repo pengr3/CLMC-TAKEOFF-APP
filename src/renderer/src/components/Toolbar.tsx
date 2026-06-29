@@ -429,7 +429,7 @@ export function Toolbar({ onOpenClick, onReplaceClick, onExportClick }: ToolbarP
             active={activeTool === 'perimeter'}
             disabled={setScaleDisabled}
             onClick={() => handleMarkupToolClick('perimeter')}
-            title="Perimeter tool — trace polygons for perimeter + area"
+            title="Perimeter tool — trace a closed outline; measures perimeter length"
           >
             {activeTool === 'perimeter' && getChainArmedItem() !== null && (
               <span style={{
