@@ -13,7 +13,7 @@ type ReadProjectResult =
 // Wire types for Phase 5 BOQ Export — must match boq-writers.ts BoqStructure.
 // Per Q4 (no shared types dir), inline-duplicate. Cross-process structural lock
 // is enforced at compile time by Wave 0 boq-export-ipc.test.ts.
-type BoqRowType = 'count' | 'linear' | 'area' | 'perimeter'
+type BoqRowType = 'count' | 'linear' | 'area' | 'perimeter' | 'wall'
 interface BoqMetadata {
   projectName: string
   planFilename: string
