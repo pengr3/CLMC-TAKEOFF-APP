@@ -187,7 +187,8 @@ export async function buildBoqXlsx(b: BoqStructure): Promise<Buffer> {
     const grandTotalCost = money(b.grandTotalCost)
     const r = ws.addRow(['Grand Total (cost)', null, null, null, grandTotalCost])
     r.font = { bold: true }
-    r.getCell(5).value = grandTotalCost
+    // WR-03: addRow already placed grandTotalCost in cell 5 — only the numFmt
+    // needs setting (the explicit value reassignment was redundant).
     r.getCell(5).numFmt = NUMFMT_PESO
     r.eachCell((c) => {
       c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: GRAND_TOTAL_FILL_ARGB } }
@@ -257,7 +258,8 @@ function appendCostSubtotalRow(ws: ExcelJS.Worksheet, costSubtotal: number): voi
   const value = money(costSubtotal)
   const r = ws.addRow(['Subtotal (cost)', null, null, null, value])
   r.font = { bold: true }
-  r.getCell(5).value = value
+  // WR-03: addRow already placed value in cell 5 — only the numFmt needs
+  // setting (the explicit value reassignment was redundant).
   r.getCell(5).numFmt = NUMFMT_PESO
   r.eachCell((c) => {
     c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: SUBTOTAL_FILL_ARGB } }
