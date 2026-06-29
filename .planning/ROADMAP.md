@@ -542,7 +542,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 14-01-PLAN.md — Foundation: arc metadata on the Markup model + arc-math.ts (3-point solver) + arc-aware markup-math length/area (Wave 1)
+- [x] 14-01-PLAN.md — Foundation: arc metadata on the Markup model + arc-math.ts (3-point solver) + arc-aware markup-math length/area (Wave 1) — additive arcs? field (no formatVersion bump) + reshape-arc command; arc-math.ts matches spike-003/003b to ≤1e-6 (48 tests green); polylineLength/polygonArea arc-aware with winding-independent sign rule
 - [ ] 14-02-PLAN.md — Foundation: snapping-engine.ts grid-hash spatial index + self-intersection.ts detector (Wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*

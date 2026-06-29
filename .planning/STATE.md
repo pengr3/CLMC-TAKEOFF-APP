@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: Milestone complete
 stopped_at: Phase 14 UI-SPEC approved
-last_updated: "2026-06-29T03:27:04.431Z"
+last_updated: "2026-06-29T03:31:22.992Z"
 last_activity: 2026-06-29
 progress:
   total_phases: 19
   completed_phases: 17
   total_plans: 97
-  completed_plans: 91
-  percent: 89
+  completed_plans: 92
+  percent: 90
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Milestone complete — no active phase
+**Current Focus:** Phase 14 — markup-geometry-precision
 
 ---
 
 ## Current Position
 
-Phase: 13
-Plan: Not started
+Phase: 14 (markup-geometry-precision) — EXECUTING
+Plan: 2 of 6
 
 ## Performance Metrics
 
@@ -74,6 +74,7 @@ Plan: Not started
 | Phase 06 P02 | 12min | 2 tasks (Task 1 single feat; Task 2 TDD RED+GREEN) | 4 files |
 | Phase 06 P03 | spans 2 sessions (PC restart between Task 1 GREEN + Task 2 GREEN) | 2 tasks (both TDD RED+GREEN) | 4 files |
 | Phase 06.1 P01 | 15min | 2 tasks | 9 files |
+| Phase 14 P01 | 6min | 3 tasks (all TDD RED+GREEN) | 5 files |
 
 ## Accumulated Context
 
@@ -160,6 +161,9 @@ Plan: Not started
 | move-markups command normalises count pins to oldPoints/newPoints arrays | Uniform undo reducer — count pins become single-element arrays so the same redo/undo branch handles both point-bearing and points-bearing markup types. |
 | VertexHandleOverlay in own Layer above 1b (Phase 12) | Decoupled from markup components; handles are transient UI; layer ordering ensures handles intercept events before markup bodies (RESEARCH.md Pitfall 5). |
 | vertex-edit state in viewerStore (not local ref) | Render-driven — handles mount/unmount based on vertexEditMarkupId; useState-backed is superior to a bare ref when state drives React renders. |
+| arcs?: Record<number,{midX,midY}> additive on Linear/Area/Perimeter/Wall (14-01, D-01/D-08) | Keyed by segment start-vertex index; absent → straight edge; pre-Phase-14 .clmc files load all-straight. No formatVersion bump, no validateV2 change — rides the existing Markup[] cast exactly like wallHeight/hiddenItemNames? |
+| arc-math.ts is the pure 3-point arc oracle; markup-math.ts the only consumer (14-01) | solveCircle (perp-bisector determinant + CCW major/minor sweep) / arcLength=R·sweep / circularSegmentMagnitude=(R²/2)(θ−sinθ); matches spike-003/003b to ≤1e-6; all inputs finite-guarded (NaN/Inf → chord/zero, never throw) per threat model T-14-01-01 |
+| polygonArea arc sign rule: subtract sign(cross)·2·segMag from doubled signed shoelace, abs at end (14-01) | OUTWARD ⟺ sign(cross)≠sign(2·S); winding-independent; correct for both bulge directions. Both arc-aware fns keep their single-arg signature so boq-aggregator + save/load callers compile unchanged |
 
 ### Critical Pitfalls to Watch
 
