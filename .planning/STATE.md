@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Milestone complete
-stopped_at: Phase 14 UI-SPEC approved
-last_updated: "2026-06-29T03:46:10.422Z"
+stopped_at: Completed 14-03-PLAN.md (snap pointer-pipeline wiring + controls)
+last_updated: "2026-06-29T04:03:43.908Z"
 last_activity: 2026-06-29
 progress:
   total_phases: 19
   completed_phases: 17
   total_plans: 97
-  completed_plans: 93
+  completed_plans: 94
   percent: 89
 ---
 
@@ -33,7 +33,7 @@ progress:
 ## Current Position
 
 Phase: 14 (markup-geometry-precision) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 
 ## Performance Metrics
 
@@ -76,6 +76,7 @@ Plan: 3 of 6
 | Phase 06.1 P01 | 15min | 2 tasks | 9 files |
 | Phase 14 P01 | 6min | 3 tasks (all TDD RED+GREEN) | 5 files |
 | Phase 14 P02 | 5min | 2 tasks (both TDD RED+GREEN) | 4 files |
+| Phase 14 P03 | 13min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -168,6 +169,9 @@ Plan: 3 of 6
 | snapping-engine.ts grid hash inserts segments into EVERY cell their cell-padded bbox overlaps, not endpoints only (14-02, spike-002) | A single-cell cursor query is then exhaustive for on-segment hits; endpoint-only silently misses long segments crossing a cell with distant endpoints (44–77 missed hits/2000 in spike). resolveSnap scans 3×3 for vertices, single cell for segments, vertex preferred over segment (D-04 □/△) |
 | resolveSnap excludes the WHOLE in-progress markup from segment-snap; vertex-snap gated by allowVertexIndices/blockVertexIndex (14-02, D-07) | Keeps the close-the-loop affordance (caller passes allowVertexIndices=[0]) while preventing mid-draw self-snapping; blockVertexIndex drops the dragged vertex |
 | findSelfIntersection counts collinear-overlap as a crossing; skips adjacent edges via (i+1)%n / (j+1)%n adjacency test (14-02, spike-003b, D-09) | Closed-boundary O(n²) sign-of-cross test; returns {i,j,point} edge indices feeding the D-09 red highlight directly; non-finite input / <4 points → null, never throws (T-14-02-02) |
+| snapEnabled/snapSuspended read via useViewerStore.getState() inside resolveSnapAt, NOT subscribed in CanvasViewport (14-03, D-03) | Subscribing produced TS6133 unused-var errors and would widen pointer-callback deps; getState() reads keep deps narrow (mirrors the liveZoom getState idiom). StatusBar is the only subscriber — it needs re-render on flag change for the ON/held-off/OFF pill |
+| resolveSnapAt(pt, exclude) is the single snap entry point for placement, vertex-drag, body-drag, AND the committed click (14-03, D-05/D-07) | One helper does gate-check → resolveSnap → publish glyph → return overridden page-point. Applying it to recordMarkupClick (not just the preview) guarantees the placed vertex matches the □/△ glyph; D-07 exclusion passed per-branch (start-vertex-only sentinel for placement, blockVertexIndex for vertex-drag, whole-markup for body-drag) |
+| snapEnabled/snapSuspended are runtime-only viewerStore state, never serialized to .clmc (14-03, T-14-03-02) | project-serialize.ts reads explicit fields only (currentPage, per-page viewport) — the snap flags are absent from the serialize path, so snapping is a session/workstation preference that never persists into the project file |
 
 ### Critical Pitfalls to Watch
 
@@ -221,9 +225,9 @@ None.
 
 **Last activity:** 2026-06-29
 
-**Last session:** 2026-06-29T03:46:10.402Z
+**Last session:** 2026-06-29T04:03:43.889Z
 
-**Stopped at:** Phase 14 UI-SPEC approved
+**Stopped at:** Completed 14-03-PLAN.md (snap pointer-pipeline wiring + controls)
 
 **Next action:** None — milestone is complete. Consider `/gsd-new-milestone` for v1.2 planning.
 
