@@ -14,6 +14,7 @@ Speed up quantity takeoff — let the estimator focus on reading the plan, not d
 
 - [x] Load a multi-page PDF floor plan and flip between pages — Validated in Phase 1: PDF Viewer & Canvas Foundation
 - [x] Zoom in/out with all markups staying pinned to the plan — Validated in Phase 1 (known issue: native Chromium zoom interference on Ctrl+scroll)
+- [x] Unit cost / pricing — per-(name,type) rates with live cost, category cost subtotals, grand-total cost, and ₱ Rate/Cost columns in xlsx/csv export — Validated in Phase 15: BOQ Pricing & Perimeter Simplification
 
 ### Active
 
@@ -34,7 +35,6 @@ Speed up quantity takeoff — let the estimator focus on reading the plan, not d
 
 - Multi-user / team collaboration — single-user tool for now; adds significant complexity
 - Cloud sync or web access — desktop-only; no server infrastructure needed for v1
-- Unit cost / pricing calculations — BOQ quantity export only; pricing happens in separate tools
 - Preset item library — freehand naming per markup is sufficient for v1
 - Custom Excel template matching — standard layout export is sufficient; user adjusts as needed
 
@@ -62,6 +62,7 @@ Speed up quantity takeoff — let the estimator focus on reading the plan, not d
 | Freehand markup naming (no library) | Simpler UX for v1; user can type item names directly | — Pending |
 | Scale set by drawing a known distance | More accurate than typing a ratio; matches how estimators work on plans | — Pending |
 | Export standard layout (not custom template) | Avoids template management complexity for v1 | — Pending |
+| Pricing moved into scope (reverses v1 "Out of Scope") | GAP-002: pricing is the measuring→estimating lever — quantities alone don't produce a bid | Delivered in Phase 15 (₱ rates + cost columns; Item Library + currency picker deferred) |
 
 ## Current State
 
