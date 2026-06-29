@@ -57,6 +57,21 @@ interface MarkupStoreState {
     newPoint: StagePoint
   ) => void
   /**
+   * Replace the full per-edge arc map of a non-count markup (D-08, bulge reshape).
+   * Pushes one 'reshape-arc' command onto undoStack (carrying the symmetric
+   * oldArcs/newArcs), clears redoStack. Defensive no-op on unknown markupId or a
+   * count pin. Mirrors moveVertex's dispatch shape: ONE command, redoStack reset.
+   *
+   * `newArcs` may be undefined to clear all arcs (revert every edge to straight);
+   * `oldArcs` is captured from the markup's current `arcs` field so undo restores
+   * the exact prior state — including removing an arc the edit added.
+   */
+  reshapeArc: (
+    markupId: string,
+    page: number,
+    newArcs?: Record<number, { midX: number; midY: number }>
+  ) => void
+  /**
    * Translate one or more markups by replacing their points/point with the
    * supplied new values. Single-markup translate (moves.length === 1) and
    * group-move (moves.length === N) both push exactly one 'move-markups'
@@ -100,6 +115,24 @@ interface MarkupStoreState {
 function pushCommand(stack: MarkupCommand[], cmd: MarkupCommand): MarkupCommand[] {
   const next = [...stack, cmd]
   return next.length > UNDO_STACK_MAX ? next.slice(next.length - UNDO_STACK_MAX) : next
+}
+
+/**
+ * Return a copy of `markup` with its `arcs` field set to `arcs` (or removed
+ * entirely when `arcs` is undefined). Count pins are returned unchanged (they
+ * carry no edges / arcs field). Shared by the reshape-arc and move-vertex
+ * (atomic endpoint re-solve) undo/redo branches so the arcs swap rides in the
+ * SAME object the points swap produces — one render, one undo entry.
+ */
+function withArcs(
+  markup: Markup,
+  arcs: Record<number, { midX: number; midY: number }> | undefined
+): Markup {
+  if (markup.type === 'count') return markup
+  if (arcs !== undefined) return { ...markup, arcs } as Markup
+  const next = { ...markup } as { arcs?: unknown }
+  delete next.arcs
+  return next as Markup
 }
 
 export const useMarkupStore = create<MarkupStoreState>()(
@@ -297,6 +330,38 @@ export const useMarkupStore = create<MarkupStoreState>()(
       }
     }),
 
+  reshapeArc: (markupId, page, newArcs) =>
+    set((s) => {
+      const pageList = s.pageMarkups[page] ?? []
+      const target = pageList.find((m) => m.id === markupId)
+      if (!target) return s // defensive no-op (mirrors moveVertex pattern)
+      // reshape-arc is undefined for count markups (no edges / no arcs field).
+      if (target.type === 'count') return s
+
+      const oldArcs = target.arcs
+      // Apply the new arcs map (or remove the field entirely when clearing all arcs).
+      const updated: Markup = (
+        newArcs !== undefined ? { ...target, arcs: newArcs } : { ...target }
+      ) as Markup
+      if (newArcs === undefined && 'arcs' in updated) {
+        delete (updated as { arcs?: unknown }).arcs
+      }
+      const nextPageList = pageList.map((m) => (m.id === markupId ? updated : m))
+
+      const cmd: MarkupCommand = {
+        type: 'reshape-arc',
+        markupId,
+        page,
+        oldArcs,
+        newArcs
+      }
+      return {
+        pageMarkups: { ...s.pageMarkups, [page]: nextPageList },
+        undoStack: pushCommand(s.undoStack, cmd),
+        redoStack: []
+      }
+    }),
+
   moveMarkups: (moves) =>
     set((s) => {
       if (moves.length === 0) return s
@@ -457,6 +522,21 @@ export const useMarkupStore = create<MarkupStoreState>()(
         }
       }
 
+      // reshape-arc branch MUST come BEFORE the `cmd.markup.page` fallthrough —
+      // it carries its own page info and has no `cmd.markup` field. Undo restores
+      // the FULL prior arc map (oldArcs), including removing an arc the edit added.
+      if (cmd.type === 'reshape-arc') {
+        const pageList = s.pageMarkups[cmd.page] ?? []
+        const nextList = pageList.map((m) =>
+          m.id === cmd.markupId ? withArcs(m, cmd.oldArcs) : m
+        )
+        return {
+          pageMarkups: { ...s.pageMarkups, [cmd.page]: nextList },
+          undoStack: s.undoStack.slice(0, -1),
+          redoStack: [...s.redoStack, cmd]
+        }
+      }
+
       if (cmd.type === 'move-markups') {
         const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
         for (const move of cmd.moves) {
@@ -580,6 +660,20 @@ export const useMarkupStore = create<MarkupStoreState>()(
           ]
           return { ...m, points: reappliedPoints } as Markup
         })
+        return {
+          pageMarkups: { ...s.pageMarkups, [cmd.page]: nextList },
+          undoStack: pushCommand(s.undoStack, cmd),
+          redoStack: s.redoStack.slice(0, -1)
+        }
+      }
+
+      // reshape-arc redo re-applies the new arc map (newArcs), mirroring the
+      // undo branch above. MUST precede the `cmd.markup.page` fallthrough.
+      if (cmd.type === 'reshape-arc') {
+        const pageList = s.pageMarkups[cmd.page] ?? []
+        const nextList = pageList.map((m) =>
+          m.id === cmd.markupId ? withArcs(m, cmd.newArcs) : m
+        )
         return {
           pageMarkups: { ...s.pageMarkups, [cmd.page]: nextList },
           undoStack: pushCommand(s.undoStack, cmd),
