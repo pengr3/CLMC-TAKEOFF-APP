@@ -537,7 +537,7 @@ Plans:
   4. Reported length uses true arc length and reported area applies the circular-segment correction with the correct sign for both outward and inward bulges (matching the validated math); straight-only values are no longer reported for curved edges
   5. Committing an area/perimeter markup whose boundary self-intersects is detected and warned (rather than reporting a wrong quantity); arc geometry round-trips through save/reload and BOQ export intact
 
-**Plans:** 6/6 plans executed (Phase 14 awaiting human UAT — 14-06 Task 3)
+**Plans:** 6/6 plans complete
 
 Plans:
 **Wave 1**

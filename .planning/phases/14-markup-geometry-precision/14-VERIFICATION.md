@@ -1,9 +1,10 @@
 ---
 phase: 14-markup-geometry-precision
 verified: 2026-06-29T13:30:00Z
-status: human_needed
-score: 5/5 must-haves verified (automated checks)
+status: passed
+score: 5/5 must-haves verified (automated checks + human UAT approved)
 overrides_applied: 0
+human_uat: approved 2026-06-29 (see 14-HUMAN-UAT.md; all 8 items pass after UAT-round-2 fixes)
 human_verification:
   - test: "Snap indicator appears and follows cursor during markup placement"
     expected: "A blue square (□) appears when the cursor is within ~12 screen pixels of an existing vertex or endpoint; a blue triangle (△) appears when nearest to the body of a segment. Indicator disappears when no snap target is in range. Halo is legible on both light PDF paper and colored markup backgrounds."
