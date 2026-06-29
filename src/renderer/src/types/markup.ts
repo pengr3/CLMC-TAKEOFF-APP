@@ -108,6 +108,16 @@ export type MarkupCommand =
       vertexIndex: number
       oldPoint: StagePoint
       newPoint: StagePoint
+      /**
+       * Phase 14 (D-08, W-3): atomic arc re-solve. Present ONLY when the dragged
+       * vertex is an endpoint of an arc edge — moving the corner re-bends the arc
+       * to pass through the new position. Carrying the arc swap on the SAME
+       * move-vertex command guarantees a single Ctrl+Z reverts BOTH the vertex
+       * position and the arc curvature (no half-reverted state). Absent for
+       * straight-edge vertex drags (unchanged behavior).
+       */
+      oldArcs?: Record<number, { midX: number; midY: number }>
+      newArcs?: Record<number, { midX: number; midY: number }>
     }
   | {
       type: 'reshape-arc'

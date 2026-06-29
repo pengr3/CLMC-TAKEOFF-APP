@@ -54,7 +54,14 @@ interface MarkupStoreState {
     markupId: string,
     page: number,
     vertexIndex: number,
-    newPoint: StagePoint
+    newPoint: StagePoint,
+    /**
+     * Phase 14 (D-08): atomic arc re-solve. When the dragged vertex is an arc
+     * edge's endpoint, pass the re-solved full arc map so the points swap and the
+     * arcs swap ride in ONE command (one Ctrl+Z reverts both). Omit for straight
+     * edges. `oldArcs` is captured from the markup's current `arcs` field.
+     */
+    newArcs?: Record<number, { midX: number; midY: number }>
   ) => void
   /**
    * Replace the full per-edge arc map of a non-count markup (D-08, bulge reshape).
@@ -295,7 +302,7 @@ export const useMarkupStore = create<MarkupStoreState>()(
     })
   },
 
-  moveVertex: (markupId, page, vertexIndex, newPoint) =>
+  moveVertex: (markupId, page, vertexIndex, newPoint, newArcs) =>
     set((s) => {
       const pageList = s.pageMarkups[page] ?? []
       const target = pageList.find((m) => m.id === markupId)
@@ -312,7 +319,12 @@ export const useMarkupStore = create<MarkupStoreState>()(
         newPoint,
         ...target.points.slice(vertexIndex + 1)
       ]
-      const updated: Markup = { ...target, points: updatedPoints } as Markup
+      // Phase 14 (D-08): when an arc re-solve rides along, capture the prior arc
+      // map and swap to the new one in the SAME object the points swap produces.
+      const arcReshape = newArcs !== undefined
+      const oldArcs = arcReshape ? target.arcs : undefined
+      const base: Markup = { ...target, points: updatedPoints } as Markup
+      const updated: Markup = arcReshape ? withArcs(base, newArcs) : base
       const nextPageList = pageList.map((m) => (m.id === markupId ? updated : m))
 
       const cmd: MarkupCommand = {
@@ -321,7 +333,8 @@ export const useMarkupStore = create<MarkupStoreState>()(
         page,
         vertexIndex,
         oldPoint,
-        newPoint
+        newPoint,
+        ...(arcReshape ? { oldArcs, newArcs } : {})
       }
       return {
         pageMarkups: { ...s.pageMarkups, [page]: nextPageList },
@@ -505,6 +518,10 @@ export const useMarkupStore = create<MarkupStoreState>()(
       // and have no `cmd.markup` field.
       if (cmd.type === 'move-vertex') {
         const pageList = s.pageMarkups[cmd.page] ?? []
+        // Phase 14 (D-08): if this move-vertex carried an atomic arc re-solve
+        // (oldArcs/newArcs present), restore the points AND the prior arc map in
+        // the SAME object — one Ctrl+Z reverts both the corner and the curve.
+        const arcReshape = 'newArcs' in cmd
         const nextList = pageList.map((m) => {
           if (m.id !== cmd.markupId) return m
           if (m.type === 'count') return m // defensive: count has no points[]
@@ -513,7 +530,8 @@ export const useMarkupStore = create<MarkupStoreState>()(
             cmd.oldPoint,
             ...m.points.slice(cmd.vertexIndex + 1)
           ]
-          return { ...m, points: restoredPoints } as Markup
+          const withPoints = { ...m, points: restoredPoints } as Markup
+          return arcReshape ? withArcs(withPoints, cmd.oldArcs) : withPoints
         })
         return {
           pageMarkups: { ...s.pageMarkups, [cmd.page]: nextList },
@@ -650,6 +668,9 @@ export const useMarkupStore = create<MarkupStoreState>()(
       // and have no `cmd.markup` field.
       if (cmd.type === 'move-vertex') {
         const pageList = s.pageMarkups[cmd.page] ?? []
+        // Phase 14 (D-08): re-apply the new arc map alongside the points when this
+        // move-vertex carried an atomic arc re-solve.
+        const arcReshape = 'newArcs' in cmd
         const nextList = pageList.map((m) => {
           if (m.id !== cmd.markupId) return m
           if (m.type === 'count') return m // defensive: count has no points[]
@@ -658,7 +679,8 @@ export const useMarkupStore = create<MarkupStoreState>()(
             cmd.newPoint,
             ...m.points.slice(cmd.vertexIndex + 1)
           ]
-          return { ...m, points: reappliedPoints } as Markup
+          const withPoints = { ...m, points: reappliedPoints } as Markup
+          return arcReshape ? withArcs(withPoints, cmd.newArcs) : withPoints
         })
         return {
           pageMarkups: { ...s.pageMarkups, [cmd.page]: nextList },

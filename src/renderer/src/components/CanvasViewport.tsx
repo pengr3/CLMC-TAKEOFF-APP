@@ -24,8 +24,10 @@ import { WallMarkup } from './WallMarkup'
 import { HoverRing } from './HoverRing'
 import { PulseHighlight } from './PulseHighlight'
 import { VertexHandleOverlay } from './markup/VertexHandleOverlay'
+import { BulgeHandle } from './markup/BulgeHandle'
 import { SnapIndicator } from './markup/SnapIndicator'
 import { ArcPreview } from './markup/ArcPreview'
+import { clampBulgeToSagittaCap, resolveArcMidForMovedEndpoint } from '../lib/arc-math'
 import { buildSnapIndex, resolveSnap, type SnapIndex, type SnapCandidate, type SnapExclude } from '../lib/snapping-engine'
 import { COLORS } from '../lib/constants'
 import { formatScaleRatio } from '../lib/scale-math'
@@ -433,7 +435,9 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         name: original.name,
         categoryName: cat?.name ?? '',
         color: original.color,
-        points: original.type === 'count' ? undefined : original.points,
+        // `original` is narrowed by isMultiPointMarkup above (count excluded), so
+        // it always carries `points` — the prior `=== 'count'` guard was dead.
+        points: original.points,
         wallHeight: original.type === 'wall' ? original.wallHeight : undefined
       })
       // D-11: fire the toast via app-level callback.
@@ -533,6 +537,35 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
 
   const vertexDragRef = useRef<VertexDragState>(null)
 
+  // Phase 14 (14-05 D-08): bulge-drag state — which arc edge's curvature is being
+  // reshaped. Set by the BulgeHandle onHandleMouseDown callback (the handle's
+  // e.cancelBubble=true suppresses the Stage mousedown, mirroring vertexDragRef).
+  // One drag session = ONE reshapeArc dispatch in handleStageMouseUp = one undo
+  // entry. `originalArcs` is the snapshot used to restore on out-of-bounds release.
+  type BulgeDragState = {
+    markupId: string
+    segmentIndex: number
+    /** Snapshot of the markup's arcs map at drag start (for restore / dispatch). */
+    originalArcs: Record<number, { midX: number; midY: number }> | undefined
+  } | null
+  const bulgeDragRef = useRef<BulgeDragState>(null)
+
+  // Live bulge-reshape preview: the in-flight reshaped arcs map for the dragged
+  // markup + an amber flag when the drag hit the sagitta cap (D-08/D-09 fallback).
+  // setState drives the ArcPreview/BulgeHandle render; the ref keeps move handlers
+  // stable-deps.
+  type BulgePreview = {
+    markupId: string
+    arcs: Record<number, { midX: number; midY: number }>
+    capped: boolean
+  } | null
+  const [bulgePreview, setBulgePreviewState] = useState<BulgePreview>(null)
+  const bulgePreviewRef = useRef<BulgePreview>(null)
+  const setBulgePreview = useCallback((val: BulgePreview) => {
+    bulgePreviewRef.current = val
+    setBulgePreviewState(val)
+  }, [])
+
   // Phase 12: snapshot of points when vertex edit mode was entered.
   // Used by cancelVertexEdit() to restore on Escape (RESEARCH Finding 9).
   // Set ONCE at session start in handleMarkupClick; never updated mid-session.
@@ -572,10 +605,16 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         vertexDragRef.current = null
         setDragPreview(null)
       }
+      // Phase 14 (14-05): an out-of-bounds release abandons a bulge reshape — drop
+      // the live preview without dispatching (the markup's stored arcs are intact).
+      if (bulgeDragRef.current) {
+        bulgeDragRef.current = null
+        setBulgePreview(null)
+      }
     }
     window.addEventListener('mouseup', cleanup)
     return () => window.removeEventListener('mouseup', cleanup)
-  }, [setRubberBand, setDragPreview])
+  }, [setRubberBand, setDragPreview, setBulgePreview])
 
   // Sync viewerStore.activeTool with the markup tool state machine.
   // Guard: skip activateMarkup when mode is already non-idle — activatePreset may have
@@ -597,8 +636,11 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       clearVertexEdit()
       setDragPreview(null)
       vertexEditOriginalRef.current = null
+      // Phase 14 (14-05): abandon any in-flight bulge reshape on tool change.
+      bulgeDragRef.current = null
+      setBulgePreview(null)
     }
-  }, [activeTool, clearVertexEdit, setDragPreview])
+  }, [activeTool, clearVertexEdit, setDragPreview, setBulgePreview])
 
   // Subscribe to markupStore for rendering committed markups on the current page
   const pageMarkups = useMarkupStore((s) => s.pageMarkups[currentPage] ?? EMPTY_MARKUPS)
@@ -780,7 +822,10 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     clearVertexEdit()
     setDragPreview(null)
     vertexEditOriginalRef.current = null
-  }, [currentPage, cancelMarkup, clearVertexEdit, setDragPreview, props.onPulseComplete])
+    // Phase 14 (14-05): drop any in-flight bulge reshape on page navigation.
+    bulgeDragRef.current = null
+    setBulgePreview(null)
+  }, [currentPage, cancelMarkup, clearVertexEdit, setDragPreview, setBulgePreview, props.onPulseComplete])
 
   // Dismiss toast when a new calibration run starts (MEDIUM #3)
   useEffect(() => {
@@ -1294,6 +1339,33 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       const pointer = stage.getPointerPosition()
       if (!pointer) return
 
+      // Phase 14 (14-05 D-08): bulge-drag live preview — reshape the dragged arc
+      // edge's curvature. The on-arc midpoint follows the cursor (page-space),
+      // CLAMPED to the sagitta cap. Snapping is NOT applied — curvature shaping is
+      // a free gesture (like the on-arc draw click). Checked FIRST: a bulge drag
+      // and a vertex/body drag are mutually exclusive at the down event.
+      const bg = bulgeDragRef.current
+      if (bg) {
+        const rawPt = stage.getAbsoluteTransform().copy().invert().point(pointer)
+        const liveMarkups =
+          useMarkupStore.getState().pageMarkups[currentPage] ?? EMPTY_MARKUPS
+        const markup = liveMarkups.find((m) => m.id === bg.markupId)
+        if (markup && markup.type !== 'count') {
+          const n = markup.points.length
+          const from = markup.points[bg.segmentIndex]
+          const to = markup.points[(bg.segmentIndex + 1) % n]
+          if (from && to) {
+            const { point: capped, clamped } = clampBulgeToSagittaCap(from, to, rawPt)
+            const nextArcs = {
+              ...(bg.originalArcs ?? {}),
+              [bg.segmentIndex]: { midX: capped.x, midY: capped.y }
+            }
+            setBulgePreview({ markupId: bg.markupId, arcs: nextArcs, capped: clamped })
+          }
+        }
+        return
+      }
+
       // Phase 12 (12-05): vertex drag live preview — recompute the dragged markup's points
       // with only the dragged vertex moved, push to dragPreview so the renderer reflects it.
       // Read pageMarkups via getState() (stale-closure anti-pattern guard from .continue-here.md).
@@ -1419,6 +1491,34 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     const liveZoom =
       useViewerStore.getState().pageViewports[currentPage]?.zoom ?? 1
     const dragThreshold = 4 / liveZoom
+
+    // Phase 14 (14-05 D-08): bulge-drag commit — ONE reshapeArc dispatch per drag
+    // session, mirroring the vertex-drag pattern below. The dispatch happens HERE in
+    // handleStageMouseUp (the locked anti-pattern: never in a cleanup helper). The
+    // live bulgePreview already holds the clamped reshaped arcs; commit it if the
+    // handle moved beyond the click-vs-drag threshold.
+    const bg = bulgeDragRef.current
+    if (bg) {
+      const stage = stageRef.current
+      const pointer = stage?.getPointerPosition()
+      const preview = bulgePreviewRef.current
+      if (stage && pointer && preview && preview.markupId === bg.markupId) {
+        // Compare the new on-arc mid to the original to gate click-vs-drag.
+        const original = bg.originalArcs?.[bg.segmentIndex]
+        const next = preview.arcs[bg.segmentIndex]
+        const movedEnough =
+          !original ||
+          Math.abs(next.midX - original.midX) > dragThreshold ||
+          Math.abs(next.midY - original.midY) > dragThreshold
+        if (movedEnough) {
+          useMarkupStore.getState().reshapeArc(bg.markupId, currentPage, preview.arcs)
+        }
+      }
+      bulgeDragRef.current = null
+      setBulgePreview(null)
+      return
+    }
+
     const vd = vertexDragRef.current
     if (vd) {
       const stage = stageRef.current
@@ -1448,9 +1548,48 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
           // its original position. Prevents polluting the undo stack with no-op commands.
           const orig = vd.originalPoints[vd.vertexIndex]
           if (newPoint.x !== orig.x || newPoint.y !== orig.y) {
+            // Phase 14 (14-05 D-08): endpoint re-solve. If the dragged vertex is an
+            // endpoint of one or more ARC edges, re-bend each so the curve follows
+            // the new corner — and carry the re-solved arcs on the SAME move-vertex
+            // command so ONE Ctrl+Z reverts BOTH the corner and the curvature (W-3).
+            // Straight-edge drags pass no arcs (unchanged behavior).
+            const liveMarkups =
+              useMarkupStore.getState().pageMarkups[currentPage] ?? EMPTY_MARKUPS
+            const dragged = liveMarkups.find((m) => m.id === vd.markupId)
+            let newArcs: Record<number, { midX: number; midY: number }> | undefined
+            if (dragged && dragged.type !== 'count' && dragged.arcs) {
+              const oldPts = vd.originalPoints
+              const n = oldPts.length
+              const closed = dragged.type === 'area' || dragged.type === 'perimeter'
+              // The two edges incident to vertex vd.vertexIndex: the incoming edge
+              // (start = i-1) and the outgoing edge (start = i). Arc metadata keys on
+              // the edge's START-vertex index (14-01 contract).
+              const newPts = oldPts.map((p, idx) => (idx === vd.vertexIndex ? newPoint : p))
+              const resolved: Record<number, { midX: number; midY: number }> = {
+                ...dragged.arcs
+              }
+              const incomingStart = vd.vertexIndex === 0 ? (closed ? n - 1 : -1) : vd.vertexIndex - 1
+              const outgoingStart = vd.vertexIndex
+              const hasOutgoing = closed || vd.vertexIndex < n - 1
+              for (const startIdx of [incomingStart, outgoingStart]) {
+                if (startIdx < 0) continue
+                if (startIdx === outgoingStart && !hasOutgoing) continue
+                const arc = dragged.arcs[startIdx]
+                if (!arc) continue
+                const endIdx = (startIdx + 1) % n
+                resolved[startIdx] = resolveArcMidForMovedEndpoint(
+                  oldPts[startIdx],
+                  oldPts[endIdx],
+                  { x: arc.midX, y: arc.midY },
+                  newPts[startIdx],
+                  newPts[endIdx]
+                )
+              }
+              newArcs = resolved
+            }
             useMarkupStore
               .getState()
-              .moveVertex(vd.markupId, currentPage, vd.vertexIndex, newPoint)
+              .moveVertex(vd.markupId, currentPage, vd.vertexIndex, newPoint, newArcs)
           }
         }
         // Vertex edit mode stays active after a single vertex drag — the user may drag another
@@ -1676,8 +1815,37 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         markupForHandles = { ...veMarkup, points: shifted } as Markup
       }
     }
+    // Phase 14 (14-05 D-08): the bulge handles sit on each arc edge's on-arc
+    // midpoint. During a live bulge drag, reflect the previewed (clamped) arcs so
+    // the handle tracks the cursor. The handle markup uses the SAME points as the
+    // vertex handles (so endpoint drags move the bulge handles too) but the live
+    // bulge-reshape arcs when a drag is active.
+    let markupForBulge: Markup = markupForHandles
+    if (bulgePreview && bulgePreview.markupId === vertexEditMarkupId) {
+      markupForBulge = { ...markupForHandles, arcs: bulgePreview.arcs } as Markup
+    }
     return (
       <Layer listening={true}>
+        <BulgeHandle
+          markup={markupForBulge}
+          currentZoom={currentZoom}
+          onHandleMouseDown={(segmentIndex) => {
+            // Phase 14 (14-05 D-08): start a bulge-curvature drag. The Circle's
+            // e.cancelBubble=true (BulgeHandle) suppresses the Stage onMouseDown,
+            // so this callback is the drag entry point (mirrors the vertex handle).
+            const liveId = useViewerStore.getState().vertexEditMarkupId
+            if (liveId === null) return
+            const livePageMarkups =
+              useMarkupStore.getState().pageMarkups[currentPage] ?? EMPTY_MARKUPS
+            const markup = livePageMarkups.find((m) => m.id === liveId)
+            if (!markup || markup.type === 'count') return
+            bulgeDragRef.current = {
+              markupId: liveId,
+              segmentIndex,
+              originalArcs: markup.arcs
+            }
+          }}
+        />
         <VertexHandleOverlay
           markup={markupForHandles}
           currentZoom={currentZoom}
@@ -1708,6 +1876,38 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
             }
           }}
         />
+      </Layer>
+    )
+  })()
+
+  // Phase 14 (14-05 D-08): live bulge-reshape arc preview. While a bulge handle is
+  // being dragged, render the solved dashed arc for that edge through its current
+  // (clamped) on-arc mid. The guide turns amber (COLORS.warning) when the drag hit
+  // the sagitta cap (the soft "max bend" stop, UI-SPEC). listening=false transient.
+  const bulgePreviewElement = (() => {
+    if (!bulgePreview) return null
+    const markup = pageMarkups.find((m) => m.id === bulgePreview.markupId)
+    if (!markup || markup.type === 'count') return null
+    const n = markup.points.length
+    const segments = Object.keys(bulgePreview.arcs).map(Number)
+    return (
+      <Layer listening={false}>
+        {segments.map((segIdx) => {
+          const from = markup.points[segIdx]
+          const to = markup.points[(segIdx + 1) % n]
+          const mid = bulgePreview.arcs[segIdx]
+          if (!from || !to || !mid) return null
+          return (
+            <ArcPreview
+              key={segIdx}
+              start={from}
+              onArc={{ x: mid.midX, y: mid.midY }}
+              end={to}
+              currentZoom={currentZoom}
+              color={bulgePreview.capped ? COLORS.warning : markup.color}
+            />
+          )
+        })}
       </Layer>
     )
   })()
@@ -2017,6 +2217,10 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
             BEFORE the markup body below. Computed as `vertexHandleLayer` above the JSX so
             Plan 12-05's wiring of onHandleMouseDown is a single-site edit. */}
         {vertexHandleLayer}
+
+        {/* Phase 14 (14-05 D-08): live bulge-reshape arc preview (dashed solved
+            arc; amber at the sagitta cap). Transient, listening=false. */}
+        {bulgePreviewElement}
 
         {/* Phase 6: Layer 2 transient — panel-driven highlights (D-11 HoverRing + D-12 PulseHighlight).
             listening={false} on both the Layer and every shape inside so these overlays NEVER

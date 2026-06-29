@@ -121,3 +121,49 @@ describe('markupStore — reshapeArc command', () => {
     expect(useMarkupStore.getState().undoStack.length).toBe(0)
   })
 })
+
+describe('markupStore — moveVertex atomic arc re-solve (D-08, W-3)', () => {
+  it('moveVertex with newArcs swaps points AND arcs in one command; ONE undo reverts both', () => {
+    const oldArcs: ArcMap = { 0: { midX: 50, midY: -20 } }
+    const area = makeArea(oldArcs)
+    useMarkupStore.getState().placeMarkup(area)
+
+    // Drag vertex 1 (the END of arc edge 0) and re-solve the arc through the new corner.
+    const newPoint = { x: 140, y: 20 }
+    const newArcs: ArcMap = { 0: { midX: 70, midY: -30 } }
+    useMarkupStore.getState().moveVertex(area.id, area.page, 1, newPoint, newArcs)
+
+    const after = useMarkupStore.getState().pageMarkups[1][0] as AreaMarkup
+    expect(after.points[1]).toEqual(newPoint)
+    expect(after.arcs).toEqual(newArcs)
+    // Exactly one undo entry for the whole reshape.
+    expect(useMarkupStore.getState().undoStack[useMarkupStore.getState().undoStack.length - 1].type).toBe(
+      'move-vertex'
+    )
+
+    // ONE Ctrl+Z restores BOTH the vertex position and the arc curvature (W-3:
+    // no half-reverted state).
+    useMarkupStore.getState().undo()
+    const reverted = useMarkupStore.getState().pageMarkups[1][0] as AreaMarkup
+    expect(reverted.points[1]).toEqual({ x: 100, y: 0 })
+    expect(reverted.arcs).toEqual(oldArcs)
+
+    // Redo re-applies both.
+    useMarkupStore.getState().redo()
+    const redone = useMarkupStore.getState().pageMarkups[1][0] as AreaMarkup
+    expect(redone.points[1]).toEqual(newPoint)
+    expect(redone.arcs).toEqual(newArcs)
+  })
+
+  it('moveVertex without newArcs leaves the arcs field untouched (straight-edge drag)', () => {
+    const oldArcs: ArcMap = { 0: { midX: 50, midY: -20 } }
+    const area = makeArea(oldArcs)
+    useMarkupStore.getState().placeMarkup(area)
+
+    useMarkupStore.getState().moveVertex(area.id, area.page, 2, { x: 120, y: 120 })
+    const after = useMarkupStore.getState().pageMarkups[1][0] as AreaMarkup
+    expect(after.points[2]).toEqual({ x: 120, y: 120 })
+    // Arc map unchanged — a non-arc-carrying move-vertex never touches arcs.
+    expect(after.arcs).toEqual(oldArcs)
+  })
+})

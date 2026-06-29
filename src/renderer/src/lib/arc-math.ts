@@ -115,6 +115,120 @@ export function arcLength(from: StagePoint, mid: StagePoint, to: StagePoint): nu
 }
 
 /**
+ * Clamp a dragged on-arc point to the sagitta cap of its edge (D-08 / D-09
+ * fallback). The on-arc midpoint may move freely ALONG the chord but its
+ * PERPENDICULAR offset (the sagitta) is capped at `|chord|/2` — the semicircle
+ * limit. Past that the arc sweeps > π and risks folding the boundary on itself;
+ * the sagitta cap stops the drag there (the caller turns the guide amber).
+ *
+ * Returns the (possibly clamped) point plus a `clamped` flag so the caller can
+ * surface the amber sagitta-cap feedback. Geometry is pure (page-space pixels),
+ * finite-guarded: any non-finite input returns the raw point unclamped.
+ */
+export function clampBulgeToSagittaCap(
+  from: StagePoint,
+  to: StagePoint,
+  dragged: StagePoint
+): { point: StagePoint; clamped: boolean } {
+  if (
+    !Number.isFinite(from.x) ||
+    !Number.isFinite(from.y) ||
+    !Number.isFinite(to.x) ||
+    !Number.isFinite(to.y) ||
+    !Number.isFinite(dragged.x) ||
+    !Number.isFinite(dragged.y)
+  ) {
+    return { point: dragged, clamped: false }
+  }
+
+  const chordX = to.x - from.x
+  const chordY = to.y - from.y
+  const chordLen = Math.hypot(chordX, chordY)
+  // Degenerate chord (endpoints coincide) → no meaningful cap; pass through.
+  if (chordLen < EPS) return { point: dragged, clamped: false }
+
+  // Chord midpoint and unit perpendicular.
+  const midX = (from.x + to.x) / 2
+  const midY = (from.y + to.y) / 2
+  const perpX = -chordY / chordLen
+  const perpY = chordX / chordLen
+
+  // Decompose the dragged point relative to the chord midpoint into a tangential
+  // (along chord) and a perpendicular (sagitta) component.
+  const relX = dragged.x - midX
+  const relY = dragged.y - midY
+  const tangential = (relX * chordX + relY * chordY) / chordLen // signed along chord
+  const sagitta = relX * perpX + relY * perpY // signed perpendicular offset
+
+  const maxSagitta = chordLen / 2
+  if (Math.abs(sagitta) <= maxSagitta) {
+    return { point: dragged, clamped: false }
+  }
+
+  const cappedSagitta = Math.sign(sagitta) * maxSagitta
+  const tangX = chordX / chordLen
+  const tangY = chordY / chordLen
+  const cappedX = midX + tangential * tangX + cappedSagitta * perpX
+  const cappedY = midY + tangential * tangY + cappedSagitta * perpY
+  return { point: { x: cappedX, y: cappedY }, clamped: true }
+}
+
+/**
+ * Re-solve an arc edge's on-arc midpoint when one of its ENDPOINTS moves (D-08
+ * endpoint re-solve). The curve "follows the corner": the new mid preserves the
+ * old mid's TANGENTIAL ratio (position along the chord) and PERPENDICULAR sagitta
+ * (signed offset from the chord) relative to the NEW chord. This keeps the arc's
+ * bend direction and depth consistent as the corner is dragged.
+ *
+ * `oldFrom`/`oldTo` are the edge endpoints BEFORE the move; `oldMid` is the
+ * current on-arc midpoint; `newFrom`/`newTo` are the endpoints AFTER the move
+ * (one of them changed). Returns the re-solved mid. Finite-guarded and
+ * degenerate-chord-guarded: a zero-length old chord returns the new chord
+ * midpoint (a straight-ish fallback).
+ */
+export function resolveArcMidForMovedEndpoint(
+  oldFrom: StagePoint,
+  oldTo: StagePoint,
+  oldMid: StagePoint,
+  newFrom: StagePoint,
+  newTo: StagePoint
+): { midX: number; midY: number } {
+  const newMidX = (newFrom.x + newTo.x) / 2
+  const newMidY = (newFrom.y + newTo.y) / 2
+
+  const oldChordX = oldTo.x - oldFrom.x
+  const oldChordY = oldTo.y - oldFrom.y
+  const oldChordLen = Math.hypot(oldChordX, oldChordY)
+  if (!Number.isFinite(oldChordLen) || oldChordLen < EPS) {
+    return { midX: newMidX, midY: newMidY }
+  }
+
+  // Decompose oldMid relative to the OLD chord into tangential ratio + sagitta.
+  const oMidX = (oldFrom.x + oldTo.x) / 2
+  const oMidY = (oldFrom.y + oldTo.y) / 2
+  const relX = oldMid.x - oMidX
+  const relY = oldMid.y - oMidY
+  const tangRatio = (relX * oldChordX + relY * oldChordY) / (oldChordLen * oldChordLen)
+  const sagitta = (relX * -oldChordY + relY * oldChordX) / oldChordLen // signed perp offset
+
+  // Re-apply to the NEW chord.
+  const newChordX = newTo.x - newFrom.x
+  const newChordY = newTo.y - newFrom.y
+  const newChordLen = Math.hypot(newChordX, newChordY)
+  if (!Number.isFinite(newChordLen) || newChordLen < EPS) {
+    return { midX: newMidX, midY: newMidY }
+  }
+  const perpX = -newChordY / newChordLen
+  const perpY = newChordX / newChordLen
+  const midX = newMidX + tangRatio * newChordX + sagitta * perpX
+  const midY = newMidY + tangRatio * newChordY + sagitta * perpY
+  if (!Number.isFinite(midX) || !Number.isFinite(midY)) {
+    return { midX: newMidX, midY: newMidY }
+  }
+  return { midX, midY }
+}
+
+/**
  * Magnitude of the circular-segment area between the chord and its arc:
  * `(R²/2)·(sweep − sin(sweep))`. Holds for major arcs (sweep > π) too.
  * Returns 0 when collinear / degenerate / non-finite (the area calc adds no
