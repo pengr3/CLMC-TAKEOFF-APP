@@ -15,6 +15,11 @@ export const useViewerStore = create<ViewerState>()(
     activeTool: 'select' as ActiveTool,
     selectedMarkupIds: [],
     vertexEditMarkupId: null,
+    // Phase 14 D-03 snapping flags — runtime-only, never serialized to .clmc
+    // (T-14-03-02). snapEnabled defaults ON; snapSuspended is the momentary
+    // Alt-held override.
+    snapEnabled: true,
+    snapSuspended: false,
 
     setFile: (path, name, totalPages) =>
       set({
@@ -107,6 +112,10 @@ export const useViewerStore = create<ViewerState>()(
     setVertexEditMarkupId: (id) => set({ vertexEditMarkupId: id }),
 
     clearVertexEdit: () => set({ vertexEditMarkupId: null }),
+
+    setSnapEnabled: (enabled) => set({ snapEnabled: enabled }),
+
+    setSnapSuspended: (suspended) => set({ snapSuspended: suspended }),
 
     /**
      * Hydrate viewer state from a loaded project.

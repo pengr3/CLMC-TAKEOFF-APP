@@ -70,6 +70,22 @@ export interface ViewerState {
   setVertexEditMarkupId: (id: string) => void
   clearVertexEdit: () => void
 
+  /**
+   * Snapping master toggle (Phase 14 D-03). ON by default. Flipped persistently
+   * by F3. Runtime-only — NOT persisted into the .clmc project file (snapping is
+   * a session/workstation preference, not project data — threat T-14-03-02).
+   */
+  snapEnabled: boolean
+  setSnapEnabled: (enabled: boolean) => void
+
+  /**
+   * Momentary snap suspend (Phase 14 D-03). Held while Alt is down so a single
+   * point can be placed ignoring snapping; released → restored. Runtime-only,
+   * never persisted (T-14-03-02).
+   */
+  snapSuspended: boolean
+  setSnapSuspended: (suspended: boolean) => void
+
   hydrate: (data: { currentPage: number; pageViewports: Record<number, ViewportState> }) => void
 }
 
