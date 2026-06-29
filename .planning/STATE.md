@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: milestone_complete
-stopped_at: Completed 14-06 autonomous engineering (arc-aware BOQ aggregator + Area/Perimeter/Linear/Wall arc-drawing renderers + arc-roundtrip test + 14-MANUAL-NOTES.md). Build green (0 tsc errors), full vitest 586/80 green. Task 3 human UAT prepared + returned as a checkpoint.
-last_updated: "2026-06-29T09:20:44.327Z"
+stopped_at: Completed 15-01 (Wave 0 Nyquist RED surface) — 9 test files (1 new totals-row-rate-edit.test.ts + 8 modified); 22 RED assertions across boq-aggregator/project-serialize/use-boq-live/boq-writers-xlsx/boq-writers-csv mapping to Wave 1-3; tsc clean (0 errors); git grep perimeter-area|perimeter-length src/tests = zero. 3 atomic commits b5a2751/aff8301/5e1bb96.
+last_updated: "2026-06-29T09:50:05.252Z"
 last_activity: 2026-06-29
 progress:
   total_phases: 20
   completed_phases: 18
   total_plans: 101
-  completed_plans: 97
+  completed_plans: 98
   percent: 90
 ---
 
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Milestone complete
+**Current Focus:** Phase 15 — boq-pricing-perimeter-simplification
 
 ---
 
 ## Current Position
 
-Phase: 14
-Plan: Not started
+Phase: 15 (boq-pricing-perimeter-simplification) — EXECUTING
+Plan: 2 of 4
 
 ## Performance Metrics
 
@@ -80,6 +80,7 @@ Plan: Not started
 | Phase 14 P04 | 12min | 3 tasks | 6 files |
 | Phase 14 P05 | 14min | 3 tasks | 8 files |
 | Phase 14 P06 | ~10min | 2 auto tasks + 1 UAT checkpoint | 8 files |
+| Phase 15 P15-01 | 13min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -179,6 +180,9 @@ Plan: Not started
 | Arc-mode keys: bare A = one-off hold, Shift+A = sticky toggle (14-04, D-02) | bare A makes the next edge an arc then auto-reverts; Shift+A keeps a run on until toggled off (preserved across chained commits). Both isTextInputActive-guarded + window-blur safety net; bridged to useMarkupTool React state via markup-arc-ref.ts (arc flags are NOT in a store). No collision: Ctrl+A=select-all, F3=snap. Affordance = ARC_CROSSHAIR_CURSOR (crosshair + accent arc tick) since StatusBar is propless |
 | ArcPreview samples solveCircle as a 64-segment dashed Line, never a Konva Arc (14-04, T-14-04-01) | One render path serves curved + collinear; the collinear branch degrades to a straight 2-point dashed Line so a degenerate/non-finite input can never produce a NaN-radius Arc. Re-solves every mousemove; listening=false; stroke = pending markup color; zoom-compensated |
 | Arc-aware BOQ + committed-arc render via single buildArcAwareFlatPoints sampler (14-06, SC #4/#5) | boq-aggregator threads m.arcs into linear/area/perimeter(length+area)/wall math; the four renderers + their labels read the same arc-aware math so drawn curve == reported quantity. One pure 24-sample helper in arc-math.ts (closed/open, finite-guarded → straight chord on collinear/non-finite). Live drag preview passes arcs=undefined (stored arcs map mis-aligns with moved points). Perimeter closing-edge arc maps onto [...pts,pts[0]] index n-1 with no re-keying. arc-roundtrip test: arcs survive snapshot→validateV2→hydrate deep-equal + aggregateBoq reports arc-aware > chord |
+| Phase 15 Wave 0 (15-01): Nyquist RED test surface written BEFORE any source — 22 failing assertions across 9 test files map 1:1 to Wave 1-3 source tasks (proofs a/b/c) | tsc stays clean (0 errors) via `as any` on rate/cost/costSubtotal/grandTotalCost/rates + `as unknown as BoqStructure` on writer fixtures, mirroring how project-schema-hidden.test.ts casts before the types land. RED = runtime assertion failures, never compile errors. 59 untouched/migrated tests stay green |
+| Phase 15 (15-01): project-schema rates tests assert ADDITIVE TOLERANCE (accept + tolerate absence), NOT a thrown error | validateV2 returns `raw as ProjectFileV2` and does NOT strip unknown fields, so a rates-bearing object survives validation today — these two tests PASS, matching the pre-Phase-8 hiddenItemNames absent-field tolerance + the locked throw-free decision. The genuine persistence RED proofs (proof b) live in project-serialize (snapshot/hydrate) + use-boq-live (live cost recompute) |
+| Phase 15 (15-01): perimeter one-row contract encoded — lone perimeter → ONE plain-labelled length row (no area row, no suffix) | The two perimeter aggregator cases rewritten to assert toHaveLength(1) + no '(area)'; WR-07 keeps the arc-aware LENGTH guard (300+π·R), drops the area assertion, finds by plain 'Curved'. perimeter-area/perimeter-length fixtures migrated to 'perimeter' across totals-row-cycle + totals-row-context-menu (git grep src/tests → zero split-type tokens); lone-perimeter cycle fixture relabeled 'Wall'/uom 'm'. New totals-row-rate-edit.test.ts asserts setRate(`name|type`,n) dispatch + stopPropagation (RED — no input yet) |
 
 ### Critical Pitfalls to Watch
 
@@ -232,9 +236,9 @@ None.
 
 **Last activity:** 2026-06-29
 
-**Last session:** 2026-06-29T04:48:00.000Z
+**Last session:** 2026-06-29T09:50:05.232Z
 
-**Stopped at:** Completed 14-06 autonomous engineering (arc-aware BOQ aggregator + Area/Perimeter/Linear/Wall arc-drawing renderers + arc-roundtrip test + 14-MANUAL-NOTES.md). Build green (0 tsc errors), full vitest 586/80 green. Task 3 human UAT prepared + returned as a checkpoint.
+**Stopped at:** Completed 15-01 (Wave 0 Nyquist RED surface) — 9 test files (1 new totals-row-rate-edit.test.ts + 8 modified); 22 RED assertions across boq-aggregator/project-serialize/use-boq-live/boq-writers-xlsx/boq-writers-csv mapping to Wave 1-3; tsc clean (0 errors); git grep perimeter-area|perimeter-length src/tests = zero. 3 atomic commits b5a2751/aff8301/5e1bb96.
 
 **Next action:** Run the Phase-14 human UAT (8 hands-on steps mapped to the 5 ROADMAP success criteria — snapping+indicator, instant-at-scale, 3-click arc coexisting with straight, true arc length+signed area, self-intersection blocked + arc round-trips save/reload+BOQ). On "approved", mark ROADMAP Phase 14 [x] + milestone complete in STATE; on failures, gap-closure via /gsd:plan-phase 14 --gaps.
 

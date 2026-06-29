@@ -581,12 +581,12 @@ Plans:
   5. A perimeter BOQ row is labeled by its plain item name, gaining a `(perimeter)` suffix only when a same-named count/linear/area row exists (perimeter now participates in the shared collision-suffix rule)
   6. Existing `.clmc` projects with perimeter markups reload with length-only BOQ output and no errors (area was computed live, never stored — no data loss); the test suite is updated and green, and PROJECT.md reflects pricing as in-scope
 
-**Plans:** 4/4 plans created
+**Plans:** 1/4 plans executed
 
 Plans:
 **Wave 0**
 
-- [ ] 15-01-PLAN.md — RED Nyquist tests first: aggregator rate/cost + perimeter one-row + collision-suffix, rates save/reload round-trip, writer Rate/Cost columns, inline-rate render + stopPropagation — written before any source touched
+- [x] 15-01-PLAN.md — RED Nyquist tests first: aggregator rate/cost + perimeter one-row + collision-suffix, rates save/reload round-trip, writer Rate/Cost columns, inline-rate render + stopPropagation — written before any source touched
 
 **Wave 1**
 
