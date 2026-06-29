@@ -1,4 +1,6 @@
 import type { StagePoint } from '../hooks/useCalibrationMode'
+import type { ArcMap } from '../types/markup'
+import { buildArcAwareFlatPoints } from './arc-math'
 
 /**
  * Closed-boundary self-intersection detector (spike-003b guard, §99-103).
@@ -170,6 +172,83 @@ export function findSelfIntersection(
       const b2 = points[(j + 1) % n]
       if (segmentsCross(a1, a2, b1, b2)) {
         return { i, j, point: intersectionPoint(a1, a2, b1, b2) }
+      }
+    }
+  }
+
+  return null
+}
+
+/** Flatten one closed-boundary edge i→(i+1)%n to a sampled point list. */
+function sampleEdge(points: StagePoint[], arcs: ArcMap | undefined, i: number): StagePoint[] {
+  const n = points.length
+  const from = points[i]
+  const to = points[(i + 1) % n]
+  const arc = arcs?.[i]
+  if (!arc) return [from, to]
+  // buildArcAwareFlatPoints([from,to], {0:arc}, false) samples THIS edge's curve
+  // (the same sampler the renderer uses) into a flat [x0,y0,...] array.
+  const flat = buildArcAwareFlatPoints([from, to], { 0: arc }, false)
+  const out: StagePoint[] = []
+  for (let k = 0; k + 1 < flat.length; k += 2) out.push({ x: flat[k], y: flat[k + 1] })
+  if (out.length < 2) return [from, to]
+  return out
+}
+
+/**
+ * Arc-aware self-intersection guard (WR-03). `findSelfIntersection` only tests
+ * the straight chords, so a curved edge whose sagitta bulges across a DIFFERENT
+ * edge is missed (the sagitta cap bounds a single edge's bulge to |chord|/2 but
+ * does not stop it crossing another edge). This variant samples each curved edge
+ * into a polyline (the SAME sampler the renderer uses) and tests every
+ * sub-segment pair across NON-ADJACENT original edges — but still reports the two
+ * ORIGINAL edge indices `i`/`j`, so the D-09 red highlight keeps working.
+ *
+ * Falls back to straight-chord behavior when `arcs` is undefined/empty. Edges are
+ * i→(i+1)%n; returns the first crossing's original edge indices + the
+ * intersection point, or null if simple / < 4 vertices / non-finite.
+ */
+export function findSelfIntersectionArcAware(
+  points: StagePoint[],
+  arcs: ArcMap | undefined
+): { i: number; j: number; point: StagePoint } | null {
+  const n = points.length
+  if (n < 4) return null
+  if (!allFinite(points)) return null
+  // No arcs → identical to the straight-chord detector (and cheaper).
+  if (!arcs || Object.keys(arcs).length === 0) return findSelfIntersection(points)
+  // Any non-finite arc mid would make a sampled point non-finite; guard upfront.
+  for (const key of Object.keys(arcs)) {
+    const a = arcs[Number(key)]
+    if (!a || !Number.isFinite(a.midX) || !Number.isFinite(a.midY)) {
+      return findSelfIntersection(points)
+    }
+  }
+
+  // Pre-sample every original edge once.
+  const sampled: StagePoint[][] = []
+  for (let i = 0; i < n; i++) sampled.push(sampleEdge(points, arcs, i))
+
+  for (let i = 0; i < n; i++) {
+    const polyA = sampled[i]
+    for (let j = i + 1; j < n; j++) {
+      // Skip adjacent ORIGINAL edges (they share an endpoint) — same rule as the
+      // straight detector. A shared endpoint of two sampled polylines is not a
+      // crossing.
+      if (j === (i + 1) % n) continue
+      if (i === (j + 1) % n) continue
+
+      const polyB = sampled[j]
+      for (let a = 0; a + 1 < polyA.length; a++) {
+        const a1 = polyA[a]
+        const a2 = polyA[a + 1]
+        for (let b = 0; b + 1 < polyB.length; b++) {
+          const b1 = polyB[b]
+          const b2 = polyB[b + 1]
+          if (segmentsCross(a1, a2, b1, b2)) {
+            return { i, j, point: intersectionPoint(a1, a2, b1, b2) }
+          }
+        }
       }
     }
   }

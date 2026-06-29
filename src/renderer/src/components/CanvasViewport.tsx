@@ -41,7 +41,7 @@ import {
   pixelAreaToReal,
   polygonCentroid
 } from '../lib/markup-math'
-import { findSelfIntersection } from '../lib/self-intersection'
+import { findSelfIntersectionArcAware } from '../lib/self-intersection'
 import { BlockedCommitMessage } from './BlockedCommitMessage'
 import { isMarkupTool } from '../types/viewer'
 import type { ScaleUnit } from '../types/scale'
@@ -819,7 +819,12 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       finishPolygon()
       return false
     }
-    const crossing = findSelfIntersection(pts)
+    // WR-03: detect on the ARC-SAMPLED boundary, not just the straight chords —
+    // a curved edge whose sagitta bulges across a different edge would otherwise
+    // commit a self-crossing area/perimeter silently. The detector still reports
+    // ORIGINAL edge indices, so the red highlight below is unchanged.
+    const arcs = Object.keys(markupState.arcs).length > 0 ? markupState.arcs : undefined
+    const crossing = findSelfIntersectionArcAware(pts, arcs)
     if (crossing) {
       const stage = stageRef.current
       const centroid = polygonCentroid(pts)
@@ -835,7 +840,7 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     setBlockedCommit(null)
     finishPolygon()
     return false
-  }, [markupState.points, finishPolygon, stageRef])
+  }, [markupState.points, markupState.arcs, finishPolygon, stageRef])
 
   // Phase 14 (14-05 D-09): clear the blocked-commit highlight + message whenever
   // the in-progress boundary changes (a vertex was added/popped/dragged) or the

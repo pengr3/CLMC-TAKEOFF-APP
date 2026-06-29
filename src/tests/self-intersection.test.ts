@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { findSelfIntersection } from '@renderer/lib/self-intersection'
+import {
+  findSelfIntersection,
+  findSelfIntersectionArcAware
+} from '@renderer/lib/self-intersection'
 import type { StagePoint } from '@renderer/hooks/useCalibrationMode'
 
 // Closed-boundary self-crossing detector (spike-003b §99-103 guard).
@@ -131,6 +134,75 @@ describe('findSelfIntersection — page-scale coordinates (0–30000 px)', () =>
       { x: 10, y: 10000 } // returns just 10px shy of x=0, no crossing
     ]
     expect(findSelfIntersection(ring)).toBeNull()
+  })
+})
+
+// WR-03: the straight-chord guard ignores arc curvature. findSelfIntersectionArcAware
+// samples curved edges and detects a sagitta that bulges across another edge,
+// while still reporting ORIGINAL edge indices for the D-09 highlight.
+describe('findSelfIntersectionArcAware — curved-edge self-crossing', () => {
+  it('matches the straight guard when no arcs are present', () => {
+    const bowtie: StagePoint[] = [
+      { x: 0, y: 0 },
+      { x: 100, y: 100 },
+      { x: 100, y: 0 },
+      { x: 0, y: 100 }
+    ]
+    expect(findSelfIntersectionArcAware(bowtie, undefined)).not.toBeNull()
+    const quad: StagePoint[] = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 100 },
+      { x: 0, y: 100 }
+    ]
+    expect(findSelfIntersectionArcAware(quad, undefined)).toBeNull()
+    expect(findSelfIntersectionArcAware(quad, {})).toBeNull()
+  })
+
+  it('detects a deep arc on one edge bulging across a non-adjacent edge', () => {
+    // Thin rectangle: bottom edge v0->v1 (y=0), top edge v2->v3 (y=10).
+    // Straight chords form a simple rectangle (no self-crossing).
+    const rect: StagePoint[] = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 10 },
+      { x: 0, y: 10 }
+    ]
+    // Without arcs: simple.
+    expect(findSelfIntersection(rect)).toBeNull()
+    // Bottom edge (index 0) gets a deep upward arc (mid at y=49) that bulges
+    // across the top edge v2->v3 at y=10 — a self-crossing curved boundary.
+    const arcs = { 0: { midX: 50, midY: 49 } }
+    const hit = findSelfIntersectionArcAware(rect, arcs)
+    expect(hit).not.toBeNull()
+    // It must report the ORIGINAL edge indices: edge 0 (arced bottom) and edge 2
+    // (the top edge it bulges across).
+    const pair = [hit!.i, hit!.j].sort((a, b) => a - b)
+    expect(pair).toEqual([0, 2])
+  })
+
+  it('does NOT flag a shallow arc that stays within the boundary', () => {
+    const rect: StagePoint[] = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 200 },
+      { x: 0, y: 200 }
+    ]
+    // Shallow downward bulge on the bottom edge — stays well clear of the top.
+    const arcs = { 0: { midX: 50, midY: 5 } }
+    expect(findSelfIntersectionArcAware(rect, arcs)).toBeNull()
+  })
+
+  it('falls back to the straight guard for a non-finite arc mid (no throw)', () => {
+    const rect: StagePoint[] = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 10 },
+      { x: 0, y: 10 }
+    ]
+    const arcs = { 0: { midX: NaN, midY: 49 } }
+    expect(() => findSelfIntersectionArcAware(rect, arcs)).not.toThrow()
+    expect(findSelfIntersectionArcAware(rect, arcs)).toBeNull()
   })
 })
 
