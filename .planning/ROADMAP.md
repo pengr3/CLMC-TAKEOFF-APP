@@ -537,7 +537,7 @@ Plans:
   4. Reported length uses true arc length and reported area applies the circular-segment correction with the correct sign for both outward and inward bulges (matching the validated math); straight-only values are no longer reported for curved edges
   5. Committing an area/perimeter markup whose boundary self-intersects is detected and warned (rather than reporting a wrong quantity); arc geometry round-trips through save/reload and BOQ export intact
 
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans executed (Phase 14 awaiting human UAT — 14-06 Task 3)
 
 Plans:
 **Wave 1**
@@ -559,7 +559,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 14-06-PLAN.md — Integration: arc-aware BOQ + renderers + save/reload round-trip + manual-ready docs + UAT (Wave 5)
+- [x] 14-06-PLAN.md — Integration: arc-aware BOQ + Area/Perimeter/Linear/Wall arc-drawing renderers (buildArcAwareFlatPoints) + arc-roundtrip test (save/reload deep-equal + arc-aware-vs-chord BOQ) + 14-MANUAL-NOTES.md (Wave 5) — autonomous engineering complete, build green + 586 tests; Task 3 human UAT prepared + returned as checkpoint (Phase 14 checkbox gated on UAT approval)
 
 ---
 

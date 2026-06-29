@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Milestone complete
-stopped_at: Completed 14-04-PLAN.md (curved-edge DRAWING — 3-click arc gesture + arc-mode controls + ArcPreview)
-last_updated: "2026-06-29T04:41:24.987Z"
+status: Phase 14 — awaiting human UAT (14-06 autonomous engineering complete)
+stopped_at: Completed 14-06 autonomous engineering (arc-aware BOQ + renderers + round-trip test + 14-MANUAL-NOTES); Task 3 human UAT prepared + returned as checkpoint
+last_updated: "2026-06-29T04:48:00.000Z"
 last_activity: 2026-06-29
 progress:
   total_phases: 19
@@ -79,6 +79,7 @@ Plan: 6 of 6
 | Phase 14 P03 | 13min | 3 tasks | 6 files |
 | Phase 14 P04 | 12min | 3 tasks | 6 files |
 | Phase 14 P05 | 14min | 3 tasks | 8 files |
+| Phase 14 P06 | ~10min | 2 auto tasks + 1 UAT checkpoint | 8 files |
 
 ## Accumulated Context
 
@@ -177,6 +178,7 @@ Plan: 6 of 6
 | 3-click arc gesture via dedicated recordArcClick (14-04, D-01) | An arc edge consumes ONE extra click (start / on-arc / end) vs a straight edge; arcOnArc===null is the phase signal the viewport reads to suppress snapping on the on-arc (free) click and to mount/unmount ArcPreview. recordArcClick is a separate entry point so the straight-drawing path stays byte-for-byte unchanged (chain-mode/pop-last-point pass). On END click: append vertex + write arcs[startVertexIndex]={midX,midY}; commitShape attaches arcs only when ≥1 arc edge drawn |
 | Arc-mode keys: bare A = one-off hold, Shift+A = sticky toggle (14-04, D-02) | bare A makes the next edge an arc then auto-reverts; Shift+A keeps a run on until toggled off (preserved across chained commits). Both isTextInputActive-guarded + window-blur safety net; bridged to useMarkupTool React state via markup-arc-ref.ts (arc flags are NOT in a store). No collision: Ctrl+A=select-all, F3=snap. Affordance = ARC_CROSSHAIR_CURSOR (crosshair + accent arc tick) since StatusBar is propless |
 | ArcPreview samples solveCircle as a 64-segment dashed Line, never a Konva Arc (14-04, T-14-04-01) | One render path serves curved + collinear; the collinear branch degrades to a straight 2-point dashed Line so a degenerate/non-finite input can never produce a NaN-radius Arc. Re-solves every mousemove; listening=false; stroke = pending markup color; zoom-compensated |
+| Arc-aware BOQ + committed-arc render via single buildArcAwareFlatPoints sampler (14-06, SC #4/#5) | boq-aggregator threads m.arcs into linear/area/perimeter(length+area)/wall math; the four renderers + their labels read the same arc-aware math so drawn curve == reported quantity. One pure 24-sample helper in arc-math.ts (closed/open, finite-guarded → straight chord on collinear/non-finite). Live drag preview passes arcs=undefined (stored arcs map mis-aligns with moved points). Perimeter closing-edge arc maps onto [...pts,pts[0]] index n-1 with no re-keying. arc-roundtrip test: arcs survive snapshot→validateV2→hydrate deep-equal + aggregateBoq reports arc-aware > chord |
 
 ### Critical Pitfalls to Watch
 
@@ -230,11 +232,11 @@ None.
 
 **Last activity:** 2026-06-29
 
-**Last session:** 2026-06-29T04:41:04.105Z
+**Last session:** 2026-06-29T04:48:00.000Z
 
-**Stopped at:** Completed 14-04-PLAN.md (curved-edge DRAWING — 3-click arc gesture + arc-mode controls + ArcPreview)
+**Stopped at:** Completed 14-06 autonomous engineering (arc-aware BOQ aggregator + Area/Perimeter/Linear/Wall arc-drawing renderers + arc-roundtrip test + 14-MANUAL-NOTES.md). Build green (0 tsc errors), full vitest 586/80 green. Task 3 human UAT prepared + returned as a checkpoint.
 
-**Next action:** Execute 14-05 (self-intersection commit guard D-09 + the 4 deferred markupStore reshape-arc wiring errors) and/or the bulge-handle edit gesture (D-08). Drawing now populates markup.arcs so those plans have real arc data.
+**Next action:** Run the Phase-14 human UAT (8 hands-on steps mapped to the 5 ROADMAP success criteria — snapping+indicator, instant-at-scale, 3-click arc coexisting with straight, true arc length+signed area, self-intersection blocked + arc round-trips save/reload+BOQ). On "approved", mark ROADMAP Phase 14 [x] + milestone complete in STATE; on failures, gap-closure via /gsd:plan-phase 14 --gaps.
 
 **Note:** Phase 11 (Scale Ratio Input) scrapped — replaced by quick task `260520-rrf` (commit `4156dee`). Phase 13 = v1.1 Phase C from `.planning/phases/v1.1-planning/v1.1-CONTEXT.md` (D-10/D-11/D-12 plus new D-13–D-26 added during planning).
 
