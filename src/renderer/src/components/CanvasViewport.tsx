@@ -1580,12 +1580,26 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
         // Compare the new on-arc mid to the original to gate click-vs-drag.
         const original = bg.originalArcs?.[bg.segmentIndex]
         const next = preview.arcs[bg.segmentIndex]
+        // WR-02: clampBulgeToSagittaCap passes the raw point through on a
+        // degenerate (zero-length) chord or any non-finite input, so `next` can
+        // carry NaN/Infinity. Persisting that into markup.arcs serialises to
+        // JSON null and reloads as a malformed arc entry — the exact corrupt-save
+        // case the math modules defend against. Reject a non-finite new mid here
+        // and fall back to dropping the arc entry (revert that edge to straight).
+        let committedArcs = preview.arcs
+        if (next && (!Number.isFinite(next.midX) || !Number.isFinite(next.midY))) {
+          const pruned = { ...preview.arcs }
+          delete pruned[bg.segmentIndex]
+          committedArcs = pruned
+        }
+        const safeNext = committedArcs[bg.segmentIndex]
         const movedEnough =
+          !safeNext ||
           !original ||
-          Math.abs(next.midX - original.midX) > dragThreshold ||
-          Math.abs(next.midY - original.midY) > dragThreshold
+          Math.abs(safeNext.midX - original.midX) > dragThreshold ||
+          Math.abs(safeNext.midY - original.midY) > dragThreshold
         if (movedEnough) {
-          useMarkupStore.getState().reshapeArc(bg.markupId, currentPage, preview.arcs)
+          useMarkupStore.getState().reshapeArc(bg.markupId, currentPage, committedArcs)
         }
       }
       bulgeDragRef.current = null
