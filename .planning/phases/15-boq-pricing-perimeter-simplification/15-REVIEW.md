@@ -23,7 +23,13 @@ findings:
   warning: 4
   info: 4
   total: 10
-status: issues_found
+status: resolved
+resolution:
+  fixed_at: 2026-06-29T19:01:46Z
+  fixed: [CR-01, CR-02, WR-01, WR-02, WR-03, IN-02, IN-03]
+  deferred: [WR-04, IN-01, IN-04]
+  typecheck: clean
+  test_suite: 628 passed / 0 failed
 ---
 
 # Phase 15: Code Review Report
@@ -31,7 +37,15 @@ status: issues_found
 **Reviewed:** 2026-06-29T18:51:33Z
 **Depth:** standard
 **Files Reviewed:** 14
-**Status:** issues_found
+**Status:** resolved (7 fixed, 3 deferred)
+
+> **Resolution (2026-06-29):** The 7 low-risk findings (CR-01, CR-02, WR-01,
+> WR-02, WR-03, IN-02, IN-03) were applied as atomic `fix(15):`/`docs(15):`
+> commits. Each was confirmed against source + tests before editing; none broke
+> a green test or contradicted a locked decision in 15-CONTEXT.md. Final state:
+> typecheck clean, full vitest suite 628 passed / 0 failed (baseline preserved).
+> The 3 remaining findings (WR-04, IN-01, IN-04) are **DEFERRED** for a user
+> decision and were intentionally NOT touched — see the annotation on each.
 
 ## Summary
 
@@ -53,6 +67,8 @@ No structural pre-pass was provided for this review.
 
 ### CR-01: `BoqRowType` missing `'wall'` in `src/preload/index.ts` — IPC wire-type diverges from ambient declaration and from `boq-writers.ts`
 
+> **RESOLVED** (commit `247dea1`) — added `'wall'` to the preload `BoqRowType` union so all three mirrors agree.
+
 **File:** `src/preload/index.ts:16`
 
 **Issue:** The local `BoqRowType` type in the preload implementation is `'count' | 'linear' | 'area' | 'perimeter'` — it omits `'wall'`. The ambient declaration in `src/preload/index.d.ts:6` has the correct five-member union `'count' | 'linear' | 'area' | 'perimeter' | 'wall'`, and `src/main/boq-writers.ts:18` also includes `'wall'`. This divergence means the preload module's `BoqItemRow.type` field cannot accept the value `'wall'` at compile time even though wall items are produced by the aggregator and expected by the writers. TypeScript checks the renderer's calls against `index.d.ts` (the ambient declaration); it never checks the preload implementation's local type against the declaration. A `BoqStructure` containing wall items is serialised through IPC and deserialised by the writer using `boq-writers.ts` types — the preload file's narrower type has no runtime effect, but any preload-side code that branches on `item.type` (e.g. for logging or validation) would silently miss the `'wall'` arm. The Wave 0 structural lock test (`boq-export-ipc.test.ts`) may not catch this because the test imports from both sides independently, not the preload implementation file specifically.
@@ -66,6 +82,8 @@ type BoqRowType = 'count' | 'linear' | 'area' | 'perimeter' | 'wall'
 ---
 
 ### CR-02: Negative rates typed by the user persist in-session (negative costs exported) but are silently zeroed on reload — save-then-reload discards data without feedback
+
+> **RESOLVED** (commit `c8c3411`) — `commitRate` now clamps `Number.isNaN(parsed) || parsed < 0 ? 0 : parsed`, matching the `v >= 0` hydration filter.
 
 **File:** `src/renderer/src/components/TotalsRow.tsx:174-177`
 
@@ -100,6 +118,8 @@ Alternatively, reject negative input with a visual indicator (`input` border tur
 
 ### WR-01: `typeWord()` returns `'area'` for `'wall'` type — wall collision suffix mislabels rows
 
+> **RESOLVED** (commit `091e640`) — added an explicit `'wall'` branch and widened the return type. Confirmed no green test asserted the old `(area)` suffix for a wall.
+
 **File:** `src/renderer/src/lib/boq-aggregator.ts:42-47`
 
 **Issue:** The `typeWord` helper maps `BoqRowType` to the human-readable suffix used in D-02 collision labels. It handles `'count'`, `'linear'`, and `'perimeter'` explicitly, then falls through to `return 'area'` with the comment "only 'area' reaches this branch given the caller's type set". But `'wall'` also reaches this branch — `typeWord('wall')` returns `'area'`. When a user places both a wall markup and some other markup with the same name (e.g. a linear and a wall both named "Boundary"), the collision suffix for the wall row will read `"Boundary (area)"` instead of `"Boundary (wall)"`, which is incorrect and confusing for an estimator.
@@ -121,6 +141,8 @@ function typeWord(t: BoqRowType): 'count' | 'linear' | 'area' | 'perimeter' | 'w
 
 ### WR-02: `commitRate` fires on every `input` event (every keystroke) — excessive dirty-marking and store thrashing while typing
 
+> **RESOLVED** (commit `5e89e5d`) — removed the redundant `'change'` listener (and its `removeEventListener`); `'input'` + `'blur'` + Enter-`'keydown'` cover all commit paths.
+
 **File:** `src/renderer/src/components/TotalsRow.tsx:184-209`
 
 **Issue:** The native event listeners include both `'input'` and `'change'` bound to `onCommit`. For a text input, `'input'` fires on every character typed; `'change'` fires on blur or Enter (i.e. when the value is "committed" in the HTML sense). Having both means every keystroke calls `setRate(key, parsed)` which calls `set(...)` (a Zustand state update, triggering a re-render of any subscriber) and then `get().markDirty()`. The `markDirty` is idempotent after the first call, but the Zustand `set()` for rates fires on every keystroke because `{ ...s.rates, [key]: parsed }` always produces a new object. This means every character typed triggers a full BOQ re-aggregation via `useBoqLive` (which subscribes to `rates`), a re-render of the entire TotalsPanel, and a cost recalculation across all rows.
@@ -138,6 +160,8 @@ el.addEventListener('keydown', onKeyDown)
 ---
 
 ### WR-03: `grandTotalCost` row in XLSX: `r.getCell(5).value` is written twice — once in `addRow` and once explicitly
+
+> **RESOLVED** (commit `f0c4a9e`) — removed the redundant `r.getCell(5).value` reassignment in both the grand-total-cost block and `appendCostSubtotalRow`; kept the `numFmt`. xlsx/csv writer tests stay green.
 
 **File:** `src/main/boq-writers.ts:188-190`
 
@@ -169,6 +193,8 @@ r.getCell(5).numFmt = NUMFMT_PESO
 
 ### WR-04: Per-category `costSubtotal` is hidden when the category is collapsed — user cannot see the category cost without expanding every row
 
+> **DEFERRED** — UX layout decision (whether/where to surface the category cost when collapsed). Held for a user decision; intentionally not fixed in this pass.
+
 **File:** `src/renderer/src/components/TotalsCategoryBlock.tsx:111-159`
 
 **Issue:** The `costSubtotal` display div (lines 135-157) is inside the `{!isCollapsed && (...)}` block, so it disappears when the category is collapsed. A user who has collapsed a category to reduce visual noise loses visibility of that category's total cost. The grand total bar at the bottom of the panel still shows the project-wide sum, but the per-category breakdown is unavailable without expanding each category. This is especially problematic when a project has many categories — the user would need to expand each one just to see its cost contribution.
@@ -189,6 +215,8 @@ By contrast, the category heading row (always visible) already shows the categor
 
 ### IN-01: `category` prop in `PerimeterMarkupProps` is declared and passed but never used in the component body — dead required prop
 
+> **DEFERRED** — removing the prop is an API change that touches the call site in `CanvasViewport.tsx`. Held for a user decision; intentionally not fixed in this pass.
+
 **File:** `src/renderer/src/components/markup/PerimeterMarkup.tsx:14-15`
 
 **Issue:** The interface declares `category: Category` as a required prop (line 14). The call site in `CanvasViewport.tsx:2296` looks up and passes a `Category` object. However, the `PerimeterMarkup` component function does not destructure `category` and never references it — all colour and rendering data come from `markup.color` directly. The `Category` type import (line 2) is therefore also dead. This is a leftover from the pre-Phase-15 two-row design where the category may have been needed. The dead required prop forces every call site to supply a value that is silently ignored, and it will confuse future maintainers who read the interface and expect the prop to affect rendering.
@@ -198,6 +226,8 @@ By contrast, the category heading row (always visible) already shows the categor
 ---
 
 ### IN-02: `currentZoom` prop comment says "not used" but it IS used to compute `strokeWidth`
+
+> **RESOLVED** (commit `6bada08`) — corrected the comment to describe the prop's real role (keeps `strokeWidth` visually constant across zoom).
 
 **File:** `src/renderer/src/components/markup/PerimeterMarkup.tsx:16`, `src/renderer/src/components/markup/PerimeterMarkup.tsx:72`
 
@@ -216,6 +246,8 @@ currentZoom: number  // used to keep strokeWidth visually constant across zoom l
 
 ### IN-03: Toolbar tooltips describe perimeter tool as "perimeter + area" — stale after Phase 15 collapse to length-only
 
+> **RESOLVED** (commit `713babb`) — both tooltips now read "Perimeter tool — trace a closed outline; measures perimeter length".
+
 **File:** `src/renderer/src/components/Toolbar.tsx:432`, `src/renderer/src/components/RibbonToolbar.tsx:431`
 
 **Issue:** Both toolbar components have `title="Perimeter tool — trace polygons for perimeter + area"`. Since Phase 15 removed the area synthesis, the perimeter tool now produces a length-only measurement. The tooltip still advertises an "area" output that no longer exists. A user reading the tooltip and expecting an area row in the BOQ will be confused when they find only a single length row.
@@ -228,6 +260,8 @@ title="Perimeter tool — trace polygons to measure perimeter length"
 ---
 
 ### IN-04: `seedRateText` is defined as a function inside the component body but called only in one `useEffect` — no need for a named function
+
+> **DEFERRED** — negligible micro-perf (a per-render one-liner closure). Held for a user decision; intentionally not fixed in this pass.
 
 **File:** `src/renderer/src/components/TotalsRow.tsx:165`
 
@@ -249,3 +283,5 @@ function seedRateText(r: number): string {
 _Reviewed: 2026-06-29T18:51:33Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
+
+_Resolved: 2026-06-29T19:01:46Z — 7 fixed (CR-01, CR-02, WR-01, WR-02, WR-03, IN-02, IN-03), 3 deferred (WR-04, IN-01, IN-04). Typecheck clean; full suite 628 passed / 0 failed._
