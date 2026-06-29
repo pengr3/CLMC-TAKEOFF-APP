@@ -171,9 +171,14 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
   }, [rateKey, rate])
 
   // Commit the typed text as a number. parseFloat NaN/empty → 0 (locked).
+  // Negatives are clamped to 0 to match the `v >= 0` hydration filter in
+  // project-serialize.ts (CR-02): without this, a negative rate would show a
+  // negative cost live, then be silently stripped on save+reload — a money bug
+  // for an estimator tool. Locked "no rate set = ₱0.00 / non-negative" rule.
   const commitRate = (text: string): void => {
     const parsed = parseFloat(text)
-    useProjectStore.getState().setRate(rateKey, Number.isNaN(parsed) ? 0 : parsed)
+    const safe = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed
+    useProjectStore.getState().setRate(rateKey, safe)
   }
 
   // Native listeners on the rate input — commit on input/change/blur, commit on
