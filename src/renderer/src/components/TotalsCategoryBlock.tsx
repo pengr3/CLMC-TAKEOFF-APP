@@ -3,8 +3,8 @@ import type React from 'react'
 import { COLORS } from '../lib/constants'
 import { useUiPanels } from '../hooks/useUiPanels'
 import { TotalsRow, labelToName, rowTypeToMarkupType } from './TotalsRow'
-import type { BoqCategoryGroup, BoqItemRow, BoqRowType } from '../lib/boq-types'
-import type { Markup, MarkupType } from '../types/markup'
+import type { BoqCategoryGroup, BoqItemRow } from '../lib/boq-types'
+import type { Markup } from '../types/markup'
 
 /**
  * TotalsCategoryBlock — collapsible section in the TotalsPanel: heading row +
