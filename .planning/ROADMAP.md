@@ -638,7 +638,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 1 + Wave 2 — export + docs)*:
 
-- [ ] 16-05-PLAN.md — 9-column export (Item.Qty.UoM.Material.Labor.Cost.Markup.Price.Margin; SUM-safe native money + percent markup + Cost/Price/Margin subtotals/grand + A:I merge; csv numeric + BOM) + completes the 4-way type lock (boq-writers mirror) + minimal Settings default-markup control + PROJECT.md scope record + 16-MANUAL-NOTES.md
+- [x] 16-05-PLAN.md — 9-column export (Item.Qty.UoM.Material.Labor.Cost.Markup.Price.Margin; SUM-safe native money + percent markup + Cost/Price/Margin subtotals/grand + A:I merge; csv numeric + BOM) + completes the 4-way type lock (boq-writers mirror) + minimal Settings default-markup control + PROJECT.md scope record + 16-MANUAL-NOTES.md
 
 **Cross-cutting constraints:** additive `rates?` field widening (scalar -> PriceEntry), NO formatVersion bump (mirrors Phase-15 precedent); markup stored as a PERCENT (30 = 30%), `price = cost x (1 + markup/100)`; `DEFAULT_MARKUP_PCT = 30` single seam (absent entry -> 30, explicit `markup:0` honored); `name|type` price key category-INDEPENDENT (reuse `labelToName`); mount-preserving view switch — NEVER conditional-unmount the Konva Stage; uncontrolled-input + native-listener + stopPropagation per editable cell (React-19 value-tracker); currency seam duplication-with-test-lock (renderer `currency.ts` + writer-local `NUMFMT_PESO`); 4-way BoqItemRow/BoqStructure mirror widened atomically (boq-writers mirror deferred to Wave 3); no vitest.config.ts change mid-wave (parallel-executor safety); no new packages.
 
