@@ -625,7 +625,7 @@ Plans:
 
 **Wave 0** *(prerequisite — RED Nyquist tests first, tests-before-source)*:
 
-- [ ] 16-01-PLAN.md — RED test surface: widen aggregator money-math (material/labor/cost/price/margin + Cost/Price/Margin subtotals/grand + markup-default-30), PriceEntry round-trip + legacy-scalar coercion, writer 9-column contract; NEW estimate-row-edit / totals-panel-quantity-only / estimate-view-switch tests; use-boq-live PriceEntry recompute; delete totals-row-rate-edit
+- [x] 16-01-PLAN.md — RED test surface: widen aggregator money-math (material/labor/cost/price/margin + Cost/Price/Margin subtotals/grand + markup-default-30), PriceEntry round-trip + legacy-scalar coercion, writer 9-column contract; NEW estimate-row-edit / totals-panel-quantity-only / estimate-view-switch tests; use-boq-live PriceEntry recompute; delete totals-row-rate-edit
 
 **Wave 1** *(blocked on Wave 0 — data-model spine)*:
 
