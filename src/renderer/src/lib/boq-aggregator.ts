@@ -94,6 +94,13 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
   // Phase 15: per-(name|type) ₱ rate map. An injected map wins; otherwise read the
   // project store (the persisted, category-INDEPENDENT rates). cost = rate × quantity.
   const rates = opts.rates ?? useProjectStore.getState().rates
+  // WR-01: project-wide default markup % for rows lacking an explicit entry markup.
+  // An injected value wins; otherwise read the persisted project default. Resolved
+  // ONCE here (not per-row) — used in the `?? defaultMarkup ??` fallback below.
+  // Note: an injected `defaultMarkup: 0` is honored (?? not ||); when the caller
+  // passes NOTHING and no project value exists, the field-level `?? DEFAULT_MARKUP_PCT`
+  // still lands at 30 (a store getState() default of 30 also yields 30).
+  const defaultMarkup = opts.defaultMarkup ?? useProjectStore.getState().defaultMarkupPct
 
   // 1. First pass: bucket by (categoryId, name|type) — sums quantities,
   //    captures color from getColorForName once per (cat, name, type) pair.
@@ -219,15 +226,17 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
         label = `${name} (${typeWord(type)})`
       }
       // Phase 16: PriceEntry keyed by `${name}|${type}` (same shape as the bucket
-      // key, category-INDEPENDENT). Absent ENTRY → material/labor 0 + markup
-      // DEFAULT_MARKUP_PCT (30); an entry WITH an explicit markup 0 keeps 0 (the
-      // `?? ` only fires on undefined). materialCost/laborCost = rate × quantity;
-      // cost = materialCost + laborCost (internal); price = cost × (1 + markup/100)
-      // (client); margin = price − cost (D-03/D-04/D-05).
+      // key, category-INDEPENDENT). Absent ENTRY → material/labor 0 + the project
+      // default markup (WR-01: `entry?.markup ?? defaultMarkup ?? DEFAULT_MARKUP_PCT`
+      // — the resolved project-wide default, falling back to 30 only if that is also
+      // absent). An entry WITH an explicit markup 0 keeps 0, and a project default of
+      // 0 is honored (both nullish `??`, not `||`). materialCost/laborCost = rate ×
+      // quantity; cost = materialCost + laborCost (internal); price = cost × (1 +
+      // markup/100) (client); margin = price − cost (D-03/D-04/D-05).
       const entry = rates[`${name}|${type}`]
       const material = entry?.material ?? 0
       const labor = entry?.labor ?? 0
-      const markup = entry?.markup ?? DEFAULT_MARKUP_PCT
+      const markup = entry?.markup ?? defaultMarkup ?? DEFAULT_MARKUP_PCT
       const materialCost = material * acc.quantity
       const laborCost = labor * acc.quantity
       const cost = materialCost + laborCost

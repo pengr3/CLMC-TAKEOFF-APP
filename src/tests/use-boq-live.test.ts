@@ -229,4 +229,54 @@ describe('useBoqLive — VIEW-01 live aggregator subscription', () => {
       harness.cleanup()
     }
   })
+
+  // ===========================================================================
+  // WR-01 — changing the project-wide defaultMarkupPct recomputes price/margin
+  // live for an UN-PRICED row. Mirrors the "recomputes when rates change" case:
+  // useBoqLive must have defaultMarkupPct as BOTH a primitive selector AND a memo
+  // dep, or the header control's edit would leave stale prices on the sheet.
+  // ===========================================================================
+
+  it('recomputes price/margin when defaultMarkupPct changes (WR-01)', async () => {
+    useViewerStore.setState({ totalPages: 1, fileName: 'demo.pdf' })
+    useScaleStore.setState({ pageScales: { 1: { pixelsPerMm: 1, displayUnit: 'mm' } }, globalUnit: 'mm' })
+    useMarkupStore.setState({
+      pageMarkups: {
+        1: [countMarkup({ id: 'c1', page: 1, name: 'Outlet', categoryId: 'cat-e', color: '#0078d4' })]
+      },
+      categories: { 'cat-e': { id: 'cat-e', name: 'Electrical', color: '#0078d4', paletteIndex: 0 } },
+      categoryOrder: ['cat-e']
+    })
+    // Price the row with material=10 but NO explicit markup entry, so the row's
+    // markup falls back to the project default. defaultMarkupPct starts at 30
+    // (reset() default) → cost 10, price 10×1.3 = 13, margin 3.
+    ;(useProjectStore as any).setState({ rates: { 'Outlet|count': { material: 10, labor: 0 } } })
+
+    const harness = await callHook()
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const first = harness.current().categories[0].items[0] as any
+      expect(first.markup).toBe(30)
+      expect(first.cost).toBe(10)
+      expect(first.price).toBeCloseTo(13, 6)
+      expect(first.margin).toBeCloseTo(3, 6)
+
+      // Change the project default markup 30 → 50 via the store action. useBoqLive
+      // must re-subscribe (selector) and recompute (memo dep): markup 50 → price
+      // 10×1.5 = 15, margin 5.
+      await act(async () => {
+        useProjectStore.getState().setDefaultMarkupPct(50)
+        await new Promise<void>((res) => setTimeout(res, 0))
+      })
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const next = harness.current().categories[0].items[0] as any
+      expect(next.markup).toBe(50)
+      expect(next.cost).toBe(10)
+      expect(next.price).toBeCloseTo(15, 6)
+      expect(next.margin).toBeCloseTo(5, 6)
+    } finally {
+      harness.cleanup()
+    }
+  })
 })

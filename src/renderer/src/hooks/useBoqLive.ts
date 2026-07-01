@@ -41,6 +41,10 @@ export function useBoqLive(): BoqStructure {
   const fileName        = useViewerStore((s) => s.fileName)
   const currentFilePath = useProjectStore((s) => s.currentFilePath)
   const rates           = useProjectStore((s) => s.rates)
+  // WR-01: project-wide default markup. Primitive selector AND memo dep so changing
+  // the default recomputes cost/price/margin live for every un-priced row (omitting
+  // the dep would leave stale prices after the header control edits the default).
+  const defaultMarkup   = useProjectStore((s) => s.defaultMarkupPct)
 
   return useMemo(
     () =>
@@ -54,8 +58,9 @@ export function useBoqLive(): BoqStructure {
         pdfOriginalFilename: fileName ?? 'plan.pdf',
         currentFilePath,
         rates,
+        defaultMarkup,
         getColorForName: (n) => useMarkupStore.getState().getColorForName(n)
       }),
-    [pageMarkups, categories, categoryOrder, pageScales, globalUnit, totalPages, fileName, currentFilePath, rates]
+    [pageMarkups, categories, categoryOrder, pageScales, globalUnit, totalPages, fileName, currentFilePath, rates, defaultMarkup]
   )
 }

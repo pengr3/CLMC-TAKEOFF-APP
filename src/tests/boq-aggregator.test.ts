@@ -449,4 +449,108 @@ describe('aggregateBoq — D-01..D-13 / EXPRT-01', () => {
     expect(c0.labor).toBe(2)
     expect(c0.markup).toBe(40)
   })
+
+  // ===========================================================================
+  // WR-01 — the project-wide `defaultMarkup` option. Fallback is
+  // `entry?.markup ?? opts.defaultMarkup ?? DEFAULT_MARKUP_PCT`:
+  //   • no option passed  → 30 (the pre-WR-01 markup-default-30, kept green above)
+  //   • defaultMarkup: 40 → an un-priced row's markup is 40 (price uses 40)
+  //   • entry markup: 0   → still 0 even with defaultMarkup: 40 (per-entry wins)
+  //   • defaultMarkup: 0  → un-priced row markup 0 (price === cost)
+  // ===========================================================================
+
+  it('WR-01 — defaultMarkup: 40 → an un-priced row uses 40 (price uses 40)', () => {
+    // 2 un-priced Outlet counts, material/labor 0 → cost 0, so price is 0 regardless
+    // of markup — assert the emitted markup itself is 40. Then a priced material=10
+    // row proves the 40 flows into price: cost 20 → price 20×1.4 = 28, margin 8.
+    const unpriced = aggregateBoq({
+      markups: {
+        1: [countMarkup({ id: 'o1', page: 1, name: 'Outlet', categoryId: 'cat-e', color: '#0078d4' })]
+      },
+      pageScales: { 1: { pixelsPerMm: PIXELS_PER_MM, displayUnit: 'mm' } },
+      globalUnit: 'mm', totalPages: 1,
+      categoriesById: { 'cat-e': { id: 'cat-e', name: 'Electrical' } },
+      categoryOrder: ['cat-e'], pdfOriginalFilename: 'plan.pdf',
+      currentFilePath: null, getColorForName: () => '#0078d4',
+      defaultMarkup: 40
+    })
+    expect(unpriced.categories[0].items[0].markup).toBe(40)
+
+    // A priced row (material only, no entry markup) picks up the 40 default.
+    const priced = aggregateBoq({
+      markups: {
+        1: [
+          countMarkup({ id: 'o1', page: 1, name: 'Outlet', categoryId: 'cat-e', color: '#0078d4' }),
+          countMarkup({ id: 'o2', page: 1, name: 'Outlet', categoryId: 'cat-e', color: '#0078d4' })
+        ]
+      },
+      pageScales: { 1: { pixelsPerMm: PIXELS_PER_MM, displayUnit: 'mm' } },
+      globalUnit: 'mm', totalPages: 1,
+      categoriesById: { 'cat-e': { id: 'cat-e', name: 'Electrical' } },
+      categoryOrder: ['cat-e'], pdfOriginalFilename: 'plan.pdf',
+      currentFilePath: null, getColorForName: () => '#0078d4',
+      // Entry has NO markup field → falls back to the 40 default.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      rates: { 'Outlet|count': { material: 10, labor: 0 } as any },
+      defaultMarkup: 40
+    })
+    const r = priced.categories[0].items[0]
+    expect(r.markup).toBe(40)
+    expect(r.cost).toBe(20)
+    expect(r.price).toBeCloseTo(28, 6)
+    expect(r.margin).toBeCloseTo(8, 6)
+  })
+
+  it('WR-01 — an entry with explicit markup:0 is NOT overridden by defaultMarkup:40', () => {
+    // material 10, qty 2 → cost 20; explicit markup 0 → price == cost, margin 0.
+    // The 40 project default must NOT leak in (per-entry markup wins, nullish `??`).
+    const result = aggregateBoq({
+      markups: {
+        1: [
+          countMarkup({ id: 'o1', page: 1, name: 'Outlet', categoryId: 'cat-e', color: '#0078d4' }),
+          countMarkup({ id: 'o2', page: 1, name: 'Outlet', categoryId: 'cat-e', color: '#0078d4' })
+        ]
+      },
+      pageScales: { 1: { pixelsPerMm: PIXELS_PER_MM, displayUnit: 'mm' } },
+      globalUnit: 'mm', totalPages: 1,
+      categoriesById: { 'cat-e': { id: 'cat-e', name: 'Electrical' } },
+      categoryOrder: ['cat-e'], pdfOriginalFilename: 'plan.pdf',
+      currentFilePath: null, getColorForName: () => '#0078d4',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      rates: { 'Outlet|count': { material: 10, labor: 0, markup: 0 } as any },
+      defaultMarkup: 40
+    })
+    const r = result.categories[0].items[0]
+    expect(r.markup).toBe(0)
+    expect(r.cost).toBe(20)
+    expect(r.price).toBe(20)
+    expect(r.margin).toBe(0)
+  })
+
+  it('WR-01 — defaultMarkup: 0 → an un-priced row markup 0, price === cost (0 honored)', () => {
+    // material 10, qty 2 → cost 20; project default markup 0 (0 ?? 30 === 0) →
+    // price == cost == 20, margin 0. Proves a project default of 0 is honored.
+    const result = aggregateBoq({
+      markups: {
+        1: [
+          countMarkup({ id: 'o1', page: 1, name: 'Outlet', categoryId: 'cat-e', color: '#0078d4' }),
+          countMarkup({ id: 'o2', page: 1, name: 'Outlet', categoryId: 'cat-e', color: '#0078d4' })
+        ]
+      },
+      pageScales: { 1: { pixelsPerMm: PIXELS_PER_MM, displayUnit: 'mm' } },
+      globalUnit: 'mm', totalPages: 1,
+      categoriesById: { 'cat-e': { id: 'cat-e', name: 'Electrical' } },
+      categoryOrder: ['cat-e'], pdfOriginalFilename: 'plan.pdf',
+      currentFilePath: null, getColorForName: () => '#0078d4',
+      // Entry has material only, no markup → falls back to the defaultMarkup: 0.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      rates: { 'Outlet|count': { material: 10, labor: 0 } as any },
+      defaultMarkup: 0
+    })
+    const r = result.categories[0].items[0]
+    expect(r.markup).toBe(0)
+    expect(r.cost).toBe(20)
+    expect(r.price).toBe(20)
+    expect(r.margin).toBe(0)
+  })
 })

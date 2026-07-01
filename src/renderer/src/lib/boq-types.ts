@@ -145,6 +145,15 @@ export interface AggregateOptions {
   getColorForName?: (name: string) => string | null
   /** Per-(name|type) PriceEntry map; default useProjectStore.getState().rates. */
   rates?: Record<string, PriceEntry>
+  /**
+   * PROJECT-wide default markup PERCENT for rows with no explicit PriceEntry markup
+   * (WR-01); default useProjectStore.getState().defaultMarkupPct. The per-row
+   * fallback is `entry?.markup ?? opts.defaultMarkup ?? DEFAULT_MARKUP_PCT`, so:
+   * an explicit per-entry markup:0 still wins (nullish, not ||); a project default
+   * of 0 is honored (0 ?? 30 === 0); and when this option is omitted the fallback
+   * is still 30 (undefined ?? 30) — the pre-WR-01 markup-default-30 behavior.
+   */
+  defaultMarkup?: number
 }
 
 /**
