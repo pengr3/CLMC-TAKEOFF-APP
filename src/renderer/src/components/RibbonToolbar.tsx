@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   FileUp,
   ChevronLeft,
@@ -163,6 +163,22 @@ export function RibbonToolbar({
   // the aggregator's `entry?.markup ?? DEFAULT_MARKUP_PCT` contract, so the
   // markup-default-30 behavior stays intact; 30 remains the shipped default.
   const [defaultMarkup, setDefaultMarkup] = useState<number>(DEFAULT_MARKUP_PCT)
+
+  // Phase 16 UAT gap (GAP-1): the Estimate view is conceptually part of the
+  // Estimating tab ONLY. `activeTab` is local ribbon state; `viewMode` lives in
+  // viewerStore — nothing tied them together, so leaving the Estimating tab while
+  // the Estimate sheet was showing left the center area stuck on the grid (the
+  // Plan canvas was never revealed). When the active tab changes to anything OTHER
+  // than Estimating, reset viewMode back to 'plan' so the Plan workspace shows.
+  // Only acts when currently on 'estimate' (never forces 'plan' redundantly), and
+  // returning to the Estimating tab does NOT auto-restore Estimate — the user
+  // clicks the Estimate toggle to reopen the sheet. The Plan|Estimate toggle
+  // behavior WHILE on the Estimating tab is untouched (this effect no-ops there).
+  useEffect(() => {
+    if (activeTab !== 'estimating' && viewMode === 'estimate') {
+      setViewMode('plan')
+    }
+  }, [activeTab, viewMode, setViewMode])
 
   const pageScale = totalPages > 0 ? getScale(currentPage) : null
   const setScaleDisabled = totalPages === 0
