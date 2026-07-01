@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: milestone_complete
+status: executing
 stopped_at: "Completed 15-04 (Wave 2/3 writers half + scope flip + manual notes) — final plan of Phase 15. buildBoqXlsx/buildBoqCsv now emit the locked 5-column priced layout (Item·Quantity·UoM·Rate·Cost): xlsx Rate/Cost are native numbers with a local NUMFMT_PESO ₱#,##0.00 (SUM-safe), per-category ₱ cost-subtotal + grand-total-cost rows, A:E heading merge; csv Rate/Cost numeric with the UTF-8 BOM preserved. Reconciled the final main-process BoqRowType to single 'perimeter' (15-02 deferred item closed). money() non-finite→0 guard at all ₱ write points. PROJECT.md pricing flipped Out-of-Scope→Validated. NEW 15-MANUAL-NOTES.md. 7 writer reds GREEN; full suite 628/628; typecheck clean. 3 atomic commits 3e2b31f/2a3003f/69fb1a0. Phase 15 feature-complete — ready for verification/UAT."
 last_updated: "2026-06-29T10:42:51.697Z"
 last_activity: 2026-06-29
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 15 — boq-pricing-perimeter-simplification
+**Current Focus:** Phase 16 — estimating-workspace (executing)
 
 ---
 
 ## Current Position
 
-Phase: 15 (boq-pricing-perimeter-simplification) — ALL PLANS COMPLETE, ready for verification
-Plan: 4 of 4 (15-04 complete — final plan of the phase)
+Phase: 16 (estimating-workspace) — EXECUTING (5 plans / 4 waves)
+Plan: Wave 0 starting (16-01 RED test surface)
 
 ## Performance Metrics
 
