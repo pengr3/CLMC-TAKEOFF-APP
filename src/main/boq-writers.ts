@@ -20,23 +20,45 @@ export interface BoqItemRow {
   label: string
   quantity: number
   uom: string
+  // Phase 16 (D-03/D-05): the widened {material, labor, markup} estimate model.
+  // `material`/`labor` are ₱ per unit; `markup` is a PERCENT (30 = 30%, NOT a
+  // fraction). materialCost/laborCost = rate × quantity; cost = materialCost +
+  // laborCost (internal); price = cost × (1 + markup/100) (client); margin =
+  // price − cost. This is the 4th of the four inline BoqItemRow mirrors
+  // (boq-types.ts canonical + the two preload copies were widened in 16-02); the
+  // writer's copy is widened here to complete the 4-way type lock. The writer
+  // mirror deliberately omits `categoryId` (same as the preload mirrors) — it is
+  // not needed at the file-I/O boundary.
+  material: number
+  labor: number
+  markup: number
+  materialCost: number
+  laborCost: number
+  cost: number
+  price: number
+  margin: number
   color: string | null
   type: BoqRowType
-  rate: number
-  cost: number
 }
 export interface BoqSubtotal { uom: string; total: number }
 export interface BoqCategoryGroup {
   name: string
   items: BoqItemRow[]
   subtotals: BoqSubtotal[]
+  // Phase 16: three unit-agnostic single-₱ per-category subtotals (Σ over rows),
+  // PARALLEL to the per-UoM quantity subtotals above (D-07).
   costSubtotal: number
+  priceSubtotal: number
+  marginSubtotal: number
 }
 export interface BoqStructure {
   metadata: BoqMetadata
   categories: BoqCategoryGroup[]
   grandTotals: BoqSubtotal[]
+  // Phase 16: three project-wide grand totals (Σ over category subtotals).
   grandTotalCost: number
+  grandTotalPrice: number
+  grandTotalMargin: number
 }
 
 // =============================================================================
@@ -53,11 +75,17 @@ const NUMFMT_DECIMAL = '0.00'
 // NUMFMT_DECIMAL above) — a future picker changes both seams. The ₱ glyph is safe
 // inside the numFmt literal because the xlsx XML is UTF-8 (RESEARCH §ExcelJS ₱).
 const NUMFMT_PESO = '₱#,##0.00'
+// Phase 16 (D-08): percent DISPLAY format for the Markup cell. The stored value
+// is the percent NUMBER (e.g. 30), so this is a pure suffix — NEVER Excel's '0%'
+// format, which multiplies the stored value by 100 (30 → "3000%"). The Markup
+// cell must NOT carry the ₱ glyph. Sibling local constant to NUMFMT_PESO (same
+// duplication-with-test-lock convention; no renderer import).
+const NUMFMT_PERCENT = '0"%"'
 const COL_WIDTH_ITEM = 36
 const COL_WIDTH_QTY = 12
 const COL_WIDTH_UOM = 8
-const COL_WIDTH_RATE = 14
-const COL_WIDTH_COST = 14
+// Phase 16: money/markup column widths (~14 each) for the six added columns.
+const COL_WIDTH_MONEY = 14
 const SUBTOTAL_FILL_ARGB = 'FFEFEFEF'   // Q1: light gray, distinct from canvas dark theme
 const GRAND_TOTAL_FILL_ARGB = 'FFCCCCCC' // slightly darker than subtotal for visual stratification
 const SHEET_NAME = 'BOQ'                 // D-08
@@ -120,6 +148,18 @@ function money(n: number): number {
   return Number.isFinite(n) ? n : 0
 }
 
+/**
+ * CSV money formatter (Phase 16). Emits a whole number as a plain integer string
+ * ('3', '20') and a fractional value at 2 decimals PRESERVING the trailing zero
+ * ('32.10', '24.69'). Distinct from `Number(x.toFixed(2))` which would strip the
+ * trailing zero (32.10 → 32.1). No ₱ glyph — the CSV carries numeric values only
+ * (currency lives in display, protected by the UTF-8 BOM). Guards non-finite → 0.
+ */
+function csvMoney(n: number): string {
+  const v = money(n)
+  return Number.isInteger(v) ? String(v) : v.toFixed(2)
+}
+
 // =============================================================================
 // XLSX builder — D-08, D-09, D-10, D-11, D-12, D-13, EXPRT-01
 // =============================================================================
@@ -137,12 +177,18 @@ export async function buildBoqXlsx(b: BoqStructure): Promise<Buffer> {
   const ws = wb.addWorksheet(SHEET_NAME)
 
   // Column widths BEFORE rows (key only — no header property to avoid auto-row).
+  // Phase 16 (D-07/D-08): 9-column layout — Item · Quantity · UoM | Material ·
+  // Labor · Cost (internal) | Markup · Price · Margin (client).
   ws.columns = [
     { key: 'item', width: COL_WIDTH_ITEM },
     { key: 'quantity', width: COL_WIDTH_QTY },
     { key: 'uom', width: COL_WIDTH_UOM },
-    { key: 'rate', width: COL_WIDTH_RATE },
-    { key: 'cost', width: COL_WIDTH_COST }
+    { key: 'material', width: COL_WIDTH_MONEY },
+    { key: 'labor', width: COL_WIDTH_MONEY },
+    { key: 'cost', width: COL_WIDTH_MONEY },
+    { key: 'markup', width: COL_WIDTH_MONEY },
+    { key: 'price', width: COL_WIDTH_MONEY },
+    { key: 'margin', width: COL_WIDTH_MONEY }
   ]
 
   // Metadata block — D-09. 5 single-column rows + blank spacer.
@@ -153,9 +199,10 @@ export async function buildBoqXlsx(b: BoqStructure): Promise<Buffer> {
   ws.addRow([`Markups: ${b.metadata.totalMarkups}`])
   ws.addRow([])
 
-  // Title row — D-10 + Phase 15 priced layout. Bold + frozen.
-  // Locked column order (CONTEXT line 44): Item · Quantity · UoM · Rate · Cost.
-  ws.addRow(['Item', 'Quantity', 'UoM', 'Rate', 'Cost'])
+  // Title row — D-10 + Phase 16 estimate layout. Bold + frozen.
+  // Locked column order (D-07/D-08): Item · Quantity · UoM · Material · Labor ·
+  // Cost · Markup · Price · Margin.
+  ws.addRow(['Item', 'Quantity', 'UoM', 'Material', 'Labor', 'Cost', 'Markup', 'Price', 'Margin'])
   const titleRowIdx = ws.lastRow!.number
   ws.getRow(titleRowIdx).font = { bold: true }
   // Pitfall 2: views set BEFORE writeBuffer, immediately after title row.
@@ -166,9 +213,9 @@ export async function buildBoqXlsx(b: BoqStructure): Promise<Buffer> {
     appendCategoryHeading(ws, cat.name)
     for (const item of cat.items) appendItemRow(ws, item)
     for (const sub of cat.subtotals) appendSubtotalRow(ws, sub)
-    // Phase 15: one ₱ cost subtotal per category (unit-agnostic — NOT bucketed
-    // per-UoM like the quantity subtotals above).
-    appendCostSubtotalRow(ws, cat.costSubtotal)
+    // Phase 16: three ₱ subtotals per category (Cost/Price/Margin) — unit-agnostic
+    // single numbers, NOT bucketed per-UoM like the quantity subtotals above.
+    appendMoneySubtotalRows(ws, cat.costSubtotal, cat.priceSubtotal, cat.marginSubtotal)
   }
 
   // Grand totals — same like-typed-only rule as subtotals (D-12)
@@ -181,19 +228,10 @@ export async function buildBoqXlsx(b: BoqStructure): Promise<Buffer> {
     })
   }
 
-  // Phase 15: one ₱ grand-total cost row (Σ category cost subtotals) in the Cost
-  // column. Native number with the ₱ numFmt so SUM() stays correct.
-  {
-    const grandTotalCost = money(b.grandTotalCost)
-    const r = ws.addRow(['Grand Total (cost)', null, null, null, grandTotalCost])
-    r.font = { bold: true }
-    // WR-03: addRow already placed grandTotalCost in cell 5 — only the numFmt
-    // needs setting (the explicit value reassignment was redundant).
-    r.getCell(5).numFmt = NUMFMT_PESO
-    r.eachCell((c) => {
-      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: GRAND_TOTAL_FILL_ARGB } }
-    })
-  }
+  // Phase 16: one ₱ grand-total row carrying Cost/Price/Margin (Σ over the
+  // category subtotals) in their matching group columns (Cost→6, Price→8,
+  // Margin→9). Native numbers with the ₱ numFmt so SUM() stays correct.
+  appendMoneyGrandRow(ws, b.grandTotalCost, b.grandTotalPrice, b.grandTotalMargin)
 
   // writeBuffer — TS declares Promise<ExcelJS.Buffer> but runtime is Node Buffer.
   // Cast for IPC consistency. Pitfall 10.
@@ -202,34 +240,50 @@ export async function buildBoqXlsx(b: BoqStructure): Promise<Buffer> {
 }
 
 /**
- * D-11: bold heading, merged across A:E (Phase 15 — widened from A:C to cover the
- * Rate/Cost columns), NO color (color is per-name-group, not per-category).
+ * D-11: bold heading, merged across A:I (Phase 16 — widened from A:E to cover the
+ * 9-column Material/Labor/Cost/Markup/Price/Margin layout), NO color (color is
+ * per-name-group, not per-category).
  */
 function appendCategoryHeading(ws: ExcelJS.Worksheet, name: string): void {
-  const r = ws.addRow([safeText(name), null, null, null, null])
+  const r = ws.addRow([safeText(name), null, null, null, null, null, null, null, null])
   // Pitfall 6: mergeCells AFTER addRow, using the new row's number.
-  ws.mergeCells(`A${r.number}:E${r.number}`)
+  ws.mergeCells(`A${r.number}:I${r.number}`)
   r.font = { bold: true }
 }
 
-/** D-13: Item-cell only fill; quantity/rate/cost are native numbers with display numFmt. */
+/**
+ * D-13: Item-cell only fill; quantity + the six money/markup cells are native
+ * numbers with a display numFmt. Phase 16 9-column layout (D-07/D-08):
+ *   4 Material · 5 Labor · 6 Cost · 7 Markup · 8 Price · 9 Margin.
+ * Material/Labor/Cost/Price/Margin carry the ₱ numFmt; Markup carries the percent
+ * numFmt. Every money value is money()-guarded (non-finite → 0).
+ */
 function appendItemRow(ws: ExcelJS.Worksheet, item: BoqItemRow): void {
-  const rate = money(item.rate)
+  const material = money(item.material)
+  const labor = money(item.labor)
   const cost = money(item.cost)
-  const r = ws.addRow([safeText(item.label), item.quantity, item.uom, rate, cost])
+  const markup = money(item.markup)
+  const price = money(item.price)
+  const margin = money(item.margin)
+  const r = ws.addRow([
+    safeText(item.label), item.quantity, item.uom,
+    material, labor, cost, markup, price, margin
+  ])
   // Pitfall 3: native number — keeps SUM() working.
   const qtyCell = r.getCell(2)
   qtyCell.value = item.quantity
   qtyCell.numFmt = numFmtForUom(item.uom)
-  // Phase 15: Rate/Cost are NATIVE numbers carrying a ₱ display numFmt (NEVER a
-  // pre-formatted "₱123.45" string — that breaks SUM()). Numbers bypass safeText
-  // (the formula-injection guard is label-only; numbers can't trigger formulas).
-  const rateCell = r.getCell(4)
-  rateCell.value = rate
-  rateCell.numFmt = NUMFMT_PESO
-  const costCell = r.getCell(5)
-  costCell.value = cost
-  costCell.numFmt = NUMFMT_PESO
+  // Phase 16: Material/Labor/Cost/Price/Margin are NATIVE numbers carrying a ₱
+  // display numFmt (NEVER a pre-formatted "₱123.45" string — that breaks SUM()).
+  // Markup is a NATIVE number carrying the PERCENT numFmt (NOT ₱). Numbers bypass
+  // safeText (the formula-injection guard is label-only; numbers can't trigger
+  // formulas).
+  setMoneyCell(r, 4, material, NUMFMT_PESO)
+  setMoneyCell(r, 5, labor, NUMFMT_PESO)
+  setMoneyCell(r, 6, cost, NUMFMT_PESO)
+  setMoneyCell(r, 7, markup, NUMFMT_PERCENT)
+  setMoneyCell(r, 8, price, NUMFMT_PESO)
+  setMoneyCell(r, 9, margin, NUMFMT_PESO)
   if (item.color !== null) {
     r.getCell(1).fill = {
       type: 'pattern',
@@ -237,6 +291,13 @@ function appendItemRow(ws: ExcelJS.Worksheet, item: BoqItemRow): void {
       fgColor: { argb: hexToArgb(item.color) }
     }
   }
+}
+
+/** Set a native-number cell with a display numFmt (₱ or percent). */
+function setMoneyCell(r: ExcelJS.Row, col: number, value: number, fmt: string): void {
+  const cell = r.getCell(col)
+  cell.value = value
+  cell.numFmt = fmt
 }
 
 /** D-12: bold + light-gray fill (Q1) on every cell of the row. */
@@ -250,19 +311,52 @@ function appendSubtotalRow(ws: ExcelJS.Worksheet, sub: BoqSubtotal): void {
 }
 
 /**
- * Phase 15: per-category ₱ cost subtotal — a single unit-agnostic number in the
- * Cost column (cell 5). Mirrors appendSubtotalRow (bold + light-gray fill on every
- * cell) but carries the cost as a NATIVE number with the ₱ numFmt so SUM() works.
+ * Phase 16: per-category ₱ Cost/Price/Margin subtotal — a single bold, light-gray
+ * row carrying three unit-agnostic NATIVE numbers in their matching group columns
+ * (Cost→6, Price→8, Margin→9), each with the ₱ numFmt so SUM() works. The row is
+ * padded to 9 cells; the Markup column (7) is intentionally blank on a subtotal.
  */
-function appendCostSubtotalRow(ws: ExcelJS.Worksheet, costSubtotal: number): void {
-  const value = money(costSubtotal)
-  const r = ws.addRow(['Subtotal (cost)', null, null, null, value])
+function appendMoneySubtotalRows(
+  ws: ExcelJS.Worksheet,
+  costSubtotal: number,
+  priceSubtotal: number,
+  marginSubtotal: number
+): void {
+  const cost = money(costSubtotal)
+  const price = money(priceSubtotal)
+  const margin = money(marginSubtotal)
+  const r = ws.addRow(['Subtotal (cost)', null, null, null, null, cost, null, price, margin])
   r.font = { bold: true }
-  // WR-03: addRow already placed value in cell 5 — only the numFmt needs
-  // setting (the explicit value reassignment was redundant).
-  r.getCell(5).numFmt = NUMFMT_PESO
+  setMoneyCell(r, 6, cost, NUMFMT_PESO)
+  setMoneyCell(r, 8, price, NUMFMT_PESO)
+  setMoneyCell(r, 9, margin, NUMFMT_PESO)
   r.eachCell((c) => {
     c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: SUBTOTAL_FILL_ARGB } }
+  })
+}
+
+/**
+ * Phase 16: the pinned ₱ grand-total Cost/Price/Margin row — a single bold,
+ * darker-gray row carrying three unit-agnostic NATIVE numbers in their matching
+ * group columns (Cost→6, Price→8, Margin→9), each with the ₱ numFmt. Padded to 9
+ * cells; the Markup column (7) is intentionally blank on a grand-total.
+ */
+function appendMoneyGrandRow(
+  ws: ExcelJS.Worksheet,
+  cost: number,
+  price: number,
+  margin: number
+): void {
+  const c = money(cost)
+  const p = money(price)
+  const m = money(margin)
+  const r = ws.addRow(['Grand Total (cost)', null, null, null, null, c, null, p, m])
+  r.font = { bold: true }
+  setMoneyCell(r, 6, c, NUMFMT_PESO)
+  setMoneyCell(r, 8, p, NUMFMT_PESO)
+  setMoneyCell(r, 9, m, NUMFMT_PESO)
+  r.eachCell((cell) => {
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: GRAND_TOTAL_FILL_ARGB } }
   })
 }
 
@@ -290,21 +384,28 @@ export function buildBoqCsv(b: BoqStructure): string {
   rows.push([`Pages: ${b.metadata.totalPages}`])
   rows.push([`Markups: ${b.metadata.totalMarkups}`])
   rows.push([])  // blank spacer — emits as ''\r\n
-  // Phase 15 priced layout — locked order Item · Quantity · UoM · Rate · Cost.
-  rows.push(['Item', 'Quantity', 'UoM', 'Rate', 'Cost'])
+  // Phase 16 estimate layout — locked order Item · Quantity · UoM · Material ·
+  // Labor · Cost · Markup · Price · Margin (D-07/D-08).
+  rows.push(['Item', 'Quantity', 'UoM', 'Material', 'Labor', 'Cost', 'Markup', 'Price', 'Margin'])
 
   for (const cat of b.categories) {
-    rows.push([safeText(cat.name), '', '', '', ''])  // bare-text heading per D-14, padded to 5 cells
+    rows.push([safeText(cat.name), '', '', '', '', '', '', '', ''])  // bare-text heading per D-14, padded to 9 cells
     for (const item of cat.items) {
       rows.push([
         safeText(item.label),
         item.uom === 'ea' ? Math.round(item.quantity) : Number(item.quantity.toFixed(2)),
         item.uom,
-        // Phase 15: Rate/Cost as plain numeric values (same discipline as the
-        // quantity column above) — NO ₱ glyph in the cell; the BOM + Excel display
-        // carry the currency. Keeps the column SUM-friendly in any tool.
-        Number(money(item.rate).toFixed(2)),
-        Number(money(item.cost).toFixed(2))
+        // Phase 16: Material/Labor/Cost/Markup/Price/Margin as plain numeric values
+        // (same discipline as the quantity column above) — NO ₱ glyph in the cell;
+        // the BOM + Excel display carry the currency. csvMoney keeps whole numbers
+        // integer-clean and fractional values at 2dp (trailing zero preserved).
+        // Locked order: Material · Labor · Cost · Markup · Price · Margin.
+        csvMoney(item.material),
+        csvMoney(item.labor),
+        csvMoney(item.cost),
+        csvMoney(item.markup),   // plain percent number (e.g. 30)
+        csvMoney(item.price),
+        csvMoney(item.margin)
       ])
     }
     for (const sub of cat.subtotals) {
@@ -312,12 +413,17 @@ export function buildBoqCsv(b: BoqStructure): string {
         safeText('Subtotal'),
         sub.uom === 'ea' ? Math.round(sub.total) : Number(sub.total.toFixed(2)),
         sub.uom,
-        '',  // Rate column blank on a quantity subtotal row
-        ''   // Cost column blank — the ₱ cost subtotal is its own row below
+        '', '', '', '', '', ''  // money columns blank — the ₱ Cost/Price/Margin subtotal is its own row below
       ])
     }
-    // Phase 15: per-category ₱ cost subtotal — a single number in the Cost column.
-    rows.push(['Subtotal (cost)', '', '', '', Number(money(cat.costSubtotal).toFixed(2))])
+    // Phase 16: per-category ₱ Cost/Price/Margin subtotal — Cost→col 6, Price→col 8,
+    // Margin→col 9 (Markup col 7 blank on a subtotal). Padded to 9 cells.
+    rows.push([
+      'Subtotal (cost)', '', '', '', '',
+      csvMoney(cat.costSubtotal), '',
+      csvMoney(cat.priceSubtotal),
+      csvMoney(cat.marginSubtotal)
+    ])
   }
 
   for (const gt of b.grandTotals) {
@@ -325,13 +431,18 @@ export function buildBoqCsv(b: BoqStructure): string {
       safeText('Grand Total'),
       gt.uom === 'ea' ? Math.round(gt.total) : Number(gt.total.toFixed(2)),
       gt.uom,
-      '',  // Rate column blank on a quantity grand-total row
-      ''   // Cost column blank — the ₱ grand-total cost is its own row below
+      '', '', '', '', '', ''  // money columns blank — the ₱ grand-total Cost/Price/Margin is its own row below
     ])
   }
 
-  // Phase 15: grand-total ₱ cost (Σ category cost subtotals) in the Cost column.
-  rows.push(['Grand Total (cost)', '', '', '', Number(money(b.grandTotalCost).toFixed(2))])
+  // Phase 16: grand-total ₱ Cost/Price/Margin (Σ category subtotals) — Cost→col 6,
+  // Price→col 8, Margin→col 9. Padded to 9 cells.
+  rows.push([
+    'Grand Total (cost)', '', '', '', '',
+    csvMoney(b.grandTotalCost), '',
+    csvMoney(b.grandTotalPrice),
+    csvMoney(b.grandTotalMargin)
+  ])
 
   // UTF-8 BOM (﻿ → bytes 0xEF 0xBB 0xBF) so Excel on Windows
   // auto-detects UTF-8 instead of falling back to Windows-1252 and
