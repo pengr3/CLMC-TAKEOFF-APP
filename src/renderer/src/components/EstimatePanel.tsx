@@ -15,18 +15,24 @@ import { EstimateCategoryBlock } from './EstimateCategoryBlock'
  *
  * Renders:
  *   1. A grouped column HEADER (net-new): Item · Qty · UoM | Material ₱ · Labor ₱ ·
- *      Cost ₱ | Markup % · Price ₱ · Margin ₱ — a two-tier grouped header.
+ *      Cost ₱ | Markup % · UNIT PRICE ₱ · TOTAL ₱ · Margin ₱ — a two-tier grouped
+ *      header (10 columns; UAT 2026-07-01 added UNIT PRICE + renamed Price→TOTAL to
+ *      match the export in commit af9a260).
  *   2. The empty-state decision tree adapted from TotalsPanel (open a PDF / place
  *      markups / calibrate a page).
  *   3. The category blocks in a scrollable body.
- *   4. A pinned grand-total bar with Cost/Price/Margin off boq.grandTotal{Cost,
- *      Price,Margin} (each non-finite-guarded → ₱0.00).
+ *   4. A pinned grand-total bar with Cost/TOTAL/Margin off boq.grandTotal{Cost,
+ *      Price,Margin} (each non-finite-guarded → ₱0.00). The UNIT PRICE slot is left
+ *      BLANK on the grand total — a project-wide total has no single unit price
+ *      (exactly like the export leaves col 8 blank on subtotal/grand rows).
  *
  * No arithmetic in the component — the aggregator is the single source of truth.
  */
 
 // Shared grid template so header, rows, subtotals, and grand-total bar all align.
-const GRID_COLUMNS = 'minmax(120px, 1fr) 64px 48px 88px 88px 80px 72px 80px 80px'
+// 10 columns: Item · Qty · UoM · Material · Labor · Cost · Markup · UNIT PRICE ·
+// TOTAL · Margin (UNIT PRICE added at position 8; UAT 2026-07-01).
+const GRID_COLUMNS = 'minmax(120px, 1fr) 64px 48px 88px 88px 80px 72px 80px 80px 80px'
 
 /** ₱ money cell — non-finite guard → ₱0.00. */
 function formatMoney(n: number): string {
@@ -102,7 +108,7 @@ export function EstimatePanel(): React.JSX.Element {
         >
           <span style={{ gridColumn: '1 / 4', ...headerCellStyle }} />
           <span style={{ gridColumn: '4 / 7', ...headerCellStyle }}>Internal</span>
-          <span style={{ gridColumn: '7 / 10', ...headerCellStyle }}>Client</span>
+          <span style={{ gridColumn: '7 / 11', ...headerCellStyle }}>Client</span>
         </div>
         {/* Tier 2 — per-column labels. */}
         <div
@@ -121,7 +127,8 @@ export function EstimatePanel(): React.JSX.Element {
           <span style={headerNumStyle}>Labor {CURRENCY_SYMBOL}</span>
           <span style={headerNumStyle}>Cost {CURRENCY_SYMBOL}</span>
           <span style={headerNumStyle}>Markup %</span>
-          <span style={headerNumStyle}>Price {CURRENCY_SYMBOL}</span>
+          <span style={headerNumStyle}>Unit Price {CURRENCY_SYMBOL}</span>
+          <span style={headerNumStyle}>Total {CURRENCY_SYMBOL}</span>
           <span style={headerNumStyle}>Margin {CURRENCY_SYMBOL}</span>
         </div>
       </div>
@@ -182,9 +189,13 @@ export function EstimatePanel(): React.JSX.Element {
           >
             {formatMoney(boq.grandTotalCost)}
           </span>
+          {/* Markup column — blank on the grand total. */}
           <span />
+          {/* UNIT PRICE column — blank on the grand total (no single project-wide
+              unit price; mirrors the export leaving col 8 blank). */}
+          <span data-testid="estimate-grand-total-unit-price" />
           <span
-            data-testid="estimate-grand-total-price"
+            data-testid="estimate-grand-total-total"
             style={{ fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}
           >
             {formatMoney(boq.grandTotalPrice)}

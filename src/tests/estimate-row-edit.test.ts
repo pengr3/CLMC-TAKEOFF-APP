@@ -130,6 +130,23 @@ const outletItem: BoqItemRow = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any as BoqItemRow
 
+// A PRICED row for the read-only UNIT PRICE / TOTAL columns (UAT 2026-07-01).
+// material 5 + labor 3 = cost/unit 8; ×(1 + 30/100) = 10.4 unit price. quantity 4
+// ⇒ cost 32, price (TOTAL) 41.6, margin 9.6. UNIT PRICE (10.4) === price/qty
+// (41.6 / 4). The read-only cells render straight off item.* (rates stay {} in
+// beforeEach), so the fixture drives them directly.
+const pricedItem: BoqItemRow = {
+  label: 'Panel',
+  quantity: 4,
+  uom: 'ea',
+  material: 5, labor: 3, markup: 30,
+  materialCost: 20, laborCost: 12, cost: 32, price: 41.6, margin: 9.6,
+  color: '#0078d4',
+  type: 'count',
+  categoryId: 'cat-1'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any as BoqItemRow
+
 let setPriceSpy: ReturnType<typeof vi.fn>
 
 beforeEach(() => {
@@ -162,6 +179,12 @@ function findCell(container: HTMLElement, testid: string): HTMLInputElement | nu
   return container.querySelector(`[data-testid="${testid}"]`) as HTMLInputElement | null
 }
 
+/** Read-only ₱ cell text (UNIT PRICE / TOTAL / etc.) — these are <span>s, not inputs. */
+function cellText(container: HTMLElement, testid: string): string | null {
+  const el = container.querySelector(`[data-testid="${testid}"]`)
+  return el ? (el.textContent ?? '') : null
+}
+
 /** Was setPrice(PRICE_KEY, patch) called with a patch whose field === value? */
 function calledWith(field: 'material' | 'labor' | 'markup', value: number): boolean {
   return setPriceSpy.mock.calls.some((c) => {
@@ -186,6 +209,49 @@ describe('EstimateRow inline cell edit (Phase 16, proof d)', () => {
       expect(findCell(container, 'estimate-row-material-input')).not.toBeNull()
       expect(findCell(container, 'estimate-row-labor-input')).not.toBeNull()
       expect(findCell(container, 'estimate-row-markup-input')).not.toBeNull()
+    } finally {
+      unmount()
+    }
+  })
+
+  it('renders a READ-ONLY UNIT PRICE cell = (material+labor)×(1+markup/100) == price/qty (UAT 2026-07-01)', async () => {
+    const EstimateRow = await loadEstimateRow()
+    const { container, unmount } = mount(
+      React.createElement(EstimateRow, {
+        item: pricedItem,
+        onRowClick: vi.fn()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
+    )
+    try {
+      // UNIT PRICE cell is present, read-only (a <span>, NOT an <input>), and shows
+      // the computed per-unit client price ₱10.40 for material 5 / labor 3 / markup 30
+      // (8 × 1.3 = 10.4). It equals price/qty (41.6 / 4 = 10.4).
+      const unitPriceText = cellText(container, 'estimate-row-unit-price')
+      expect(unitPriceText).toBe('₱10.40')
+      expect(container.querySelector('[data-testid="estimate-row-unit-price"]')?.tagName).toBe('SPAN')
+      const perUnitFromTotal = pricedItem.price / pricedItem.quantity // 41.6 / 4 = 10.4
+      expect(`₱${perUnitFromTotal.toFixed(2)}`).toBe('₱10.40')
+    } finally {
+      unmount()
+    }
+  })
+
+  it('client total is now headed TOTAL (renamed from Price) and still shows item.price (UAT 2026-07-01)', async () => {
+    const EstimateRow = await loadEstimateRow()
+    const { container, unmount } = mount(
+      React.createElement(EstimateRow, {
+        item: pricedItem,
+        onRowClick: vi.fn()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
+    )
+    try {
+      // The renamed cell carries the new testid `estimate-row-total` and shows the
+      // SAME value the old "Price" cell showed — item.price (₱41.60). The old
+      // `estimate-row-price` testid is gone.
+      expect(cellText(container, 'estimate-row-total')).toBe('₱41.60')
+      expect(container.querySelector('[data-testid="estimate-row-price"]')).toBeNull()
     } finally {
       unmount()
     }

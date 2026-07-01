@@ -12,10 +12,17 @@ import { useProjectStore } from '../stores/projectStore'
  *
  * Analog: TotalsRow's inline-edit recipe (TotalsRow.tsx:160-222), replicated
  * PER editable cell. Three editable cells — Material rate, Labor rate, Markup %
- * — plus read-only ₱ Cost / Price / Margin cells that come STRAIGHT from the
- * aggregator-computed row (item.cost / item.price / item.margin). The component
- * does NO arithmetic: the aggregator (boq-aggregator.ts) is the single source of
- * truth (mirrors the "no rate×quantity in TotalsRow" rule).
+ * — plus read-only ₱ Cost / UNIT PRICE / TOTAL / Margin cells. Cost/TOTAL/Margin
+ * come STRAIGHT from the aggregator-computed row (item.cost / item.price /
+ * item.margin); UNIT PRICE is the per-unit client price (UAT 2026-07-01) computed
+ * by the local unitPriceOf() helper (= (material+labor)×(1+markup/100) ==
+ * item.price/quantity). TOTAL is the renamed "Price" cell — value unchanged
+ * (item.price), only the header/testid changed. The component does NO row-total
+ * arithmetic: the aggregator (boq-aggregator.ts) is the single source of truth for
+ * Cost/TOTAL/Margin (mirrors the "no rate×quantity in TotalsRow" rule); unitPriceOf
+ * only re-expresses the aggregator's price as a per-unit figure, and intentionally
+ * duplicates the main-process writer helper across the process boundary (the
+ * codebase's duplication-with-test-lock convention).
  *
  * Editable cells are UNCONTROLLED + driven by NATIVE blur/keydown listeners (NOT
  * React onChange/onBlur). Rationale (Phase 15, 16-RESEARCH Pitfall 3):
@@ -60,6 +67,26 @@ function formatQuantity(item: BoqItemRow): string {
 function formatMoney(n: number): string {
   const safe = Number.isFinite(n) ? n : 0
   return `${CURRENCY_SYMBOL}${safe.toFixed(2)}`
+}
+
+/**
+ * Per-UNIT client price for the Estimate grid's UNIT PRICE column (UAT 2026-07-01,
+ * D-07). = (material + labor) × (1 + markup/100), which equals item.price / quantity
+ * (so UNIT PRICE × qty === TOTAL) — but computed from the rates so it is qty-safe
+ * (a zero-quantity row yields 0, not a division by zero). Non-finite inputs coerce
+ * to 0 and the product itself is guarded, matching the other money cells' discipline.
+ *
+ * This DELIBERATELY duplicates the main-process writer helper of the same name in
+ * src/main/boq-writers.ts across the process boundary — the codebase's established
+ * "duplication-with-test-lock" convention (like NUMFMT_PESO vs currency.ts). Do NOT
+ * import the main-process helper into the renderer.
+ */
+export function unitPriceOf(item: Pick<BoqItemRow, 'material' | 'labor' | 'markup'>): number {
+  const material = Number.isFinite(item.material) ? item.material : 0
+  const labor = Number.isFinite(item.labor) ? item.labor : 0
+  const markup = Number.isFinite(item.markup) ? item.markup : 0
+  const unit = (material + labor) * (1 + markup / 100)
+  return Number.isFinite(unit) ? unit : 0
 }
 
 /** Seed a rate field from the stored value: non-positive/non-finite → empty
@@ -274,7 +301,7 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
       style={{
         display: 'grid',
         gridTemplateColumns:
-          'minmax(120px, 1fr) 64px 48px 88px 88px 80px 72px 80px 80px',
+          'minmax(120px, 1fr) 64px 48px 88px 88px 80px 72px 80px 80px 80px',
         alignItems: 'center',
         gap: 8,
         height: 30,
@@ -305,7 +332,10 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
         {formatMoney(item.cost)}
       </span>
 
-      {/* Client: Markup % (editable) · Price ₱ (read-only) · Margin ₱ (read-only) */}
+      {/* Client: Markup % (editable) · UNIT PRICE ₱ (read-only) · TOTAL ₱ (read-only) ·
+          Margin ₱ (read-only). UNIT PRICE (UAT 2026-07-01) is the per-unit client price
+          = (material+labor)×(1+markup/100) == item.price/quantity — read-only/computed,
+          NOT an editable input. TOTAL is the renamed "Price" cell (value stays item.price). */}
       <div
         style={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0 }}
         onClick={(e) => e.stopPropagation()}
@@ -326,7 +356,13 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
         </span>
       </div>
       <span
-        data-testid="estimate-row-price"
+        data-testid="estimate-row-unit-price"
+        style={{ fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}
+      >
+        {formatMoney(unitPriceOf(item))}
+      </span>
+      <span
+        data-testid="estimate-row-total"
         style={{ fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}
       >
         {formatMoney(item.price)}

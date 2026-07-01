@@ -17,9 +17,12 @@ import type { BoqCategoryGroup } from '../lib/boq-types'
  * category name as the totals panel — "preferences follow the workstation", so a
  * category collapsed in one view is collapsed in the other.
  *
- * After the item rows, three per-category subtotal cells (Cost/Price/Margin) read
+ * After the item rows, the per-category subtotal cells (Cost/TOTAL/Margin) read
  * category.costSubtotal / priceSubtotal / marginSubtotal directly (aggregator-
- * computed; non-finite guarded → ₱0.00). No arithmetic in the component.
+ * computed; non-finite guarded → ₱0.00). No arithmetic in the component. The
+ * UNIT PRICE column (UAT 2026-07-01) is left BLANK on the subtotal — a category
+ * subtotal has no single unit price, exactly as the export leaves col 8 blank; and
+ * "Price" was renamed to "TOTAL" to match the export (commit af9a260).
  */
 export interface EstimateCategoryBlockProps {
   category: BoqCategoryGroup
@@ -83,15 +86,17 @@ export function EstimateCategoryBlock(props: EstimateCategoryBlockProps): React.
             <EstimateRow key={item.label} item={item} />
           ))}
 
-          {/* Per-category Cost/Price/Margin subtotals — aggregator-computed, in a
-              bold row aligned under the money columns. Uses the same grid template
-              as EstimateRow so the three values line up under Cost/Price/Margin. */}
+          {/* Per-category Cost/TOTAL/Margin subtotals — aggregator-computed, in a
+              bold row aligned under the money columns. Uses the same 10-column grid
+              template as EstimateRow so the values line up under Cost/TOTAL/Margin;
+              the Markup and UNIT PRICE columns are blank (a subtotal has no single
+              unit price or markup). */}
           <div
             data-testid="estimate-category-subtotal"
             style={{
               display: 'grid',
               gridTemplateColumns:
-                'minmax(120px, 1fr) 64px 48px 88px 88px 80px 72px 80px 80px',
+                'minmax(120px, 1fr) 64px 48px 88px 88px 80px 72px 80px 80px 80px',
               alignItems: 'center',
               gap: 8,
               height: 28,
@@ -103,8 +108,8 @@ export function EstimateCategoryBlock(props: EstimateCategoryBlockProps): React.
               flexShrink: 0
             }}
           >
-            {/* Label spans the first three columns; empty spacers keep the money
-                cells under their headers. */}
+            {/* Label spans the first five columns (Item..Labor); empty spacers keep
+                the money cells under their headers. */}
             <span style={{ gridColumn: '1 / 6', color: COLORS.textSecondary }}>Subtotal</span>
             <span
               data-testid="estimate-category-cost-subtotal"
@@ -112,9 +117,12 @@ export function EstimateCategoryBlock(props: EstimateCategoryBlockProps): React.
             >
               {formatMoney(category.costSubtotal)}
             </span>
+            {/* Markup column — blank on the subtotal. */}
             <span />
+            {/* UNIT PRICE column — blank on the subtotal. */}
+            <span data-testid="estimate-category-unit-price-subtotal" />
             <span
-              data-testid="estimate-category-price-subtotal"
+              data-testid="estimate-category-total-subtotal"
               style={{ fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}
             >
               {formatMoney(category.priceSubtotal)}

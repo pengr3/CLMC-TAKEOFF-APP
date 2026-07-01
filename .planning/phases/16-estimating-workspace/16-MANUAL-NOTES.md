@@ -9,10 +9,11 @@
 > ribbon tab swaps the whole center area between the PDF plan and a full-width estimate
 > sheet. The single unit rate from Phase 15 widened into **internal cost** (Material +
 > Labor) plus a **client price** driven by a **Markup %** (default **30%**), giving each
-> item a live **Cost**, **Price**, and **Margin**. The Excel/CSV export widened to
-> **ten columns** (a per-unit **UNIT PRICE** column, and the line total is headed
-> **TOTAL**). **Phase 16 supersedes Phase 15's inline totals-panel pricing** — the
-> right totals panel is back to **quantity-only**.
+> item a live **Cost**, **UNIT PRICE**, **TOTAL**, and **Margin**. Both the on-screen
+> **Estimate sheet** and the Excel/CSV export show **ten columns** — a per-unit **UNIT
+> PRICE** column, and the line total is headed **TOTAL** (formerly "Price"). **Phase 16
+> supersedes Phase 15's inline totals-panel pricing** — the right totals panel is back to
+> **quantity-only**.
 
 ---
 
@@ -21,11 +22,11 @@
 | Capability | Where | How to use |
 |------------|-------|------------|
 | **Plan \| Estimate toggle** | Ribbon → **Estimating** tab | Click **Plan** to see the PDF canvas; click **Estimate** to see the full-width estimate sheet. Switching is instant and does **not** disturb the PDF or your markups. |
-| **Estimate sheet** | Center area (in **Estimate** view) | A spreadsheet grouped by category. Columns are grouped **Internal** (Material · Labor · Cost) and **Client** (Markup · Price · Margin). Per-category subtotals + a grand-total bar show Cost/Price/Margin. |
+| **Estimate sheet** | Center area (in **Estimate** view) | A spreadsheet grouped by category. Columns are grouped **Internal** (Material · Labor · Cost) and **Client** (Markup · **UNIT PRICE** · **TOTAL** · Margin) — ten columns total, matching the export. Per-category subtotals + a grand-total bar show Cost/TOTAL/Margin (UNIT PRICE blank on those rows). |
 | **Edit Material rate** | Estimate sheet — Material cell | Click the **Material** cell on a row, type a ₱/unit rate, press **Enter** or click away to commit. Material cost = Material rate × Quantity. |
 | **Edit Labor rate** | Estimate sheet — Labor cell | Click the **Labor** cell, type a ₱/unit rate, commit. Labor cost = Labor rate × Quantity. |
 | **Edit Markup %** | Estimate sheet — Markup cell | Click the **Markup** cell, type a percent (e.g. `30`), commit. A blank markup uses the **30%** default. |
-| **Live Cost / Price / Margin** | Estimate sheet — per row | Read-only. **Cost** = Material cost + Labor cost (internal). **Price** = Cost × (1 + Markup ÷ 100) (client). **Margin** = Price − Cost. All recompute the instant you edit a rate, a markup, **or** the takeoff quantity. |
+| **Live Cost / UNIT PRICE / TOTAL / Margin** | Estimate sheet — per row | Read-only. **Cost** = Material cost + Labor cost (internal). **UNIT PRICE** = per-unit client price = (Material + Labor) × (1 + Markup ÷ 100) = **TOTAL ÷ Quantity**. **TOTAL** = the client line total = Cost × (1 + Markup ÷ 100) (the value formerly headed "Price"). **Margin** = TOTAL − Cost. All recompute the instant you edit a rate, a markup, **or** the takeoff quantity. |
 | **Default markup % control** | Ribbon → **Settings** tab | A **Default markup %** field seeded at **30**. Sets the project-wide default applied to rows with no explicit markup. (See Section 3 for its v1 scope.) |
 | **Quantity-only totals panel** | Right-side totals panel | Now shows **quantities only** — no ₱ rate field, no cost, no cost subtotal, no grand-total-cost bar. All pricing lives in the Estimate sheet. |
 | **10-column export** | Excel (.xlsx) and CSV export | Export as usual — the sheet now has ten columns: **Item · Quantity · UoM · Material · Labor · Cost · Markup · UNIT PRICE · TOTAL · Margin**, with per-category Cost/TOTAL/Margin subtotals and grand totals. **UNIT PRICE** is the per-unit client price (= TOTAL ÷ Quantity); **TOTAL** is the line total (the value formerly headed "Price"). |
@@ -80,17 +81,20 @@ Pricing now lives **only** in the **Estimating** ribbon tab:
   ₱ **Rate** field on each totals row — and its per-row cost, per-category cost subtotal,
   and grand-total-cost bar — have been **removed**. The totals panel shows quantities,
   the visibility (lightbulb) toggle, the color chip, and the click-to-arm cycle only.
-- **The estimate sheet** groups rows by category with these columns:
+- **The estimate sheet** groups rows by category with these **ten columns** (Item ·
+  Quantity · UoM, then the two grouped ₱ blocks — the same column set as the export):
   - **Internal:** **Material** (₱/unit, editable) · **Labor** (₱/unit, editable) ·
     **Cost** (computed = Material×Qty + Labor×Qty).
-  - **Client:** **Markup %** (editable) · **Price** (computed = Cost × (1 + Markup ÷ 100)) ·
-    **Margin** (computed = Price − Cost).
-  - Each **category** shows **Cost / Price / Margin subtotals**, and a pinned
-    **grand-total bar** shows the project **Cost / Price / Margin**.
-- **Editable cells** are **Material**, **Labor**, and **Markup**. Click a cell, type a
+  - **Client:** **Markup %** (editable) · **UNIT PRICE** (computed = (Material + Labor) ×
+    (1 + Markup ÷ 100) = **TOTAL ÷ Quantity**) · **TOTAL** (computed = Cost × (1 + Markup ÷
+    100) — the line total, formerly headed "Price") · **Margin** (computed = TOTAL − Cost).
+  - Each **category** shows **Cost / TOTAL / Margin subtotals**, and a pinned
+    **grand-total bar** shows the project **Cost / TOTAL / Margin**. The **UNIT PRICE**
+    column is **blank** on subtotal and grand-total rows — a subtotal has no single unit price.
+- **Editable cells** are **Material**, **Labor**, and **Markup** only. Click a cell, type a
   value, and commit with **Enter** or by clicking away (blur). **Markup is a PERCENT**
-  (type `30` for 30%, not `0.30`). Cost, Price, and Margin are **computed** and update
-  live — including when the underlying takeoff **quantity** changes.
+  (type `30` for 30%, not `0.30`). Cost, UNIT PRICE, TOTAL, and Margin are **read-only /
+  computed** and update live — including when the underlying takeoff **quantity** changes.
 - **Switching views is mount-preserving.** Toggling `Plan ⟷ Estimate` keeps the PDF and
   all markups intact — the plan is **not** re-rendered and there is **no flicker**. You can
   flip back and forth freely while pricing.
@@ -120,9 +124,11 @@ Pricing now lives **only** in the **Estimating** ribbon tab:
     `DEFAULT_MARKUP_PCT` seam is unchanged, so **30 remains the shipped default** for
     unpriced rows). A persisted, aggregator-wired mutable default is a small follow-on.
 - **Deferred this phase (D-09), by design so they can be added later:** a **price-book /
-  cost catalog**, **reusable items & assemblies**, **equipment cost**, **per-project
-  overhead**, and a **separate client-facing unit-price column**. Also still deferred: a
-  persistent, cross-project **Item Library** (names + default rates shared between
+  cost catalog**, **reusable items & assemblies**, **equipment cost**, and **per-project
+  overhead**. (The **client-facing unit-price column** originally listed here as deferred
+  was **added in the 2026-07-01 UAT refinement** — the **UNIT PRICE** column now ships in
+  both the Estimate sheet and the export.) Also still deferred: a persistent, cross-project
+  **Item Library** (names + default rates shared between
   *different* projects) — Phase 16 prices **per project only**.
 
 ---
@@ -145,17 +151,21 @@ switch (SC-1), the quantity-only totals panel (SC-1), and the priced Excel/CSV e
    **category** (e.g. Electrical, Plumbing).
 
 2. **Open the estimate sheet.** Go to the **Estimating** ribbon tab and click **Estimate**.
-   Confirm the center area shows a **full-width grid** grouped by category, with the
-   grouped **Internal** (Material · Labor · Cost) and **Client** (Markup · Price · Margin)
-   columns and a grand-total bar.
+   Confirm the center area shows a **full-width grid** grouped by category, with the ten
+   columns — grouped **Internal** (Material · Labor · Cost) and **Client** (Markup ·
+   **UNIT PRICE** · **TOTAL** · Margin) — aligned across the header, the item rows, the
+   per-category subtotals, and the grand-total bar.
 
 3. **Edit rates and watch it go live.** On a row, type a **Material** rate and a **Labor**
    rate, and a **Markup** (e.g. `30`), committing each with **Enter** or by clicking away.
    Confirm:
-   - the row **Cost** (Material×Qty + Labor×Qty), **Price** (Cost × (1 + Markup ÷ 100)),
-     and **Margin** (Price − Cost) update immediately;
-   - the **category subtotal** and the **grand-total bar** (Cost/Price/Margin) update;
+   - the row **Cost** (Material×Qty + Labor×Qty), **UNIT PRICE** ((Material + Labor) ×
+     (1 + Markup ÷ 100) = TOTAL ÷ Quantity), **TOTAL** (Cost × (1 + Markup ÷ 100)), and
+     **Margin** (TOTAL − Cost) update immediately, and that **UNIT PRICE × Quantity = TOTAL**;
+   - the **category subtotal** and the **grand-total bar** (Cost/TOTAL/Margin) update, with
+     the **UNIT PRICE** column blank on those subtotal/grand rows;
    - a row you leave with a **blank markup** falls back to **30%**;
+   - the **UNIT PRICE** and **TOTAL** cells are **read-only** (only Material/Labor/Markup edit);
    - editing a cell does **not** flip the PDF page or re-arm a drawing tool.
 
 4. **Toggle back to Plan (SC-1).** Click **Plan**. Confirm the **PDF and all markups are
@@ -195,4 +205,4 @@ switch (SC-1), the quantity-only totals panel (SC-1), and the priced Excel/CSV e
 ---
 
 *Phase: 16-estimating-workspace*
-*Manual notes written 2026-07-01; export section refined to 10 columns (UNIT PRICE + TOTAL) 2026-07-01 per UAT*
+*Manual notes written 2026-07-01; export section refined to 10 columns (UNIT PRICE + TOTAL) 2026-07-01 per UAT; on-screen Estimate grid brought to the same 10 columns 2026-07-01 per UAT*
