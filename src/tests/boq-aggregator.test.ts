@@ -225,11 +225,23 @@ describe('aggregateBoq — D-01..D-13 / EXPRT-01', () => {
   })
 
   // ===========================================================================
-  // Phase 15 — RED cases (proofs a + c). These FAIL at runtime until Plan 15-03
-  // adds rate/cost/costSubtotal/grandTotalCost + the perimeter collision rule to
-  // the aggregator. They COMPILE today via `as any` casts on the new fields,
-  // mirroring how project-schema-hidden.test.ts casts to any before the types
-  // land. Do NOT "fix" the source to make these green — that is Wave 1-3's job.
+  // Phase 16 — money-math RED cases (proof a). The Phase-15 scalar rate/cost
+  // contract WIDENS to the {material, labor, markup} PriceEntry shape:
+  //   materialCost = material × qty;  laborCost = labor × qty;
+  //   cost = materialCost + laborCost;  price = cost × (1 + markup/100);
+  //   margin = price − cost.
+  // Per category: costSubtotal / priceSubtotal / marginSubtotal (Σ rows).
+  // Per structure: grandTotalCost / grandTotalPrice / grandTotalMargin (Σ cats).
+  // Absent ENTRY → material/labor 0, markup 30 (DEFAULT_MARKUP_PCT); an entry
+  // present with explicit markup 0 is honored (NOT overridden to 30) — Pitfall 5.
+  //
+  // These FAIL at runtime until Wave 1 (16-02/16-03) widens the aggregator (it
+  // still emits scalar `rate`/`cost` + a single costSubtotal/grandTotalCost).
+  // They COMPILE today via `as any` casts on the injected PriceEntry `rates`
+  // values + the new read fields, mirroring how project-schema-hidden.test.ts
+  // casts to any before the types land. Do NOT "fix" the source to make these
+  // green — that is Wave 1-3's job. The perimeter collision case (proof c below)
+  // stays a Phase-15 keeper and must remain GREEN.
   // ===========================================================================
 
   it('proof c — perimeter joins the D-02 collision set: same name as a linear → (perimeter) suffix', () => {
@@ -254,8 +266,11 @@ describe('aggregateBoq — D-01..D-13 / EXPRT-01', () => {
     expect(labels).toEqual(['Skirting (linear)', 'Skirting (perimeter)'])
   })
 
-  it('proof a — cost = rate × quantity at the row level', () => {
-    // 3 'Outlet' count markups + a rate of ₱5 for key 'Outlet|count' → cost 15.
+  it('proof a — material/labor/cost/price/margin at the row level (PriceEntry)', () => {
+    // 3 'Outlet' count markups + a PriceEntry { material:5, labor:3, markup:30 }
+    // for key 'Outlet|count':
+    //   materialCost = 5 × 3 = 15;  laborCost = 3 × 3 = 9;  cost = 24;
+    //   price = 24 × 1.3 = 31.2;    margin = 31.2 − 24 = 7.2.
     const result = aggregateBoq({
       markups: {
         1: [
@@ -270,20 +285,85 @@ describe('aggregateBoq — D-01..D-13 / EXPRT-01', () => {
       categoryOrder: ['cat-e'], pdfOriginalFilename: 'plan.pdf',
       currentFilePath: null, getColorForName: () => '#0078d4',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      rates: { 'Outlet|count': 5 }
+      rates: { 'Outlet|count': { material: 5, labor: 3, markup: 30 } as any }
     } as any)
     const row = result.categories[0].items[0]
     expect(row.quantity).toBe(3)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((row as any).rate).toBe(5)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((row as any).cost).toBe(15)
+    const r = row as any
+    expect(r.material).toBe(5)
+    expect(r.labor).toBe(3)
+    expect(r.markup).toBe(30)
+    expect(r.materialCost).toBe(15)
+    expect(r.laborCost).toBe(9)
+    expect(r.cost).toBe(24)
+    // price = cost × (1 + markup/100) = 24 × 1.3 = 31.2; margin = 7.2.
+    expect(r.price).toBeCloseTo(31.2, 6)
+    expect(r.margin).toBeCloseTo(7.2, 6)
   })
 
-  it('proof a — category cost subtotal = Σ row costs; grand-total cost = Σ category subtotals', () => {
-    // Two priced rows in Electrical (Outlet|count @5 ×2 = 10; Wire|linear @3 ×7 = 21)
-    // → categorySubtotal 31. A second category Civil (Pipe|count @4 ×1 = 4).
-    // grandTotalCost = 31 + 4 = 35.
+  it('proof a — absent ENTRY → material/labor 0, cost 0, markup 30, price 0, margin 0; never throws', () => {
+    // No rates passed at all → the Outlet row must read material/labor 0, cost 0,
+    // markup DEFAULTS to 30 (Pitfall 5 — a genuinely-unpriced row is ₱0 but keeps
+    // the 30% project default markup), and price/margin are 0 (0 × 1.3 = 0).
+    const call = (): ReturnType<typeof aggregateBoq> =>
+      aggregateBoq({
+        markups: { 1: [countMarkup({ id: 'o1', page: 1, name: 'Outlet', categoryId: 'cat-e', color: '#0078d4' })] },
+        pageScales: { 1: { pixelsPerMm: PIXELS_PER_MM, displayUnit: 'mm' } },
+        globalUnit: 'mm', totalPages: 1,
+        categoriesById: { 'cat-e': { id: 'cat-e', name: 'Electrical' } },
+        categoryOrder: ['cat-e'], pdfOriginalFilename: 'plan.pdf',
+        currentFilePath: null, getColorForName: () => '#0078d4'
+      })
+    expect(call).not.toThrow()
+    const row = call().categories[0].items[0]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const r = row as any
+    expect(r.material).toBe(0)
+    expect(r.labor).toBe(0)
+    expect(r.cost).toBe(0)
+    // Absent-entry markup default is 30, NOT 0.
+    expect(r.markup).toBe(30)
+    expect(r.price).toBe(0)
+    expect(r.margin).toBe(0)
+  })
+
+  it('proof a — explicit markup 0 is honored (NOT overridden to 30) — distinct from "no entry"', () => {
+    // An entry present with markup:0 → price == cost, margin 0. This proves the
+    // "no entry → 30" default is DISTINCT from "entry with explicit markup 0 → 0".
+    //   material 10, labor 0, qty 2 → cost 20; markup 0 → price 20; margin 0.
+    const result = aggregateBoq({
+      markups: {
+        1: [
+          countMarkup({ id: 'o1', page: 1, name: 'Outlet', categoryId: 'cat-e', color: '#0078d4' }),
+          countMarkup({ id: 'o2', page: 1, name: 'Outlet', categoryId: 'cat-e', color: '#0078d4' })
+        ]
+      },
+      pageScales: { 1: { pixelsPerMm: PIXELS_PER_MM, displayUnit: 'mm' } },
+      globalUnit: 'mm', totalPages: 1,
+      categoriesById: { 'cat-e': { id: 'cat-e', name: 'Electrical' } },
+      categoryOrder: ['cat-e'], pdfOriginalFilename: 'plan.pdf',
+      currentFilePath: null, getColorForName: () => '#0078d4',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      rates: { 'Outlet|count': { material: 10, labor: 0, markup: 0 } as any }
+    } as any)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const r = result.categories[0].items[0] as any
+    expect(r.markup).toBe(0)
+    expect(r.cost).toBe(20)
+    expect(r.price).toBe(20)
+    expect(r.margin).toBe(0)
+  })
+
+  it('proof a — Cost/Price/Margin subtotals = Σ rows; grand totals = Σ categories', () => {
+    // Two priced rows in Electrical:
+    //   Outlet|count { material:5, labor:0, markup:30 } ×2 → cost 10, price 13,  margin 3
+    //   Wire|linear  { material:3, labor:0, markup:30 } ×7 → cost 21, price 27.3, margin 6.3
+    //   → costSubtotal 31, priceSubtotal 40.3, marginSubtotal 9.3
+    // A second category Civil:
+    //   Pipe|count   { material:4, labor:0, markup:30 } ×1 → cost 4,  price 5.2,  margin 1.2
+    //   → costSubtotal 4, priceSubtotal 5.2, marginSubtotal 1.2
+    // grandTotalCost = 35, grandTotalPrice = 45.5, grandTotalMargin = 10.5.
     const result = aggregateBoq({
       markups: {
         1: [
@@ -301,47 +381,43 @@ describe('aggregateBoq — D-01..D-13 / EXPRT-01', () => {
       },
       categoryOrder: ['cat-e', 'cat-c'], pdfOriginalFilename: 'plan.pdf',
       currentFilePath: null, getColorForName: () => '#0078d4',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      rates: { 'Outlet|count': 5, 'Wire|linear': 3, 'Pipe|count': 4 }
+      rates: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'Outlet|count': { material: 5, labor: 0, markup: 30 } as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'Wire|linear': { material: 3, labor: 0, markup: 30 } as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'Pipe|count': { material: 4, labor: 0, markup: 30 } as any
+      }
     } as any)
     const elec = result.categories.find(c => c.name === 'Electrical')!
     const civil = result.categories.find(c => c.name === 'Civil')!
-    // Electrical: Outlet cost 10 + Wire cost 21 = 31
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const elecCosts = elec.items.reduce((acc, it) => acc + (it as any).cost, 0)
-    expect(elecCosts).toBe(31)
+    const e = elec as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((elec as any).costSubtotal).toBe(31)
-    // Civil: Pipe cost 4
+    const c = civil as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((civil as any).costSubtotal).toBe(4)
-    // Grand-total cost = 31 + 4 = 35
+    const g = result as any
+    // Electrical subtotals — Σ of the two rows.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((result as any).grandTotalCost).toBe(35)
+    expect(elec.items.reduce((acc, it) => acc + (it as any).cost, 0)).toBe(31)
+    expect(e.costSubtotal).toBe(31)
+    expect(e.priceSubtotal).toBeCloseTo(40.3, 6)
+    expect(e.marginSubtotal).toBeCloseTo(9.3, 6)
+    // Civil subtotals.
+    expect(c.costSubtotal).toBe(4)
+    expect(c.priceSubtotal).toBeCloseTo(5.2, 6)
+    expect(c.marginSubtotal).toBeCloseTo(1.2, 6)
+    // Grand totals = Σ category subtotals.
+    expect(g.grandTotalCost).toBe(35)
+    expect(g.grandTotalPrice).toBeCloseTo(45.5, 6)
+    expect(g.grandTotalMargin).toBeCloseTo(10.5, 6)
   })
 
-  it('proof a — a row whose key is absent from rates → rate 0, cost 0, never throws', () => {
-    // No rates passed at all → the Outlet row must read rate 0 / cost 0.
-    const call = (): ReturnType<typeof aggregateBoq> =>
-      aggregateBoq({
-        markups: { 1: [countMarkup({ id: 'o1', page: 1, name: 'Outlet', categoryId: 'cat-e', color: '#0078d4' })] },
-        pageScales: { 1: { pixelsPerMm: PIXELS_PER_MM, displayUnit: 'mm' } },
-        globalUnit: 'mm', totalPages: 1,
-        categoriesById: { 'cat-e': { id: 'cat-e', name: 'Electrical' } },
-        categoryOrder: ['cat-e'], pdfOriginalFilename: 'plan.pdf',
-        currentFilePath: null, getColorForName: () => '#0078d4'
-      })
-    expect(call).not.toThrow()
-    const row = call().categories[0].items[0]
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((row as any).rate).toBe(0)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((row as any).cost).toBe(0)
-  })
-
-  it('proof b — rate is category-independent: same name|type in two categories reads ONE map value', () => {
+  it('proof b — PriceEntry is category-independent: same name|type in two categories reads ONE entry', () => {
     // 'Outlet|count' appears in Electrical AND Civil; a single rates entry → both
-    // rows read rate 5 (the rate map is keyed by (name,type), category-INDEPENDENT).
+    // rows read the same material/labor/markup (the price map is keyed by
+    // (name,type), category-INDEPENDENT).
     const result = aggregateBoq({
       markups: {
         1: [
@@ -358,13 +434,19 @@ describe('aggregateBoq — D-01..D-13 / EXPRT-01', () => {
       categoryOrder: ['cat-e', 'cat-c'], pdfOriginalFilename: 'plan.pdf',
       currentFilePath: null, getColorForName: () => '#0078d4',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      rates: { 'Outlet|count': 5 }
+      rates: { 'Outlet|count': { material: 5, labor: 2, markup: 40 } as any }
     } as any)
     const elec = result.categories.find(c => c.name === 'Electrical')!
     const civil = result.categories.find(c => c.name === 'Civil')!
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((elec.items[0] as any).rate).toBe(5)
+    const e0 = elec.items[0] as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((civil.items[0] as any).rate).toBe(5)
+    const c0 = civil.items[0] as any
+    expect(e0.material).toBe(5)
+    expect(e0.labor).toBe(2)
+    expect(e0.markup).toBe(40)
+    expect(c0.material).toBe(5)
+    expect(c0.labor).toBe(2)
+    expect(c0.markup).toBe(40)
   })
 })
