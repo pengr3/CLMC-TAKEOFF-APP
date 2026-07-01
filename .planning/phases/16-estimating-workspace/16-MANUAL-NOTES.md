@@ -27,7 +27,7 @@
 | **Edit Labor rate** | Estimate sheet — Labor cell | Click the **Labor** cell, type a ₱/unit rate, commit. Labor cost = Labor rate × Quantity. |
 | **Edit Markup %** | Estimate sheet — Markup cell | Click the **Markup** cell, type a percent (e.g. `30`), commit. A blank markup uses the **30%** default. |
 | **Live Cost / UNIT PRICE / TOTAL / Margin** | Estimate sheet — per row | Read-only. **Cost** = Material cost + Labor cost (internal). **UNIT PRICE** = per-unit client price = (Material + Labor) × (1 + Markup ÷ 100) = **TOTAL ÷ Quantity**. **TOTAL** = the client line total = Cost × (1 + Markup ÷ 100) (the value formerly headed "Price"). **Margin** = TOTAL − Cost. All recompute the instant you edit a rate, a markup, **or** the takeoff quantity. |
-| **Default markup control** | **Estimate sheet header** (top-right of the Estimate sheet) | A **Default markup: [ 30 ] %** field. Sets the **project-wide** default markup applied to every row **without an explicit markup**. It is **project data** — it **persists in the `.clmc`** and follows the project, not the workstation. Editable (blur/Enter commits, decimals like `27.5` supported); changing it **updates un-priced rows live**. Defaults to **30**. |
+| **Default markup control** | **Estimate sheet header** (top-right of the Estimate sheet) | A **Default markup: [ 30 ] %** field with an always-visible scope hint ("Applies to every item without its own markup"). Sets the **project-wide** default markup applied to every row **without an explicit markup**. It is **project data** — it **persists in the `.clmc`** and follows the project, not the workstation. Editable (blur/Enter commits, decimals like `27.5` supported). Because a change **re-prices every un-priced item**, it is **not applied silently**: changing the value opens a **"Change default markup?" confirmation** first; the change applies **only when you confirm**, and **Cancel reverts** with no effect. Defaults to **30**. |
 | **Quantity-only totals panel** | Right-side totals panel | Now shows **quantities only** — no ₱ rate field, no cost, no cost subtotal, no grand-total-cost bar. All pricing lives in the Estimate sheet. |
 | **10-column export** | Excel (.xlsx) and CSV export | Export as usual — the sheet now has ten columns: **Item · Quantity · UoM · Material · Labor · Cost · Markup · UNIT PRICE · TOTAL · Margin**, with per-category Cost/TOTAL/Margin subtotals and grand totals. **UNIT PRICE** is the per-unit client price (= TOTAL ÷ Quantity); **TOTAL** is the line total (the value formerly headed "Price"). |
 
@@ -126,7 +126,19 @@ Pricing now lives **only** in the **Estimating** ribbon tab:
     default → 30* (`entry?.markup ?? defaultMarkup ?? DEFAULT_MARKUP_PCT`). So a row you
     price with its own markup is unaffected; an **un-priced** row (or one you leave without a
     markup) uses this default, and its **Cost / UNIT PRICE / TOTAL / Margin recompute live**
-    the instant you change the default.
+    the instant the change is applied.
+  - **Confirmation before it applies (not a silent commit):** because changing the default
+    **re-prices every un-priced item across the whole project**, the control does **not**
+    commit as quietly as a single rate cell. When you change the value and press **Enter** or
+    click away, a **"Change default markup?"** dialog appears first — it states the change
+    (e.g. *"…from 30% to 27.5% and re-prices every item that doesn't have its own markup"*).
+    - **Change markup** (confirm) applies the new default and re-prices live.
+    - **Cancel** (also **Esc** or clicking the dark backdrop) discards the change and
+      **reverts the field to the previous value** — nothing is written, so no rows re-price.
+    - A **scope hint** under the field ("Applies to every item without its own markup") makes
+      the control's project-wide reach clear even before you edit it.
+    - Re-entering the **same** value (or clicking away **without editing**) does **nothing** —
+      no dialog, no re-price.
   - **Persistence:** the value is **saved inside the `.clmc`** (an additive field — **no file
     format bump**), so it survives save/reload of that project. **Legacy / Phase-15 /
     early-Phase-16** projects that predate this control load with the **30%** default; a
@@ -211,16 +223,25 @@ switch (SC-1), the quantity-only totals panel (SC-1), and the priced Excel/CSV e
    **not mojibaked** (the file's UTF-8 byte-order mark keeps it rendering correctly on
    Windows, the same way it protects `m²`).
 
-7. **Check the default-markup control in the Estimate header (WR-01).** On the **Estimate**
-   sheet, find the **Default markup: [ 30 ] %** control in the header (top-right, above the
-   column header). Confirm:
+7. **Check the default-markup control in the Estimate header (WR-01) + its confirmation.** On
+   the **Estimate** sheet, find the **Default markup: [ 30 ] %** control in the header
+   (top-right, above the column header), with the **"Applies to every item without its own
+   markup"** scope hint beneath it. Confirm:
    - it reads **30** on a fresh project, and accepts a numeric value including a decimal like
      `27.5` (type it, then **Enter** or click away to commit; a blank or negative entry
      clamps to **0**);
-   - changing it **immediately** updates the **UNIT PRICE / TOTAL / Margin** of any **un-priced**
-     row (a row with no explicit markup), while rows you gave their own markup are unaffected;
+   - changing the value opens a **"Change default markup?"** confirmation that names the old
+     and new percentages and states it **re-prices every item that doesn't have its own
+     markup** — the change is **not** applied silently;
+   - clicking **Change markup** (confirm) applies the new default and **immediately** updates
+     the **UNIT PRICE / TOTAL / Margin** of any **un-priced** row, while rows you gave their
+     own markup are unaffected;
+   - clicking **Cancel** (or pressing **Esc**, or clicking the dark backdrop) **reverts the
+     field to the previous value** and changes **nothing** — no rows re-price;
+   - re-entering the **same** value, or clicking away **without editing**, shows **no dialog**
+     and re-prices nothing;
    - the value **persists**: **Save** the project, close and re-open it, and confirm the
-     control still shows the value you set (it is stored in the `.clmc`);
+     control still shows the value you confirmed (it is stored in the `.clmc`);
    - the **Settings** ribbon tab no longer has a default-markup field (it is back to a
      "Coming soon" stub) — the control lives on the Estimate sheet because the default markup
      is **project data** that follows the project, not the workstation.
@@ -228,4 +249,4 @@ switch (SC-1), the quantity-only totals panel (SC-1), and the priced Excel/CSV e
 ---
 
 *Phase: 16-estimating-workspace*
-*Manual notes written 2026-07-01; export section refined to 10 columns (UNIT PRICE + TOTAL) 2026-07-01 per UAT; on-screen Estimate grid brought to the same 10 columns 2026-07-01 per UAT; default-markup control wired + moved to the Estimate sheet header (WR-01) 2026-07-01*
+*Manual notes written 2026-07-01; export section refined to 10 columns (UNIT PRICE + TOTAL) 2026-07-01 per UAT; on-screen Estimate grid brought to the same 10 columns 2026-07-01 per UAT; default-markup control wired + moved to the Estimate sheet header (WR-01) 2026-07-01; default-markup change now gated behind a confirm-with-impact dialog + always-visible scope hint 2026-07-01 per UAT*
