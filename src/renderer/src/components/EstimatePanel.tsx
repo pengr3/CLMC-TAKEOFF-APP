@@ -1,8 +1,11 @@
+import { useEffect, useRef } from 'react'
 import type React from 'react'
 import { COLORS } from '../lib/constants'
 import { CURRENCY_SYMBOL } from '../lib/currency'
+import { DEFAULT_MARKUP_PCT } from '../lib/estimate-defaults'
 import { useBoqLive } from '../hooks/useBoqLive'
 import { useViewerStore } from '../stores/viewerStore'
+import { useProjectStore } from '../stores/projectStore'
 import { EstimateCategoryBlock } from './EstimateCategoryBlock'
 
 /**
@@ -38,6 +41,114 @@ const GRID_COLUMNS = 'minmax(120px, 1fr) 64px 48px 88px 88px 80px 72px 80px 80px
 function formatMoney(n: number): string {
   const safe = Number.isFinite(n) ? n : 0
   return `${CURRENCY_SYMBOL}${safe.toFixed(2)}`
+}
+
+/**
+ * DefaultMarkupControl — the project-wide default-markup editor in the Estimate
+ * sheet header (WR-01). The default markup is PROJECT data (persists in the .clmc,
+ * follows the project not the workstation), so it lives here at the top of the
+ * Estimate sheet — NOT in the generic Settings ribbon tab (the inert Settings
+ * control WR-01 flagged was removed).
+ *
+ * Reuses EstimateRow's CR-01-safe editable-cell recipe VERBATIM in spirit: the
+ * input is UNCONTROLLED, driven by NATIVE blur/keydown listeners via a ref (NOT
+ * React onChange/onBlur — React 19's value-tracker suppresses synthetic onChange
+ * after a programmatic .value set + native 'input', and delegates blur as
+ * 'focusout'). Commit is DEFERRED to blur + Enter only — NEVER the per-keystroke
+ * 'input' event (CR-01/WR-02) — so typing a decimal like `27.5` is not written to
+ * the store one partial parseFloat at a time. The store→field seed effect is
+ * guarded on `document.activeElement !== el`, so a store write landing mid-typing
+ * can't clobber the focused field back to its stored value. click/mousedown/keydown
+ * stopPropagation so the control never bubbles to a parent handler. On commit:
+ * parseFloat, NaN/empty → 0 and negative → 0, then setDefaultMarkupPct(parsed)
+ * (which re-applies the same finite-≥0 coercion in the store).
+ */
+function DefaultMarkupControl(): React.JSX.Element {
+  const defaultMarkupPct = useProjectStore((s) => s.defaultMarkupPct)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+
+  // Commit: parseFloat, NaN/empty/negative → 0 (mirrors EstimateRow.commitMaterial;
+  // the store action re-coerces finite-≥0). Read setDefaultMarkupPct via getState so
+  // an injected spy would be honored (parallels EstimateRow's getState() commits).
+  const commit = (text: string): void => {
+    const parsed = parseFloat(text)
+    const safe = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed
+    useProjectStore.getState().setDefaultMarkupPct(safe)
+  }
+
+  // Seed effect — re-seed the DOM value from the store only when it differs AND the
+  // cell is not the actively-focused element (CR-01). Guarding on activeElement !==
+  // el makes this a no-op while the user edits (so `27.5` mid-typing is never
+  // clobbered); the field re-syncs from the store on the next render after blur.
+  useEffect(() => {
+    const el = inputRef.current
+    if (!el || document.activeElement === el) return
+    const next = String(defaultMarkupPct)
+    if (el.value !== next) el.value = next
+  }, [defaultMarkupPct])
+
+  // Native-listener effect: commit on blur + Enter keydown ONLY (never 'input'), and
+  // stopPropagation on click/mousedown/keydown so the control never bubbles.
+  useEffect(() => {
+    const el = inputRef.current
+    if (!el) return
+    const onCommit = (): void => commit(el.value)
+    const onKeyDown = (e: KeyboardEvent): void => {
+      e.stopPropagation()
+      if (e.key === 'Enter') commit(el.value)
+    }
+    const onStop = (e: Event): void => e.stopPropagation()
+    el.addEventListener('blur', onCommit)
+    el.addEventListener('keydown', onKeyDown)
+    el.addEventListener('click', onStop)
+    el.addEventListener('mousedown', onStop)
+    return () => {
+      el.removeEventListener('blur', onCommit)
+      el.removeEventListener('keydown', onKeyDown)
+      el.removeEventListener('click', onStop)
+      el.removeEventListener('mousedown', onStop)
+    }
+    // commit closes over nothing store-keyed (reads/writes via getState); bind once.
+  }, [])
+
+  return (
+    <div
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      <label
+        htmlFor="estimate-default-markup-input"
+        style={{ fontSize: 12, fontWeight: 600, color: COLORS.textSecondary }}
+      >
+        Default markup:
+      </label>
+      <input
+        ref={inputRef}
+        id="estimate-default-markup-input"
+        data-testid="estimate-default-markup-input"
+        type="text"
+        inputMode="decimal"
+        aria-label="Project-wide default markup percent"
+        defaultValue={String(defaultMarkupPct)}
+        placeholder={String(DEFAULT_MARKUP_PCT)}
+        style={{
+          width: 56,
+          height: 22,
+          padding: '0 6px',
+          background: COLORS.dominant,
+          border: `1px solid ${COLORS.border}`,
+          borderRadius: 3,
+          color: COLORS.textPrimary,
+          fontSize: 12,
+          textAlign: 'right',
+          fontVariantNumeric: 'tabular-nums',
+          outline: 'none'
+        }}
+      />
+      <span style={{ fontSize: 12, color: COLORS.textSecondary }}>%</span>
+    </div>
+  )
 }
 
 export function EstimatePanel(): React.JSX.Element {
@@ -77,12 +188,16 @@ export function EstimatePanel(): React.JSX.Element {
         overflow: 'hidden'
       }}
     >
-      {/* Top label bar. */}
+      {/* Top label bar — the "Estimate" title plus the project-wide default-markup
+          control (WR-01). The control sits ABOVE the column-header row; it is
+          project-scoped (persists in the .clmc) and editable, so it belongs here on
+          the Estimate sheet rather than the generic Settings ribbon tab. */}
       <div
         style={{
           height: 32,
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
           padding: '0 16px',
           borderBottom: `1px solid ${COLORS.border}`,
           background: COLORS.secondary,
@@ -90,6 +205,7 @@ export function EstimatePanel(): React.JSX.Element {
         }}
       >
         <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.textPrimary }}>Estimate</span>
+        <DefaultMarkupControl />
       </div>
 
       {/* Grouped column header — two-tier: group labels (Internal / Client) over the
