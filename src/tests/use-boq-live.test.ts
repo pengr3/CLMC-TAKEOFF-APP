@@ -177,13 +177,18 @@ describe('useBoqLive — VIEW-01 live aggregator subscription', () => {
   })
 
   // ===========================================================================
-  // Phase 15 — live cost recompute (proof b). RED until Plan 15-04 adds `rates`
-  // to useBoqLive's selector + memo deps so editing a rate flows into the live
-  // BoqStructure. Casts to `any` where `rates`/`cost` are referenced before the
-  // types land. Do NOT "fix" the source to make this green — Wave 1-3 does.
+  // Phase 16 — live cost/price/margin recompute (proof c). The Phase-15 scalar
+  // `rates` fixture WIDENS to the {material,labor,markup} PriceEntry shape;
+  // editing an entry must flow cost/price/margin into the live BoqStructure
+  // through useBoqLive's selector + memo dep. RED until Wave 1 (16-02/16-03)
+  // widens the aggregator to emit price/margin and useBoqLive stays subscribed
+  // to the widened `rates`. Casts to `any` where the PriceEntry map / new read
+  // fields are referenced before the types land. Do NOT "fix" the source to make
+  // this green — Wave 1-3 does. (The VIEW-01 snapshot + recompute-on-pageMarkups
+  // cases above stay GREEN — only this rates fixture shape changed.)
   // ===========================================================================
 
-  it('recomputes when rates change', async () => {
+  it('recomputes cost/price/margin when rates (PriceEntry) change', async () => {
     useViewerStore.setState({ totalPages: 1, fileName: 'demo.pdf' })
     useScaleStore.setState({ pageScales: { 1: { pixelsPerMm: 1, displayUnit: 'mm' } }, globalUnit: 'mm' })
     useMarkupStore.setState({
@@ -193,25 +198,33 @@ describe('useBoqLive — VIEW-01 live aggregator subscription', () => {
       categories: { 'cat-e': { id: 'cat-e', name: 'Electrical', color: '#0078d4', paletteIndex: 0 } },
       categoryOrder: ['cat-e']
     })
-    // Seed an initial rate of ₱5 for the single Outlet → live cost should be 5.
+    // Seed a PriceEntry { material:5, labor:0, markup:30 } for the single Outlet
+    // → cost = 5×1 = 5; price = 5×1.3 = 6.5; margin = 1.5.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(useProjectStore as any).setState({ rates: { 'Outlet|count': 5 } })
+    ;(useProjectStore as any).setState({ rates: { 'Outlet|count': { material: 5, labor: 0, markup: 30 } } })
 
     const harness = await callHook()
     try {
-      // First render — cost reads the seeded rate (1 × 5 = 5).
+      // First render — cost/price/margin read the seeded PriceEntry.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((harness.current().categories[0].items[0] as any).cost).toBe(5)
+      const first = harness.current().categories[0].items[0] as any
+      expect(first.cost).toBe(5)
+      expect(first.price).toBeCloseTo(6.5, 6)
+      expect(first.margin).toBeCloseTo(1.5, 6)
 
-      // Edit the rate to ₱9 — useBoqLive must re-subscribe and recompute cost → 9.
+      // Edit material 5 → 10 — useBoqLive must re-subscribe and recompute:
+      // cost = 10; price = 10×1.3 = 13; margin = 3.
       await act(async () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ;(useProjectStore as any).setState({ rates: { 'Outlet|count': 9 } })
+        ;(useProjectStore as any).setState({ rates: { 'Outlet|count': { material: 10, labor: 0, markup: 30 } } })
         await new Promise<void>((res) => setTimeout(res, 0))
       })
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((harness.current().categories[0].items[0] as any).cost).toBe(9)
+      const next = harness.current().categories[0].items[0] as any
+      expect(next.cost).toBe(10)
+      expect(next.price).toBeCloseTo(13, 6)
+      expect(next.margin).toBeCloseTo(3, 6)
     } finally {
       harness.cleanup()
     }
