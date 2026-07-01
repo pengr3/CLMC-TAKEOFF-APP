@@ -633,8 +633,8 @@ Plans:
 
 **Wave 2** *(parallel-safe; both blocked on Wave 1 — disjoint files)*:
 
-- [ ] 16-03-PLAN.md — Estimate workspace: `viewMode` in viewerStore + Plan|Estimate ribbon toggle + mount-preserving CSS `display` swap in App.tsx (Konva Stage never remounts) + the full-width Estimate grid (EstimateRow/EstimateCategoryBlock/EstimatePanel) with editable material/labor/markup cells + live Cost/Price/Margin
-- [ ] 16-04-PLAN.md — Totals-panel revert to quantity-only: strip Phase-15 inline rate input + row cost span + per-category cost subtotal + grand-total bar from TotalsRow/TotalsCategoryBlock/TotalsPanel (D-02)
+- [x] 16-03-PLAN.md — Estimate workspace: `viewMode` in viewerStore + Plan|Estimate ribbon toggle + mount-preserving CSS `display` swap in App.tsx (Konva Stage never remounts) + the full-width Estimate grid (EstimateRow/EstimateCategoryBlock/EstimatePanel) with editable material/labor/markup cells + live Cost/Price/Margin
+- [x] 16-04-PLAN.md — Totals-panel revert to quantity-only: strip Phase-15 inline rate input + row cost span + per-category cost subtotal + grand-total bar from TotalsRow/TotalsCategoryBlock/TotalsPanel (D-02)
 
 **Wave 3** *(blocked on Wave 1 + Wave 2 — export + docs)*:
 
