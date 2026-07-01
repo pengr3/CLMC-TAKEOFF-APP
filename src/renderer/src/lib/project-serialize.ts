@@ -10,6 +10,8 @@ import {
 import type { Markup } from '../types/markup'
 import type { PageScale } from '../types/scale'
 import type { ViewportState } from '../types/viewer'
+import type { PriceEntry } from './boq-types'
+import { DEFAULT_MARKUP_PCT } from './estimate-defaults'
 
 export interface SnapshotParams {
   pdfOriginalFilename: string  // display name only (D-04); v1 path-based fields removed in Phase 4.1
@@ -110,16 +112,38 @@ export function hydrateStores(data: ProjectFileV2): void {
       pageViewports
     })
 
-    // Hydrate rates — additive Phase 15 field (threat-model mitigation T-15-02-01).
-    // A crafted/corrupt .clmc could carry negative, NaN/Infinity, non-number, or a
-    // non-object `rates`; those values flow into cost math (rate × quantity) and ₱
-    // export cells, so sanitize here. This is the Record analog of the Array.isArray
-    // guard below, hardened with a per-value finite-≥0 filter: keep only entries whose
-    // value is a finite number ≥ 0; default to {} when data.rates is absent/non-object.
-    const safeRates: Record<string, number> = {}
+    // Hydrate rates — additive Phase 15 field, WIDENED to PriceEntry in Phase 16
+    // (threat-model mitigation T-15-02-01 / T-16-02-01). A crafted/corrupt .clmc
+    // could carry negative, NaN/Infinity, non-number, or non-object values; those
+    // flow into cost math (material/labor × quantity) and ₱ export cells, so
+    // sanitize per-field here. Two accepted input forms:
+    //   • legacy Phase-15 scalar number n → { material: n (finite-≥0 else 0),
+    //     labor: 0, markup: DEFAULT_MARKUP_PCT } (D-06 back-compat / A2)
+    //   • Phase-16 object → per-field coerce: material/labor finite-≥0 else 0;
+    //     markup finite-≥0 else DEFAULT_MARKUP_PCT (absent markup → 30, distinct
+    //     from an explicit markup:0 which is honored).
+    // Entries whose value is neither number nor a non-null object are dropped;
+    // default to {} when data.rates is absent/non-object. Never throws.
+    const coerceField = (v: unknown, fallback: number): number =>
+      typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : fallback
+    const safeRates: Record<string, PriceEntry> = {}
     if (data.rates && typeof data.rates === 'object') {
-      for (const [k, v] of Object.entries(data.rates)) {
-        if (typeof v === 'number' && Number.isFinite(v) && v >= 0) safeRates[k] = v
+      for (const [k, v] of Object.entries(data.rates as Record<string, unknown>)) {
+        if (typeof v === 'number') {
+          safeRates[k] = {
+            material: coerceField(v, 0),
+            labor: 0,
+            markup: DEFAULT_MARKUP_PCT
+          }
+        } else if (v && typeof v === 'object') {
+          const e = v as Partial<PriceEntry>
+          safeRates[k] = {
+            material: coerceField(e.material, 0),
+            labor: coerceField(e.labor, 0),
+            markup: coerceField(e.markup, DEFAULT_MARKUP_PCT)
+          }
+        }
+        // else: neither number nor object → drop the entry entirely.
       }
     }
 

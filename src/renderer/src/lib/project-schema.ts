@@ -1,6 +1,7 @@
 import type { Markup } from '../types/markup'
 import type { ScaleUnit, PageScale } from '../types/scale'
 import type { ViewportState } from '../types/viewer'
+import type { PriceEntry } from './boq-types'
 
 // ----- v1 (legacy plain-JSON .clmc) -----
 // Kept for migration source. New code should use ProjectFileV2.
@@ -86,13 +87,16 @@ export interface ProjectFileV2 {
    */
   hiddenItemNames?: string[]
   /**
-   * Additive in Phase 15 — absent in pre-Phase-15 files; defaults to {} on load.
-   * Per-(name|type) unit rate in ₱, keyed by the string `${name}|${type}`
-   * (category-INDEPENDENT). NO formatVersion bump — validateV2 adds no branch,
-   * the field rides the trailing `return raw as ProjectFileV2` cast exactly like
-   * hiddenItemNames. Malformed values are sanitized at hydrate, not here.
+   * Additive in Phase 15, WIDENED in Phase 16 — absent in pre-Phase-15 files;
+   * defaults to {} on load. Per-(name|type) PriceEntry `{ material, labor, markup }`
+   * (markup a PERCENT), keyed by the string `${name}|${type}` (category-
+   * INDEPENDENT). A Phase-15 `.clmc` carries the legacy scalar `Record<string,
+   * number>` form; the hydrate coercion maps it to PriceEntry back-compat. NO
+   * formatVersion bump — validateV2 adds no branch, the field rides the trailing
+   * `return raw as ProjectFileV2` cast exactly like hiddenItemNames. Malformed
+   * values are sanitized at hydrate, not here.
    */
-  rates?: Record<string, number>
+  rates?: Record<string, PriceEntry>
 }
 
 export type ProjectFile = ProjectFileV2

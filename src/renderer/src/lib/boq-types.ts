@@ -1,6 +1,23 @@
 import type { ScaleUnit } from '../types/scale'
 import type { Markup } from '../types/markup'
 
+/**
+ * Per-(name|type) pricing entry (Phase 16). Stored in projectStore.rates and
+ * persisted in the .clmc, keyed by `${name}|${type}` (category-INDEPENDENT).
+ * `material` and `labor` are ₱ per unit; `markup` is a PERCENT (30 = 30%), NOT
+ * a fraction — `price = cost × (1 + markup / 100)` (D-03/D-05). Widens the
+ * Phase-15 scalar `rate: number` (a legacy scalar coerces to
+ * `{ material: n, labor: 0, markup: 30 }` at hydrate; D-06).
+ */
+export interface PriceEntry {
+  /** ₱ per unit — material rate. */
+  material: number
+  /** ₱ per unit — labor rate. */
+  labor: number
+  /** Percent, e.g. 30 (NOT a fraction). Absent → DEFAULT_MARKUP_PCT (30). */
+  markup: number
+}
+
 /** BOQ metadata block (5 rows above the table — D-09). */
 export interface BoqMetadata {
   /** Basename of currentFilePath stripped of .clmc, else viewerStore.fileName stripped of .pdf. */

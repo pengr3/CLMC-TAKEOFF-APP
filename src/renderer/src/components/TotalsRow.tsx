@@ -148,7 +148,11 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
 
   // Current stored rate for this (name, type) — top-level primitive selector
   // (mirrors isHidden). Absent → 0 (locked "no rate set behaves as rate = 0").
-  const rate = useProjectStore((s) => s.rates[rateKey] ?? 0)
+  // Phase 16: rates widened to PriceEntry; the panel's single ₱ field maps to the
+  // `material` rate (legacy scalar → material). This inline pricing UI is removed
+  // wholesale by Wave 2b (16 totals-panel quantity-only revert); until then it
+  // compiles against the widened API by reading/writing the material field only.
+  const rate = useProjectStore((s) => s.rates[rateKey]?.material ?? 0)
 
   // The inline rate field is UNCONTROLLED + driven by native listeners (below).
   // Rationale: React's synthetic onChange is suppressed by its value-tracker when
@@ -178,7 +182,9 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
   const commitRate = (text: string): void => {
     const parsed = parseFloat(text)
     const safe = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed
-    useProjectStore.getState().setRate(rateKey, safe)
+    // Phase 16: setRate → setPrice; the panel field patches the `material` rate
+    // only (merges, preserving labor/markup). Removed wholesale by Wave 2b.
+    useProjectStore.getState().setPrice(rateKey, { material: safe })
   }
 
   // Native listeners on the rate input — commit on input/change/blur, commit on

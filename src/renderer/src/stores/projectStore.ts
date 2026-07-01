@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { useMarkupStore } from './markupStore'
 import { useScaleStore } from './scaleStore'
 import { useViewerStore } from './viewerStore'
+import { DEFAULT_MARKUP_PCT } from '../lib/estimate-defaults'
+import type { PriceEntry } from '../lib/boq-types'
 
 interface ProjectStoreState {
   currentFilePath: string | null
@@ -13,11 +15,13 @@ interface ProjectStoreState {
   /** Derived in-memory O(1) lookup — NOT persisted in .clmc. Kept in sync with hiddenItemNames. */
   hiddenItemSet: Set<string>
   /**
-   * Per-(name|type) unit rate in ₱ (Phase 15). The map IS the O(1) lookup — no
-   * derived Set needed (unlike hiddenItemNames). Persisted in .clmc, category-
-   * INDEPENDENT (key is `${name}|${type}`, NOT name|categoryId).
+   * Per-(name|type) PriceEntry `{ material, labor, markup }` (Phase 16 — widens
+   * the Phase-15 scalar ₱ rate). `material`/`labor` are ₱ per unit; `markup` is a
+   * PERCENT (30 = 30%). The map IS the O(1) lookup — no derived Set needed
+   * (unlike hiddenItemNames). Persisted in .clmc, category-INDEPENDENT (key is
+   * `${name}|${type}`, NOT name|categoryId).
    */
-  rates: Record<string, number>
+  rates: Record<string, PriceEntry>
 
   setSaved: (filePath: string) => void
   setSaving: (v: boolean) => void
@@ -34,11 +38,14 @@ interface ProjectStoreState {
   /** Set hiddenItemNames + hiddenItemSet atomically. Used by hydrateStores during load — dirty tracking already suspended. */
   setHiddenItemNames: (names: string[]) => void
   /**
-   * Set the ₱ rate for a `${name}|${type}` key and mark the project dirty so Save
-   * persists the edit (Phase 15). Mirrors toggleHiddenItem incl. the trailing
-   * get().markDirty() — without it an edited rate would not survive Save.
+   * Merge a partial PriceEntry patch into the entry at a `${name}|${type}` key
+   * and mark the project dirty so Save persists the edit (Phase 16 — replaces the
+   * scalar setRate). A material-only patch preserves the existing labor/markup; a
+   * brand-new entry seeds `{ material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT }`
+   * before applying the patch. Mirrors toggleHiddenItem incl. the trailing
+   * get().markDirty() — without it an edited price would not survive Save.
    */
-  setRate: (key: string, rate: number) => void
+  setPrice: (key: string, patch: Partial<PriceEntry>) => void
 }
 
 // Module-level guard — Pitfall 1 protection.
@@ -108,8 +115,11 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     set({ hiddenItemNames: names, hiddenItemSet: new Set(names) })
   },
 
-  setRate: (key, rate) => {
-    set((s) => ({ rates: { ...s.rates, [key]: rate } }))
+  setPrice: (key, patch) => {
+    set((s) => {
+      const cur = s.rates[key] ?? { material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT }
+      return { rates: { ...s.rates, [key]: { ...cur, ...patch } } }
+    })
     get().markDirty()
   }
 }))
