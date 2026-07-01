@@ -89,15 +89,21 @@ describe('Phase 5 IPC handlers — D-21 / D-24 / EXPRT-01 / EXPRT-02', () => {
     expect(fsP.rename).toHaveBeenCalledWith(`${finalPath}.tmp`, finalPath)
   })
 
-  it('file:writeBoqCsv returns { ok: false, reason } on rename failure and cleans up .tmp', async () => {
-    // atomicWriteFile retries rename once after unlinking the destination on EBUSY/EPERM.
-    // Both attempts must fail to surface the underlying error to the caller.
+  it('file:writeBoqCsv returns { ok: false, reason } on persistent lock — friendly message + .tmp cleanup (GAP-2)', async () => {
+    // atomicWriteFile retries rename with backoff (up to 3 attempts) on EBUSY/EPERM.
+    // When every attempt fails the destination is genuinely held open — the caller
+    // gets a friendly, actionable reason (NOT the raw code) and the .tmp is cleaned.
     const renameErr = Object.assign(new Error('EBUSY'), { code: 'EBUSY' })
     ;(fsP.rename as unknown as { mockRejectedValue: (e: Error) => void }).mockRejectedValue(renameErr)
     const finalPath = 'C:/exports/x.csv'
     const r = await handlers['file:writeBoqCsv']({}, finalPath, STUB_STRUCT) as { ok: boolean; reason?: string }
     expect(r.ok).toBe(false)
+    // Friendly, actionable copy — names the file, points at the open program, and
+    // keeps the raw code appended for diagnostics.
+    expect(r.reason).toContain('x.csv')
+    expect(r.reason).toMatch(/open in another program/i)
     expect(r.reason).toContain('EBUSY')
+    expect(r.reason).not.toMatch(/^EBUSY/)
     expect(fsP.unlink).toHaveBeenCalledWith(`${finalPath}.tmp`)
   })
 })

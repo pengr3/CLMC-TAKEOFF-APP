@@ -247,7 +247,10 @@ function App(): React.JSX.Element {
       return
     }
     if (r.kind === 'error') {
-      setExportError(`Export failed: ${r.message}`)
+      // GAP-2: the reason from main is already user-facing (e.g. the friendly
+      // locked-file message). It's shown as the detail line under the export
+      // title/body — no "Export failed:" prefix (the modal title says that).
+      setExportError(r.message)
       return
     }
     if (r.kind === 'ok') {
@@ -511,8 +514,13 @@ function App(): React.JSX.Element {
         />
       )}
 
+      {/* GAP-2: export errors use export-appropriate copy — NOT the "Failed to
+          open file" open-flow wording. OpenErrorModal is parameterized with
+          title/body (defaulting to the open-file copy for existing callers). */}
       {exportError !== null && (
         <OpenErrorModal
+          title="Export failed"
+          body="The BOQ couldn't be exported."
           message={exportError}
           onClose={() => setExportError(null)}
         />
@@ -526,7 +534,7 @@ function App(): React.JSX.Element {
             setUncalibratedWarning(null)
             const r = await applyExportAfterConfirm(captured)
             if (r.kind === 'error') {
-              setExportError(`Export failed: ${r.message}`)
+              setExportError(r.message)
             } else if (r.kind === 'ok') {
               const fileBasename = (p: string): string => {
                 const i = Math.max(p.lastIndexOf('/'), p.lastIndexOf('\\'))

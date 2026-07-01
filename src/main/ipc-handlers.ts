@@ -47,10 +47,20 @@ function u8ToBuf(u8: Uint8Array): Buffer {
  *
  * Windows / OneDrive recovery: rename can fail with EPERM/EEXIST/EBUSY when
  * the destination is held by sync software (OneDrive, Dropbox), antivirus,
- * or another process briefly. On those error codes we unlink the destination
- * then retry rename once. The retry path is non-atomic (the original file
- * is briefly absent), but the alternative is a hard failure for every
- * OneDrive user — unacceptable on Windows.
+ * or another process briefly. On those error codes we retry the rename with a
+ * short backoff (transient locks from a sync/AV scan usually clear within a few
+ * hundred ms), and — between retries — unlink the destination then retry. The
+ * retry path is non-atomic (the original file is briefly absent), but the
+ * alternative is a hard failure for every OneDrive user — unacceptable on
+ * Windows.
+ *
+ * PERSISTENT lock (Phase 16 UAT GAP-2): when the destination is held OPEN by
+ * another program (classically an .xlsx open in Excel), BOTH the rename and the
+ * unlink fail with EPERM through every retry — you cannot overwrite a file
+ * another process holds open; that is an OS constraint, not something a retry
+ * can defeat. In that case we throw a FRIENDLY, actionable error that names the
+ * file and tells the user to close it, instead of leaking the raw
+ * `EPERM: … rename '<path>.tmp' -> '<path>'`. The `.tmp` is always cleaned up.
  */
 function isLockedDestError(err: unknown): boolean {
   if (err instanceof Error && 'code' in err) {
@@ -60,39 +70,78 @@ function isLockedDestError(err: unknown): boolean {
   return false
 }
 
+/**
+ * Friendly, actionable message for a destination held open by another program.
+ * Names the file basename and points at the likely culprit (Excel) so the user
+ * knows exactly what to do — supersedes the raw EPERM rename text (GAP-2). Keeps
+ * the raw error code appended in parentheses for diagnostics without leading
+ * with it.
+ */
+function lockedDestMessage(finalPath: string, rawCode: string | undefined): string {
+  const name = basename(finalPath)
+  const codeSuffix = rawCode ? ` (${rawCode})` : ''
+  return (
+    `Couldn't save "${name}" — it looks like the file is open in another program ` +
+    `(for example Excel). Close it and export again.${codeSuffix}`
+  )
+}
+
+/** Bounded backoff between rename retries (ms). Absorbs transient sync/AV locks. */
+const RENAME_RETRY_DELAYS_MS = [120, 250]
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 async function atomicWriteFile(finalPath: string, data: Buffer): Promise<void> {
   const tmpPath = `${finalPath}.tmp`
   await writeFile(tmpPath, data)
-  try {
-    await rename(tmpPath, finalPath)
-    return
-  } catch (firstErr) {
-    if (isLockedDestError(firstErr)) {
-      // Step 1: try to release the destination. ENOENT means it never existed —
-      // benign; proceed to retry rename. Other errors mean we cannot remove
-      // the lock, so surface the original rename error after .tmp cleanup.
+
+  // Attempt 0 is immediate; each subsequent attempt waits a short backoff first.
+  // Up to 3 total rename attempts (1 immediate + RENAME_RETRY_DELAYS_MS.length).
+  let lastErr: unknown
+  let lastCode: string | undefined
+  for (let attempt = 0; attempt <= RENAME_RETRY_DELAYS_MS.length; attempt++) {
+    if (attempt > 0) await delay(RENAME_RETRY_DELAYS_MS[attempt - 1])
+    try {
+      await rename(tmpPath, finalPath)
+      return
+    } catch (err) {
+      lastErr = err
+      lastCode = (err as NodeJS.ErrnoException | undefined)?.code
+      if (!isLockedDestError(err)) {
+        // Non-lock error (e.g. EACCES on the directory, ENOSPC) — not something a
+        // retry helps. Clean up the .tmp and surface the raw error unchanged.
+        try { await unlink(tmpPath) } catch { /* ignore */ }
+        throw err
+      }
+      // Locked destination: try to release it before the next rename attempt.
+      // ENOENT means it never existed — benign. Any OTHER unlink failure means
+      // the file is genuinely held open (Excel etc.); keep looping so the backoff
+      // still gives a transient holder a chance to release, but remember we could
+      // not unlink.
       try {
         await unlink(finalPath)
       } catch (unlinkErr) {
         const code = (unlinkErr as NodeJS.ErrnoException | undefined)?.code
         if (code !== 'ENOENT') {
-          try { await unlink(tmpPath) } catch { /* ignore */ }
-          throw firstErr
+          // Cannot remove the lock right now — fall through to the next attempt
+          // (or exit the loop after the last attempt) and report the friendly
+          // locked-file message below.
+          lastCode = lastCode ?? code
         }
       }
-      // Step 2: retry rename. If this still fails, surface the SECOND error
-      // for diagnostics — the original EPERM is no longer the proximate cause.
-      try {
-        await rename(tmpPath, finalPath)
-        return
-      } catch (retryErr) {
-        try { await unlink(tmpPath) } catch { /* ignore */ }
-        throw retryErr
-      }
     }
-    try { await unlink(tmpPath) } catch { /* ignore */ }
-    throw firstErr
   }
+
+  // Every attempt failed on a locked destination. Clean up the .tmp and throw a
+  // human, actionable message (GAP-2) instead of the raw EPERM rename text.
+  try { await unlink(tmpPath) } catch { /* ignore */ }
+  if (isLockedDestError(lastErr)) {
+    throw new Error(lockedDestMessage(finalPath, lastCode))
+  }
+  // Defensive: non-lock errors are handled inside the loop, but never leak undefined.
+  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr))
 }
 
 export function registerIpcHandlers(): void {

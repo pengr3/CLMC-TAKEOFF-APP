@@ -80,18 +80,78 @@ describe('file:writeProject — atomic write (MEDIUM review concern)', () => {
     expect((fsP.rename as ReturnType<typeof vi.fn>).mock.calls[1]).toEqual([tmpPath, finalPath])
   })
 
-  it('cleans up .tmp file via unlink when rename fails (both initial + recovery)', async () => {
+  it('cleans up .tmp file via unlink when rename fails persistently (locked destination)', async () => {
     const finalPath = 'C:/projects/myplan.clmc'
     const tmpPath = `${finalPath}.tmp`
-    // atomicWriteFile retries rename once after unlinking the destination on EPERM.
-    // Both attempts must fail to surface the underlying error.
+    // atomicWriteFile retries rename with backoff (up to 3 attempts) on EPERM,
+    // unlinking the destination between attempts. When EVERY attempt fails the
+    // destination is genuinely held open — the .tmp must still be cleaned up.
     const renameErr = Object.assign(new Error('EPERM: rename failed'), { code: 'EPERM' })
     ;(fsP.rename as ReturnType<typeof vi.fn>).mockRejectedValue(renameErr)
 
     await expect(
       handlers['file:writeProject']({}, finalPath, '{}', new Uint8Array())
-    ).rejects.toThrow(/rename failed/)
+    ).rejects.toThrow()
 
+    expect(fsP.unlink).toHaveBeenCalledWith(tmpPath)
+  })
+})
+
+describe('atomicWriteFile — locked-destination resilience + friendly message (GAP-2)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    for (const k of Object.keys(handlers)) delete handlers[k]
+    registerIpcHandlers()
+  })
+
+  it('absorbs a TRANSIENT lock — first rename throws EPERM, retry succeeds → resolves', async () => {
+    const finalPath = 'C:/projects/report.clmc'
+    const tmpPath = `${finalPath}.tmp`
+    const epermErr = Object.assign(new Error('EPERM: operation not permitted, rename'), { code: 'EPERM' })
+    // First rename fails (a brief OneDrive/AV lock), the retry succeeds.
+    ;(fsP.rename as ReturnType<typeof vi.fn>)
+      .mockRejectedValueOnce(epermErr)
+      .mockResolvedValueOnce(undefined)
+
+    await expect(
+      handlers['file:writeProject']({}, finalPath, '{}', new Uint8Array())
+    ).resolves.toEqual({ ok: true })
+
+    // Two rename attempts: the failed initial + the successful retry.
+    expect((fsP.rename as ReturnType<typeof vi.fn>).mock.calls.length).toBe(2)
+    expect((fsP.rename as ReturnType<typeof vi.fn>).mock.calls[1]).toEqual([tmpPath, finalPath])
+  })
+
+  it('PERSISTENT lock — rename + unlink both throw EPERM through all retries → friendly message + .tmp cleaned', async () => {
+    const finalPath = 'C:/exports/BOQ.xlsx'
+    const tmpPath = `${finalPath}.tmp`
+    const epermErr = Object.assign(
+      new Error("EPERM: operation not permitted, rename 'BOQ.xlsx.tmp' -> 'BOQ.xlsx'"),
+      { code: 'EPERM' }
+    )
+    // The destination is held open by Excel: BOTH rename and the release-unlink
+    // of the destination fail with EPERM on every attempt; only the .tmp cleanup
+    // (a file we own) succeeds.
+    ;(fsP.rename as ReturnType<typeof vi.fn>).mockRejectedValue(epermErr)
+    ;(fsP.unlink as ReturnType<typeof vi.fn>).mockImplementation(async (p: string) => {
+      if (p === finalPath) throw epermErr // cannot release the locked destination
+      return undefined // .tmp cleanup succeeds
+    })
+
+    // file:writeProject does not catch — atomicWriteFile throws the friendly Error.
+    const err = await handlers['file:writeProject']({}, finalPath, '{}', new Uint8Array())
+      .then(() => null)
+      .catch((e: unknown) => e as Error)
+
+    expect(err).toBeInstanceOf(Error)
+    const msg = (err as Error).message
+    // Friendly, actionable message — names the file + points at the open program.
+    expect(msg).toContain('BOQ.xlsx')
+    expect(msg).toMatch(/open in another program/i)
+    expect(msg).toMatch(/Excel/i)
+    // Must NOT lead with the raw rename EPERM text.
+    expect(msg).not.toMatch(/^EPERM/)
+    // The .tmp scratch file is still cleaned up.
     expect(fsP.unlink).toHaveBeenCalledWith(tmpPath)
   })
 })

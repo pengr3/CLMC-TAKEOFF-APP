@@ -2,14 +2,36 @@ import { useEffect, useRef } from 'react'
 import { COLORS } from '../lib/constants'
 import { useDraggable } from '../hooks/useDraggable'
 
+/**
+ * Default copy for the file-OPEN failure case. Kept as the props default so
+ * existing open-error callers render exactly as before (Phase 16 GAP-2 made this
+ * modal reusable for export errors by parameterizing title/body — see below).
+ */
+export const OPEN_ERROR_TITLE = 'Failed to open file'
+export const OPEN_ERROR_BODY =
+  'An unexpected error occurred while opening the file. The file may be corrupted or inaccessible.'
+
 export interface OpenErrorModalProps {
   message: string
   onClose: () => void
+  /**
+   * Heading copy. Defaults to the file-open failure title so existing callers are
+   * unchanged; the export error path passes 'Export failed' (GAP-2).
+   */
+  title?: string
+  /**
+   * Body copy shown above the detail line. Defaults to the file-open failure body.
+   * `message` (the specific reason from main) is always shown as the detail line
+   * below this, regardless of title/body.
+   */
+  body?: string
 }
 
 export function OpenErrorModal({
   message,
-  onClose
+  onClose,
+  title = OPEN_ERROR_TITLE,
+  body = OPEN_ERROR_BODY
 }: OpenErrorModalProps): React.JSX.Element {
   const closeRef = useRef<HTMLButtonElement>(null)
   useEffect(() => { closeRef.current?.focus() }, [])
@@ -30,7 +52,7 @@ export function OpenErrorModal({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Failed to open file"
+        aria-label={title}
         onPointerDown={onPointerDown}
         style={{
           width: 420, padding: 20,
@@ -51,10 +73,8 @@ export function OpenErrorModal({
             : {})
         }}
       >
-        <div style={{ fontWeight: 600, fontSize: 14 }}>Failed to open file</div>
-        <div>
-          An unexpected error occurred while opening the file. The file may be corrupted or inaccessible.
-        </div>
+        <div style={{ fontWeight: 600, fontSize: 14 }}>{title}</div>
+        <div>{body}</div>
         {message && (
           <div style={{
             padding: 6,
