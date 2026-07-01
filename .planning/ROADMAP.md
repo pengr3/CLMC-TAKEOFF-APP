@@ -629,7 +629,7 @@ Plans:
 
 **Wave 1** *(blocked on Wave 0 — data-model spine)*:
 
-- [ ] 16-02-PLAN.md — DEFAULT_MARKUP_PCT seam + widen `rates` scalar -> `{material,labor,markup}` PriceEntry (setPrice merge, legacy coercion, no formatVersion bump) across projectStore/schema/serialize/boq-types + 2 preload mirrors; aggregator emits the six money fields + three subtotal/grand kinds; useBoqLive stays live
+- [x] 16-02-PLAN.md — DEFAULT_MARKUP_PCT seam + widen `rates` scalar -> `{material,labor,markup}` PriceEntry (setPrice merge, legacy coercion, no formatVersion bump) across projectStore/schema/serialize/boq-types + 2 preload mirrors; aggregator emits the six money fields + three subtotal/grand kinds; useBoqLive stays live
 
 **Wave 2** *(parallel-safe; both blocked on Wave 1 — disjoint files)*:
 
