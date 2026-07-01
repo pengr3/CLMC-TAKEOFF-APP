@@ -128,6 +128,14 @@ None - no external service configuration required.
 - **Wave 3** export is pinned by proof f (9-column xlsx/csv).
 - **Gate status:** `npm run typecheck` clean; full suite 613 pass / 29 RED-by-design / 0 unexpected regressions; `totals-row-rate-edit.test.ts` deleted. RED is the intended deliverable — do NOT attempt to green the suite in this plan.
 
+## Self-Check: PASSED
+
+- Created files exist: `estimate-row-edit.test.ts`, `totals-panel-quantity-only.test.ts`, `estimate-view-switch.test.ts`, `16-01-SUMMARY.md` — all FOUND.
+- `totals-row-rate-edit.test.ts` — DELETED (untracked; `git ls-files` returns nothing).
+- Commits exist: `b4711ae`, `bc68044`, `b7d2017`, `cb440eb` — all FOUND.
+- No production source under `src/renderer` / `src/main` / `src/preload` changed (test files only).
+- `npm run typecheck` clean; full suite 613 pass / 29 RED-by-design / 0 unexpected regressions.
+
 ---
 *Phase: 16-estimating-workspace*
 *Completed: 2026-07-01*
