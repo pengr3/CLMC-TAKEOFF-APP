@@ -1,50 +1,53 @@
 {
   "version": "1.0",
-  "timestamp": "2026-06-26T10:05:40.219Z",
-  "phase": "14",
-  "phase_name": "markup-geometry-precision",
-  "phase_dir": ".planning/phases/14-markup-geometry-precision",
-  "plan": null,
-  "task": 3,
-  "total_tasks": 4,
+  "timestamp": "2026-07-01T11:18:19.192Z",
+  "phase": "16",
+  "phase_name": "estimating-workspace",
+  "phase_dir": ".planning/phases/16-estimating-workspace",
+  "plan": 5,
+  "task": null,
+  "total_tasks": 5,
   "status": "paused",
-  "context": "discuss-phase (gray-area discussion in progress; no PLAN.md yet)",
+  "phase_status": "complete",
+  "head_commit": "df61b11",
+  "branch": "master",
   "completed_tasks": [
-    {"id": 1, "name": "Area: Arc drawing gesture", "status": "done"},
-    {"id": 2, "name": "Area: Snap on/off & override", "status": "done"},
-    {"id": 3, "name": "Area: Which snap targets ship", "status": "done"},
-    {"id": 4, "name": "Area: Self-intersect & arc editing", "status": "in_progress", "progress": "Arc+vertex editing decided IN; self-intersection=block (proposed, not objected); ONE open sub-decision remains"}
+    {"id": "16-01", "name": "Nyquist RED test surface (tests-first)", "status": "done"},
+    {"id": "16-02", "name": "PriceEntry {material,labor,markup} data-model spine + aggregator + 4-way type lock", "status": "done"},
+    {"id": "16-03", "name": "Estimate workspace: Plan|Estimate toggle (mount-preserving) + editable grid", "status": "done"},
+    {"id": "16-04", "name": "Totals-panel revert to quantity-only (D-02)", "status": "done"},
+    {"id": "16-05", "name": "9-column export + Settings default-markup stub + PROJECT.md + manual notes", "status": "done"},
+    {"id": "CR-01/WR-02", "name": "Fix decimal-entry clobber: commit on blur/Enter + activeElement seed guard + real-store regression test", "status": "done", "commit": "d9e7e58"},
+    {"id": "GAP-1", "name": "Reveal Plan workspace when leaving the Estimating tab", "status": "done", "commit": "2b4db86"},
+    {"id": "GAP-2", "name": "Friendly locked-file export error + retry + export-specific dialog", "status": "done", "commit": "d7200b1"},
+    {"id": "export-10col", "name": "Add UNIT PRICE column + rename Price->TOTAL (xlsx+csv AND on-screen grid)", "status": "done", "commit": "af9a260, 415ac2d"},
+    {"id": "WR-01", "name": "Wire project-scoped defaultMarkupPct (store/schema/serialize/aggregator/live) in Estimate-sheet header; remove Settings stub", "status": "done", "commit": "b3b9f26..0609769"},
+    {"id": "perf-smoke", "name": "Fix snapping-engine perf-smoke flake (100->600ms contention-tolerant ceiling)", "status": "done", "commit": "faecf8d"},
+    {"id": "default-markup-confirm", "name": "Confirm-with-impact dialog before applying a default-markup change (not silent)", "status": "done", "commit": "8d1cf59"}
   ],
   "remaining_tasks": [
-    {"id": 4, "name": "Resolve Area 4 open sub-decision: include vs defer post-hoc straight<->arc edge conversion; confirm self-intersection = block-on-commit", "status": "not_started"},
-    {"id": 5, "name": "write_context: 14-CONTEXT.md + 14-DISCUSSION-LOG.md", "status": "not_started"},
-    {"id": 6, "name": "git_commit context, update STATE.md, delete checkpoint", "status": "not_started"},
-    {"id": 7, "name": "confirm_creation: next step is /gsd-plan-phase 14", "status": "not_started"}
+    {"id": "lows", "name": "3 advisory Low review findings: IN-01 formatMoney duplicated x3, IN-02 CSV 'Markup' header lacks %, IN-03 category collapse-key collision on duplicate display names (see 16-REVIEW.md)", "status": "optional"},
+    {"id": "phase-17", "name": "DEFERRED: rename plotted markups (migrate {material,labor,markup} price key; handle name collisions) + drag-reorder within a category (persisted per-category order shared by totals panel/estimate sheet/export). Needs /gsd:discuss-phase or /gsd:spec-phase before planning", "status": "deferred"},
+    {"id": "confirm-count", "name": "Optional: show the affected-item count in the default-markup confirm dialog (currently a scope statement; a count needs exposing the raw name on BoqItemRow or a usesDefault flag)", "status": "optional"},
+    {"id": "p15-uat", "name": "Phase 15 UAT items (perimeter-render, priced-export) remain valid to check", "status": "optional"}
   ],
   "blockers": [],
   "human_actions_pending": [
-    {"action": "Answer Area 4 open sub-decision: include post-hoc straight<->arc edge conversion, or defer it? (+ confirm self-intersection = block)", "context": "Final open item before CONTEXT.md can be written", "blocking": true}
+    {"action": "Optional: eyeball the Estimate workspace live (default-markup confirm dialog + UNIT PRICE/TOTAL columns; save+reload persists the default markup)", "context": "Renderer-only changes hot-reload on `npm run dev`; no restart needed. NOTE: main-process changes (like the GAP-2 export fix) DO require a full app restart.", "blocking": false}
   ],
   "decisions": [
-    {"decision": "Arc gesture = 3-click (start / on-arc / end)", "rationale": "Validated by interactive demo (spike 003c); 1:1 with the spike-003 solver; only gesture that reaches major arcs (>180deg)", "phase": "14"},
-    {"decision": "Straight<->arc switching while drawing = BOTH momentary hold-key + sticky toggle; default edge straight", "rationale": "Hold-key for one-off curves, toggle for runs; user wanted full flexibility", "phase": "14"},
-    {"decision": "Snap activation = ON by default + hold-key suspend (1 point) + persistent toggle; keys (Alt/F3) TBD vs Phase 9 bindings", "rationale": "CAD-standard; precise default with easy escape", "phase": "14"},
-    {"decision": "Snap indicator = per-type glyphs (square=vertex/endpoint, triangle=on-segment, X reserved for intersection)", "rationale": "Shape conveys snap type so estimator trusts what was grabbed", "phase": "14"},
-    {"decision": "Snap targets SHIP = vertex/endpoint + nearest-point-on-segment + close-the-loop (own start vertex); DEFER intersection + grid", "rationale": "Success-criteria + spike 002; intersection is costliest (O(k^2)) and validated separately later", "phase": "14"},
-    {"decision": "Snap rule: snap to OTHER markups freely; for in-progress/edited markup snap only to its own START vertex (never own intermediate vertex / actively-dragged vertex). Applies in placement AND editing", "rationale": "Avoids a shape snapping to itself", "phase": "14"},
-    {"decision": "Arc + vertex editing IN this phase: drag endpoint vertex re-solves arc, drag on-arc bulge handle reshapes; snapping + sagitta cap + self-intersection guard apply on edit; all undoable; round-trips save/BOQ", "rationale": "User requested editing; reuses Phase 12 drag infra + spike-003 solver; absorbs drag-to-bulge as the EDIT gesture", "phase": "14"},
-    {"decision": "Self-intersection on area/perimeter commit = BLOCK + keep editing (proposed; sagitta cap prevents most)", "rationale": "Never store/export a wrong quantity; success criterion 5 says detect+warn", "phase": "14"},
-    {"decision": "Cross-cutting: every new tool/gesture/shortcut/indicator must be documented manual-ready as built (How-To-Manual is its own future phase)", "rationale": "User requirement 2026-06-26; saved to memory project-howto-manual", "phase": "14"}
+    {"decision": "Sequential gsd-executor subagents on the main working tree (no worktree isolation)", "rationale": "This harness's Agent(isolation=worktree) does not return the worktree path/branch/agent-id metadata the workflow's manifest-based cleanup requires, so worktree cleanup would hard-block; only Wave 2 had parallelism and it was small; also Windows worktree fragility", "phase": "16"},
+    {"decision": "Orchestrator owns all STATE.md/ROADMAP.md writes via direct Edit (executors instructed NOT to touch them)", "rationale": "gsd-sdk state.*/roadmap.* mutation verbs fail on this project's STATE.md format (known issue); direct editing is the reliable path", "phase": "16"},
+    {"decision": "UNIT PRICE = (material+labor)*(1+markup/100) = TOTAL/qty; TOTAL = the former Price (extended). Applied to xlsx+csv AND the estimate grid", "rationale": "User request: insert a per-unit client price + rename the line total; formula is qty-safe and reconciles UNIT PRICE * qty === TOTAL", "phase": "16"},
+    {"decision": "WR-01 default-markup control lives in the Estimate-sheet header (not the Settings tab); persists in the .clmc", "rationale": "It is project data (must follow the project, not the workstation); the codebase reserves the Settings tab / localStorage for workstation prefs", "phase": "16"},
+    {"decision": "A default-markup change is gated behind a confirm-with-impact dialog; scope statement only (no exact affected count)", "rationale": "User flagged the silent bulk re-price; BoqItemRow exposes only a suffixed label (not the raw name needed to key rates), so a precise count would require a forbidden data-model/type-lock change", "phase": "16"},
+    {"decision": "Inline-edit numeric inputs commit on blur/Enter (never per-keystroke) + guard the store->field seed effect with document.activeElement", "rationale": "Per-keystroke commit + a value-seeding effect clobber mid-typing decimals (CR-01, High); real-store tests (not mocked) are required to catch it", "phase": "16"}
   ],
-  "uncommitted_files": [
-    ".planning/phases/14-markup-geometry-precision/14-DISCUSS-CHECKPOINT.json",
-    ".planning/spikes/003c-arc-input-gesture/demo.html",
-    ".planning/spikes/003c-arc-input-gesture/README.md"
-  ],
+  "uncommitted_files": [],
   "untracked_leave_alone": [
     ".planning/spikes/004-toolbar-redesign/ (user's separate WIP spike)",
     ".planning/spikes/003b-curved-polygon-area/demo.html (throwaway from prior session)"
   ],
-  "next_action": "Re-run /gsd-discuss-phase 14 — it detects 14-DISCUSS-CHECKPOINT.json (3/4 areas) and resumes at Area 4. Answer the one open sub-decision (post-hoc straight<->arc conversion: include or defer) + confirm self-intersection=block, then it writes 14-CONTEXT.md.",
-  "context_notes": "Phase is fully de-risked by spikes 002/003/003b; 003c (built this session) settled the arc gesture by demo. Only the Area-4 conversion sub-decision is open. Memory project-howto-manual added. Decisions also live structured in 14-DISCUSS-CHECKPOINT.json."
+  "next_action": "Phase 16 is COMPLETE (UAT approved 2026-07-01) and hardened; nothing blocking. Pick one to continue: (a) knock out the 3 advisory Lows in 16-REVIEW.md; (b) /gsd:discuss-phase 17 to design the deferred rename + drag-reorder features; (c) add the affected-item count to the default-markup confirm dialog. Full suite green (681/681, 88 files), typecheck + production build clean, working tree clean (only pre-existing untracked .planning/spikes/**).",
+  "context_notes": "This session executed all 5 plans of Phase 16 across 4 waves, then a chain of UAT-driven refinements (CR-01/WR-02 fix, GAP-1/GAP-2 fixes, the 10-column UNIT PRICE/TOTAL export+grid restructure, WR-01 wiring, the perf-smoke flake fix, and the default-markup confirm dialog). Everything was done via sequential gsd-executor subagents on the main tree with the orchestrator owning tracking writes and verifying each step (typecheck + full suite + build). All green. This is a clean stopping point AFTER phase completion, not a mid-task pause."
 }
