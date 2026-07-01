@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: "Completed 15-04 (Wave 2/3 writers half + scope flip + manual notes) — final plan of Phase 15. buildBoqXlsx/buildBoqCsv now emit the locked 5-column priced layout (Item·Quantity·UoM·Rate·Cost): xlsx Rate/Cost are native numbers with a local NUMFMT_PESO ₱#,##0.00 (SUM-safe), per-category ₱ cost-subtotal + grand-total-cost rows, A:E heading merge; csv Rate/Cost numeric with the UTF-8 BOM preserved. Reconciled the final main-process BoqRowType to single 'perimeter' (15-02 deferred item closed). money() non-finite→0 guard at all ₱ write points. PROJECT.md pricing flipped Out-of-Scope→Validated. NEW 15-MANUAL-NOTES.md. 7 writer reds GREEN; full suite 628/628; typecheck clean. 3 atomic commits 3e2b31f/2a3003f/69fb1a0. Phase 15 feature-complete — ready for verification/UAT."
-last_updated: "2026-06-29T10:42:51.697Z"
-last_activity: 2026-06-29
+status: awaiting_uat
+stopped_at: "Phase 16 (Estimating Workspace) execution complete - all 5 plans / 4 waves. PriceEntry {material,labor,markup} data-model spine + aggregator (material/labor/cost/price/margin + Cost/Price/Margin subtotals & grand totals, legacy Phase-15 scalar coercion, no formatVersion bump); dedicated Estimate workspace (Plan|Estimate ribbon toggle, mount-preserving CSS display swap, EstimateRow/CategoryBlock/Panel grid); totals panel reverted to quantity-only (D-02); 9-column xlsx/csv export (SUM-safe native money, percent markup, A:I merge, csv BOM); Settings default-markup control; PROJECT.md flip + 16-MANUAL-NOTES.md. Code review CR-01(High)+WR-02(Med) decimal-entry clobber FIXED (blur/Enter commit + activeElement seed guard + real-store regression test); WR-01(Med inert knob)+3 Lows open. Verification 6/6 SC PASS (human_needed - 2 visual UAT items). Full suite 646/646; typecheck + build clean."
+last_updated: "2026-07-01"
+last_activity: 2026-07-01
 progress:
   total_phases: 20
   completed_phases: 19
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 16 — estimating-workspace (executing)
+**Current Focus:** Phase 16 — estimating-workspace (execution complete — awaiting human UAT)
 
 ---
 
 ## Current Position
 
-Phase: 16 (estimating-workspace) — EXECUTING (5 plans / 4 waves)
-Plan: Wave 0 starting (16-01 RED test surface)
+Phase: 16 (estimating-workspace) — ALL 5 PLANS COMPLETE (4 waves); goal-verified 6/6 SC; awaiting human UAT
+Plan: 5 of 5 (16-05 complete — final plan) + CR-01/WR-02 review fix applied
 
 ## Performance Metrics
 
@@ -246,13 +246,13 @@ None.
 
 ## Session Continuity
 
-**Last activity:** 2026-06-29
+**Last activity:** 2026-07-01
 
-**Last session:** 2026-06-29T10:42:22.943Z
+**Last session:** 2026-07-01
 
-**Stopped at:** Completed 15-04 (Wave 2/3 writers half + scope flip + manual notes) — final plan of Phase 15. buildBoqXlsx/buildBoqCsv now emit the locked 5-column priced layout (Item·Quantity·UoM·Rate·Cost): xlsx Rate/Cost are native numbers with a local NUMFMT_PESO ₱#,##0.00 (SUM-safe), per-category ₱ cost-subtotal + grand-total-cost rows, A:E heading merge; csv Rate/Cost numeric with the UTF-8 BOM preserved. Reconciled the final main-process BoqRowType to single 'perimeter' (15-02 deferred item closed). money() non-finite→0 guard at all ₱ write points. PROJECT.md pricing flipped Out-of-Scope→Validated. NEW 15-MANUAL-NOTES.md. 7 writer reds GREEN; full suite 628/628; typecheck clean. 3 atomic commits 3e2b31f/2a3003f/69fb1a0. Phase 15 feature-complete — ready for verification/UAT.
+**Stopped at:** Phase 16 (Estimating Workspace) execution complete - all 5 plans across 4 waves. Wave 0 Nyquist RED surface; Wave 1 PriceEntry {material,labor,markup} data-model spine (setPrice merge, legacy Phase-15 scalar -> {material,labor,markup:30} coercion, no formatVersion bump, aggregator emits material/labor/cost/price/margin + Cost/Price/Margin subtotals & grand totals); Wave 2 dedicated Estimate workspace (Plan|Estimate ribbon toggle, mount-preserving CSS display swap so the Konva canvas never remounts, EstimateRow/CategoryBlock/Panel grid) + totals-panel reverted to quantity-only (D-02); Wave 3 9-column xlsx/csv export (Item.Qty.UoM.Material.Labor.Cost.Markup.Price.Margin, SUM-safe native money, percent markup, A:I merge, csv BOM) + Settings default-markup control + PROJECT.md flip + 16-MANUAL-NOTES.md. Code review: CR-01 (High) + WR-02 (Medium) decimal-entry clobber FIXED (blur/Enter commit + activeElement seed guard + real-store regression test); WR-01 (Medium, inert Settings knob) + 3 Lows open in 16-REVIEW.md. Verification 6/6 SC PASS (human_needed - 2 visual UAT items). Full suite 646/646; typecheck + build clean. 26 phase commits.
 
-**Next action:** **Phase 16 (Estimating Workspace) is PLANNED and ready to execute** — 5 plans / 4 waves (Wave 0 RED tests → Wave 1 data-model spine `{material,labor,markup}` + aggregator → Wave 2 estimate workspace + totals-panel revert [parallel, disjoint files] → Wave 3 9-column export + Settings default-markup + docs). Plan-checker verdict: **PASS** (all 6 SC + Nyquist proofs a–i owned by concrete tasks; 5 landmines mitigated). Awaiting user review of the plan, then run `/gsd:execute-phase 16` (`/clear` first for a fresh context window). Design origin: user redesign after Phase 15 UAT — pricing moved OFF the measurement surfaces into a dedicated Estimate sheet (Plan|Estimate ribbon toggle) with material+labor internal cost + 30%-default markup → client price + margin; totals panel reverts to quantity-only (see `16-CONTEXT.md`). Phase 16 SUPERSEDES Phase 15's inline totals-panel pricing (retires 15-HUMAN-UAT item 1); Phase 15's perimeter-render (item 2) + priced-export (item 3) UAT remain valid to check after Phase 16 lands. The 3 deferred Phase-15 review findings (WR-04/IN-01/IN-04) are moot for the totals panel (being redesigned).
+**Next action:** **Phase 16 (Estimating Workspace) - execution COMPLETE, awaiting human UAT.** All 5 plans landed across 4 waves; goal-verified 6/6 SC PASS against source; full suite 646/646, typecheck + production build clean. Code review found + fixed CR-01 (High: estimate rate cells clobbered mid-typing decimals like "0.5" - now commit on blur/Enter + activeElement seed guard, with a real-store regression test). Verification returned human_needed: 2 pre-declared visual/interaction items persisted in `16-HUMAN-UAT.md`: (1) estimate-grid live-edit feel incl. decimal rate entry (confirm the CR-01 fix hands-on), (2) Plan/Estimate view-switch flicker-absence + Konva canvas not remounting. Run the app, test both, then reply "approved" to mark Phase 16 complete - or report issues for gap closure. OPEN DECISION - WR-01 (Medium): the Settings "Default markup %" control is currently inert (looks editable, wired to nothing); choose (a) wire it project-wide, (b) disable-for-v1 with a hint, or (c) accept as a v1 stub. Advisory Lows in 16-REVIEW.md (IN-01 formatMoney dup x3, IN-02 CSV "Markup" header lacks %, IN-03 category key-collision on duplicate display names). Pre-existing snapping-engine performance-smoke test is a parallelism flake (passes isolated) - flagged as a follow-up task. Phase 15 UAT items (perimeter-render, priced-export) remain valid to check.
 
 **Note:** Phase 11 (Scale Ratio Input) scrapped — replaced by quick task `260520-rrf` (commit `4156dee`). Phase 13 = v1.1 Phase C from `.planning/phases/v1.1-planning/v1.1-CONTEXT.md` (D-10/D-11/D-12 plus new D-13–D-26 added during planning).
 
