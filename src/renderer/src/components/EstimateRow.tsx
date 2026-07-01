@@ -17,14 +17,20 @@ import { useProjectStore } from '../stores/projectStore'
  * does NO arithmetic: the aggregator (boq-aggregator.ts) is the single source of
  * truth (mirrors the "no rate×quantity in TotalsRow" rule).
  *
- * Editable cells are UNCONTROLLED + driven by NATIVE input/blur/keydown listeners
- * (NOT React onChange/onBlur). Rationale (Phase 15, 16-RESEARCH Pitfall 3):
+ * Editable cells are UNCONTROLLED + driven by NATIVE blur/keydown listeners (NOT
+ * React onChange/onBlur). Rationale (Phase 15, 16-RESEARCH Pitfall 3):
  * React 19's value-tracker suppresses synthetic onChange when a caller sets
  * `.value` then dispatches a native 'input' event, and React delegates blur as
  * 'focusout' — a raw 'blur' never reaches a synthetic onBlur. Native listeners
- * fire on exactly the events emitted, so change+blur OR an Enter keydown both
- * reliably commit. Each cell also stopPropagation()s click/mousedown/keydown so
- * the cell never triggers a row-level handler — the grid is a spreadsheet, not a
+ * fire on exactly the events emitted, so a blur OR an Enter keydown reliably
+ * commits. Commit is DEFERRED to blur/Enter — it is deliberately NOT bound to the
+ * native 'input' event (CR-01/WR-02): 'input' fires per keystroke, which wrote a
+ * partial parseFloat to the store every character (flipping isDirty on keystroke
+ * 1, flickering wrong intermediate cost/price/margin) and, together with the seed
+ * effect, clobbered decimals mid-typing ('0.' → stored 0 → field reset to ''). A
+ * single commit on blur/Enter is the whole "change+blur OR Enter commits"
+ * contract. Each cell also stopPropagation()s click/mousedown/keydown so the cell
+ * never triggers a row-level handler — the grid is a spreadsheet, not a
  * navigator.
  *
  * Price key (16-RESEARCH Pitfall 4): `${labelToName(item.label)}|${item.type}` —
@@ -108,31 +114,46 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
   }
 
   // --- Seed effects: re-seed the DOM value from the store only when it differs
-  //     (so mid-typing text is never clobbered). Keyed on [priceKey, field]. ---
+  //     AND the cell is not the actively-focused element (CR-01/WR-02). Because
+  //     commit is deferred to blur/Enter, the store value can only differ from a
+  //     focused field mid-typing — re-seeding then would clobber the user's
+  //     in-progress text (e.g. blank '0.' back to '' before they reach '0.5').
+  //     Guarding on document.activeElement !== el makes the effect a no-op while
+  //     the user edits; the field re-syncs from the store on the next render
+  //     after it loses focus. Keyed on [priceKey, field]. ---
   useEffect(() => {
     const el = materialRef.current
-    if (!el) return
+    if (!el || document.activeElement === el) return
     const next = seedRateText(material)
     if (el.value !== next) el.value = next
   }, [priceKey, material])
   useEffect(() => {
     const el = laborRef.current
-    if (!el) return
+    if (!el || document.activeElement === el) return
     const next = seedRateText(labor)
     if (el.value !== next) el.value = next
   }, [priceKey, labor])
   useEffect(() => {
     const el = markupRef.current
-    if (!el) return
+    if (!el || document.activeElement === el) return
     // Unpriced row shows the 30% default (not blank) so the markup column always
     // reads a value (Pitfall 5). Only overwrite when the DOM differs.
     const next = markup !== undefined ? String(markup) : String(DEFAULT_MARKUP_PCT)
     if (el.value !== next) el.value = next
   }, [priceKey, markup])
 
-  // --- Native-listener effects (one per cell): commit on input/blur, commit on
-  //     Enter keydown, and stopPropagation on click/mousedown/keydown so the cell
-  //     never bubbles to a row-level handler. Re-bound on [priceKey]. ---
+  // --- Native-listener effects (one per cell): commit on blur, commit on Enter
+  //     keydown, and stopPropagation on click/mousedown/keydown so the cell never
+  //     bubbles to a row-level handler. Re-bound on [priceKey].
+  //
+  //     CR-01/WR-02: commit is bound to 'blur' + Enter ONLY — NOT the native
+  //     'input' event. 'input' fires on every keystroke, so binding commit to it
+  //     wrote a partial parseFloat to the store per character (flipping isDirty on
+  //     the first keystroke, flickering wrong intermediate cost/price/margin
+  //     through the live BOQ) and — combined with the seed effect — clobbered
+  //     decimals mid-typing ('0.' → stored 0 → seed reset the field to ''). The
+  //     component's documented contract is "change+blur OR Enter commits"; a
+  //     single deferred commit satisfies it without per-keystroke store writes. ---
   useEffect(() => {
     const el = materialRef.current
     if (!el) return
@@ -142,13 +163,11 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
       if (e.key === 'Enter') commitMaterial(el.value)
     }
     const onStop = (e: Event): void => e.stopPropagation()
-    el.addEventListener('input', onCommit)
     el.addEventListener('blur', onCommit)
     el.addEventListener('keydown', onKeyDown)
     el.addEventListener('click', onStop)
     el.addEventListener('mousedown', onStop)
     return () => {
-      el.removeEventListener('input', onCommit)
       el.removeEventListener('blur', onCommit)
       el.removeEventListener('keydown', onKeyDown)
       el.removeEventListener('click', onStop)
@@ -166,13 +185,11 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
       if (e.key === 'Enter') commitLabor(el.value)
     }
     const onStop = (e: Event): void => e.stopPropagation()
-    el.addEventListener('input', onCommit)
     el.addEventListener('blur', onCommit)
     el.addEventListener('keydown', onKeyDown)
     el.addEventListener('click', onStop)
     el.addEventListener('mousedown', onStop)
     return () => {
-      el.removeEventListener('input', onCommit)
       el.removeEventListener('blur', onCommit)
       el.removeEventListener('keydown', onKeyDown)
       el.removeEventListener('click', onStop)
@@ -189,13 +206,11 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
       if (e.key === 'Enter') commitMarkup(el.value)
     }
     const onStop = (e: Event): void => e.stopPropagation()
-    el.addEventListener('input', onCommit)
     el.addEventListener('blur', onCommit)
     el.addEventListener('keydown', onKeyDown)
     el.addEventListener('click', onStop)
     el.addEventListener('mousedown', onStop)
     return () => {
-      el.removeEventListener('input', onCommit)
       el.removeEventListener('blur', onCommit)
       el.removeEventListener('keydown', onKeyDown)
       el.removeEventListener('click', onStop)
