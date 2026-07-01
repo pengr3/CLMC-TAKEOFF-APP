@@ -29,6 +29,7 @@
  (completed 2026-05-21)
 - [x] **Phase 14: Markup Geometry Precision — Snapping + Curved-Edge Measurement** - Cursor snapping (endpoint/vertex/segment, screen-constant tolerance, F3/Alt) during placement and editing, plus true circular-arc edges (3-click gesture, bulge reshaping) with exact arc length and circular-segment area; arcs round-trip through save/reload and BOQ export (completed 2026-06-29)
 - [x] **Phase 15: BOQ Pricing & Perimeter Simplification** - Priced BOQ (per-(name,type) unit rate × quantity = cost, category cost subtotals, ₱ grand total) in the totals panel and xlsx/csv export; Perimeter tool narrowed to length-only (perimeter-area removed) so every markup maps to exactly one priceable row (completed 2026-06-29)
+- [ ] **Phase 16: Estimating Workspace** - Dedicated Estimate sheet in the Estimating tab (Plan | Estimate view toggle) with per-item material + labor unit rates → internal cost, plus a default-30% editable markup → client price and margin; the right-side totals panel reverts to quantity-only and pricing leaves the Plan workspace; xlsx/csv export gains Material/Labor/Cost/Markup/Price/Margin columns
 
 ---
 
@@ -599,6 +600,26 @@ Plans:
 **Wave 3** *(blocked on Wave 1 completion)*
 
 - [x] 15-04-PLAN.md — Export: xlsx/csv Rate + Cost columns (₱ numFmt native numbers, A:E merge, cost subtotals + grand-total, CSV BOM kept) + PROJECT.md pricing scope flip + 15-MANUAL-NOTES.md (perimeter back-compat + ₱ + UAT)
+
+---
+
+### Phase 16: Estimating Workspace
+
+**Goal:** Turn the single-rate priced BOQ into a full internal-costing + client-pricing estimate in a dedicated workspace. Pricing moves off the measurement surfaces (the Plan canvas and the right-side totals panel become quantity-only) into a full-width Estimate sheet opened from the `Estimating` tab. Each estimate line carries a material unit rate and a labor unit rate (× quantity = material cost + labor cost = internal cost), plus a markup percent (default 30%, editable per line) that yields the client price (cost × (1 + markup)) and the margin (price − cost); category subtotals, a grand total, and the .xlsx/.csv export all report Cost / Price / Margin in ₱.
+**Depends on:** Phase 15 (BOQ pricing data model + aggregator + export + perimeter simplification)
+**Requirements:** Extends the v1.1 "Estimating" milestone opened by Phase 15; supersedes Phase 15's inline totals-panel pricing UI (Phase 15 SC-2). No new v1 requirement IDs. Source: user redesign after Phase 15 UAT.
+**Locked decisions:** see `.planning/phases/16-estimating-workspace/16-CONTEXT.md`
+
+**Success Criteria** (what must be TRUE):
+
+  1. Pricing appears only in the Estimate workspace: the `Estimating` tab exposes a `Plan | Estimate` toggle that swaps the main area to a full-width estimate sheet; the Plan canvas shows no pricing, and the right-side totals panel shows quantities only (no rate, no cost, no ₱) — Phase 15's inline `TotalsRow` rate field is removed
+  2. Each estimate row has editable Material and Labor unit rates; Material cost = material rate × quantity, Labor cost = labor rate × quantity, and Cost = material cost + labor cost, updating live as rates or the takeoff quantity change
+  3. Each row has an editable Markup % that defaults to 30% when unset; Price = Cost × (1 + markup) and Margin = Price − Cost, shown per row
+  4. The estimate groups rows by category with per-category subtotals and a grand total, each reporting Cost, Price, and Margin in ₱
+  5. Pricing is stored per `name|type` as `{ material, labor, markup }` in the .clmc, survives save/reload, shares one entry across categories/pages, and back-compat loads any Phase-15 single-rate file without error (missing markup defaults to 30%)
+  6. The .xlsx and .csv export the full column set — Item · Qty · UoM · Material · Labor · Cost · Markup · Price · Margin — with category subtotals and a grand total; ₱ money cells stay SUM-safe native numbers; PROJECT.md and manual notes are updated
+
+**Plans:** to be planned via `/gsd:plan-phase 16`
 
 ---
 
