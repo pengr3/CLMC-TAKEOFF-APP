@@ -1,7 +1,8 @@
 ---
 phase: 16-estimating-workspace
 verified: 2026-07-01T16:15:00Z
-status: human_needed
+status: passed
+human_result: "UAT approved 2026-07-01 — both human_verification items re-tested PASS; GAP-1 (view-switch) + GAP-2 (export UX) fixes confirmed live (see 16-HUMAN-UAT.md)."
 score: 6/6 must-haves verified
 overrides_applied: 0
 human_verification:

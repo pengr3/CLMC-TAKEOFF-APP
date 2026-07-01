@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: awaiting_uat
+status: phase_16_complete
 stopped_at: "Phase 16 (Estimating Workspace) execution complete - all 5 plans / 4 waves. PriceEntry {material,labor,markup} data-model spine + aggregator (material/labor/cost/price/margin + Cost/Price/Margin subtotals & grand totals, legacy Phase-15 scalar coercion, no formatVersion bump); dedicated Estimate workspace (Plan|Estimate ribbon toggle, mount-preserving CSS display swap, EstimateRow/CategoryBlock/Panel grid); totals panel reverted to quantity-only (D-02); 9-column xlsx/csv export (SUM-safe native money, percent markup, A:I merge, csv BOM); Settings default-markup control; PROJECT.md flip + 16-MANUAL-NOTES.md. Code review CR-01(High)+WR-02(Med) decimal-entry clobber FIXED (blur/Enter commit + activeElement seed guard + real-store regression test); WR-01(Med inert knob)+3 Lows open. Verification 6/6 SC PASS (human_needed - 2 visual UAT items). Full suite 646/646; typecheck + build clean."
 last_updated: "2026-07-01"
 last_activity: 2026-07-01
 progress:
   total_phases: 20
-  completed_phases: 19
-  total_plans: 101
-  completed_plans: 101
-  percent: 95
+  completed_phases: 20
+  total_plans: 106
+  completed_plans: 106
+  percent: 100
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 16 — estimating-workspace (execution complete — awaiting human UAT)
+**Current Focus:** Phase 16 — estimating-workspace (COMPLETE — UAT approved 2026-07-01)
 
 ---
 
 ## Current Position
 
-Phase: 16 (estimating-workspace) — ALL 5 PLANS COMPLETE (4 waves); goal-verified 6/6 SC; awaiting human UAT
-Plan: 5 of 5 (16-05 complete — final plan) + CR-01/WR-02 review fix applied
+Phase: 16 (estimating-workspace) — COMPLETE (UAT approved 2026-07-01); 6/6 SC verified
+Plan: 5 of 5 complete + UAT gap fixes (GAP-1 view-switch, GAP-2 export UX) + 10-column export/grid restructure (UNIT PRICE + TOTAL)
 
 ## Performance Metrics
 
@@ -250,9 +250,9 @@ None.
 
 **Last session:** 2026-07-01
 
-**Stopped at:** Phase 16 (Estimating Workspace) execution complete - all 5 plans across 4 waves. Wave 0 Nyquist RED surface; Wave 1 PriceEntry {material,labor,markup} data-model spine (setPrice merge, legacy Phase-15 scalar -> {material,labor,markup:30} coercion, no formatVersion bump, aggregator emits material/labor/cost/price/margin + Cost/Price/Margin subtotals & grand totals); Wave 2 dedicated Estimate workspace (Plan|Estimate ribbon toggle, mount-preserving CSS display swap so the Konva canvas never remounts, EstimateRow/CategoryBlock/Panel grid) + totals-panel reverted to quantity-only (D-02); Wave 3 9-column xlsx/csv export (Item.Qty.UoM.Material.Labor.Cost.Markup.Price.Margin, SUM-safe native money, percent markup, A:I merge, csv BOM) + Settings default-markup control + PROJECT.md flip + 16-MANUAL-NOTES.md. Code review: CR-01 (High) + WR-02 (Medium) decimal-entry clobber FIXED (blur/Enter commit + activeElement seed guard + real-store regression test); WR-01 (Medium, inert Settings knob) + 3 Lows open in 16-REVIEW.md. Verification 6/6 SC PASS (human_needed - 2 visual UAT items). Full suite 646/646; typecheck + build clean. 26 phase commits.
+**Stopped at:** Phase 16 (Estimating Workspace) execution complete - all 5 plans across 4 waves. Wave 0 Nyquist RED surface; Wave 1 PriceEntry {material,labor,markup} data-model spine (setPrice merge, legacy Phase-15 scalar -> {material,labor,markup:30} coercion, no formatVersion bump, aggregator emits material/labor/cost/price/margin + Cost/Price/Margin subtotals & grand totals); Wave 2 dedicated Estimate workspace (Plan|Estimate ribbon toggle, mount-preserving CSS display swap so the Konva canvas never remounts, EstimateRow/CategoryBlock/Panel grid) + totals-panel reverted to quantity-only (D-02); Wave 3 9-column xlsx/csv export (Item.Qty.UoM.Material.Labor.Cost.Markup.Price.Margin, SUM-safe native money, percent markup, A:I merge, csv BOM) + Settings default-markup control + PROJECT.md flip + 16-MANUAL-NOTES.md. Code review: CR-01 (High) + WR-02 (Medium) decimal-entry clobber FIXED (blur/Enter commit + activeElement seed guard + real-store regression test); WR-01 (Medium, inert Settings knob) + 3 Lows open in 16-REVIEW.md. Verification 6/6 SC PASS. UAT APPROVED 2026-07-01 (item 1 + item 2/GAP-1 re-tested PASS; GAP-2 export-UX confirmed after a full app restart — main process had been stale). Post-UAT: 10-column export/grid restructure — added UNIT PRICE (per-unit client price = TOTAL/qty), renamed Price->TOTAL — on xlsx+csv (af9a260) + the on-screen Estimate grid (415ac2d). Full suite green; typecheck + build clean.
 
-**Next action:** **Phase 16 (Estimating Workspace) - built, verified, UAT in progress.** All 5 plans landed + 6/6 SC PASS; full suite 654/654, typecheck + build clean. UAT round 1: item 1 (estimate-grid live-edit incl. decimals) APPROVED; item 2 (view switch) raised GAP-1 - leaving the Estimating tab did not reveal the Plan canvas - FIXED (2b4db86, RibbonToolbar resets viewMode->'plan' on tab-leave); a NEW export bug GAP-2 (EPERM on a .xlsx open in Excel shown via the wrong 'Failed to open file' dialog) FIXED (d7200b1, friendly locked-file message + transient-lock retry + export-specific dialog; also improves the project-save path). AWAITING user live re-test of GAP-1 (leave Estimating -> Plan appears) + GAP-2 (export with target file CLOSED succeeds; with it OPEN shows the friendly 'close it and export again' message). See `16-HUMAN-UAT.md`. STILL OPEN: WR-01 (Medium) inert Settings 'Default markup %' knob - choose (a) wire it, (b) disable-for-v1 with a hint, or (c) accept as v1 stub; advisory Lows in 16-REVIEW.md. NEW SCOPE proposed as **Phase 17** (user requests from UAT): (1) rename already-plotted markups from the totals panel + estimate line (must migrate the {material,labor,markup} price to the new name|type key; handle name collisions), (2) drag-and-drop reorder of items WITHIN a category on both the totals panel + estimate sheet (needs a persisted per-category order shared by panel/sheet/export). Both need /gsd:discuss-phase or /gsd:spec-phase to settle design before planning - NOT yet built. Pre-existing snapping-engine perf-smoke flake (passes isolated) flagged as a follow-up task. Phase 15 UAT items (perimeter-render, priced-export) remain valid to check.
+**Next action:** **Phase 16 (Estimating Workspace) COMPLETE — UAT approved 2026-07-01.** All 5 plans + goal-verified 6/6 SC; full suite green, typecheck + production build clean. UAT: item 1 (live-edit incl. decimals) + item 2 (view switch, GAP-1 fix 2b4db86) both PASS on live re-test; the export locked-file UX GAP-2 (d7200b1) was confirmed after a full app restart (the Electron main process had been stale — renderer hot-reloaded but main did not, so the friendly locked-file message only appeared post-restart). Post-UAT the user restructured the BOQ export to 10 columns — inserted UNIT PRICE (per-unit client price = TOTAL/qty) and renamed Price->TOTAL — applied to xlsx+csv (af9a260) AND the on-screen Estimate grid (415ac2d); "foundation for BOQ export" laid. OPEN (non-blocking): WR-01 (Medium) inert Settings 'Default markup %' knob — choose (a) wire it project-wide, (b) disable-for-v1 with a hint, or (c) accept as a v1 stub; advisory Lows in 16-REVIEW.md. DEFERRED to a future Phase 17 (user: "backseat ... sooner or later"): rename plotted markups (must migrate the {material,labor,markup} price key) + drag-reorder within a category on both the totals panel + estimate sheet (needs a persisted per-category order) — needs /gsd:discuss-phase or /gsd:spec-phase before planning; NOT yet built. Pre-existing snapping-engine perf-smoke flake (passes isolated) tracked as a follow-up task. Phase 15 UAT items (perimeter-render, priced-export) remain valid to check.
 
 **Note:** Phase 11 (Scale Ratio Input) scrapped — replaced by quick task `260520-rrf` (commit `4156dee`). Phase 13 = v1.1 Phase C from `.planning/phases/v1.1-planning/v1.1-CONTEXT.md` (D-10/D-11/D-12 plus new D-13–D-26 added during planning).
 
