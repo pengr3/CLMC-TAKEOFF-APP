@@ -228,7 +228,12 @@ describe('performance smoke', () => {
       resolveSnap(index, c, TOL)
     }
     const elapsed = performance.now() - start
-    // Generous ceiling (spike measured ~2-4us/query → ~20-40ms for 10k); CI headroom.
-    expect(elapsed).toBeLessThan(100)
+    // Coarse O(n^2)-regression guard, NOT a microbenchmark. Spike measured ~2-4us/query
+    // (~20-40ms for 10k) on the spatial-hash index; a regression to a linear scan
+    // (O(n^2): 10000 queries x 10000 vertices) would take multiple SECONDS. The old
+    // 100ms ceiling flaked under parallel-CI contention (observed ~101ms across
+    // parallel vitest workers) despite passing reliably in isolation. 600ms keeps
+    // ~15-30x headroom over normal runtime while staying far below a real regression.
+    expect(elapsed).toBeLessThan(600)
   })
 })
