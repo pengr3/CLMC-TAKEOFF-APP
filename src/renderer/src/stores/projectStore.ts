@@ -22,6 +22,16 @@ interface ProjectStoreState {
    * `${name}|${type}`, NOT name|categoryId).
    */
   rates: Record<string, PriceEntry>
+  /**
+   * PROJECT-wide default markup PERCENT (30 = 30%) applied to any BOQ row that has
+   * no explicit PriceEntry markup (WR-01). PROJECT data — persisted in the .clmc and
+   * follows the project, NOT the workstation (which is why it lives here + in the
+   * Estimate sheet header, not the generic Settings tab). Initial value 30 (=
+   * DEFAULT_MARKUP_PCT). The aggregator reads `entry?.markup ?? opts.defaultMarkup ??
+   * DEFAULT_MARKUP_PCT`, so a project default of 0 is honored (0 ?? 30 === 0) and an
+   * explicit per-entry markup:0 still wins.
+   */
+  defaultMarkupPct: number
 
   setSaved: (filePath: string) => void
   setSaving: (v: boolean) => void
@@ -46,6 +56,13 @@ interface ProjectStoreState {
    * get().markDirty() — without it an edited price would not survive Save.
    */
   setPrice: (key: string, patch: Partial<PriceEntry>) => void
+  /**
+   * Set the project-wide default markup % (WR-01). Coerces to a finite value ≥ 0
+   * (Number.isFinite(pct) && pct >= 0 ? pct : 0), then marks the project dirty so
+   * Save persists it — mirrors setPrice's trailing get().markDirty(). A cleared /
+   * NaN / negative input lands as 0 (a legitimate "no markup" default).
+   */
+  setDefaultMarkupPct: (pct: number) => void
 }
 
 // Module-level guard — Pitfall 1 protection.
@@ -73,6 +90,7 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
   hiddenItemNames: [],
   hiddenItemSet: new Set<string>(),
   rates: {},
+  defaultMarkupPct: DEFAULT_MARKUP_PCT,
 
   setSaved: (filePath) =>
     set({ currentFilePath: filePath, isDirty: false, lastSavedAt: Date.now() }),
@@ -97,7 +115,8 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     lastSavedAt: null,
     hiddenItemNames: [],
     hiddenItemSet: new Set(),
-    rates: {}
+    rates: {},
+    defaultMarkupPct: DEFAULT_MARKUP_PCT
   }),
 
   toggleHiddenItem: (name) => {
@@ -120,6 +139,12 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
       const cur = s.rates[key] ?? { material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT }
       return { rates: { ...s.rates, [key]: { ...cur, ...patch } } }
     })
+    get().markDirty()
+  },
+
+  setDefaultMarkupPct: (pct) => {
+    const safe = Number.isFinite(pct) && pct >= 0 ? pct : 0
+    set({ defaultMarkupPct: safe })
     get().markDirty()
   }
 }))
