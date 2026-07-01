@@ -32,6 +32,7 @@ import { getCanvasControls, getCalibrationControls, getChainArmedItem, setChainA
 import { ScaleContextMenu } from './ScaleContextMenu'
 import { RibbonButton } from './RibbonButton'
 import { MIN_ZOOM, MAX_ZOOM, COLORS } from '../lib/constants'
+import { DEFAULT_MARKUP_PCT } from '../lib/estimate-defaults'
 
 /**
  * RibbonToolbar — tabbed Office-style ribbon replacing the legacy flat Toolbar.tsx.
@@ -156,6 +157,12 @@ export function RibbonToolbar({
   // Local UI state
   const [activeTab, setActiveTab] = useState<TabId>('home') // D-24
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
+  // Phase 16 D-05 (minimal v1): the project-wide default markup %, seeded from the
+  // DEFAULT_MARKUP_PCT seam. v1 ships an in-session-only holder (persistence across
+  // save/reload is deferred per D-09 — see 16-MANUAL-NOTES.md). This does NOT touch
+  // the aggregator's `entry?.markup ?? DEFAULT_MARKUP_PCT` contract, so the
+  // markup-default-30 behavior stays intact; 30 remains the shipped default.
+  const [defaultMarkup, setDefaultMarkup] = useState<number>(DEFAULT_MARKUP_PCT)
 
   const pageScale = totalPages > 0 ? getScale(currentPage) : null
   const setScaleDisabled = totalPages === 0
@@ -613,6 +620,63 @@ export function RibbonToolbar({
     </span>
   )
 
+  // Phase 16 D-05 (minimal v1): the Settings tab exposes a single editable
+  // project-wide default markup % field, seeded from DEFAULT_MARKUP_PCT (30). It
+  // replaces the former "Settings — Coming soon" stub. v1 scope is deliberately
+  // minimal (D-09 defers a full Settings framework): the input is present +
+  // functional (parseFloat, NaN/negative clamped to 0) against an in-session
+  // renderer-held value. Persistence across save/reload is deferred — recorded
+  // honestly in 16-MANUAL-NOTES.md. The DEFAULT_MARKUP_PCT seam + the aggregator's
+  // "absent entry → markup 30" contract are untouched, so 30 stays the default.
+  const renderSettingsTab = (): React.JSX.Element => (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+        padding: '4px 0'
+      }}
+    >
+      <label
+        htmlFor="settings-default-markup-input"
+        style={{ fontSize: 12, fontWeight: 600, color: COLORS.textPrimary }}
+      >
+        Default markup %
+      </label>
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <input
+          id="settings-default-markup-input"
+          data-testid="settings-default-markup-input"
+          type="text"
+          inputMode="decimal"
+          value={String(defaultMarkup)}
+          onChange={(e) => {
+            const parsed = parseFloat(e.target.value)
+            // NaN (empty / non-numeric) or negative → clamp to 0 (mirrors the
+            // Estimate-grid cell commit; never store a non-finite/negative default).
+            setDefaultMarkup(Number.isFinite(parsed) && parsed >= 0 ? parsed : 0)
+          }}
+          aria-label="Project-wide default markup percent"
+          style={{
+            width: 72,
+            height: 26,
+            padding: '0 8px',
+            background: COLORS.dominant,
+            border: `1px solid ${COLORS.border}`,
+            borderRadius: 4,
+            color: COLORS.textPrimary,
+            fontSize: 13,
+            textAlign: 'right'
+          }}
+        />
+        <span style={{ fontSize: 13, color: COLORS.textSecondary }}>%</span>
+      </div>
+      <span style={{ fontSize: 11, color: COLORS.textSecondary, maxWidth: 320 }}>
+        Applied to estimate rows that have no explicit markup. Ships at 30%.
+      </span>
+    </div>
+  )
+
   const renderActivePanel = (): React.JSX.Element => {
     switch (activeTab) {
       case 'home':
@@ -626,7 +690,7 @@ export function RibbonToolbar({
       case 'estimating':
         return renderEstimatingTab()
       case 'settings':
-        return renderStubTab('Settings')
+        return renderSettingsTab()
       case 'help':
         return renderStubTab('Help')
       default:
