@@ -1,13 +1,19 @@
 /** @vitest-environment jsdom */
 /**
- * EstimatePanel default-markup control — WR-01.
+ * EstimatePanel default-markup control — WR-01 + confirm-with-impact gate.
  *
  * WR-01: the Settings-tab "Default markup %" input was inert (a local useState wired
  * to nothing — not persisted, not read by the aggregator). The fix WIRES a real,
  * project-scoped default-markup control and places it in the ESTIMATE SHEET HEADER
- * (EstimatePanel.DefaultMarkupControl), removing the inert Settings control. This
- * file proves the header control is a genuine, CR-01-safe editor over the REAL
- * projectStore.
+ * (EstimatePanel.DefaultMarkupControl), removing the inert Settings control.
+ *
+ * CONFIRM GATE (this revision): changing the project default RE-PRICES every item that
+ * has no explicit per-item markup — a project-wide change that used to commit as quietly
+ * as a single rate cell. A CHANGED value is now GATED behind a confirm-with-impact
+ * dialog (DefaultMarkupChangeModal): blur/Enter no longer writes setDefaultMarkupPct
+ * directly — it opens the dialog with the pending value; the store is written ONLY on
+ * confirm. Cancel reverts the input's DOM value to the stored default with no write. A
+ * same-value / blur-without-edit commit is a silent no-op (no dialog, no write).
  *
  * Harness models estimate-row-decimal-entry.test.ts VERBATIM (React.createElement +
  * jsdom + in-memory localStorage polyfill + native input/blur/keydown dispatch +
@@ -16,14 +22,17 @@
  * setDefaultMarkupPct — the store's own create()'d action stays in place so the
  * seed-clobber path (the CR-01 core) is actually exercised against the true store.
  *
- * Contract asserted (WR-01 + CR-01-safe reuse):
+ * Contract asserted:
  *   1. The control renders the current projectStore.defaultMarkupPct value.
  *   2. Typing a decimal `27.5` into the focused control is NOT clobbered mid-typing
- *      when a store write lands (the activeElement seed guard).
- *   3. Commit is DEFERRED to blur/Enter (never per-keystroke 'input'): blur commits
- *      setDefaultMarkupPct(27.5) through the real store; Enter commits too.
- *   4. Interacting with the control does not bubble to a parent handler
- *      (stopPropagation on click/mousedown/keydown).
+ *      when a store write lands (the activeElement seed guard) — CR-01 core.
+ *   3. Commit is DEFERRED to blur/Enter (never per-keystroke 'input'), and a CHANGED
+ *      value opens the confirm dialog WITHOUT writing setDefaultMarkupPct yet.
+ *   4. Confirm ("Change markup") writes setDefaultMarkupPct(pending) exactly once.
+ *   5. Cancel writes nothing and reverts the input to the stored default; dialog closes.
+ *   6. Same-value (or blur-without-edit) commit → NO dialog, NO write.
+ *   7. Interacting with the control does not bubble to a parent handler.
+ *   8. The always-visible scope hint text is present on the control.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
 import React from 'react'
@@ -114,7 +123,19 @@ function findControl(container: HTMLElement): HTMLInputElement | null {
   return container.querySelector('[data-testid="estimate-default-markup-input"]') as HTMLInputElement | null
 }
 
-describe('EstimatePanel default-markup control — WR-01 (real setDefaultMarkupPct)', () => {
+function findModal(): HTMLElement | null {
+  return document.querySelector('[data-testid="default-markup-change-modal"]') as HTMLElement | null
+}
+
+function findConfirmBtn(): HTMLButtonElement | null {
+  return document.querySelector('[data-testid="default-markup-change-confirm"]') as HTMLButtonElement | null
+}
+
+function findCancelBtn(): HTMLButtonElement | null {
+  return document.querySelector('[data-testid="default-markup-change-cancel"]') as HTMLButtonElement | null
+}
+
+describe('EstimatePanel default-markup control — WR-01 + confirm gate (real setDefaultMarkupPct)', () => {
   it('renders the current projectStore.defaultMarkupPct value', () => {
     useProjectStore.setState({ defaultMarkupPct: 45 })
     const { container, unmount } = mount(React.createElement(EstimatePanel))
@@ -127,7 +148,18 @@ describe('EstimatePanel default-markup control — WR-01 (real setDefaultMarkupP
     }
   })
 
-  it('does NOT commit on the native input event; blur commits setDefaultMarkupPct through the real store', () => {
+  it('shows the always-visible scope hint on the control', () => {
+    const { container, unmount } = mount(React.createElement(EstimatePanel))
+    try {
+      const hint = container.querySelector('[data-testid="estimate-default-markup-scope-hint"]')
+      expect(hint).not.toBeNull()
+      expect(hint!.textContent).toMatch(/item without its own markup/i)
+    } finally {
+      unmount()
+    }
+  })
+
+  it('does NOT commit on the native input event; a CHANGED value on blur opens the confirm dialog WITHOUT writing the store', () => {
     const { container, unmount } = mount(React.createElement(EstimatePanel))
     try {
       const input = findControl(container)
@@ -136,20 +168,108 @@ describe('EstimatePanel default-markup control — WR-01 (real setDefaultMarkupP
       act(() => {
         input!.focus()
         input!.value = '42'
-        // Per-keystroke 'input' must NOT commit.
+        // Per-keystroke 'input' must NOT commit or open the dialog.
         input!.dispatchEvent(new Event('input', { bubbles: true }))
       })
-
-      // Store untouched + project still clean until blur/Enter.
+      expect(findModal()).toBeNull()
       expect(useProjectStore.getState().defaultMarkupPct).toBe(30)
       expect(useProjectStore.getState().isDirty).toBe(false)
 
-      // Blur commits — the store updates and dirty flips.
+      // Blur commits — but only OPENS the dialog; the store is untouched until confirm.
       act(() => {
         input!.dispatchEvent(new FocusEvent('blur', { bubbles: true }))
       })
+      expect(findModal()).not.toBeNull()
+      expect(useProjectStore.getState().defaultMarkupPct).toBe(30)
+      expect(useProjectStore.getState().isDirty).toBe(false)
+      // Impact copy names both the current and pending values.
+      const body = document.querySelector('[data-testid="default-markup-change-modal-body"]')
+      expect(body).not.toBeNull()
+      expect(body!.textContent).toContain('30%')
+      expect(body!.textContent).toContain('42%')
+      expect(body!.textContent).toMatch(/item that doesn.t have its own markup/i)
+    } finally {
+      unmount()
+    }
+  })
+
+  it('confirming ("Change markup") writes setDefaultMarkupPct(newValue) once and closes the dialog', () => {
+    const { container, unmount } = mount(React.createElement(EstimatePanel))
+    try {
+      const input = findControl(container)
+      act(() => {
+        input!.focus()
+        input!.value = '42'
+        input!.dispatchEvent(new FocusEvent('blur', { bubbles: true }))
+      })
+      const confirm = findConfirmBtn()
+      expect(confirm).not.toBeNull()
+
+      act(() => {
+        confirm!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      })
+
+      // Store now holds the confirmed value + dirty flipped; dialog closed.
       expect(useProjectStore.getState().defaultMarkupPct).toBe(42)
       expect(useProjectStore.getState().isDirty).toBe(true)
+      expect(findModal()).toBeNull()
+      // Field re-syncs to the NEW value.
+      expect(findControl(container)!.value).toBe('42')
+    } finally {
+      unmount()
+    }
+  })
+
+  it('cancelling writes nothing and reverts the input to the previous value; dialog closes', () => {
+    const { container, unmount } = mount(React.createElement(EstimatePanel))
+    try {
+      const input = findControl(container)
+      act(() => {
+        input!.focus()
+        input!.value = '42'
+        input!.dispatchEvent(new FocusEvent('blur', { bubbles: true }))
+      })
+      const cancel = findCancelBtn()
+      expect(cancel).not.toBeNull()
+
+      act(() => {
+        cancel!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      })
+
+      // Store untouched; input reverted to the stored default; dialog closed.
+      expect(useProjectStore.getState().defaultMarkupPct).toBe(30)
+      expect(useProjectStore.getState().isDirty).toBe(false)
+      expect(findModal()).toBeNull()
+      expect(findControl(container)!.value).toBe('30')
+    } finally {
+      unmount()
+    }
+  })
+
+  it('committing the SAME value (or blur without editing) shows NO dialog and does NOT write the store', () => {
+    const { container, unmount } = mount(React.createElement(EstimatePanel))
+    try {
+      const input = findControl(container)
+
+      // Blur without editing (value already '30').
+      act(() => {
+        input!.focus()
+        input!.dispatchEvent(new FocusEvent('blur', { bubbles: true }))
+      })
+      expect(findModal()).toBeNull()
+      expect(useProjectStore.getState().defaultMarkupPct).toBe(30)
+      expect(useProjectStore.getState().isDirty).toBe(false)
+
+      // Explicitly re-type the SAME value and blur → still no dialog, no write.
+      act(() => {
+        input!.focus()
+        input!.value = '30'
+        input!.dispatchEvent(new Event('input', { bubbles: true }))
+        input!.dispatchEvent(new FocusEvent('blur', { bubbles: true }))
+      })
+      expect(findModal()).toBeNull()
+      expect(useProjectStore.getState().defaultMarkupPct).toBe(30)
+      expect(useProjectStore.getState().isDirty).toBe(false)
     } finally {
       unmount()
     }
@@ -181,7 +301,7 @@ describe('EstimatePanel default-markup control — WR-01 (real setDefaultMarkupP
     }
   })
 
-  it('typing a decimal 27.5 survives mid-typing and blur commits setDefaultMarkupPct(27.5)', () => {
+  it('typing a decimal 27.5 survives mid-typing; blur opens the dialog and confirm commits setDefaultMarkupPct(27.5)', () => {
     const { container, unmount } = mount(React.createElement(EstimatePanel))
     try {
       const input = findControl(container)
@@ -203,13 +323,20 @@ describe('EstimatePanel default-markup control — WR-01 (real setDefaultMarkupP
       })
 
       // (a) The focused field was NEVER clobbered — it still reads the full '27.5';
-      // nothing committed yet (default still 30).
+      // nothing committed yet (default still 30, no dialog).
       expect(input!.value).toBe('27.5')
+      expect(findModal()).toBeNull()
       expect(useProjectStore.getState().defaultMarkupPct).toBe(30)
 
-      // (b) Blur commits the parsed decimal through the real store.
+      // (b) Blur opens the dialog; confirm commits the parsed decimal through the store.
       act(() => {
         input!.dispatchEvent(new FocusEvent('blur', { bubbles: true }))
+      })
+      expect(findModal()).not.toBeNull()
+      expect(useProjectStore.getState().defaultMarkupPct).toBe(30)
+
+      act(() => {
+        findConfirmBtn()!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
       })
       expect(useProjectStore.getState().defaultMarkupPct).toBe(27.5)
     } finally {
@@ -217,7 +344,7 @@ describe('EstimatePanel default-markup control — WR-01 (real setDefaultMarkupP
     }
   })
 
-  it('committing via Enter also lands the decimal (33.75) in the real store', () => {
+  it('committing via Enter opens the dialog; confirm lands the decimal (33.75) in the real store', () => {
     const { container, unmount } = mount(React.createElement(EstimatePanel))
     try {
       const input = findControl(container)
@@ -231,32 +358,44 @@ describe('EstimatePanel default-markup control — WR-01 (real setDefaultMarkupP
       })
 
       expect(input!.value).toBe('33.75')
+      expect(findModal()).not.toBeNull()
+      expect(useProjectStore.getState().defaultMarkupPct).toBe(30)
+
+      act(() => {
+        findConfirmBtn()!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      })
       expect(useProjectStore.getState().defaultMarkupPct).toBe(33.75)
     } finally {
       unmount()
     }
   })
 
-  it('a blank / negative commit clamps to 0 (parseFloat NaN/negative -> 0)', () => {
+  it('a blank / negative commit clamps to 0 (parseFloat NaN/negative -> 0) through the confirm gate', () => {
     const { container, unmount } = mount(React.createElement(EstimatePanel))
     try {
       const input = findControl(container)
       expect(input).not.toBeNull()
 
-      // Blank -> 0.
+      // Blank -> 0. 0 !== current(30) → dialog opens; confirm writes 0.
       act(() => {
         input!.focus()
         input!.value = ''
         input!.dispatchEvent(new FocusEvent('blur', { bubbles: true }))
       })
+      expect(findModal()).not.toBeNull()
+      act(() => {
+        findConfirmBtn()!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      })
       expect(useProjectStore.getState().defaultMarkupPct).toBe(0)
 
-      // Negative -> 0.
+      // Negative -> 0. Now current is already 0, so a '-5' commit parses to 0 === 0 →
+      // NO dialog (silent no-op), store stays 0.
       act(() => {
         input!.focus()
         input!.value = '-5'
         input!.dispatchEvent(new FocusEvent('blur', { bubbles: true }))
       })
+      expect(findModal()).toBeNull()
       expect(useProjectStore.getState().defaultMarkupPct).toBe(0)
     } finally {
       unmount()

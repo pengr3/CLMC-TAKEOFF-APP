@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type React from 'react'
 import { COLORS } from '../lib/constants'
 import { CURRENCY_SYMBOL } from '../lib/currency'
@@ -7,6 +7,7 @@ import { useBoqLive } from '../hooks/useBoqLive'
 import { useViewerStore } from '../stores/viewerStore'
 import { useProjectStore } from '../stores/projectStore'
 import { EstimateCategoryBlock } from './EstimateCategoryBlock'
+import { DefaultMarkupChangeModal } from './DefaultMarkupChangeModal'
 
 /**
  * EstimatePanel — the full-width center-area Estimate sheet (Phase 16, D-01/D-07).
@@ -60,12 +61,29 @@ function formatMoney(n: number): string {
  * guarded on `document.activeElement !== el`, so a store write landing mid-typing
  * can't clobber the focused field back to its stored value. click/mousedown/keydown
  * stopPropagation so the control never bubbles to a parent handler. On commit:
- * parseFloat, NaN/empty → 0 and negative → 0, then setDefaultMarkupPct(parsed)
- * (which re-applies the same finite-≥0 coercion in the store).
+ * parseFloat, NaN/empty → 0 and negative → 0 to derive `safe`.
+ *
+ * Unlike a single rate cell, changing the project default RE-PRICES every item that
+ * has no explicit per-item markup — a project-wide change that used to commit silently.
+ * A CHANGED value is now GATED behind a confirm-with-impact dialog
+ * (DefaultMarkupChangeModal): commit does NOT write the store directly. Instead:
+ *   - safe === current default → do NOTHING (no dialog, no write; incl. blur-without-edit).
+ *   - safe !== current default → open the dialog with the pending value; the store is
+ *     written (setDefaultMarkupPct) ONLY on confirm. Cancel reverts the input's DOM value
+ *     back to the stored default and closes with no write.
+ * The seed effect may re-sync the field to the stored value while the dialog is open —
+ * the dialog is the source of truth for the pending change, so that is fine: Cancel
+ * leaves the field showing the OLD value, Confirm leaves it showing the NEW value.
+ *
+ * An always-visible scope sublabel ("Applies to every item without its own markup.")
+ * makes the control's reach clear even before editing.
  */
 function DefaultMarkupControl(): React.JSX.Element {
   const defaultMarkupPct = useProjectStore((s) => s.defaultMarkupPct)
   const inputRef = useRef<HTMLInputElement | null>(null)
+  // Pending change awaiting confirmation. null = no dialog open. Holds the parsed,
+  // coerced value the user is about to apply; the store is not touched until confirm.
+  const [pendingPct, setPendingPct] = useState<number | null>(null)
 
   // Commit: parseFloat, NaN/empty/negative → 0 (mirrors EstimateRow.commitMaterial;
   // the store action re-coerces finite-≥0). Read setDefaultMarkupPct via getState so
@@ -73,7 +91,27 @@ function DefaultMarkupControl(): React.JSX.Element {
   const commit = (text: string): void => {
     const parsed = parseFloat(text)
     const safe = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed
-    useProjectStore.getState().setDefaultMarkupPct(safe)
+    const current = useProjectStore.getState().defaultMarkupPct
+    // No change (incl. blur without edit) → no dialog, no store write.
+    if (safe === current) return
+    // A CHANGED value is gated: open the confirm dialog with the pending value; the
+    // store is written ONLY on confirm (confirmChange), not here.
+    setPendingPct(safe)
+  }
+
+  // Confirm — apply the pending value (triggers the live re-price) and close the dialog.
+  // blur() the input so the seed effect re-syncs it to the NEW stored value on next render.
+  const confirmChange = (): void => {
+    if (pendingPct !== null) useProjectStore.getState().setDefaultMarkupPct(pendingPct)
+    setPendingPct(null)
+    inputRef.current?.blur()
+  }
+
+  // Cancel — revert the input's DOM value to the stored default and close, no store write.
+  const cancelChange = (): void => {
+    const el = inputRef.current
+    if (el) el.value = String(useProjectStore.getState().defaultMarkupPct)
+    setPendingPct(null)
   }
 
   // Seed effect — re-seed the DOM value from the store only when it differs AND the
@@ -113,40 +151,64 @@ function DefaultMarkupControl(): React.JSX.Element {
 
   return (
     <div
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+      style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}
       onClick={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <label
-        htmlFor="estimate-default-markup-input"
-        style={{ fontSize: 12, fontWeight: 600, color: COLORS.textSecondary }}
+      <div
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+        title="Applies to every item without its own markup."
       >
-        Default markup:
-      </label>
-      <input
-        ref={inputRef}
-        id="estimate-default-markup-input"
-        data-testid="estimate-default-markup-input"
-        type="text"
-        inputMode="decimal"
-        aria-label="Project-wide default markup percent"
-        defaultValue={String(defaultMarkupPct)}
-        placeholder={String(DEFAULT_MARKUP_PCT)}
-        style={{
-          width: 56,
-          height: 22,
-          padding: '0 6px',
-          background: COLORS.dominant,
-          border: `1px solid ${COLORS.border}`,
-          borderRadius: 3,
-          color: COLORS.textPrimary,
-          fontSize: 12,
-          textAlign: 'right',
-          fontVariantNumeric: 'tabular-nums',
-          outline: 'none'
-        }}
-      />
-      <span style={{ fontSize: 12, color: COLORS.textSecondary }}>%</span>
+        <label
+          htmlFor="estimate-default-markup-input"
+          style={{ fontSize: 12, fontWeight: 600, color: COLORS.textSecondary }}
+        >
+          Default markup:
+        </label>
+        <input
+          ref={inputRef}
+          id="estimate-default-markup-input"
+          data-testid="estimate-default-markup-input"
+          type="text"
+          inputMode="decimal"
+          aria-label="Project-wide default markup percent"
+          defaultValue={String(defaultMarkupPct)}
+          placeholder={String(DEFAULT_MARKUP_PCT)}
+          style={{
+            width: 56,
+            height: 22,
+            padding: '0 6px',
+            background: COLORS.dominant,
+            border: `1px solid ${COLORS.border}`,
+            borderRadius: 3,
+            color: COLORS.textPrimary,
+            fontSize: 12,
+            textAlign: 'right',
+            fontVariantNumeric: 'tabular-nums',
+            outline: 'none'
+          }}
+        />
+        <span style={{ fontSize: 12, color: COLORS.textSecondary }}>%</span>
+      </div>
+      {/* Always-visible scope hint — makes the control's project-wide reach clear even
+          before editing (its change re-prices every un-priced item). */}
+      <span
+        data-testid="estimate-default-markup-scope-hint"
+        style={{ fontSize: 10, color: COLORS.textSecondary, lineHeight: 1.2 }}
+      >
+        Applies to every item without its own markup
+      </span>
+
+      {/* Confirm-with-impact gate — a CHANGED default re-prices every un-priced item, so
+          it is only applied on confirm; Cancel reverts the input with no store write. */}
+      {pendingPct !== null && (
+        <DefaultMarkupChangeModal
+          currentPct={defaultMarkupPct}
+          pendingPct={pendingPct}
+          onConfirm={confirmChange}
+          onCancel={cancelChange}
+        />
+      )}
     </div>
   )
 }
@@ -194,7 +256,7 @@ export function EstimatePanel(): React.JSX.Element {
           the Estimate sheet rather than the generic Settings ribbon tab. */}
       <div
         style={{
-          height: 32,
+          minHeight: 40,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
