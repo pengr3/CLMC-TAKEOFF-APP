@@ -123,4 +123,25 @@ describe('project-schema v2', () => {
     // VALID_V2 has no `rates` key — a pre-Phase-16 file must still validate.
     expect(() => validateV2(VALID_V2)).not.toThrow()
   })
+
+  // ===========================================================================
+  // WR-01 — `defaultMarkupPct` is an ADDITIVE optional field (NO formatVersion
+  // bump), exactly like `rates`/`hiddenItemNames`. validateV2 stays throw-free
+  // for it (rides the trailing `return raw as ProjectFileV2` cast) and tolerates
+  // its absence. Coercion of a malformed/negative value is tested via hydrate
+  // (project-serialize.test.ts), NOT here.
+  // ===========================================================================
+
+  it('validateV2 ACCEPTS a ProjectFileV2 carrying defaultMarkupPct (additive, no throw)', () => {
+    const withDefaultMarkup = { ...VALID_V2, defaultMarkupPct: 40 }
+    expect(() => validateV2(withDefaultMarkup as unknown as ProjectFileV2)).not.toThrow()
+    // Field survives validation (round-trips through the validator).
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((validateV2(withDefaultMarkup as unknown as ProjectFileV2) as any).defaultMarkupPct).toBe(40)
+  })
+
+  it('validateV2 passes a fixture LACKING defaultMarkupPct (legacy tolerance)', () => {
+    // VALID_V2 has no `defaultMarkupPct` key — a pre-WR-01 file must still validate.
+    expect(() => validateV2(VALID_V2)).not.toThrow()
+  })
 })

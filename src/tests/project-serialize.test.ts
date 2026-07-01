@@ -265,4 +265,69 @@ describe('project-serialize', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((useProjectStore.getState() as any).rates).toEqual({})
   })
+
+  // ===========================================================================
+  // WR-01 — project-wide defaultMarkupPct round-trip + coercion. Mirrors the
+  // `rates` round-trip/coercion cases above: snapshotProject emits it from the
+  // store; hydrateStores restores it (finite ≥0) inside the dirty-suspend bracket
+  // and DEFAULTS to 30 when the field is absent (legacy .clmc) or invalid. A
+  // stored 0 is a legitimate "no default markup" and must be preserved (distinct
+  // from absent → 30).
+  // ===========================================================================
+
+  it('snapshotProject emits defaultMarkupPct read from projectStore (WR-01)', () => {
+    useProjectStore.setState({ defaultMarkupPct: 42 })
+    const snap = snapshotProject({
+      pdfOriginalFilename: 'plans.pdf',
+      pdfSha256: 'abc',
+      pdfTotalPages: 1,
+      perPageDimensions: { 1: { width: 595, height: 842 } }
+    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((snap as any).defaultMarkupPct).toBe(42)
+  })
+
+  it('defaultMarkupPct round-trips: snapshot -> JSON -> hydrate deep-equals (WR-01)', () => {
+    useProjectStore.setState({ defaultMarkupPct: 27.5 })
+    const snap = snapshotProject({
+      pdfOriginalFilename: 'plans.pdf',
+      pdfSha256: 'abc',
+      pdfTotalPages: 1,
+      perPageDimensions: { 1: { width: 595, height: 842 } }
+    })
+    const text = JSON.stringify(snap)
+    // Wipe to a different value so a stale in-memory value can't mask a bad restore.
+    useProjectStore.setState({ defaultMarkupPct: 99 })
+    hydrateStores(JSON.parse(text))
+    expect(useProjectStore.getState().defaultMarkupPct).toBe(27.5)
+  })
+
+  it('hydrateStores defaults defaultMarkupPct to 30 when absent (legacy .clmc, WR-01)', () => {
+    // MINIMAL_V2 carries no defaultMarkupPct key — every legacy/Phase-15/early-
+    // Phase-16 file must load with the 30% default. Seed a different value first.
+    useProjectStore.setState({ defaultMarkupPct: 99 })
+    hydrateStores(MINIMAL_V2)
+    expect(useProjectStore.getState().defaultMarkupPct).toBe(30)
+  })
+
+  it('hydrateStores preserves a stored defaultMarkupPct of 0 (distinct from absent → 30) (WR-01)', () => {
+    useProjectStore.setState({ defaultMarkupPct: 99 })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hydrateStores({ ...MINIMAL_V2, defaultMarkupPct: 0 } as unknown as ProjectFileV2)
+    expect(useProjectStore.getState().defaultMarkupPct).toBe(0)
+  })
+
+  it('hydrateStores coerces an invalid defaultMarkupPct (negative / NaN / non-number) → 30; never throws (WR-01)', () => {
+    const cases: unknown[] = [-5, NaN, Infinity, 'x', null, {}]
+    for (const bad of cases) {
+      useProjectStore.setState({ defaultMarkupPct: 99 })
+      const call = (): void =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        hydrateStores({ ...MINIMAL_V2, defaultMarkupPct: bad } as unknown as ProjectFileV2)
+      expect(call).not.toThrow()
+      call()
+      // Invalid value coerces to the 30 default (the finite-≥0 guard's fallback).
+      expect(useProjectStore.getState().defaultMarkupPct).toBe(30)
+    }
+  })
 })

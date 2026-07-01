@@ -60,7 +60,8 @@ export function snapshotProject(params: SnapshotParams): ProjectFileV2 {
     currentPage: viewer.currentPage,
     pages,
     hiddenItemNames: useProjectStore.getState().hiddenItemNames,
-    rates: useProjectStore.getState().rates
+    rates: useProjectStore.getState().rates,
+    defaultMarkupPct: useProjectStore.getState().defaultMarkupPct
   }
 }
 
@@ -147,13 +148,26 @@ export function hydrateStores(data: ProjectFileV2): void {
       }
     }
 
+    // Hydrate the project-wide default markup — additive Phase 16 field (WR-01).
+    // Absent in every pre-WR-01 .clmc (legacy / Phase-15 / early-Phase-16) → 30.
+    // A crafted/corrupt file could carry a negative, NaN/Infinity, or non-number
+    // value; those flow into every un-priced row's price math, so coerce to a
+    // finite ≥0 value here, DEFAULTING to DEFAULT_MARKUP_PCT (30) when absent or
+    // invalid. A stored 0 is a legitimate "no default markup" and is preserved.
+    const rawDefaultMarkup = (data as { defaultMarkupPct?: unknown }).defaultMarkupPct
+    const safeDefaultMarkupPct =
+      typeof rawDefaultMarkup === 'number' && Number.isFinite(rawDefaultMarkup) && rawDefaultMarkup >= 0
+        ? rawDefaultMarkup
+        : DEFAULT_MARKUP_PCT
+
     // Hydrate visibility state — additive Phase 8 field.
     // Array.isArray guard tolerates pre-Phase 8 files where the field is absent (defaults to []).
     // MUST run inside the suspend/resume bracket so markDirty stays suppressed.
     useProjectStore.setState({
       hiddenItemNames: Array.isArray(data.hiddenItemNames) ? data.hiddenItemNames : [],
       hiddenItemSet: new Set(Array.isArray(data.hiddenItemNames) ? data.hiddenItemNames : []),
-      rates: safeRates
+      rates: safeRates,
+      defaultMarkupPct: safeDefaultMarkupPct
     })
   } finally {
     resumeDirtyTracking()

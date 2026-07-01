@@ -97,6 +97,15 @@ export interface ProjectFileV2 {
    * values are sanitized at hydrate, not here.
    */
   rates?: Record<string, PriceEntry>
+  /**
+   * Additive in Phase 16 (WR-01) — absent in every pre-WR-01 file; defaults to 30
+   * on load. The PROJECT-wide default markup PERCENT applied to rows lacking an
+   * explicit PriceEntry markup. Like `rates`/`hiddenItemNames` it is ADDITIVE with
+   * NO formatVersion bump — validateV2 adds no branch, the field rides the trailing
+   * `return raw as ProjectFileV2` cast. A malformed / negative / non-number value is
+   * sanitized (→ 30) at hydrate, not here.
+   */
+  defaultMarkupPct?: number
 }
 
 export type ProjectFile = ProjectFileV2
