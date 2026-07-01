@@ -5,6 +5,7 @@ import { StatusBar } from './components/StatusBar'
 import { EmptyState } from './components/EmptyState'
 import { CanvasViewport } from './components/CanvasViewport'
 import { TotalsPanel } from './components/TotalsPanel'
+import { EstimatePanel } from './components/EstimatePanel'
 import { CanvasHeaderBar } from './components/CanvasHeaderBar'
 import { Splitter } from './components/Splitter'
 import { ArchiveCorruptedModal } from './components/ArchiveCorruptedModal'
@@ -33,6 +34,9 @@ import type { WallMarkup } from './types/markup'
 function App(): React.JSX.Element {
   const totalPages = useViewerStore((s) => s.totalPages)
   const fileName = useViewerStore((s) => s.fileName)
+  // Phase 16 D-01: Plan/Estimate center-area toggle. Drives a mount-preserving CSS
+  // `display` swap below (the Konva CanvasViewport is NEVER conditionally unmounted).
+  const viewMode = useViewerStore((s) => s.viewMode)
   // Phase 13 (Pitfall 5): subscribe to currentPage so the page-change useEffect below can
   // clear reopenToast when the user navigates while the toast is showing.
   const currentPage = useViewerStore((s) => s.currentPage)
@@ -319,12 +323,30 @@ function App(): React.JSX.Element {
           flexDirection: 'row'
         }}
       >
-        {/* Center: CanvasHeaderBar + CanvasViewport + toasts.
+        {/* Center region — Phase 16 D-01 mount-preserving view swap (Pitfall 1):
+            BOTH the Plan subtree (canvas) AND the Estimate sheet are ALWAYS mounted;
+            a CSS `display` gate (driven by viewMode) picks which is visible. The
+            Konva CanvasViewport is NEVER conditionally unmounted — a conditional
+            {viewMode==='plan' ? … : …} would tear down the Stage, re-rasterize the
+            PDF, and measure 0×0 on return. Markups already live in Zustand, so no
+            data is ever at risk; keeping the (cheap) Estimate DOM mounted while
+            hidden costs nothing meaningful. */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'row', minWidth: 0, overflow: 'hidden' }}>
+        {/* Plan subtree: CanvasHeaderBar + CanvasViewport + toasts.
             CRITICAL: minWidth: 0 prevents the canvas's intrinsic content from blocking
             shrinking when both panels are open (flex-child needs explicit 0 floor). */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+        <div
+          style={{
+            display: viewMode === 'plan' ? 'flex' : 'none',
+            flexDirection: 'column',
+            flex: 1,
+            minWidth: 0,
+            minHeight: 0,
+            overflow: 'hidden'
+          }}
+        >
           {totalPages > 0 && <CanvasHeaderBar />}
-          <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
+          <div data-testid="canvas-viewport-container" style={{ flex: 1, position: 'relative', minHeight: 0 }}>
             {totalPages === 0
               ? <EmptyState />
               : <CanvasViewport
@@ -437,28 +459,48 @@ function App(): React.JSX.Element {
           </div>
         </div>
 
-        <Splitter
-          side="right"
-          panelWidth={effectiveTotalsWidth}
-          containerWidth={containerWidth}
-          minWidth={28}
-          onDragWidth={setTotalsDragWidth}
-          onCommit={(w) => { setTotalsWidth(w); setTotalsDragWidth(null) }}
-          ariaLabel="Resize Totals panel"
-        />
+        {/* Estimate subtree — always mounted, shown only in Estimate mode. Fills the
+            center area (full width); the totals panel + splitter hide (below). */}
+        <div
+          style={{
+            display: viewMode === 'estimate' ? 'flex' : 'none',
+            flex: 1,
+            minWidth: 0,
+            minHeight: 0
+          }}
+        >
+          <EstimatePanel />
+        </div>
+        </div>
 
-        {/* Right: Totals panel — collapsible BOQ summary */}
-        <TotalsPanel
-          open={totals.open}
-          width={effectiveTotalsWidth}
-          onSetOpen={setTotalsOpen}
-          onSetWidth={setTotalsWidth}
-          onRowHover={setHoverMatches}
-          onTriggerPulse={triggerPulse}
-          onCopy={(msg) => setCopyToast(msg)}
-          onCopyError={() => setCopyToast('Copy failed.')}
-          onArmTool={handleArmTool}
-        />
+        {/* Right-side chrome — Plan-only (D-01/A4). In Estimate mode the grid is
+            full-width, so the Splitter + TotalsPanel are hidden. */}
+        {viewMode === 'plan' && (
+          <>
+            <Splitter
+              side="right"
+              panelWidth={effectiveTotalsWidth}
+              containerWidth={containerWidth}
+              minWidth={28}
+              onDragWidth={setTotalsDragWidth}
+              onCommit={(w) => { setTotalsWidth(w); setTotalsDragWidth(null) }}
+              ariaLabel="Resize Totals panel"
+            />
+
+            {/* Right: Totals panel — collapsible BOQ summary */}
+            <TotalsPanel
+              open={totals.open}
+              width={effectiveTotalsWidth}
+              onSetOpen={setTotalsOpen}
+              onSetWidth={setTotalsWidth}
+              onRowHover={setHoverMatches}
+              onTriggerPulse={triggerPulse}
+              onCopy={(msg) => setCopyToast(msg)}
+              onCopyError={() => setCopyToast('Copy failed.')}
+              onArmTool={handleArmTool}
+            />
+          </>
+        )}
       </main>
       <StatusBar />
 
