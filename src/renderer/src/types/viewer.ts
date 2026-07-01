@@ -33,6 +33,16 @@ export interface ViewerState {
   pageScales: Record<number, ScaleState>
   activeTool: ActiveTool
 
+  /**
+   * Plan/Estimate workspace toggle (Phase 16 D-01). 'plan' shows the PDF canvas
+   * center area; 'estimate' shows the full-width Estimate sheet. Transient session
+   * UI — like `activeTool` and the snapping flags, it is NEVER serialized into the
+   * .clmc (snapshotProject reads explicit fields only, so this sibling is auto-
+   * excluded) and RESETS to 'plan' on setFile/resetViewer/hydrate so opening a
+   * project always lands on the canvas.
+   */
+  viewMode: ViewMode
+
   setFile: (path: string, name: string, totalPages: number) => void
   setPage: (page: number) => void
   nextPage: () => void
@@ -49,6 +59,9 @@ export interface ViewerState {
   getPageScale: (page: number) => ScaleState | null
   clearPageScale: (page: number) => void
   setActiveTool: (tool: ActiveTool) => void
+
+  /** Switch the center-area workspace between the Plan canvas and the Estimate sheet (Phase 16 D-01). */
+  setViewMode: (mode: ViewMode) => void
 
   /**
    * IDs of markups currently selected on the active page (Phase 09 D-01).
@@ -101,6 +114,12 @@ export interface ScaleState {
 }
 
 export type ActiveTool = 'select' | 'scale' | 'verify-scale' | 'count' | 'linear' | 'area' | 'perimeter' | 'wall'
+
+/**
+ * Center-area workspace mode (Phase 16 D-01). 'plan' → PDF canvas; 'estimate' →
+ * full-width Estimate sheet. Transient session UI (never serialized to .clmc).
+ */
+export type ViewMode = 'plan' | 'estimate'
 
 export const MARKUP_TOOLS = ['count', 'linear', 'area', 'perimeter', 'wall'] as const
 export type MarkupToolType = typeof MARKUP_TOOLS[number]

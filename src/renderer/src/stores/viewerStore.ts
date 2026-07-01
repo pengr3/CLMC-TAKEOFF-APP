@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
-import { ViewerState, DEFAULT_VIEWPORT, ActiveTool } from '../types/viewer'
+import { ViewerState, DEFAULT_VIEWPORT, ActiveTool, ViewMode } from '../types/viewer'
 
 export const useViewerStore = create<ViewerState>()(
   subscribeWithSelector((set, get) => ({
@@ -13,6 +13,10 @@ export const useViewerStore = create<ViewerState>()(
     pdfBytes: null,
     pageScales: {},
     activeTool: 'select' as ActiveTool,
+    // Phase 16 D-01: center-area workspace toggle. Runtime-only, never serialized
+    // to .clmc; resets to 'plan' on setFile/resetViewer/hydrate (below) so a
+    // project always opens on the canvas.
+    viewMode: 'plan' as ViewMode,
     selectedMarkupIds: [],
     vertexEditMarkupId: null,
     // Phase 14 D-03 snapping flags — runtime-only, never serialized to .clmc
@@ -30,6 +34,7 @@ export const useViewerStore = create<ViewerState>()(
         pageViewports: {},
         pageScales: {},
         activeTool: 'select' as ActiveTool,
+        viewMode: 'plan' as ViewMode,
         selectedMarkupIds: [],
         vertexEditMarkupId: null
       }),
@@ -85,6 +90,7 @@ export const useViewerStore = create<ViewerState>()(
         pdfBytes: null,
         pageScales: {},
         activeTool: 'select' as ActiveTool,
+        viewMode: 'plan' as ViewMode,
         selectedMarkupIds: [],
         vertexEditMarkupId: null
       }),
@@ -104,6 +110,8 @@ export const useViewerStore = create<ViewerState>()(
       }),
 
     setActiveTool: (tool) => set({ activeTool: tool }),
+
+    setViewMode: (mode) => set({ viewMode: mode }),
 
     setSelectedMarkupIds: (ids) => set({ selectedMarkupIds: ids }),
 
@@ -138,6 +146,7 @@ export const useViewerStore = create<ViewerState>()(
         currentPage: data.currentPage,
         pageViewports: {},
         activeTool: 'select' as ActiveTool,
+        viewMode: 'plan' as ViewMode,
         selectedMarkupIds: [],
         vertexEditMarkupId: null
       })

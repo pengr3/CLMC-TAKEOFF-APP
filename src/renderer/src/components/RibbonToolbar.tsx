@@ -22,6 +22,7 @@ import {
   Table
 } from 'lucide-react'
 import { useViewerStore } from '../stores/viewerStore'
+import type { ViewMode } from '../types/viewer'
 import { useScaleStore } from '../stores/scaleStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useMarkupStore } from '../stores/markupStore'
@@ -135,6 +136,10 @@ export function RibbonToolbar({
   const getViewport = useViewerStore((s) => s.getViewport)
   const activeTool = useViewerStore((s) => s.activeTool)
   const setActiveTool = useViewerStore((s) => s.setActiveTool)
+  // Phase 16 D-01: Plan | Estimate workspace toggle (Estimating tab). Store-driven
+  // (viewMode IS React state) — read the field + dispatch the setter directly.
+  const viewMode = useViewerStore((s) => s.viewMode)
+  const setViewMode = useViewerStore((s) => s.setViewMode)
   const getScale = useScaleStore((s) => s.getScale)
   const calibMode = useScaleStore((s) => s.calibMode)
 
@@ -526,21 +531,61 @@ export function RibbonToolbar({
     </>
   )
 
-  const renderEstimatingTab = (): React.JSX.Element => (
-    <>
-      <span
+  // Phase 16 D-01: a [Plan | Estimate] segmented control. Two adjacent buttons,
+  // the active one carrying the tab-strip active chrome (dominant bg + accent
+  // bottom border + primary text), the inactive one secondary text with a hover
+  // swap — reuses the tab-strip button visual template (:614-647). Clicking
+  // dispatches setViewMode; the App-shell (Task 3) swaps the center area on it.
+  const renderViewModeSegment = (mode: ViewMode, label: string): React.JSX.Element => {
+    const isActive = viewMode === mode
+    return (
+      <button
+        role="radio"
+        aria-checked={isActive}
+        aria-label={`${label} view`}
+        data-testid={`view-mode-${mode}`}
+        onClick={() => setViewMode(mode)}
         style={{
-          alignSelf: 'center',
-          paddingRight: 12,
-          fontSize: 11,
+          height: 28,
+          minWidth: 72,
+          padding: '0 16px',
+          background: isActive ? COLORS.dominant : 'transparent',
+          border: `1px solid ${COLORS.border}`,
+          borderBottom: isActive ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
+          color: isActive ? COLORS.textPrimary : COLORS.textSecondary,
+          fontSize: 12,
           fontWeight: 600,
-          color: COLORS.textSecondary,
-          textTransform: 'uppercase',
-          letterSpacing: 0.5
+          cursor: 'pointer',
+          lineHeight: 1
+        }}
+        onMouseEnter={(e) => {
+          if (!isActive) e.currentTarget.style.color = COLORS.textPrimary
+        }}
+        onMouseLeave={(e) => {
+          if (!isActive) e.currentTarget.style.color = COLORS.textSecondary
         }}
       >
-        Quick Export
-      </span>
+        {label}
+      </button>
+    )
+  }
+
+  const renderEstimatingTab = (): React.JSX.Element => (
+    <>
+      <div
+        role="radiogroup"
+        aria-label="Workspace view"
+        data-testid="view-mode-toggle"
+        style={{
+          display: 'inline-flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginRight: 16
+        }}
+      >
+        {renderViewModeSegment('plan', 'Plan')}
+        {renderViewModeSegment('estimate', 'Estimate')}
+      </div>
       <RibbonButton
         icon={Download}
         label="Export"
