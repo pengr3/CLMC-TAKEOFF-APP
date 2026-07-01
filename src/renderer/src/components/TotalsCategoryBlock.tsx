@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import type React from 'react'
 import { COLORS } from '../lib/constants'
-import { CURRENCY_SYMBOL } from '../lib/currency'
 import { useUiPanels } from '../hooks/useUiPanels'
 import { TotalsRow, labelToName, rowTypeToMarkupType } from './TotalsRow'
 import type { BoqCategoryGroup, BoqItemRow } from '../lib/boq-types'
@@ -9,7 +8,7 @@ import type { Markup } from '../types/markup'
 
 /**
  * TotalsCategoryBlock — collapsible section in the TotalsPanel: heading row +
- * (when expanded) item rows + per-UoM subtotal rows.
+ * (when expanded) item rows. Quantity-only (D-02): no ₱ cost subtotal.
  *
  * Heading discipline (D-06 / UI-SPEC §"Color"): NO color chip on heading.
  * Color is only on individual item rows (TotalsRow chip). The heading is just
@@ -107,56 +106,26 @@ export function TotalsCategoryBlock(props: TotalsCategoryBlockProps): React.JSX.
         </span>
       </div>
 
-      {/* Body — items + subtotals (hidden when collapsed). */}
-      {!isCollapsed && (
-        <>
-          {category.items.map((item) => {
-            const key = `${category.name}|${item.label}`
-            const cycleIndex = cycleIndexByKey?.[key] ?? 0
-            return (
-              <TotalsRow
-                key={item.label}
-                item={item}
-                cycleIndex={cycleIndex}
-                currentPageMatches={matchesForRow(item)}
-                onHover={onRowHover}
-                onClick={(it) => onRowClick(it, category.name)}
-                onContextMenu={(x, y) => onRowContextMenu(item, x, y)}
-                onTriggerPulse={onTriggerPulse}
-                onArmTool={onArmTool ? (it) => onArmTool(it, category.name) : undefined}
-              />
-            )
-          })}
-
-          {/* Per-category ₱ cost subtotal (Phase 15) — Σ row costs, unit-agnostic.
-              Reads category.costSubtotal directly (aggregator-computed). Bold
-              secondary row mirroring the heading chrome; right-aligned ₱ value
-              (tabular-nums) so it lines up under the per-row cost column. */}
-          <div
-            data-testid="totals-category-cost-subtotal"
-            style={{
-              height: 28,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              padding: '0 16px',
-              fontSize: 13,
-              fontWeight: 600,
-              color: COLORS.textPrimary,
-              flexShrink: 0
-            }}
-          >
-            <span
-              style={{
-                fontVariantNumeric: 'tabular-nums',
-                textAlign: 'right'
-              }}
-            >
-              {`${CURRENCY_SYMBOL}${(Number.isFinite(category.costSubtotal) ? category.costSubtotal : 0).toFixed(2)}`}
-            </span>
-          </div>
-        </>
-      )}
+      {/* Body — item rows only (hidden when collapsed). Quantity-only (D-02):
+          the per-category ₱ cost subtotal was removed. */}
+      {!isCollapsed &&
+        category.items.map((item) => {
+          const key = `${category.name}|${item.label}`
+          const cycleIndex = cycleIndexByKey?.[key] ?? 0
+          return (
+            <TotalsRow
+              key={item.label}
+              item={item}
+              cycleIndex={cycleIndex}
+              currentPageMatches={matchesForRow(item)}
+              onHover={onRowHover}
+              onClick={(it) => onRowClick(it, category.name)}
+              onContextMenu={(x, y) => onRowContextMenu(item, x, y)}
+              onTriggerPulse={onTriggerPulse}
+              onArmTool={onArmTool ? (it) => onArmTool(it, category.name) : undefined}
+            />
+          )
+        })}
     </div>
   )
 }
