@@ -13,6 +13,7 @@ import { useMarkupStore } from '../stores/markupStore'
 import { useScaleStore } from '../stores/scaleStore'
 import { useViewerStore } from '../stores/viewerStore'
 import { useProjectStore } from '../stores/projectStore'
+import { DEFAULT_MARKUP_PCT } from './estimate-defaults'
 
 const UNCATEGORIZED_LABEL = '(Uncategorized)'
 const UNCAT_BUCKET_KEY = '__uncat__'
@@ -181,8 +182,11 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
 
   const categories: BoqCategoryGroup[] = []
   const grandByUom = new Map<string, number>()
-  // Phase 15: project-wide ₱ cost accumulator (unit-agnostic single number).
+  // Phase 16: project-wide ₱ Cost/Price/Margin accumulators (unit-agnostic single
+  // numbers, Σ over category subtotals).
   let grandCost = 0
+  let grandPrice = 0
+  let grandMargin = 0
 
   for (const catKey of orderedCatKeys) {
     const bucket = buckets.get(catKey)!
@@ -214,16 +218,33 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
       if (typeSet && typeSet.size >= 2) {
         label = `${name} (${typeWord(type)})`
       }
-      // Phase 15: rate keyed by `${name}|${type}` (same shape as the bucket key,
-      // category-INDEPENDENT). Missing key → 0; cost = rate × quantity.
-      const rate = rates[`${name}|${type}`] ?? 0
-      const cost = rate * acc.quantity
+      // Phase 16: PriceEntry keyed by `${name}|${type}` (same shape as the bucket
+      // key, category-INDEPENDENT). Absent ENTRY → material/labor 0 + markup
+      // DEFAULT_MARKUP_PCT (30); an entry WITH an explicit markup 0 keeps 0 (the
+      // `?? ` only fires on undefined). materialCost/laborCost = rate × quantity;
+      // cost = materialCost + laborCost (internal); price = cost × (1 + markup/100)
+      // (client); margin = price − cost (D-03/D-04/D-05).
+      const entry = rates[`${name}|${type}`]
+      const material = entry?.material ?? 0
+      const labor = entry?.labor ?? 0
+      const markup = entry?.markup ?? DEFAULT_MARKUP_PCT
+      const materialCost = material * acc.quantity
+      const laborCost = labor * acc.quantity
+      const cost = materialCost + laborCost
+      const price = cost * (1 + markup / 100)
+      const margin = price - cost
       items.push({
         label,
         quantity: acc.quantity,
         uom: uomFor(type, globalUnit),
-        rate,
+        material,
+        labor,
+        markup,
+        materialCost,
+        laborCost,
         cost,
+        price,
+        margin,
         color: acc.color,
         type,
         categoryId: groupCategoryId
@@ -233,16 +254,23 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
     // 2c. Alphabetical sort by post-suffix label (Claude's discretion confirmed)
     items.sort((a, b) => a.label.localeCompare(b.label))
 
-    // 2d. Subtotals — one per distinct UoM (D-12, Q3) + a single ₱ cost subtotal
-    //     (Phase 15: cost is unit-agnostic, so one number per category, not per UoM).
+    // 2d. Subtotals — one per distinct UoM (D-12, Q3) + Cost/Price/Margin ₱
+    //     subtotals (Phase 16: unit-agnostic single numbers per category, PARALLEL
+    //     to the per-UoM quantity subtotals, not bucketed by UoM).
     const byUom = new Map<string, number>()
     let catCost = 0
+    let catPrice = 0
+    let catMargin = 0
     for (const it of items) {
       byUom.set(it.uom, (byUom.get(it.uom) ?? 0) + it.quantity)
       grandByUom.set(it.uom, (grandByUom.get(it.uom) ?? 0) + it.quantity)
       catCost += it.cost
+      catPrice += it.price
+      catMargin += it.margin
     }
     grandCost += catCost
+    grandPrice += catPrice
+    grandMargin += catMargin
     const subtotals: BoqSubtotal[] = Array.from(byUom.entries()).map(([uom, total]) => ({
       uom,
       total
@@ -252,7 +280,14 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
       catKey === UNCAT_BUCKET_KEY
         ? UNCATEGORIZED_LABEL
         : (categoriesById[catKey]?.name ?? UNCATEGORIZED_LABEL)
-    categories.push({ name: catName, items, subtotals, costSubtotal: catCost })
+    categories.push({
+      name: catName,
+      items,
+      subtotals,
+      costSubtotal: catCost,
+      priceSubtotal: catPrice,
+      marginSubtotal: catMargin
+    })
   }
 
   // 3. Metadata (D-09)
@@ -281,5 +316,12 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
     total
   }))
 
-  return { metadata, categories, grandTotals, grandTotalCost: grandCost }
+  return {
+    metadata,
+    categories,
+    grandTotals,
+    grandTotalCost: grandCost,
+    grandTotalPrice: grandPrice,
+    grandTotalMargin: grandMargin
+  }
 }

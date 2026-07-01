@@ -17,9 +17,10 @@ import type { BoqStructure } from '../lib/boq-types'
  * so a new BoqStructure is computed exactly when (and only when) any
  * input would have caused a different result.
  *
- * `rates` (Phase 15) is the per-(name|type) ₱ rate map; it must be BOTH a
- * top-level selector AND a useMemo dependency so an inline rate edit
- * recomputes row/category/grand-total cost live, with no other store change.
+ * `rates` (Phase 16) is the per-(name|type) PriceEntry map ({material,labor,
+ * markup}); it must be BOTH a top-level selector AND a useMemo dependency so a
+ * price edit recomputes row/category/grand-total cost/price/margin live, with no
+ * other store change.
  *
  * `getColorForName` is intentionally NOT a selector — it's read via
  * `useMarkupStore.getState()` inside the memo so its identity does not
