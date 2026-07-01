@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type React from 'react'
 import { Lightbulb, LightbulbOff, Plus } from 'lucide-react'
 import { COLORS } from '../lib/constants'
-import { CURRENCY_SYMBOL } from '../lib/currency'
 import type { BoqItemRow, BoqRowType } from '../lib/boq-types'
 import type { Markup, MarkupType } from '../types/markup'
 import { useViewerStore } from '../stores/viewerStore'
@@ -59,15 +58,6 @@ export interface TotalsRowProps {
 function formatQuantity(item: BoqItemRow): string {
   if (item.type === 'count') return String(Math.round(item.quantity))
   return item.quantity.toFixed(2)
-}
-
-/** Row cost display (Phase 15). Reads item.cost directly — the aggregator already
- *  computed rate × quantity; the UI does NO arithmetic. e.g. "₱126.00".
- *  Defensive: a row arriving without a numeric cost renders ₱0.00 (locked
- *  "no rate set behaves as cost = 0") rather than throwing. */
-function formatCost(item: BoqItemRow): string {
-  const cost = Number.isFinite(item.cost) ? item.cost : 0
-  return `${CURRENCY_SYMBOL}${cost.toFixed(2)}`
 }
 
 /** D-02 disambiguation suffix stripper. "Outlet (count)" → "Outlet". */
@@ -136,90 +126,6 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
     () => `${itemName}|${item.categoryId ?? ''}`,
     [itemName, item.categoryId]
   )
-
-  // Rate key: "name|type" — category-INDEPENDENT (Phase 15, locked). DISTINCT
-  // from itemKey ("name|categoryId"): a rate belongs to a BOQ row identity
-  // (name, type), so the SAME item priced once feeds every category. For a
-  // perimeter row item.type is 'perimeter' (post-15-02 rename) → e.g. "Skirting|perimeter".
-  const rateKey = useMemo(
-    () => `${itemName}|${item.type}`,
-    [itemName, item.type]
-  )
-
-  // Current stored rate for this (name, type) — top-level primitive selector
-  // (mirrors isHidden). Absent → 0 (locked "no rate set behaves as rate = 0").
-  // Phase 16: rates widened to PriceEntry; the panel's single ₱ field maps to the
-  // `material` rate (legacy scalar → material). This inline pricing UI is removed
-  // wholesale by Wave 2b (16 totals-panel quantity-only revert); until then it
-  // compiles against the widened API by reading/writing the material field only.
-  const rate = useProjectStore((s) => s.rates[rateKey]?.material ?? 0)
-
-  // The inline rate field is UNCONTROLLED + driven by native listeners (below).
-  // Rationale: React's synthetic onChange is suppressed by its value-tracker when
-  // a test (or programmatic caller) sets input.value then dispatches a native
-  // 'input' event, and React delegates blur as 'focusout' (a raw 'blur' event
-  // never reaches a synthetic onBlur). Native listeners fire on exactly the
-  // events emitted (input/change/blur/keydown), independent of the synthetic
-  // system — so a change+blur OR an Enter keydown both reliably commit.
-  const rateInputRef = useRef<HTMLInputElement | null>(null)
-
-  // Seed/refresh the field text from the stored rate. A non-positive/non-finite
-  // rate shows an empty field (placeholder "0.00"). Only overwrite when the DOM
-  // value differs from the store, so mid-typing text is never clobbered.
-  const seedRateText = (r: number): string => (Number.isFinite(r) && r > 0 ? String(r) : '')
-  useEffect(() => {
-    const el = rateInputRef.current
-    if (!el) return
-    const next = seedRateText(rate)
-    if (el.value !== next) el.value = next
-  }, [rateKey, rate])
-
-  // Commit the typed text as a number. parseFloat NaN/empty → 0 (locked).
-  // Negatives are clamped to 0 to match the `v >= 0` hydration filter in
-  // project-serialize.ts (CR-02): without this, a negative rate would show a
-  // negative cost live, then be silently stripped on save+reload — a money bug
-  // for an estimator tool. Locked "no rate set = ₱0.00 / non-negative" rule.
-  const commitRate = (text: string): void => {
-    const parsed = parseFloat(text)
-    const safe = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed
-    // Phase 16: setRate → setPrice; the panel field patches the `material` rate
-    // only (merges, preserving labor/markup). Removed wholesale by Wave 2b.
-    useProjectStore.getState().setPrice(rateKey, { material: safe })
-  }
-
-  // Native listeners on the rate input — commit on input/change/blur, commit on
-  // Enter keydown, and stopPropagation on click/mousedown/keydown so the row's
-  // handleMouseDown/handleClick (cycle nav + onArmTool) never fire while editing
-  // (mirrors the lightbulb stopPropagation pattern). Re-attached when rateKey
-  // changes so commits always carry the current row's (name|type) key.
-  useEffect(() => {
-    const el = rateInputRef.current
-    if (!el) return
-    const onCommit = (): void => commitRate(el.value)
-    const onKeyDown = (e: KeyboardEvent): void => {
-      e.stopPropagation()
-      if (e.key === 'Enter') commitRate(el.value)
-    }
-    const onStop = (e: Event): void => e.stopPropagation()
-    el.addEventListener('input', onCommit)
-    // 'change' intentionally omitted (WR-02): 'input' already fires per keystroke
-    // for live updates, and 'blur' + Enter-'keydown' cover commit-on-leave. A
-    // 'change' listener would re-fire onCommit (a full aggregateBoq) redundantly
-    // on every blur after typing.
-    el.addEventListener('blur', onCommit)
-    el.addEventListener('keydown', onKeyDown)
-    el.addEventListener('click', onStop)
-    el.addEventListener('mousedown', onStop)
-    return () => {
-      el.removeEventListener('input', onCommit)
-      el.removeEventListener('blur', onCommit)
-      el.removeEventListener('keydown', onKeyDown)
-      el.removeEventListener('click', onStop)
-      el.removeEventListener('mousedown', onStop)
-    }
-    // commitRate closes over rateKey; re-bind when it changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rateKey])
 
   const pagesWithMatches = useMemo(
     () => findPagesWithMatches(pageMarkupsAll, itemName, item.categoryId ?? null, item.type),
@@ -395,63 +301,6 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
         }}
       >
         {item.uom}
-      </span>
-
-      {/* Inline ₱ rate input (Phase 15) — fixed-width slot so the row's columns
-           never reflow. Keyed category-independently by `name|type` (rateKey).
-           CRITICAL: e.stopPropagation() on click/mousedown/keydown so the row's
-           handleMouseDown/handleClick (cycle nav + onArmTool) never fire while
-           editing — mirrors the lightbulb stopPropagation pattern above. Commit
-           live on change, defensively re-commit on blur + Enter. */}
-      <div
-        style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
-        onClick={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <span
-          aria-hidden="true"
-          style={{ fontSize: 12, color: COLORS.textSecondary, marginRight: 2 }}
-        >
-          {CURRENCY_SYMBOL}
-        </span>
-        <input
-          ref={rateInputRef}
-          data-testid="totals-row-rate-input"
-          type="text"
-          inputMode="decimal"
-          aria-label={`Rate for ${itemName}`}
-          defaultValue={seedRateText(rate)}
-          placeholder="0.00"
-          style={{
-            width: 52,
-            boxSizing: 'border-box',
-            height: 20,
-            padding: '0 4px',
-            background: COLORS.dominant,
-            border: `1px solid ${COLORS.border}`,
-            borderRadius: 3,
-            color: COLORS.textPrimary,
-            fontSize: 12,
-            textAlign: 'right',
-            fontVariantNumeric: 'tabular-nums',
-            outline: 'none'
-          }}
-        />
-      </div>
-
-      {/* Row cost — right-aligned ₱, tabular-nums for column alignment. Reads
-           item.cost directly (aggregator-computed); no rate×quantity in the UI. */}
-      <span
-        data-testid="totals-row-cost"
-        style={{
-          fontVariantNumeric: 'tabular-nums',
-          minWidth: 64,
-          textAlign: 'right',
-          color: COLORS.textPrimary,
-          flexShrink: 0
-        }}
-      >
-        {formatCost(item)}
       </span>
 
       {/* Plus arm-tool affordance — fixed 20px slot so UoM column never reflows.
