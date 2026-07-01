@@ -10,7 +10,8 @@
 > sheet. The single unit rate from Phase 15 widened into **internal cost** (Material +
 > Labor) plus a **client price** driven by a **Markup %** (default **30%**), giving each
 > item a live **Cost**, **Price**, and **Margin**. The Excel/CSV export widened to
-> **nine columns**. **Phase 16 supersedes Phase 15's inline totals-panel pricing** — the
+> **ten columns** (a per-unit **UNIT PRICE** column, and the line total is headed
+> **TOTAL**). **Phase 16 supersedes Phase 15's inline totals-panel pricing** — the
 > right totals panel is back to **quantity-only**.
 
 ---
@@ -27,7 +28,7 @@
 | **Live Cost / Price / Margin** | Estimate sheet — per row | Read-only. **Cost** = Material cost + Labor cost (internal). **Price** = Cost × (1 + Markup ÷ 100) (client). **Margin** = Price − Cost. All recompute the instant you edit a rate, a markup, **or** the takeoff quantity. |
 | **Default markup % control** | Ribbon → **Settings** tab | A **Default markup %** field seeded at **30**. Sets the project-wide default applied to rows with no explicit markup. (See Section 3 for its v1 scope.) |
 | **Quantity-only totals panel** | Right-side totals panel | Now shows **quantities only** — no ₱ rate field, no cost, no cost subtotal, no grand-total-cost bar. All pricing lives in the Estimate sheet. |
-| **9-column export** | Excel (.xlsx) and CSV export | Export as usual — the sheet now has nine columns: **Item · Quantity · UoM · Material · Labor · Cost · Markup · Price · Margin**, with per-category Cost/Price/Margin subtotals and grand totals. |
+| **10-column export** | Excel (.xlsx) and CSV export | Export as usual — the sheet now has ten columns: **Item · Quantity · UoM · Material · Labor · Cost · Markup · UNIT PRICE · TOTAL · Margin**, with per-category Cost/TOTAL/Margin subtotals and grand totals. **UNIT PRICE** is the per-unit client price (= TOTAL ÷ Quantity); **TOTAL** is the line total (the value formerly headed "Price"). |
 
 **Pricing keying (worth knowing):** pricing is remembered per **item name + measurement
 type** (e.g. `Outlet` + count, `Skirting` + perimeter), and is **category-independent** —
@@ -126,12 +127,17 @@ Pricing now lives **only** in the **Estimating** ribbon tab:
 
 ---
 
-## Section 4 — Manual UAT checklist: the estimate + 9-column export
+## Section 4 — Manual UAT checklist: the estimate + 10-column export
 
 Follow these steps to verify the estimate workspace and priced export end-to-end.
 Cross-references the phase validation contract (`16-VALIDATION.md` →
 *Manual-Only Verifications*): the estimate live-edit feel (SC-2/SC-3), the Plan⟷Estimate
 switch (SC-1), the quantity-only totals panel (SC-1), and the priced Excel/CSV export (SC-6).
+
+> **Refinement (2026-07-01, UAT):** the priced export was widened from **nine** to **ten**
+> columns per user feedback — a per-unit **UNIT PRICE** column was inserted between Markup
+> and the line total, and the line-total header was renamed from "Price" to **TOTAL**. This
+> refines **SC-6** (the export contract); all other Phase-16 criteria are unchanged.
 
 1. **Open, calibrate, and place markups.** Launch the app, load a PDF floor plan, and
    **set scale** on a page (draw a line over a known distance, enter the real-world
@@ -158,22 +164,27 @@ switch (SC-1), the quantity-only totals panel (SC-1), and the priced Excel/CSV e
 
 5. **Export to Excel (.xlsx) and verify (SC-6).** Export to **xlsx** and open it in Excel.
    Confirm:
-   - the **nine** columns read **Item · Quantity · UoM · Material · Labor · Cost · Markup ·
-     Price · Margin**;
-   - **Material / Labor / Cost / Price / Margin** display with the **₱** symbol and **2
-     decimals**, and **Markup** displays as a **percent** (e.g. `30%`) — **not** ₱;
-   - a `=SUM(...)` over a **money** column (e.g. Cost) produces the correct total — this
-     proves the cells are **native numbers**, not text (if ₱ were baked into the text, SUM
-     would return 0);
-   - per-category **Cost / Price / Margin subtotal** rows and **grand-total Cost / Price /
-     Margin** rows are present.
+   - the **ten** columns read **Item · Quantity · UoM · Material · Labor · Cost · Markup ·
+     UNIT PRICE · TOTAL · Margin**;
+   - **UNIT PRICE** is the **per-unit client price** and equals **TOTAL ÷ Quantity** (so
+     UNIT PRICE × Quantity = TOTAL); **TOTAL** is the **line total** (the value that used to
+     be headed "Price");
+   - **Material / Labor / Cost / UNIT PRICE / TOTAL / Margin** display with the **₱** symbol
+     and **2 decimals**, and **Markup** displays as a **percent** (e.g. `30%`) — **not** ₱;
+   - a `=SUM(...)` over a **money** column (e.g. Cost or TOTAL) produces the correct total —
+     this proves the cells are **native numbers**, not text (if ₱ were baked into the text,
+     SUM would return 0);
+   - per-category **Cost / TOTAL / Margin subtotal** rows and **grand-total Cost / TOTAL /
+     Margin** rows are present (the **Markup** and **UNIT PRICE** columns are **blank** on
+     those subtotal/grand rows — a subtotal has no single unit price or markup).
 
 6. **Export to CSV and verify the ₱ stays clean.** Export to **csv** and open it in Excel.
-   Confirm the six money columns (**Material / Labor / Cost / Markup / Price / Margin**) are
-   **plain numbers** (no ₱ glyph in the data cells — currency lives in display, not the raw
-   CSV; **Markup** is the plain percent number like `30`), and that any ₱ that appears in
-   display text is **not mojibaked** (the file's UTF-8 byte-order mark keeps it rendering
-   correctly on Windows, the same way it protects `m²`).
+   Confirm the money columns (**Material / Labor / Cost / Markup / UNIT PRICE / TOTAL /
+   Margin**) are **plain numbers** (no ₱ glyph in the data cells — currency lives in display,
+   not the raw CSV; **Markup** is the plain percent number like `30`), that **UNIT PRICE** =
+   **TOTAL ÷ Quantity** on each item row, and that any ₱ that appears in display text is
+   **not mojibaked** (the file's UTF-8 byte-order mark keeps it rendering correctly on
+   Windows, the same way it protects `m²`).
 
 7. **Check the default-markup Settings control (v1 scope).** Open the **Settings** ribbon
    tab. Confirm a **Default markup %** field seeded at **30** that accepts a numeric value
@@ -184,4 +195,4 @@ switch (SC-1), the quantity-only totals panel (SC-1), and the priced Excel/CSV e
 ---
 
 *Phase: 16-estimating-workspace*
-*Manual notes written 2026-07-01*
+*Manual notes written 2026-07-01; export section refined to 10 columns (UNIT PRICE + TOTAL) 2026-07-01 per UAT*

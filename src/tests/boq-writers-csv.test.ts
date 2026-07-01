@@ -89,24 +89,23 @@ describe('buildBoqCsv — D-14 / EXPRT-02', () => {
     expect(lines[4]).toMatch(/^Markups: /)
     // Row 6 is blank spacer
     expect(lines[5]).toBe('')
-    // Row 7 is title — Phase 16 nine-column layout
-    // (Item · Quantity · UoM · Material · Labor · Cost · Markup · Price · Margin).
-    // Widened from the Phase-15 5-column 'Item,Quantity,UoM,Rate,Cost' header per
-    // D-08; the priced 9-column assertion below (see ~line 133) matches. RED until
-    // Wave 3 (16-05) widens buildBoqCsv.
-    expect(lines[6]).toBe('Item,Quantity,UoM,Material,Labor,Cost,Markup,Price,Margin')
-    // Then category heading row "Electrical,,,,,,,,"
+    // Row 7 is title — Phase 16 ten-column layout (Item · Quantity · UoM ·
+    // Material · Labor · Cost · Markup · UNIT PRICE · TOTAL · Margin). Widened from
+    // the 9-column layout at UAT 2026-07-01 by inserting UNIT PRICE and renaming
+    // "Price" → "TOTAL"; the priced 10-column assertion below matches.
+    expect(lines[6]).toBe('Item,Quantity,UoM,Material,Labor,Cost,Markup,UNIT PRICE,TOTAL,Margin')
+    // Then category heading row "Electrical,,,,,,,,,"
     expect(lines[7].startsWith('Electrical')).toBe(true)
   })
 })
 
 // =============================================================================
-// Phase 16 — nine-column export (proof f, csv side). The Phase-15 5-column
-// priced layout WIDENS to Item·Quantity·UoM·Material·Labor·Cost·Markup·Price·
-// Margin (D-08). Money + markup cells are emitted as plain numerics (no ₱
-// glyph); the UTF-8 BOM on line 1 is preserved. RED until Wave 3 (16-05) widens
-// buildBoqCsv. The fixture carries the widened money fields (cast through
-// `unknown`). Do NOT "fix" the source to make these green — Wave 1-3 does.
+// Phase 16 — ten-column export (proof f, csv side). The 9-column priced layout
+// WIDENED to Item·Quantity·UoM·Material·Labor·Cost·Markup·UNIT PRICE·TOTAL·Margin
+// at UAT 2026-07-01 (insert UNIT PRICE at col 8; rename "Price" → "TOTAL" at col
+// 9). Money + markup cells are emitted as plain numerics (no ₱ glyph); the UTF-8
+// BOM on line 1 is preserved. UNIT PRICE = (material+labor)×(1+markup/100) ==
+// price/qty. The fixture carries the widened money fields (cast through `unknown`).
 // =============================================================================
 
 function pricedStructure(): BoqStructure {
@@ -144,32 +143,68 @@ function pricedStructure(): BoqStructure {
   } as unknown as BoqStructure
 }
 
-describe('buildBoqCsv — Phase 16 nine-column export (proof f)', () => {
-  it('title row is the 9-column set (Item,Quantity,UoM,Material,Labor,Cost,Markup,Price,Margin)', () => {
+describe('buildBoqCsv — Phase 16 ten-column export (proof f)', () => {
+  it('title row is the 10-column set (Item,Quantity,UoM,Material,Labor,Cost,Markup,UNIT PRICE,TOTAL,Margin)', () => {
     const csv = buildBoqCsv(pricedStructure())
     const lines = csv.replace(/^﻿/, '').split('\r\n')
     // Title is the first row after the 5 metadata rows + blank spacer.
-    expect(lines[6]).toBe('Item,Quantity,UoM,Material,Labor,Cost,Markup,Price,Margin')
-    expect(lines[6]).toContain('Material')
-    expect(lines[6]).toContain('Labor')
-    expect(lines[6]).toContain('Markup')
-    expect(lines[6]).toContain('Price')
-    expect(lines[6]).toContain('Margin')
+    expect(lines[6]).toBe('Item,Quantity,UoM,Material,Labor,Cost,Markup,UNIT PRICE,TOTAL,Margin')
+    // 10 comma-separated cells.
+    expect(lines[6].split(',')).toHaveLength(10)
+    // UNIT PRICE at index 7 (col 8), TOTAL at index 8 (col 9), Margin at index 9 (col 10).
+    const cells = lines[6].split(',')
+    expect(cells[7]).toBe('UNIT PRICE')
+    expect(cells[8]).toBe('TOTAL')
+    expect(cells[9]).toBe('Margin')
   })
 
-  it('Material/Labor/Cost/Markup/Price/Margin are emitted as numeric values (not a "₱…"-prefixed string)', () => {
+  it('Material/Labor/Cost/Markup/UNIT PRICE/TOTAL/Margin are emitted as numeric values (not a "₱…"-prefixed string)', () => {
     const csv = buildBoqCsv(pricedStructure())
     // Outlet: count qty 5 (int), material 3, labor 1, cost 20, markup 30,
-    //   price 26, margin 6 → "Outlet,5,ea,3,1,20,30,26,6".
-    expect(csv).toMatch(/Outlet,5,ea,3,1,20,30,26,6/)
-    // Wire: 12.345 at 2dp, material 2, labor 0, cost 24.69, markup 30, price
-    //   32.10 (2dp), margin 7.41 (2dp) → "Wire,12.35,m,2,0,24.69,30,32.10,7.41".
-    expect(csv).toMatch(/Wire,12\.35,m,2,0,24\.69,30,32\.10,7\.41/)
+    //   UNIT PRICE (4×1.3) = 5.2 → "5.20", TOTAL (price) 26, margin 6
+    //   → "Outlet,5,ea,3,1,20,30,5.20,26,6".
+    expect(csv).toMatch(/Outlet,5,ea,3,1,20,30,5\.20,26,6/)
+    // Wire: 12.345 at 2dp, material 2, labor 0, cost 24.69, markup 30,
+    //   UNIT PRICE (2×1.3) = 2.6 → "2.60", TOTAL (price) 32.097 → 32.10 (2dp),
+    //   margin 7.407 → 7.41 (2dp) → "Wire,12.35,m,2,0,24.69,30,2.60,32.10,7.41".
+    expect(csv).toMatch(/Wire,12\.35,m,2,0,24\.69,30,2\.60,32\.10,7\.41/)
     // No ₱ glyph leaks into the data cells — currency lives in display, not CSV.
     expect(csv).not.toContain('₱')
   })
 
-  it('UTF-8 BOM still leads byte 0 with the wider 9-column layout', () => {
+  it('UNIT PRICE equals (material+labor)×(1+markup/100) == price/qty on the Outlet row (col 8)', () => {
+    const csv = buildBoqCsv(pricedStructure())
+    const lines = csv.replace(/^﻿/, '').split('\r\n')
+    const outlet = lines.find((l) => l.startsWith('Outlet'))!
+    const cells = outlet.split(',')
+    // col 8 is index 7. Material 3, labor 1, markup 30 → (3+1)×1.3 = 5.2 → "5.20".
+    expect(cells[7]).toBe('5.20')
+    expect(Number(cells[7])).toBeCloseTo((3 + 1) * (1 + 30 / 100), 10)
+    expect(Number(cells[7])).toBeCloseTo(26 / 5, 10) // price/qty
+  })
+
+  it('subtotal + grand-total rows carry Cost@6 / TOTAL@9 / Margin@10 with cols 7+8 blank (10 cells)', () => {
+    const csv = buildBoqCsv(pricedStructure())
+    const lines = csv.replace(/^﻿/, '').split('\r\n')
+    const sub = lines.find((l) => l.startsWith('Subtotal (cost)'))!
+    const subCells = sub.split(',')
+    expect(subCells).toHaveLength(10)
+    expect(subCells[5]).toBe('44.69') // Cost, col 6
+    expect(subCells[6]).toBe('')      // Markup, col 7 blank
+    expect(subCells[7]).toBe('')      // UNIT PRICE, col 8 blank
+    expect(subCells[8]).toBe('58.10') // TOTAL (priceSubtotal 58.097 → 2dp), col 9
+    expect(subCells[9]).toBe('13.41') // Margin (13.407 → 2dp), col 10
+    const grand = lines.find((l) => l.startsWith('Grand Total (cost)'))!
+    const grandCells = grand.split(',')
+    expect(grandCells).toHaveLength(10)
+    expect(grandCells[5]).toBe('44.69')
+    expect(grandCells[6]).toBe('')
+    expect(grandCells[7]).toBe('')
+    expect(grandCells[8]).toBe('58.10')
+    expect(grandCells[9]).toBe('13.41')
+  })
+
+  it('UTF-8 BOM still leads byte 0 with the wider 10-column layout', () => {
     const csv = buildBoqCsv(pricedStructure())
     expect(csv.charCodeAt(0)).toBe(0xfeff)
     expect(csv.startsWith('﻿')).toBe(true)

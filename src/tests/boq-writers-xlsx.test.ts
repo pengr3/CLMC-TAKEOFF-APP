@@ -129,16 +129,18 @@ describe('buildBoqXlsx — round-trip via ExcelJS load — EXPRT-01 native numbe
 })
 
 // =============================================================================
-// Phase 16 — 9-column export (proof f, writer side). The Phase-15 5-column
-// priced layout (Item·Quantity·UoM·Rate·Cost) WIDENS to the locked 9-column set
-// Item·Quantity·UoM·Material·Labor·Cost·Markup·Price·Margin (D-07/D-08). Money
-// cells (Material/Labor/Cost/Price/Margin) stay native numbers with the ₱
-// NUMFMT_PESO; the Markup cell is a native number with a PERCENT numFmt (NOT ₱).
-// Per-category Cost/Price/Margin subtotal rows + grand Cost/Price/Margin rows;
-// the category heading merge widens A:E → A:I. RED until Wave 3 (16-05) widens
-// buildBoqXlsx. The fixture carries the widened per-row/category/structure money
-// fields (cast through `unknown` because BoqStructure does not yet declare
-// them). Do NOT "fix" the source to make these green — Wave 1-3 does.
+// Phase 16 — 10-column export (proof f, writer side). The Phase-15 5-column
+// priced layout (Item·Quantity·UoM·Rate·Cost) WIDENED to a 9-column set, then to
+// the locked 10-column set at UAT 2026-07-01 by inserting UNIT PRICE (col 8) and
+// renaming "Price" → "TOTAL" (col 9):
+//   Item·Quantity·UoM·Material·Labor·Cost·Markup·UNIT PRICE·TOTAL·Margin.
+// Money cells (Material/Labor/Cost/UNIT PRICE/TOTAL/Margin) stay native numbers
+// with the ₱ NUMFMT_PESO; the Markup cell is a native number with a PERCENT numFmt
+// (NOT ₱). UNIT PRICE = (material+labor)×(1+markup/100) == price/qty. Per-category
+// Cost/TOTAL/Margin subtotal rows + grand Cost/TOTAL/Margin rows (cols 7 Markup +
+// 8 UNIT PRICE blank there); the category heading merge is A:J. The fixture carries
+// the widened per-row/category/structure money fields (cast through `unknown`
+// because BoqStructure does not declare all of them).
 // =============================================================================
 
 // The Philippine Peso glyph (U+20B1). The xlsx money numFmts must contain it.
@@ -189,8 +191,8 @@ function pricedStructure(): BoqStructure {
   } as unknown as BoqStructure
 }
 
-describe('buildBoqXlsx — Phase 16 nine-column export (proof f)', () => {
-  it('title row is Item / Quantity / UoM / Material / Labor / Cost / Markup / Price / Margin (9 columns)', async () => {
+describe('buildBoqXlsx — Phase 16 ten-column export (proof f)', () => {
+  it('title row is Item / Quantity / UoM / Material / Labor / Cost / Markup / UNIT PRICE / TOTAL / Margin (10 columns)', async () => {
     const buf = await buildBoqXlsx(pricedStructure())
     const wb = new ExcelJS.Workbook()
     await wb.xlsx.load(buf)
@@ -201,18 +203,21 @@ describe('buildBoqXlsx — Phase 16 nine-column export (proof f)', () => {
     })
     expect(titleRowNum).toBeGreaterThan(0)
     const title = ws.getRow(titleRowNum)
-    expect(title.getCell(1).value).toBe('Item')
-    expect(title.getCell(2).value).toBe('Quantity')
-    expect(title.getCell(3).value).toBe('UoM')
-    expect(title.getCell(4).value).toBe('Material')
-    expect(title.getCell(5).value).toBe('Labor')
-    expect(title.getCell(6).value).toBe('Cost')
-    expect(title.getCell(7).value).toBe('Markup')
-    expect(title.getCell(8).value).toBe('Price')
-    expect(title.getCell(9).value).toBe('Margin')
+    // Locked 10-column header. UNIT PRICE at index 7 (col 8), TOTAL at index 8
+    // (col 9), Margin at index 9 (col 10).
+    const header = [
+      'Item', 'Quantity', 'UoM', 'Material', 'Labor', 'Cost', 'Markup', 'UNIT PRICE', 'TOTAL', 'Margin'
+    ]
+    header.forEach((label, i) => {
+      expect(title.getCell(i + 1).value).toBe(label)
+    })
+    // Explicit spot-checks on the two changed positions.
+    expect(title.getCell(8).value).toBe('UNIT PRICE')
+    expect(title.getCell(9).value).toBe('TOTAL')
+    expect(title.getCell(10).value).toBe('Margin')
   })
 
-  it('item-row Material/Labor/Cost/Price/Margin cells are native numbers with a ₱ numFmt', async () => {
+  it('item-row Material/Labor/Cost/UNIT PRICE/TOTAL/Margin cells are native numbers with a ₱ numFmt', async () => {
     const buf = await buildBoqXlsx(pricedStructure())
     const wb = new ExcelJS.Workbook()
     await wb.xlsx.load(buf)
@@ -220,15 +225,18 @@ describe('buildBoqXlsx — Phase 16 nine-column export (proof f)', () => {
     let foundOutlet = false
     ws.eachRow((row) => {
       if (row.getCell(1).value === 'Outlet') {
-        // Material col 4, Labor col 5, Cost col 6, Price col 8, Margin col 9.
+        // Outlet: material 3, labor 1, cost 20, markup 30, qty 5.
+        // UNIT PRICE = (3+1)×(1+30/100) = 4×1.3 = 5.2. TOTAL (price) = 26. Margin 6.
+        // Material col 4, Labor col 5, Cost col 6, UNIT PRICE col 8, TOTAL col 9,
+        // Margin col 10.
         const money: Array<[number, number]> = [
-          [4, 3], [5, 1], [6, 20], [8, 26], [9, 6]
+          [4, 3], [5, 1], [6, 20], [8, 5.2], [9, 26], [10, 6]
         ]
         for (const [col, expected] of money) {
           const cell = row.getCell(col)
           // Native number (NOT a "₱…"-prefixed string) so SUM() works.
           expect(typeof cell.value).toBe('number')
-          expect(cell.value).toBe(expected)
+          expect(cell.value).toBeCloseTo(expected, 10)
           // ₱ lives in the numFmt, not the value.
           expect(typeof cell.numFmt).toBe('string')
           expect(cell.numFmt).toContain(PESO)
@@ -237,6 +245,32 @@ describe('buildBoqXlsx — Phase 16 nine-column export (proof f)', () => {
       }
     })
     expect(foundOutlet).toBe(true)
+  })
+
+  it('UNIT PRICE (col 8) equals (material+labor)×(1+markup/100) and equals price/quantity', async () => {
+    const buf = await buildBoqXlsx(pricedStructure())
+    const wb = new ExcelJS.Workbook()
+    await wb.xlsx.load(buf)
+    const ws = wb.getWorksheet('BOQ')!
+    // Outlet fixture: material 5-equivalent proof uses (material+labor)=4, markup 30.
+    // material 3, labor 1 → base 4; ×1.3 = 5.2; and price/qty = 26/5 = 5.2.
+    let checked = 0
+    ws.eachRow((row) => {
+      if (row.getCell(1).value === 'Outlet') {
+        const unit = row.getCell(8).value as number
+        expect(unit).toBeCloseTo((3 + 1) * (1 + 30 / 100), 10) // 5.2
+        expect(unit).toBeCloseTo(26 / 5, 10)                   // price/qty
+        checked++
+      }
+      if (row.getCell(1).value === 'Wire') {
+        // Wire: material 2, labor 0, markup 30, qty 12.345, price 32.097.
+        const unit = row.getCell(8).value as number
+        expect(unit).toBeCloseTo((2 + 0) * (1 + 30 / 100), 10) // 2.6
+        expect(unit).toBeCloseTo(32.097 / 12.345, 10)          // price/qty
+        checked++
+      }
+    })
+    expect(checked).toBe(2)
   })
 
   it('item-row Markup cell (getCell(7)) is a native number with a PERCENT numFmt (NOT ₱)', async () => {
@@ -260,7 +294,7 @@ describe('buildBoqXlsx — Phase 16 nine-column export (proof f)', () => {
     expect(foundMarkup).toBe(true)
   })
 
-  it('per-category Cost/Price/Margin subtotal rows exist as native numbers with ₱ numFmt', async () => {
+  it('per-category Cost/TOTAL/Margin subtotal rows exist as native numbers with ₱ numFmt; cols 7+8 blank', async () => {
     const buf = await buildBoqXlsx(pricedStructure())
     const wb = new ExcelJS.Workbook()
     await wb.xlsx.load(buf)
@@ -272,8 +306,8 @@ describe('buildBoqXlsx — Phase 16 nine-column export (proof f)', () => {
     })
     expect(sub).not.toBeNull()
     const costCell = sub!.getCell(6)
-    const priceCell = sub!.getCell(8)
-    const marginCell = sub!.getCell(9)
+    const priceCell = sub!.getCell(9)  // TOTAL now at col 9
+    const marginCell = sub!.getCell(10) // Margin now at col 10
     expect(typeof costCell.value).toBe('number')
     expect(costCell.value).toBe(44.69)
     expect(costCell.numFmt).toContain(PESO)
@@ -281,9 +315,12 @@ describe('buildBoqXlsx — Phase 16 nine-column export (proof f)', () => {
     expect(priceCell.numFmt).toContain(PESO)
     expect(marginCell.value).toBeCloseTo(13.407, 6)
     expect(marginCell.numFmt).toContain(PESO)
+    // Markup (7) AND UNIT PRICE (8) are blank on a subtotal row.
+    expect(sub!.getCell(7).value == null || sub!.getCell(7).value === '').toBe(true)
+    expect(sub!.getCell(8).value == null || sub!.getCell(8).value === '').toBe(true)
   })
 
-  it('grand-total Cost/Price/Margin rows exist as native numbers with ₱ numFmt', async () => {
+  it('grand-total Cost/TOTAL/Margin rows exist as native numbers with ₱ numFmt; cols 7+8 blank', async () => {
     const buf = await buildBoqXlsx(pricedStructure())
     const wb = new ExcelJS.Workbook()
     await wb.xlsx.load(buf)
@@ -295,13 +332,16 @@ describe('buildBoqXlsx — Phase 16 nine-column export (proof f)', () => {
     expect(grand).not.toBeNull()
     expect(typeof grand!.getCell(6).value).toBe('number')
     expect(grand!.getCell(6).numFmt).toContain(PESO)
-    expect(grand!.getCell(8).value).toBeCloseTo(58.097, 6)
-    expect(grand!.getCell(8).numFmt).toContain(PESO)
-    expect(grand!.getCell(9).value).toBeCloseTo(13.407, 6)
+    expect(grand!.getCell(9).value).toBeCloseTo(58.097, 6)  // TOTAL at col 9
     expect(grand!.getCell(9).numFmt).toContain(PESO)
+    expect(grand!.getCell(10).value).toBeCloseTo(13.407, 6) // Margin at col 10
+    expect(grand!.getCell(10).numFmt).toContain(PESO)
+    // Markup (7) AND UNIT PRICE (8) are blank on a grand-total row.
+    expect(grand!.getCell(7).value == null || grand!.getCell(7).value === '').toBe(true)
+    expect(grand!.getCell(8).value == null || grand!.getCell(8).value === '').toBe(true)
   })
 
-  it('category heading merge spans A:I (not A:E) to cover the 9-column layout', async () => {
+  it('category heading merge spans A:J (not A:I/A:E) to cover the 10-column layout', async () => {
     const buf = await buildBoqXlsx(pricedStructure())
     const wb = new ExcelJS.Workbook()
     await wb.xlsx.load(buf)
@@ -313,10 +353,11 @@ describe('buildBoqXlsx — Phase 16 nine-column export (proof f)', () => {
     })
     expect(headingRowNum).toBeGreaterThan(0)
     // ExcelJS exposes merged ranges via the worksheet model. The heading must
-    // merge A:I across the 9-column layout, not the old A:E.
+    // merge A:J across the 10-column layout, not the prior A:I or old A:E.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const merges: string[] = (ws as any).model?.merges ?? []
-    expect(merges).toContain(`A${headingRowNum}:I${headingRowNum}`)
+    expect(merges).toContain(`A${headingRowNum}:J${headingRowNum}`)
+    expect(merges).not.toContain(`A${headingRowNum}:I${headingRowNum}`)
     expect(merges).not.toContain(`A${headingRowNum}:E${headingRowNum}`)
   })
 })
