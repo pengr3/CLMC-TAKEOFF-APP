@@ -32,13 +32,15 @@ findings:
 resolved:
   - CR-01
   - WR-02
-open:
   - WR-01
+open:
   - IN-01
   - IN-02
   - IN-03
-# CR-01 (High) + WR-02 (Medium) resolved in d9e7e58; WR-01 + the three Lows
-# (IN-01/IN-02/IN-03) remain open, so status stays issues_found (NOT clean).
+# CR-01 (High) + WR-02 (Medium) resolved in d9e7e58; WR-01 (Medium) resolved in
+# b3b9f26..0609769 (default markup wired + persisted + moved to the Estimate
+# header, inert Settings control removed). The three Lows (IN-01/IN-02/IN-03)
+# remain open, so status stays issues_found (NOT clean).
 status: issues_found
 ---
 
@@ -109,6 +111,8 @@ Committing on `blur`/`Enter` matches the documented "change+blur OR Enter commit
 
 ### WR-01: Settings "Default markup %" control is inert — it changes nothing
 
+**Status:** RESOLVED (b3b9f26..0609769)
+
 **File:** `src/renderer/src/components/RibbonToolbar.tsx:165` (state) and `:646-677` (input)
 
 **Issue:** `defaultMarkup` is a local `useState` that is only ever read to render its own `value` (`:652`) — grep confirms no other consumer. It is not wired to the aggregator (which hardcodes `entry?.markup ?? DEFAULT_MARKUP_PCT` with the module constant `30`), not to `setPrice`, and not persisted. Editing the field in the Settings tab therefore has **zero observable effect**: new estimate rows still default to 30%, existing rows are unchanged, and the value is lost on reload. To an estimator this is a functioning-looking knob that silently does nothing.
@@ -116,6 +120,15 @@ Committing on `blur`/`Enter` matches the documented "change+blur OR Enter commit
 The code comment (`:623-630`) acknowledges this is deliberate "minimal v1 / persistence deferred" scope, so this is a known limitation rather than an accidental regression — but shipping a live-looking input that is a no-op is a UX correctness problem, not just a docs footnote.
 
 **Fix:** Either (a) disable the input with a "Coming soon" affordance until it is wired, or (b) actually make it drive the default — e.g. move the project-wide default into `projectStore` and have the aggregator read `entry?.markup ?? store.defaultMarkup ?? DEFAULT_MARKUP_PCT`, seeding `setPrice`'s new-entry markup from it. If (a) is chosen for v1, add a visible hint that the value is not yet applied.
+
+**Resolution (b3b9f26..0609769):** Took fix option (b) — the control is now genuinely wired, persisted, and **moved to the Estimate sheet header** (the default markup is **project data** that must follow the project, not the workstation, so it does not belong in the generic Settings tab). Changes, bottom-up:
+
+- **`projectStore` (b3b9f26):** added `defaultMarkupPct: number` state (initial **30** = `DEFAULT_MARKUP_PCT`) + a `setDefaultMarkupPct(pct)` action that coerces to a finite ≥0 value then `markDirty()` (mirrors `setPrice`), and reset it to 30 alongside `rates` in `reset()`.
+- **Persistence (2aa84a9):** `ProjectFileV2` gained an **additive** optional `defaultMarkupPct?: number` (**no `formatVersion` bump** — rides the trailing `return raw as ProjectFileV2` cast exactly like `rates`; `validateV2` adds no branch). `snapshotProject` emits it; `hydrateStores` restores it inside the dirty-suspend bracket with a finite-≥0 coercion, **defaulting to 30** when absent or invalid — so every legacy / Phase-15 / early-Phase-16 `.clmc` loads with 30, and a stored `0` is preserved (distinct from absent → 30).
+- **Aggregator + live wiring (5f48fad):** `AggregateOptions` gained optional `defaultMarkup?: number` (default from `projectStore.defaultMarkupPct`); the per-row fallback changed from `entry?.markup ?? DEFAULT_MARKUP_PCT` to **`entry?.markup ?? opts.defaultMarkup ?? DEFAULT_MARKUP_PCT`**. Both existing semantics are preserved — an explicit per-entry `markup: 0` still wins (nullish `??`, not `||`), and with **no** `defaultMarkup` option the fallback is still 30 (so the markup-default-30 tests stay green). A project default of 0 is honored (`0 ?? 30 === 0`). `useBoqLive` added `defaultMarkupPct` as **both** a primitive selector **and** a `useMemo` dependency, so changing the default recomputes cost/price/margin **live** for un-priced rows.
+- **UI (0609769):** a **`Default markup: [ 30 ] %`** control now lives in the **Estimate sheet header** (`EstimatePanel.DefaultMarkupControl`, top-right of the top label bar, above the column header; `data-testid="estimate-default-markup-input"`). It reuses `EstimateRow`'s **CR-01-safe** recipe verbatim in spirit — uncontrolled input + native blur/keydown listeners, commit on **blur/Enter only** (never per-keystroke `input`), a `document.activeElement !== el` seed guard (so a decimal like `27.5` is not clobbered mid-typing), `stopPropagation` on click/mousedown/keydown, and `parseFloat` with NaN/empty → 0 and negative → 0 before `setDefaultMarkupPct`. The **inert Settings-tab control** (local `useState` + input + now-dead `DEFAULT_MARKUP_PCT` import) was **removed**; the Settings tab is back to a "Coming soon" stub. The Estimating-tab `Plan | Estimate` toggle and the GAP-1 tab-leave effect were left untouched.
+
+**Tests added / green:** `project-schema.test.ts` (accepts with/without `defaultMarkupPct`, round-trips it); `project-serialize.test.ts` (snapshot→hydrate round-trip, legacy → 30, stored-0 preserved, invalid/negative/NaN → 30, never throws); `boq-aggregator.test.ts` (`defaultMarkup: 40` applies to an un-priced row, explicit `markup: 0` **not** overridden by the 40 default, `defaultMarkup: 0` honored → price === cost) with the existing markup-default-30 cases still green; `use-boq-live.test.ts` (changing `defaultMarkupPct` recomputes price/margin live); and a new `estimate-default-markup.test.ts` (jsdom + the **real** `setDefaultMarkupPct` — renders the store value, `27.5` survives mid-typing, blur/Enter commit through the real store, blank/negative → 0, and interaction does not bubble to a parent handler). Gates: **typecheck (node + web) clean**, **full suite green (677/677)**, **production build succeeds**. The CR-01 decimal-entry test and the GAP-1 view-switch behavior were verified intact.
 
 ### WR-02: Every keystroke in an Estimate cell marks the project dirty and writes a partial value to the store
 

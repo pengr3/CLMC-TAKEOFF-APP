@@ -27,7 +27,7 @@
 | **Edit Labor rate** | Estimate sheet — Labor cell | Click the **Labor** cell, type a ₱/unit rate, commit. Labor cost = Labor rate × Quantity. |
 | **Edit Markup %** | Estimate sheet — Markup cell | Click the **Markup** cell, type a percent (e.g. `30`), commit. A blank markup uses the **30%** default. |
 | **Live Cost / UNIT PRICE / TOTAL / Margin** | Estimate sheet — per row | Read-only. **Cost** = Material cost + Labor cost (internal). **UNIT PRICE** = per-unit client price = (Material + Labor) × (1 + Markup ÷ 100) = **TOTAL ÷ Quantity**. **TOTAL** = the client line total = Cost × (1 + Markup ÷ 100) (the value formerly headed "Price"). **Margin** = TOTAL − Cost. All recompute the instant you edit a rate, a markup, **or** the takeoff quantity. |
-| **Default markup % control** | Ribbon → **Settings** tab | A **Default markup %** field seeded at **30**. Sets the project-wide default applied to rows with no explicit markup. (See Section 3 for its v1 scope.) |
+| **Default markup control** | **Estimate sheet header** (top-right of the Estimate sheet) | A **Default markup: [ 30 ] %** field. Sets the **project-wide** default markup applied to every row **without an explicit markup**. It is **project data** — it **persists in the `.clmc`** and follows the project, not the workstation. Editable (blur/Enter commits, decimals like `27.5` supported); changing it **updates un-priced rows live**. Defaults to **30**. |
 | **Quantity-only totals panel** | Right-side totals panel | Now shows **quantities only** — no ₱ rate field, no cost, no cost subtotal, no grand-total-cost bar. All pricing lives in the Estimate sheet. |
 | **10-column export** | Excel (.xlsx) and CSV export | Export as usual — the sheet now has ten columns: **Item · Quantity · UoM · Material · Labor · Cost · Markup · UNIT PRICE · TOTAL · Margin**, with per-category Cost/TOTAL/Margin subtotals and grand totals. **UNIT PRICE** is the per-unit client price (= TOTAL ÷ Quantity); **TOTAL** is the line total (the value formerly headed "Price"). |
 
@@ -101,7 +101,7 @@ Pricing now lives **only** in the **Estimating** ribbon tab:
 
 ---
 
-## Section 3 — ₱ currency is a hardcoded constant + the default-markup Settings control scope
+## Section 3 — ₱ currency is a hardcoded constant + the project-wide default-markup control (Estimate header)
 
 - **Currency:** the currency symbol throughout the app and the export is **₱ (Philippine
   Peso)**. It is a **hardcoded constant** — **there is no Settings currency picker yet**
@@ -112,17 +112,32 @@ Pricing now lives **only** in the **Estimating** ribbon tab:
   - **Excel/CSV export:** the writer's own `NUMFMT_PESO = '₱#,##0.00'` in
     `src/main/boq-writers.ts` (the main process keeps its own copy intentionally).
   - A future currency picker updates **both** seams.
-- **Default markup %:** the project-wide default markup (**30%**) lives in
-  `src/renderer/src/lib/estimate-defaults.ts` as `DEFAULT_MARKUP_PCT`, and is now surfaced
-  as an **editable "Default markup %" field in the Settings ribbon tab** (replacing the old
-  "Coming soon" stub).
-  - **v1 scope — recorded honestly:** the Settings field is a **minimal, in-session-only**
-    control. It **displays and edits an in-session default** seeded from
-    `DEFAULT_MARKUP_PCT` (30) and validates input (non-numeric or negative → 0). It does
-    **not yet persist across save/reload**, and it does **not yet re-wire the aggregator's
-    default** — the aggregator still applies **30%** to any row with no explicit markup (the
-    `DEFAULT_MARKUP_PCT` seam is unchanged, so **30 remains the shipped default** for
-    unpriced rows). A persisted, aggregator-wired mutable default is a small follow-on.
+- **Default markup control (WR-01 — now fully wired, in the Estimate sheet header):** the
+  project-wide default markup (**30%**) is an **editable "Default markup: [ 30 ] %" control
+  in the Estimate sheet header** (top-right of the Estimate sheet, above the column header).
+  It replaces the earlier **inert Settings-tab field** (16-05), which looked editable but was
+  wired to nothing — that control has been **removed** and the Settings tab is back to a
+  "Coming soon" stub.
+  - **Why the Estimate header, not Settings:** the default markup is **project data** — it
+    must **follow the project, not the workstation** — so it belongs on the project's
+    Estimate sheet, not in the generic per-workstation Settings tab.
+  - **What it does:** it sets the markup applied to **every row with no explicit markup**.
+    The aggregator resolves each row's markup as *explicit entry markup → this project
+    default → 30* (`entry?.markup ?? defaultMarkup ?? DEFAULT_MARKUP_PCT`). So a row you
+    price with its own markup is unaffected; an **un-priced** row (or one you leave without a
+    markup) uses this default, and its **Cost / UNIT PRICE / TOTAL / Margin recompute live**
+    the instant you change the default.
+  - **Persistence:** the value is **saved inside the `.clmc`** (an additive field — **no file
+    format bump**), so it survives save/reload of that project. **Legacy / Phase-15 /
+    early-Phase-16** projects that predate this control load with the **30%** default; a
+    corrupt/negative/non-numeric stored value is sanitized to **30** on load.
+  - **Editing:** click the field, type a value (decimals like `27.5` are fine), and commit
+    with **Enter** or by clicking away (**blur**) — the same commit discipline as the
+    Estimate rate cells. A blank or negative entry clamps to **0** (a legitimate "no default
+    markup"; the aggregator honors a project default of 0).
+  - **Maintainer seam:** the **30** fallback constant is still `DEFAULT_MARKUP_PCT` in
+    `src/renderer/src/lib/estimate-defaults.ts`; the mutable project value is
+    `projectStore.defaultMarkupPct` (set via `setDefaultMarkupPct`).
 - **Deferred this phase (D-09), by design so they can be added later:** a **price-book /
   cost catalog**, **reusable items & assemblies**, **equipment cost**, and **per-project
   overhead**. (The **client-facing unit-price column** originally listed here as deferred
@@ -196,13 +211,21 @@ switch (SC-1), the quantity-only totals panel (SC-1), and the priced Excel/CSV e
    **not mojibaked** (the file's UTF-8 byte-order mark keeps it rendering correctly on
    Windows, the same way it protects `m²`).
 
-7. **Check the default-markup Settings control (v1 scope).** Open the **Settings** ribbon
-   tab. Confirm a **Default markup %** field seeded at **30** that accepts a numeric value
-   (non-numeric or negative clamps to 0). Note (per Section 3) that this v1 control is
-   **in-session only** and does not yet persist across save/reload or re-wire the
-   aggregator default — unpriced rows still use **30%**.
+7. **Check the default-markup control in the Estimate header (WR-01).** On the **Estimate**
+   sheet, find the **Default markup: [ 30 ] %** control in the header (top-right, above the
+   column header). Confirm:
+   - it reads **30** on a fresh project, and accepts a numeric value including a decimal like
+     `27.5` (type it, then **Enter** or click away to commit; a blank or negative entry
+     clamps to **0**);
+   - changing it **immediately** updates the **UNIT PRICE / TOTAL / Margin** of any **un-priced**
+     row (a row with no explicit markup), while rows you gave their own markup are unaffected;
+   - the value **persists**: **Save** the project, close and re-open it, and confirm the
+     control still shows the value you set (it is stored in the `.clmc`);
+   - the **Settings** ribbon tab no longer has a default-markup field (it is back to a
+     "Coming soon" stub) — the control lives on the Estimate sheet because the default markup
+     is **project data** that follows the project, not the workstation.
 
 ---
 
 *Phase: 16-estimating-workspace*
-*Manual notes written 2026-07-01; export section refined to 10 columns (UNIT PRICE + TOTAL) 2026-07-01 per UAT; on-screen Estimate grid brought to the same 10 columns 2026-07-01 per UAT*
+*Manual notes written 2026-07-01; export section refined to 10 columns (UNIT PRICE + TOTAL) 2026-07-01 per UAT; on-screen Estimate grid brought to the same 10 columns 2026-07-01 per UAT; default-markup control wired + moved to the Estimate sheet header (WR-01) 2026-07-01*
