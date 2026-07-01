@@ -14,7 +14,7 @@ Speed up quantity takeoff — let the estimator focus on reading the plan, not d
 
 - [x] Load a multi-page PDF floor plan and flip between pages — Validated in Phase 1: PDF Viewer & Canvas Foundation
 - [x] Zoom in/out with all markups staying pinned to the plan — Validated in Phase 1 (known issue: native Chromium zoom interference on Ctrl+scroll)
-- [x] Unit cost / pricing — per-(name,type) rates with live cost, category cost subtotals, grand-total cost, and ₱ Rate/Cost columns in xlsx/csv export — Validated in Phase 15: BOQ Pricing & Perimeter Simplification
+- [x] Unit cost / pricing — per-(name,type) rates with live cost, category cost subtotals, grand-total cost, and ₱ Rate/Cost columns in xlsx/csv export — Validated in Phase 15: BOQ Pricing & Perimeter Simplification. **Expanded and superseded in Phase 16: Estimating Workspace** — pricing moved OFF the measurement surfaces into a dedicated Estimate sheet (a `Plan | Estimate` toggle in the Estimating ribbon tab); the single rate widened to **internal cost (Material + Labor)** plus a **default-30% Markup → client Price + Margin**; the right totals panel reverted to **quantity-only**; and the export widened to the **9-column** layout (Item · Quantity · UoM · Material · Labor · Cost · Markup · Price · Margin) with per-category Cost/Price/Margin subtotals and grand totals. (Phase 16 supersedes Phase 15's inline totals-panel pricing.)
 
 ### Active
 
@@ -63,6 +63,7 @@ Speed up quantity takeoff — let the estimator focus on reading the plan, not d
 | Scale set by drawing a known distance | More accurate than typing a ratio; matches how estimators work on plans | — Pending |
 | Export standard layout (not custom template) | Avoids template management complexity for v1 | — Pending |
 | Pricing moved into scope (reverses v1 "Out of Scope") | GAP-002: pricing is the measuring→estimating lever — quantities alone don't produce a bid | Delivered in Phase 15 (₱ rates + cost columns; Item Library + currency picker deferred) |
+| Estimating workspace (internal cost + client price/margin) | Pricing separated from measurement per industry practice (PlanSwift/STACK); single rate → material+labor+markup | Delivered in Phase 16 (dedicated Estimate sheet + 9-column export; price-book / item library / equipment / overhead deferred per D-09) |
 
 ## Current State
 
