@@ -165,10 +165,14 @@ describe('project-serialize', () => {
   })
 
   // ===========================================================================
-  // Phase 15 — rates round-trip (proof b). RED until Plan 15-04 adds `rates` to
-  // projectStore + snapshotProject/hydrateStores. Mirrors the hiddenItemNames
-  // analog in project-schema-hidden.test.ts; casts to `any` where the field is
-  // referenced before the types land. Do NOT "fix" the source — Wave 1-3 does.
+  // Phase 16 — PriceEntry round-trip + legacy-scalar coercion (proof b). The
+  // Phase-15 scalar `rates: Record<string, number>` WIDENS to
+  // Record<string, { material, labor, markup }>. Additive on ProjectFileV2 — NO
+  // formatVersion bump. RED until Wave 1 (16-02/16-03) widens projectStore +
+  // snapshotProject/hydrateStores to the PriceEntry shape. Mirrors the
+  // hiddenItemNames analog in project-schema-hidden.test.ts; casts to `any`
+  // where the field is referenced before the types land. Do NOT "fix" the
+  // source — Wave 1-3 does.
   // ===========================================================================
 
   // Minimal V2 fixture for the hydrate-side rates tests (mirrors the
@@ -185,10 +189,10 @@ describe('project-serialize', () => {
     pages: [{ pageIndex: 1, dimensions: { width: 800, height: 600 }, scale: null, viewport: { zoom: 1, panX: 0, panY: 0 }, markups: [] }]
   }
 
-  it('snapshotProject emits rates read from projectStore (Phase 15)', () => {
-    // MUST FAIL — snapshotProject does not yet read `rates` from projectStore.
+  it('snapshotProject emits a PriceEntry rates map read from projectStore (Phase 16)', () => {
+    // MUST FAIL — snapshotProject does not yet emit the PriceEntry rates shape.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(useProjectStore as any).setState({ rates: { 'Skirting|perimeter': 12 } })
+    ;(useProjectStore as any).setState({ rates: { 'Skirting|perimeter': { material: 12, labor: 4, markup: 25 } } })
     const snap = snapshotProject({
       pdfOriginalFilename: 'plans.pdf',
       pdfSha256: 'abc',
@@ -196,21 +200,66 @@ describe('project-serialize', () => {
       perPageDimensions: { 1: { width: 595, height: 842 } }
     })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((snap as any).rates).toEqual({ 'Skirting|perimeter': 12 })
+    expect((snap as any).rates).toEqual({ 'Skirting|perimeter': { material: 12, labor: 4, markup: 25 } })
   })
 
-  it('hydrateStores accepts rates and writes them to projectStore (Phase 15)', () => {
-    // MUST FAIL — hydrateStores does not yet consume `rates`.
-    const data: ProjectFileV2 & { rates?: Record<string, number> } = {
+  it('hydrateStores accepts a PriceEntry rates map and writes it to projectStore (Phase 16)', () => {
+    // MUST FAIL — hydrateStores does not yet consume the PriceEntry rates shape.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = {
       ...MINIMAL_V2,
-      rates: { 'Outlet|count': 7 }
-    }
+      rates: { 'Outlet|count': { material: 7, labor: 2, markup: 40 } }
+    } as unknown as ProjectFileV2
     hydrateStores(data)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((useProjectStore.getState() as any).rates).toEqual({ 'Outlet|count': 7 })
+    expect((useProjectStore.getState() as any).rates).toEqual({ 'Outlet|count': { material: 7, labor: 2, markup: 40 } })
   })
 
-  it('hydrateStores defaults rates to {} when absent (legacy .clmc, Phase 15)', () => {
+  it('hydrateStores coerces a Phase-15 legacy scalar rate → { material, labor:0, markup:30 } (proof b back-compat)', () => {
+    // MUST FAIL — hydrateStores does not yet coerce a legacy scalar to PriceEntry.
+    // A Phase-15 .clmc stored `rates: { 'X|count': 50 }` (a plain number). On load
+    // it must become { material: 50, labor: 0, markup: 30 } (D-06 / A2).
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = { ...MINIMAL_V2, rates: { 'X|count': 50 } } as unknown as ProjectFileV2
+    hydrateStores(data)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((useProjectStore.getState() as any).rates['X|count']).toEqual({ material: 50, labor: 0, markup: 30 })
+  })
+
+  it('hydrateStores defaults a missing markup on a PriceEntry object → 30 (proof b)', () => {
+    // MUST FAIL — an object entry lacking `markup` must default markup to 30
+    // (Pitfall 5 — distinguish "no markup field" → 30 from "markup: 0" → 0).
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = { ...MINIMAL_V2, rates: { 'Y|count': { material: 3, labor: 1 } } } as unknown as ProjectFileV2
+    hydrateStores(data)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((useProjectStore.getState() as any).rates['Y|count'].markup).toBe(30)
+  })
+
+  it('hydrateStores coerces per-field malformed values to 0 while valid fields survive; never throws (proof b)', () => {
+    // MUST FAIL — negative/non-number material fields must coerce to 0 while a
+    // valid material survives; the call must not throw (T-16-02-01 hardening).
+    const call = (): void =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hydrateStores({
+        ...MINIMAL_V2,
+        rates: {
+          'A|count': { material: -5, labor: 2, markup: 30 },   // negative material → 0
+          'B|count': { material: 'x', labor: 1, markup: 30 },  // non-number material → 0
+          'C|count': { material: 10, labor: 3, markup: 30 }    // valid → survives
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as unknown as ProjectFileV2)
+    expect(call).not.toThrow()
+    call()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rates = (useProjectStore.getState() as any).rates
+    expect(rates['A|count'].material).toBe(0)
+    expect(rates['B|count'].material).toBe(0)
+    expect(rates['C|count'].material).toBe(10)
+  })
+
+  it('hydrateStores defaults rates to {} when absent (legacy .clmc, Phase 16)', () => {
     // MUST FAIL — `rates` state field does not yet exist on projectStore.
     hydrateStores(MINIMAL_V2)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

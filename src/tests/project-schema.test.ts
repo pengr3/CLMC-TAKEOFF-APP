@@ -91,28 +91,36 @@ describe('project-schema v2', () => {
   })
 
   // ===========================================================================
-  // Phase 15 — `rates` is an ADDITIVE optional field (NO formatVersion bump),
-  // mirroring the pre-Phase-8 hiddenItemNames absent-field tolerance. validateV2
-  // stays throw-free for additive fields (locked decision); coercion of a
-  // malformed map is tested via hydrate, NOT here. These assert that validateV2
-  // ACCEPTS a rates-bearing object and tolerates its absence. RED until Plan
-  // 15-04 threads `rates` through the V2 schema type.
+  // Phase 16 — `rates` remains an ADDITIVE optional field (NO formatVersion
+  // bump), now carrying the widened PriceEntry ({material,labor,markup}) map.
+  // validateV2 stays throw-free for additive fields (locked decision); coercion
+  // of a legacy scalar / malformed map is tested via hydrate, NOT here. These
+  // assert that validateV2 ACCEPTS a PriceEntry-map-bearing object and tolerates
+  // absence. Unlike the RED tests in this plan, these PASS today (validateV2
+  // does not inspect `rates` — it rides the trailing `return raw as
+  // ProjectFileV2` cast) and MUST STAY passing after the element type widens.
   // ===========================================================================
 
-  it('validateV2 ACCEPTS a ProjectFileV2 carrying a rates field (additive, no throw)', () => {
-    const withRates = { ...VALID_V2, rates: { 'Outlet|count': 5, 'Skirting|perimeter': 12 } }
+  it('validateV2 ACCEPTS a ProjectFileV2 carrying a PriceEntry rates field (additive, no throw)', () => {
+    const withRates = {
+      ...VALID_V2,
+      rates: {
+        'Outlet|count': { material: 5, labor: 3, markup: 30 },
+        'Skirting|perimeter': { material: 12, labor: 4, markup: 25 }
+      }
+    }
     // MUST NOT throw — rates is additive and validateV2 stays throw-free for it.
     expect(() => validateV2(withRates as unknown as ProjectFileV2)).not.toThrow()
     // And the field survives validation (round-trips through the validator).
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((validateV2(withRates as unknown as ProjectFileV2) as any).rates).toEqual({
-      'Outlet|count': 5,
-      'Skirting|perimeter': 12
+      'Outlet|count': { material: 5, labor: 3, markup: 30 },
+      'Skirting|perimeter': { material: 12, labor: 4, markup: 25 }
     })
   })
 
   it('validateV2 passes a fixture LACKING rates (legacy tolerance)', () => {
-    // VALID_V2 has no `rates` key — a pre-Phase-15 file must still validate.
+    // VALID_V2 has no `rates` key — a pre-Phase-16 file must still validate.
     expect(() => validateV2(VALID_V2)).not.toThrow()
   })
 })
