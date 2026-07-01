@@ -619,7 +619,28 @@ Plans:
   5. Pricing is stored per `name|type` as `{ material, labor, markup }` in the .clmc, survives save/reload, shares one entry across categories/pages, and back-compat loads any Phase-15 single-rate file without error (missing markup defaults to 30%)
   6. The .xlsx and .csv export the full column set — Item · Qty · UoM · Material · Labor · Cost · Markup · Price · Margin — with category subtotals and a grand total; ₱ money cells stay SUM-safe native numbers; PROJECT.md and manual notes are updated
 
-**Plans:** to be planned via `/gsd:plan-phase 16`
+**Plans:** 5 plans across 4 waves
+
+Plans:
+
+**Wave 0** *(prerequisite — RED Nyquist tests first, tests-before-source)*:
+
+- [ ] 16-01-PLAN.md — RED test surface: widen aggregator money-math (material/labor/cost/price/margin + Cost/Price/Margin subtotals/grand + markup-default-30), PriceEntry round-trip + legacy-scalar coercion, writer 9-column contract; NEW estimate-row-edit / totals-panel-quantity-only / estimate-view-switch tests; use-boq-live PriceEntry recompute; delete totals-row-rate-edit
+
+**Wave 1** *(blocked on Wave 0 — data-model spine)*:
+
+- [ ] 16-02-PLAN.md — DEFAULT_MARKUP_PCT seam + widen `rates` scalar -> `{material,labor,markup}` PriceEntry (setPrice merge, legacy coercion, no formatVersion bump) across projectStore/schema/serialize/boq-types + 2 preload mirrors; aggregator emits the six money fields + three subtotal/grand kinds; useBoqLive stays live
+
+**Wave 2** *(parallel-safe; both blocked on Wave 1 — disjoint files)*:
+
+- [ ] 16-03-PLAN.md — Estimate workspace: `viewMode` in viewerStore + Plan|Estimate ribbon toggle + mount-preserving CSS `display` swap in App.tsx (Konva Stage never remounts) + the full-width Estimate grid (EstimateRow/EstimateCategoryBlock/EstimatePanel) with editable material/labor/markup cells + live Cost/Price/Margin
+- [ ] 16-04-PLAN.md — Totals-panel revert to quantity-only: strip Phase-15 inline rate input + row cost span + per-category cost subtotal + grand-total bar from TotalsRow/TotalsCategoryBlock/TotalsPanel (D-02)
+
+**Wave 3** *(blocked on Wave 1 + Wave 2 — export + docs)*:
+
+- [ ] 16-05-PLAN.md — 9-column export (Item.Qty.UoM.Material.Labor.Cost.Markup.Price.Margin; SUM-safe native money + percent markup + Cost/Price/Margin subtotals/grand + A:I merge; csv numeric + BOM) + completes the 4-way type lock (boq-writers mirror) + minimal Settings default-markup control + PROJECT.md scope record + 16-MANUAL-NOTES.md
+
+**Cross-cutting constraints:** additive `rates?` field widening (scalar -> PriceEntry), NO formatVersion bump (mirrors Phase-15 precedent); markup stored as a PERCENT (30 = 30%), `price = cost x (1 + markup/100)`; `DEFAULT_MARKUP_PCT = 30` single seam (absent entry -> 30, explicit `markup:0` honored); `name|type` price key category-INDEPENDENT (reuse `labelToName`); mount-preserving view switch — NEVER conditional-unmount the Konva Stage; uncontrolled-input + native-listener + stopPropagation per editable cell (React-19 value-tracker); currency seam duplication-with-test-lock (renderer `currency.ts` + writer-local `NUMFMT_PESO`); 4-way BoqItemRow/BoqStructure mirror widened atomically (boq-writers mirror deferred to Wave 3); no vitest.config.ts change mid-wave (parallel-executor safety); no new packages.
 
 ---
 
