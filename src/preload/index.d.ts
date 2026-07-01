@@ -15,8 +15,14 @@ interface BoqItemRow {
   label: string
   quantity: number
   uom: string
-  rate: number
+  material: number
+  labor: number
+  markup: number
+  materialCost: number
+  laborCost: number
   cost: number
+  price: number
+  margin: number
   color: string | null
   type: BoqRowType
 }
@@ -26,12 +32,16 @@ interface BoqCategoryGroup {
   items: BoqItemRow[]
   subtotals: BoqSubtotal[]
   costSubtotal: number
+  priceSubtotal: number
+  marginSubtotal: number
 }
 interface BoqStructure {
   metadata: BoqMetadata
   categories: BoqCategoryGroup[]
   grandTotals: BoqSubtotal[]
   grandTotalCost: number
+  grandTotalPrice: number
+  grandTotalMargin: number
 }
 
 interface ElectronAPI {

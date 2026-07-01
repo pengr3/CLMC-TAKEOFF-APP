@@ -57,10 +57,22 @@ export interface BoqItemRow {
   quantity: number
   /** 'ea' for count; globalUnit for length; globalUnit + '²' for area. */
   uom: string
-  /** Unit rate in ₱ for this (name,type); 0 when unset. */
-  rate: number
-  /** rate × quantity, ₱. */
+  /** ₱ unit material rate for this (name,type); 0 when unset (Phase 16, D-03). */
+  material: number
+  /** ₱ unit labor rate for this (name,type); 0 when unset (Phase 16, D-03). */
+  labor: number
+  /** Markup percent, e.g. 30 (absent entry → DEFAULT_MARKUP_PCT; D-05). */
+  markup: number
+  /** material × quantity, ₱ (D-03). */
+  materialCost: number
+  /** labor × quantity, ₱ (D-03). */
+  laborCost: number
+  /** materialCost + laborCost, ₱ — the internal/contractor cost (D-03). */
   cost: number
+  /** cost × (1 + markup/100), ₱ — the client price (D-05). */
+  price: number
+  /** price − cost, ₱ (D-05). */
+  margin: number
   /** '#RRGGBB' or null. Item-cell fill in XLSX (D-13). */
   color: string | null
   /** Used for like-typed subtotal grouping (D-12). */
@@ -89,8 +101,12 @@ export interface BoqCategoryGroup {
   items: BoqItemRow[]
   /** One subtotal per distinct UoM in this group. */
   subtotals: BoqSubtotal[]
-  /** Σ row costs in the category, ₱; unit-agnostic. */
+  /** Σ row cost in the category, ₱; unit-agnostic. */
   costSubtotal: number
+  /** Σ row price in the category, ₱; unit-agnostic. */
+  priceSubtotal: number
+  /** Σ row margin in the category, ₱; unit-agnostic. */
+  marginSubtotal: number
 }
 
 /**
@@ -106,6 +122,10 @@ export interface BoqStructure {
   grandTotals: BoqSubtotal[]
   /** Σ all category costSubtotals, ₱. */
   grandTotalCost: number
+  /** Σ all category priceSubtotals, ₱. */
+  grandTotalPrice: number
+  /** Σ all category marginSubtotals, ₱. */
+  grandTotalMargin: number
 }
 
 /**
@@ -123,8 +143,8 @@ export interface AggregateOptions {
   pdfOriginalFilename?: string
   currentFilePath?: string | null
   getColorForName?: (name: string) => string | null
-  /** Per-(name|type) unit rate map; default useProjectStore.getState().rates. */
-  rates?: Record<string, number>
+  /** Per-(name|type) PriceEntry map; default useProjectStore.getState().rates. */
+  rates?: Record<string, PriceEntry>
 }
 
 /**
