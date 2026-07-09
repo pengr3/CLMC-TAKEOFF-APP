@@ -30,6 +30,7 @@
 - [x] **Phase 14: Markup Geometry Precision — Snapping + Curved-Edge Measurement** - Cursor snapping (endpoint/vertex/segment, screen-constant tolerance, F3/Alt) during placement and editing, plus true circular-arc edges (3-click gesture, bulge reshaping) with exact arc length and circular-segment area; arcs round-trip through save/reload and BOQ export (completed 2026-06-29)
 - [x] **Phase 15: BOQ Pricing & Perimeter Simplification** - Priced BOQ (per-(name,type) unit rate × quantity = cost, category cost subtotals, ₱ grand total) in the totals panel and xlsx/csv export; Perimeter tool narrowed to length-only (perimeter-area removed) so every markup maps to exactly one priceable row (completed 2026-06-29)
 - [x] **Phase 16: Estimating Workspace** (completed 2026-07-01) - Dedicated Estimate sheet in the Estimating tab (Plan | Estimate view toggle) with per-item material + labor unit rates → internal cost, plus a default-30% editable markup → client price and margin; the right-side totals panel reverts to quantity-only and pricing leaves the Plan workspace; xlsx/csv + on-screen grid export the 10-column set Item·Qty·UoM·Material·Labor·Cost·Markup·UNIT PRICE·TOTAL·Margin
+- [ ] **Phase 17: Markup Rename and Reorder** - Rename already-plotted markup groups (totals panel + Estimate sheet) with price-key/color/visibility migration and name-collision handling, plus drag-to-reorder items within a category on both surfaces backed by a persisted per-category order shared by panel/sheet/export (scoping in progress)
 
 ---
 
@@ -641,6 +642,20 @@ Plans:
 - [x] 16-05-PLAN.md — 9-column export (Item.Qty.UoM.Material.Labor.Cost.Markup.Price.Margin; SUM-safe native money + percent markup + Cost/Price/Margin subtotals/grand + A:I merge; csv numeric + BOM) + completes the 4-way type lock (boq-writers mirror) + minimal Settings default-markup control + PROJECT.md scope record + 16-MANUAL-NOTES.md
 
 **Cross-cutting constraints:** additive `rates?` field widening (scalar -> PriceEntry), NO formatVersion bump (mirrors Phase-15 precedent); markup stored as a PERCENT (30 = 30%), `price = cost x (1 + markup/100)`; `DEFAULT_MARKUP_PCT = 30` single seam (absent entry -> 30, explicit `markup:0` honored); `name|type` price key category-INDEPENDENT (reuse `labelToName`); mount-preserving view switch — NEVER conditional-unmount the Konva Stage; uncontrolled-input + native-listener + stopPropagation per editable cell (React-19 value-tracker); currency seam duplication-with-test-lock (renderer `currency.ts` + writer-local `NUMFMT_PESO`); 4-way BoqItemRow/BoqStructure mirror widened atomically (boq-writers mirror deferred to Wave 3); no vitest.config.ts change mid-wave (parallel-executor safety); no new packages.
+
+---
+
+### Phase 17: Markup Rename and Reorder
+
+**Goal:** Estimators can rename any already-plotted markup group and reorder items within a category directly from the totals panel and the Estimate sheet — without re-drawing — where a rename carries the group's pricing / color / hidden-state across, and a chosen row order persists in the .clmc and is shared identically by the totals panel, the Estimate sheet, and the BOQ export.
+**Depends on:** Phase 16 (Estimating Workspace — PriceEntry model + Estimate sheet + quantity-only totals panel)
+**Requirements:** Extends the v1.1 "Estimating" milestone (Phases 15–16). Deferred from Phase 16 UAT (user: "sooner or later"). No new v1 requirement IDs. Source: `.planning/phases/16-estimating-workspace/16-HUMAN-UAT.md` + memory `deferred-item-rename-reorder`.
+**Status:** Not started — SPEC in progress (`/gsd-spec-phase 17`); requirements locked by `17-SPEC.md`.
+
+**Scope seeds** (to be locked/refined by SPEC.md):
+
+  1. Rename a plotted markup group from the totals panel and the Estimate sheet; the rename migrates the per-item price key (`name|type` → `{material,labor,markup}`), the per-name color, and the hidden-state, and handles the case where the target name already exists as a group (merge vs block — open question).
+  2. Drag-and-drop reorder of items within a category on both the totals panel and the Estimate sheet, backed by a NEW additive persisted per-category order field in the .clmc (no formatVersion bump per project convention), shared by panel + sheet + xlsx/csv export.
 
 ---
 
