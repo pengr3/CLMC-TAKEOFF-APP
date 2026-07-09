@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: phase_16_complete
-stopped_at: "Phase 17 (markup-rename-and-reorder) context gathered — 4 gray areas resolved: right-click menu on both surfaces; inline rename (menu + double-click, e.detail guard); rename collision revised merge->BLOCK (no merge, user rejected it); Move/Copy category dialog (CategoryAutocomplete) with Copy auto-name; reorder via grip handle + insertion line. 17-SPEC.md reconciled to block-on-collision. Next: /gsd-plan-phase 17."
-last_updated: "2026-07-09T06:20:50.269Z"
-last_activity: 2026-07-01
+status: phase_17_planned
+stopped_at: "Phase 17 (markup-rename-and-reorder) PLANNED — 7 plans in 4 waves; research+patterns+validation done, plan-checker 0 blockers / 3 warnings resolved. Ready to execute. Next: /gsd-execute-phase 17."
+last_updated: "2026-07-09T08:53:22.850Z"
+last_activity: 2026-07-09
 progress:
   total_phases: 21
   completed_phases: 20
-  total_plans: 106
+  total_plans: 113
   completed_plans: 106
-  percent: 100
+  percent: 94
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 16 — estimating-workspace (COMPLETE — UAT approved 2026-07-01)
+**Current Focus:** Phase 17 — markup-rename-and-reorder (PLANNED — 7 plans in 4 waves, ready to execute)
 
 ---
 
 ## Current Position
 
-Phase: 16 (estimating-workspace) — COMPLETE (UAT approved 2026-07-01); 6/6 SC verified
-Plan: 5 of 5 complete + UAT gap fixes (GAP-1 view-switch, GAP-2 export UX) + 10-column export/grid restructure (UNIT PRICE + TOTAL)
+Phase: 17 (markup-rename-and-reorder) — PLANNED (7 plans, 4 waves); plan-checker 0 blockers. Phase 16 COMPLETE (UAT approved 2026-07-01).
+Plan: 0 of 7 complete — ready for /gsd-execute-phase 17
 
 ## Performance Metrics
 
@@ -248,11 +248,15 @@ None.
 
 **Last activity:** 2026-07-01
 
-**Last session:** 2026-07-09T06:20:50.260Z
+**Last session:** 2026-07-09T08:53:22.850Z
 
-**Stopped at:** Phase 17 (markup-rename-and-reorder) context gathered — 4 gray areas resolved: right-click menu on both surfaces; inline rename (menu + double-click, e.detail guard); rename collision revised merge->BLOCK (no merge, user rejected it); Move/Copy category dialog (CategoryAutocomplete) with Copy auto-name; reorder via grip handle + insertion line. 17-SPEC.md reconciled to block-on-collision. Next: /gsd-plan-phase 17.
+**Stopped at:** Phase 17 (markup-rename-and-reorder) PLANNED — 7 plans in 4 waves, plan-checker 0 blockers, ready to execute.
 
-**Next action:** **Phase 16 (Estimating Workspace) COMPLETE — UAT approved 2026-07-01.** All 5 plans + goal-verified 6/6 SC; full suite green, typecheck + production build clean. UAT: item 1 (live-edit incl. decimals) + item 2 (view switch, GAP-1 fix 2b4db86) both PASS on live re-test; the export locked-file UX GAP-2 (d7200b1) was confirmed after a full app restart (the Electron main process had been stale — renderer hot-reloaded but main did not, so the friendly locked-file message only appeared post-restart). Post-UAT the user restructured the BOQ export to 10 columns — inserted UNIT PRICE (per-unit client price = TOTAL/qty) and renamed Price->TOTAL — applied to xlsx+csv (af9a260) AND the on-screen Estimate grid (415ac2d); "foundation for BOQ export" laid. WR-01 RESOLVED (b3b9f26..0609769): default-markup control wired project-wide — `defaultMarkupPct` persists in the .clmc (additive, no formatVersion bump), the aggregator uses it as the un-priced-row fallback (30 stays the initial value, explicit markup:0 still honored), useBoqLive recomputes live — and moved from the Settings tab to the Estimate sheet header (CR-01-safe input); the inert Settings stub was removed. A change now prompts a confirm-with-impact dialog (8d1cf59, DefaultMarkupChangeModal) so the project-wide re-price is deliberate, not silent (Cancel reverts, no write). Advisory Lows (IN-01/02/03) in 16-REVIEW.md remain open (non-blocking). DEFERRED to a future Phase 17 (user: "backseat ... sooner or later"): rename plotted markups (must migrate the {material,labor,markup} price key) + drag-reorder within a category on both the totals panel + estimate sheet (needs a persisted per-category order) — needs /gsd:discuss-phase or /gsd:spec-phase before planning; NOT yet built. snapping-engine perf-smoke flake FIXED (faecf8d — 600ms contention-tolerant O(n^2)-regression ceiling); full suite now deterministically green (677/677, 88 files). Phase 15 UAT CLOSED 2026-07-09 (user-approved all 3; items 1/3 superseded by Phase 16, item 2 perimeter-render confirmed).
+**Next action:** **Phase 17 (Markup Rename and Reorder) PLANNED — ready to execute.** Full research-first plan-phase pipeline: 17-RESEARCH.md (HIGH confidence — corrected CONTEXT shorthand: the BOQ aggregator is renderer-side at boq-aggregator.ts:264 not src/main; the visibility key is the composite name|categoryId; categoryItemOrder lives in markupStore so reorder+move are single-store commands), 17-VALIDATION.md (Vitest; 12 Wave-0 test files), 17-PATTERNS.md (19 files → line-cited analogs), then 7 PLAN.md in 4 waves. Plan-checker: 0 blockers, 3 warnings resolved (D-02 double-click `e.detail===2` regression test added to 17-06; markupStore↔projectStore circular-import note + lazy fallback added to 17-02; RESEARCH Open Questions marked RESOLVED). Coverage: SPEC Req 1–5 ✓, decisions D-01..D-11 ✓. Waves — W1: 17-01 categoryItemOrder spine + aggregator sort swap (all 3 surfaces) + additive .clmc (no formatVersion bump). W2: 17-02 rename + cross-store one-Ctrl+Z atomic undo + group-ops, 17-03 GroupCategoryDialog + useRowReorder. W3: 17-04 move/copy/duplicate commands, 17-05 shared context menu + InlineRenameInput + collision message. W4: 17-06 totals-panel wiring, 17-07 estimate-sheet wiring. Commits: research 8855d9c, validation 494e157, patterns 505d946, plans 0b1d6ff (+ warning-fix commit). Delivers the Phase-16-deferred rename+reorder (user: "sooner or later"), extended in discuss to move/copy/duplicate; rename blocks on name collision (no merge, per user's rejection of silent merge). Next: /clear then /gsd-execute-phase 17.
+
+---
+
+**Prior context — Phase 16 (Estimating Workspace) COMPLETE — UAT approved 2026-07-01:** All 5 plans + goal-verified 6/6 SC; full suite green, typecheck + production build clean. UAT: item 1 (live-edit incl. decimals) + item 2 (view switch, GAP-1 fix 2b4db86) both PASS on live re-test; the export locked-file UX GAP-2 (d7200b1) was confirmed after a full app restart (the Electron main process had been stale — renderer hot-reloaded but main did not, so the friendly locked-file message only appeared post-restart). Post-UAT the user restructured the BOQ export to 10 columns — inserted UNIT PRICE (per-unit client price = TOTAL/qty) and renamed Price->TOTAL — applied to xlsx+csv (af9a260) AND the on-screen Estimate grid (415ac2d); "foundation for BOQ export" laid. WR-01 RESOLVED (b3b9f26..0609769): default-markup control wired project-wide — `defaultMarkupPct` persists in the .clmc (additive, no formatVersion bump), the aggregator uses it as the un-priced-row fallback (30 stays the initial value, explicit markup:0 still honored), useBoqLive recomputes live — and moved from the Settings tab to the Estimate sheet header (CR-01-safe input); the inert Settings stub was removed. A change now prompts a confirm-with-impact dialog (8d1cf59, DefaultMarkupChangeModal) so the project-wide re-price is deliberate, not silent (Cancel reverts, no write). Advisory Lows (IN-01/02/03) in 16-REVIEW.md remain open (non-blocking). DEFERRED to a future Phase 17 (user: "backseat ... sooner or later"): rename plotted markups (must migrate the {material,labor,markup} price key) + drag-reorder within a category on both the totals panel + estimate sheet (needs a persisted per-category order) — needs /gsd:discuss-phase or /gsd:spec-phase before planning; NOT yet built. snapping-engine perf-smoke flake FIXED (faecf8d — 600ms contention-tolerant O(n^2)-regression ceiling); full suite now deterministically green (677/677, 88 files). Phase 15 UAT CLOSED 2026-07-09 (user-approved all 3; items 1/3 superseded by Phase 16, item 2 perimeter-render confirmed).
 
 **Note:** Phase 11 (Scale Ratio Input) scrapped — replaced by quick task `260520-rrf` (commit `4156dee`). Phase 13 = v1.1 Phase C from `.planning/phases/v1.1-planning/v1.1-CONTEXT.md` (D-10/D-11/D-12 plus new D-13–D-26 added during planning).
 

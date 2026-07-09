@@ -509,21 +509,24 @@ Brownfield — the "state of the art" is the existing house patterns, which are 
 
 **Note on CONTEXT divergence (A4):** CONTEXT §code_context lists "projectStore — … the new per-category order field". This research recommends **markupStore** instead, because it makes reorder+move single-store commands and mirrors `categoryOrder` (already in markupStore). This is within the explicitly-granted research discretion ("Persisted-order field shape … planner/research decisions"). The planner should adopt markupStore unless a contrary constraint surfaces.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Collision scope (A1) — confirm before implementing.**
    - What we know: D-04 says "already exists on another group of the same type"; rate key is `name|type` category-independent.
    - What's unclear: whether "another group" is category-scoped or global (a group can span categories).
    - Recommendation: global + type-scoped + group-exclusive (Pitfall 2). Verify in discuss-phase or the plan.
+   - RESOLVED: adopted by 17-02 — the pure `collisionExists(newName, renameSetIds, sourceTypes, allMarkups)` helper in `group-ops.ts` implements global + type-scoped + group-exclusive; `renameGroup` blocks with zero store writes.
 
 2. **Reorder React `key` stability during drag.**
    - What we know: blocks render rows with `key={item.label}` (`TotalsCategoryBlock.tsx:117`, `EstimateCategoryBlock.tsx:86`); labels are stable per `name|type` but can gain/lose a `(type)` suffix on collision.
    - What's unclear: whether label-as-key causes a remount flicker when a reorder changes a neighbor's collision state (rare).
    - Recommendation: key by the stable `name|type` bucket key during this phase's row rendering if flicker is observed; otherwise leave as-is (low risk — reorder doesn't change collision state).
+   - RESOLVED: handled by 17-06/17-07 Task 2 — category blocks may key rows by the stable `name|type` bucket key if a collision-suffix flicker appears; otherwise left as-is (low risk).
 
 3. **Where to host the Move/Copy dialog + collision state.**
    - What we know: `TotalsPanel` already hosts `TotalsRowContextMenu` via local state (`TotalsPanel.tsx:85-89,269-283`); `EstimatePanel` hosts none today.
    - Recommendation: each panel hosts its own `GroupContextMenu` + `GroupCategoryDialog` state (mirror TotalsPanel); the dialog/menu components are shared. No global store needed.
+   - RESOLVED: adopted by 17-06/17-07 Task 3 — each panel hosts its own `GroupCategoryDialog` + context-menu + rename state via local `useState` (mirror TotalsPanel); the shared menu/dialog components carry no global store.
 
 ## Validation Architecture
 
