@@ -1,6 +1,7 @@
 # Phase 17: Markup Rename and Reorder — Specification
 
 **Created:** 2026-07-09
+**Revised:** 2026-07-09 (/gsd-discuss-phase 17) — Requirement 1's name-collision behavior changed from a merge-confirm dialog to **block-on-collision** (no merge). See `17-CONTEXT.md` D-04.
 **Ambiguity score:** 0.18 (gate: ≤ 0.20)
 **Requirements:** 5 locked
 
@@ -25,8 +26,8 @@ Grounded in the current codebase:
 
 1. **Rename a markup group**: Rename the whole name-group from a totals-panel row or an Estimate-sheet row.
    - Current: no group rename; `editMarkup` renames one markup only; `rates` / `hiddenItemNames` have no re-key path.
-   - Target: the action changes `.name` on **every** markup in the group (all pages) and **atomically re-keys** `rates` (`oldName|type` → `newName|type` for each type present) and `hiddenItemNames` (oldName → newName); per-name color follows automatically. If the new name already exists on another group, a **merge-confirm dialog** appears explaining the merge and that the existing target's rate is kept; confirming merges the groups (quantities add, count sequences renumber, colliding `name|type` rate keys resolve to the target's entry), cancelling aborts with no change. One undoable command reverts names + re-keying together.
-   - Acceptance: renaming "A"→"B" (no existing "B") shows all "A" markups now named "B", the BOQ row relabels, and `rates["A|count"]` becomes `rates["B|count"]` with the same `PriceEntry`; Ctrl+Z restores "A" and its rate key. Renaming "A"→"B" when "B" exists shows the merge-confirm dialog; confirm yields one merged "B" group with summed quantity and the pre-existing "B" rate; cancel leaves both groups unchanged.
+   - Target: the action changes `.name` on **every** markup in the group (all pages) and **atomically re-keys** `rates` (`oldName|type` → `newName|type` for each type present) and `hiddenItemNames` (oldName → newName); per-name color follows automatically. If the new name already exists on another group **of the same type**, the rename is **blocked**: an inline validation message ("A group named '{name}' already exists") is shown and **no change is made** — the estimator must pick a unique name. Deliberately merging two groups is out of scope (see `17-CONTEXT.md` D-04; supersedes the Round-1 merge-dialog decision). One undoable command reverts names + re-keying together.
+   - Acceptance: renaming "A"→"B" (no existing "B") shows all "A" markups now named "B", the BOQ row relabels, and `rates["A|count"]` becomes `rates["B|count"]` with the same `PriceEntry`; Ctrl+Z restores "A" and its rate key. Renaming "A"→"B" when "B" already exists (same type) is **blocked** with an inline "already exists" message and leaves both groups unchanged.
 
 2. **Reorder items within a category**: Drag rows to set their order on both the totals panel and the Estimate sheet.
    - Current: items within a category are sorted alphabetically by the aggregator; no per-item order exists or persists.
@@ -55,7 +56,7 @@ Grounded in the current codebase:
 - Atomic re-keying of `rates` + `hiddenItemNames` on rename; category reassignment on move; independent-snapshot creation with auto-name + blank rate on copy/duplicate.
 - A persisted per-category manual item order (additive `.clmc` field, no `formatVersion` bump) shared by the totals panel, the Estimate sheet, and the xlsx/csv export.
 - Undo/redo for all five operations, atomic across `markupStore` + `projectStore`.
-- A merge-confirm dialog on rename name collision.
+- A blocking inline validation on rename name collision (no merge).
 
 **Out of scope:**
 - Live-shared / multi-category geometry (a markup belonging to >1 category at once) — explicitly rejected in favor of independent snapshots (Round 2 decision).
@@ -64,6 +65,7 @@ Grounded in the current codebase:
 - Group operations from the canvas right-click context menu — the canvas keeps its existing single-markup Edit/Delete; triggers live on the two list surfaces only (Round 3 decision).
 - A create-time name/category prompt on copy/duplicate — copy/duplicate auto-name silently; the separate rename operation handles renaming afterward (Round 3 decision).
 - Bulk / multi-group operations (selecting many groups and renaming/moving at once) — single-group operations only this phase.
+- Merging two groups (combining their quantities/rates) — rename **blocks** on a name collision rather than merging; a deliberate group-merge feature is deferred to a future phase (revised during /gsd-discuss-phase 17).
 
 ## Constraints
 
@@ -71,13 +73,13 @@ Grounded in the current codebase:
 - **Undo atomicity**: every operation pushes exactly one command onto the `markupStore` stack (cap 50); operations that also touch `projectStore` (rename re-keying; copy/duplicate rate entry) must revert those `projectStore` changes in the **same** undo step — the command model must be extended so one Ctrl+Z is atomic across both stores.
 - **Rate key stays `name|type`, category-independent** (unchanged). Copy/duplicate rely on auto-name uniqueness to obtain a distinct key.
 - **Auto-name uniqueness**: generated names must not collide with an existing group of the same type (else the aggregator bucket would merge); the generator picks the first free "{name} (n)".
-- **Merge-on-rename** resolves colliding `name|type` rate keys to the pre-existing target entry (the source's is dropped); the confirm dialog discloses this.
+- **Rename collision is blocked (no merge)**: if the new `name|type` already exists on another group, the rename is refused with an inline message and no store changes — so there is never a colliding-rate-key resolution to perform.
 - **No new npm packages** — reorder uses the existing stack (a DOM list drag-and-drop is acceptable; exact mechanism deferred to discuss-phase).
 
 ## Acceptance Criteria
 
 - [ ] Renaming a group updates every markup's name across all pages and re-keys its `rates` + `hiddenItemNames` entry; one Ctrl+Z reverts all of it.
-- [ ] Renaming onto an existing name shows a merge-confirm dialog; confirm merges (quantities sum, target rate kept), cancel makes no change.
+- [ ] Renaming onto an existing name (same type) is blocked with an inline "already exists" message; both groups are unchanged.
 - [ ] Within-category rows can be dragged to a new order on **both** the totals panel and the Estimate sheet.
 - [ ] The manual order persists across save/reload and is identical in the totals panel, the Estimate sheet, and the xlsx/csv export.
 - [ ] A category never reordered lists rows in placement order (not alphabetical).
@@ -113,6 +115,8 @@ Status: ✓ = met minimum, ⚠ = below minimum (planner treats as assumption)
 | 3     | Boundary Keeper | Trigger surfaces                              | Totals panel + Estimate sheet only (canvas menu unchanged)                  |
 | 4     | Failure Analyst | Rate on a copied/duplicated line              | Start blank (material ₱0 / labor ₱0 / default markup)                       |
 | 4     | Failure Analyst | Undo for move/copy/duplicate                  | All undoable, atomic across markupStore + projectStore                      |
+
+> **Superseded 2026-07-09 (/gsd-discuss-phase 17):** Round-1's "merge-or-cancel dialog" for rename collisions was replaced by **block-on-collision** (no merge) — the user rejected silent merging. The "merge-confirm dialog" named in the Next-step line below is likewise dropped. See `17-CONTEXT.md` D-04.
 
 ---
 
