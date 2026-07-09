@@ -650,12 +650,32 @@ Plans:
 **Goal:** Estimators can rename any already-plotted markup group and reorder items within a category directly from the totals panel and the Estimate sheet — without re-drawing — where a rename carries the group's pricing / color / hidden-state across, and a chosen row order persists in the .clmc and is shared identically by the totals panel, the Estimate sheet, and the BOQ export.
 **Depends on:** Phase 16 (Estimating Workspace — PriceEntry model + Estimate sheet + quantity-only totals panel)
 **Requirements:** Extends the v1.1 "Estimating" milestone (Phases 15–16). Deferred from Phase 16 UAT (user: "sooner or later"). No new v1 requirement IDs. Source: `.planning/phases/16-estimating-workspace/16-HUMAN-UAT.md` + memory `deferred-item-rename-reorder`.
-**Status:** Not started — SPEC in progress (`/gsd-spec-phase 17`); requirements locked by `17-SPEC.md`.
+**Status:** Planned — 7 plans across 4 waves (`/gsd-plan-phase 17`); requirements locked by `17-SPEC.md`, decisions D-01..D-11 in `17-CONTEXT.md`.
 
-**Scope seeds** (to be locked/refined by SPEC.md):
+**Plans:** 7 plans across 4 waves
 
-  1. Rename a plotted markup group from the totals panel and the Estimate sheet; the rename migrates the per-item price key (`name|type` → `{material,labor,markup}`), the per-name color, and the hidden-state, and handles the case where the target name already exists as a group (merge vs block — open question).
-  2. Drag-and-drop reorder of items within a category on both the totals panel and the Estimate sheet, backed by a NEW additive persisted per-category order field in the .clmc (no formatVersion bump per project convention), shared by panel + sheet + xlsx/csv export.
+Plans:
+
+**Wave 1** *(data-model + persistence spine)*:
+
+- [ ] 17-01-PLAN.md — Persisted per-category `categoryItemOrder` (markupStore field + reorderItems command), aggregator sort replacement (all 3 surfaces), useBoqLive liveness, additive `.clmc` persistence with V5 hydrate coercion (Req 2 data half)
+
+**Wave 2** *(cross-store undo infra + rename; UI primitives — parallel)*:
+
+- [ ] 17-02-PLAN.md — Rename command + cross-store atomic undo refactor (applyProjectUndo/Redo), group-ops pure helpers (autoUniqueName/snapshotGroup/collisionExists), projectStore re-key/rate actions, block-on-collision; group-undo-atomic proof (Req 1)
+- [ ] 17-03-PLAN.md — GroupCategoryDialog (Move/Copy, mode-switch) + useRowReorder pointer-drag hook (standalone units) (Req 2/3/4 UI primitives)
+
+**Wave 3** *(commands + rename UI — parallel)*:
+
+- [ ] 17-04-PLAN.md — Move / Copy / Duplicate forward commands (independent snapshots, fresh blank rate, auto-name); extend group-undo-atomic (Req 3/4/5)
+- [ ] 17-05-PLAN.md — Shared group context menu (4 actions + prop-gated Copy-as-text) + InlineRenameInput editor + RenameCollisionMessage (Req 1 UI)
+
+**Wave 4** *(surface wiring — parallel by surface)*:
+
+- [ ] 17-06-PLAN.md — Totals-panel wiring: grip + double-click rename (e.detail===2 guard) + context menu + drag reorder + Move/Copy dialog host (Req 1-5)
+- [ ] 17-07-PLAN.md — Estimate-sheet wiring: row-level context menu + grip + Item-cell double-click rename + drag reorder + dialog host (Req 1-5)
+
+**Cross-cutting constraints:** `categoryItemOrder` lives in markupStore (mirrors `categoryOrder`) keyed `categoryId -> ordered name|type keys` — RESEARCH A4 divergence from CONTEXT's projectStore wording; rate key `name|type` (category-independent), visibility key `name|categoryId` (composite — rename re-keys per categoryId, Pitfall 1); aggregator sort replaced ONCE at boq-aggregator.ts:264 -> totals/estimate/export all inherit (writers unchanged); one Ctrl+Z atomic across markupStore + projectStore (applyProjectUndo/Redo before set()); additive `.clmc` field, NO formatVersion bump; block-on-collision (no merge, D-04); no new npm packages (pointer-events drag).
 
 ---
 
