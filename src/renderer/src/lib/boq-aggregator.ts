@@ -89,6 +89,11 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
   const categoriesById =
     opts.categoriesById ?? (useMarkupStore.getState().categories as Record<string, { id: string; name: string }>)
   const categoryOrder = opts.categoryOrder ?? useMarkupStore.getState().categoryOrder
+  // Phase 17 (Req 2, D-11): persisted per-category manual item order. An injected
+  // map wins (tests); otherwise read the markupStore field (mirrors categoryOrder).
+  // Ranks the bucket entries below, replacing the former alphabetical label sort.
+  const categoryItemOrder =
+    opts.categoryItemOrder ?? useMarkupStore.getState().categoryItemOrder
   const getColorForName =
     opts.getColorForName ?? ((n: string): string | null => useMarkupStore.getState().getColorForName(n))
   // Phase 15: per-(name|type) ₱ rate map. An injected map wins; otherwise read the
@@ -214,11 +219,23 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
       s.add(type)
     }
 
+    // Phase 17 (Req 2, D-11): order the bucket ENTRIES by the persisted per-category
+    // manual order BEFORE building rows. catKey is the order-map key (categoryId or
+    // '__uncat__'); the bucket key `${name}|${type}` matches the order-array element
+    // exactly (no labelToName round-trip). Array.sort is stable (ES2019+), so unranked
+    // keys (rank Infinity — a never-reordered category, or a newly-added item) keep
+    // Map insertion order = PLACEMENT order and append after ranked ones. This replaces
+    // the former alphabetical label sort (removed below at 2c).
+    const order = categoryItemOrder[catKey] ?? []
+    const rank = new Map(order.map((k, i) => [k, i]))
+    const entries = [...bucket.entries()]
+    entries.sort((a, b) => (rank.get(a[0]) ?? Infinity) - (rank.get(b[0]) ?? Infinity))
+
     // 2b. Build item rows with the unified D-02 label rule (Phase 15: perimeter
     //     follows the same collision-suffix logic as count/linear/area — plain
     //     {name}, gaining {name} ({typeWord}) only when ≥2 types collide on a name).
     const items: BoqItemRow[] = []
-    for (const [k, acc] of bucket.entries()) {
+    for (const [k, acc] of entries) {
       const [name, type] = k.split('|') as [string, BoqRowType]
       let label = name
       const typeSet = nameTypes.get(name)
@@ -260,8 +277,9 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
       })
     }
 
-    // 2c. Alphabetical sort by post-suffix label (Claude's discretion confirmed)
-    items.sort((a, b) => a.label.localeCompare(b.label))
+    // 2c. Manual order is applied above (entries sorted by categoryItemOrder rank).
+    //     The former alphabetical label sort is intentionally removed
+    //     (Phase 17 D-11: default = placement order, not alphabetical).
 
     // 2d. Subtotals — one per distinct UoM (D-12, Q3) + Cost/Price/Margin ₱
     //     subtotals (Phase 16: unit-agnostic single numbers per category, PARALLEL

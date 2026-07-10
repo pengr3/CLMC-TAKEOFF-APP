@@ -35,6 +35,10 @@ export function useBoqLive(): BoqStructure {
   const pageMarkups     = useMarkupStore((s) => s.pageMarkups)
   const categories      = useMarkupStore((s) => s.categories)
   const categoryOrder   = useMarkupStore((s) => s.categoryOrder)
+  // Phase 17 (Req 2): per-category manual item order. Primitive selector on the STORED
+  // reference (never a fresh object identity — Pitfall 4) AND a memo dep below, so a
+  // reorderItems dispatch recomputes the sheet live (totals panel + Estimate sheet).
+  const categoryItemOrder = useMarkupStore((s) => s.categoryItemOrder)
   const pageScales      = useScaleStore((s) => s.pageScales)
   const globalUnit      = useScaleStore((s) => s.globalUnit)
   const totalPages      = useViewerStore((s) => s.totalPages)
@@ -55,12 +59,13 @@ export function useBoqLive(): BoqStructure {
         totalPages,
         categoriesById: categories as Record<string, { id: string; name: string }>,
         categoryOrder,
+        categoryItemOrder,
         pdfOriginalFilename: fileName ?? 'plan.pdf',
         currentFilePath,
         rates,
         defaultMarkup,
         getColorForName: (n) => useMarkupStore.getState().getColorForName(n)
       }),
-    [pageMarkups, categories, categoryOrder, pageScales, globalUnit, totalPages, fileName, currentFilePath, rates, defaultMarkup]
+    [pageMarkups, categories, categoryOrder, categoryItemOrder, pageScales, globalUnit, totalPages, fileName, currentFilePath, rates, defaultMarkup]
   )
 }
