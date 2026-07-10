@@ -8,6 +8,9 @@ import { useMarkupStore } from '../stores/markupStore'
 import { TotalsPanelHeader } from './TotalsPanelHeader'
 import { TotalsCategoryBlock } from './TotalsCategoryBlock'
 import { TotalsRowContextMenu } from './TotalsRowContextMenu'
+import { GroupCategoryDialog } from './GroupCategoryDialog'
+import { labelToName } from './TotalsRow'
+import { autoUniqueName } from '../lib/group-ops'
 import type { BoqItemRow } from '../lib/boq-types'
 import type { Markup } from '../types/markup'
 
@@ -88,6 +91,18 @@ export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
     y: number
   } | null>(null)
 
+  // Phase 17 (D-05/D-07): Move/Copy category dialog state. `name` is the group name;
+  // `autoName` is the copy-mode preview. Null → dialog unmounted.
+  const [dialogState, setDialogState] = useState<{
+    mode: 'move' | 'copy'
+    name: string
+    autoName?: string
+  } | null>(null)
+
+  // Phase 17 (D-02): the `name|type` key of the row whose inline rename editor is open.
+  // Set by the menu "Rename" action OR a row double-click; both open the same editor.
+  const [renamingKey, setRenamingKey] = useState<string | null>(null)
+
   const boq = useBoqLive()
   const totalPages = useViewerStore((s) => s.totalPages)
   const currentPage = useViewerStore((s) => s.currentPage)
@@ -98,6 +113,9 @@ export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
   // useBoqLive (06-RESEARCH §2 line 240-243).
   const pageMarkupsRecord = useMarkupStore((s) => s.pageMarkups)
   const pageMarkups: Markup[] = pageMarkupsRecord[currentPage] ?? EMPTY_MARKUPS
+  // Stable-reference selector (the record itself, NOT a fresh array — EMPTY_MARKUPS note):
+  // converted to an array only when the Move/Copy dialog is actually mounted below.
+  const categoriesRecord = useMarkupStore((s) => s.categories)
 
   // Collapsed rail — slim column with expand chevron.
   if (!open) {
@@ -258,6 +276,9 @@ export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
               onRowContextMenu={handleRowContextMenu}
               onTriggerPulse={onTriggerPulse}
               onArmTool={onArmTool}
+              renamingKey={renamingKey}
+              onStartRename={(key) => setRenamingKey(key)}
+              onEndRename={() => setRenamingKey(null)}
             />
           ))}
         </div>
@@ -279,6 +300,53 @@ export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
             setContextMenuState(null)
             onCopyError?.()
           }}
+          // Phase 17 (D-01): the four shared group actions routed to their commands.
+          onRename={() => {
+            const it = contextMenuState.item
+            // Same key the block/row use for isRenaming — opens the SAME inline editor
+            // as a double-click.
+            setRenamingKey(`${labelToName(it.label)}|${it.type}`)
+          }}
+          onMove={() => {
+            const it = contextMenuState.item
+            setDialogState({ mode: 'move', name: labelToName(it.label) })
+          }}
+          onCopyTo={() => {
+            const it = contextMenuState.item
+            const name = labelToName(it.label)
+            // D-07 "no surprise": compute the copy auto-name preview from the live markups,
+            // type-scoped to the group's types (matches copyGroup's own naming).
+            const allMarkups = Object.values(useMarkupStore.getState().pageMarkups).flat()
+            const sourceTypes = new Set(
+              allMarkups.filter((m) => m.name === name).map((m) => m.type)
+            )
+            const autoName = autoUniqueName(name, sourceTypes, allMarkups)
+            setDialogState({ mode: 'copy', name, autoName })
+          }}
+          onDuplicate={() => {
+            // D-08: Duplicate is immediate — no dialog.
+            useMarkupStore.getState().duplicateGroup(labelToName(contextMenuState.item.label))
+          }}
+        />
+      )}
+
+      {/* Phase 17 (D-05/D-07): Move/Copy category dialog — mounted only while dialogState is set.
+          onConfirm dispatches moveGroup or copyGroup; both close the dialog. */}
+      {dialogState !== null && (
+        <GroupCategoryDialog
+          mode={dialogState.mode}
+          groupName={dialogState.name}
+          autoName={dialogState.autoName}
+          categories={Object.values(categoriesRecord)}
+          onConfirm={(categoryName) => {
+            if (dialogState.mode === 'move') {
+              useMarkupStore.getState().moveGroup(dialogState.name, categoryName)
+            } else {
+              useMarkupStore.getState().copyGroup(dialogState.name, categoryName)
+            }
+            setDialogState(null)
+          }}
+          onCancel={() => setDialogState(null)}
         />
       )}
 
