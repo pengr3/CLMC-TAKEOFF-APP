@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import type React from 'react'
 import { COLORS } from '../lib/constants'
 import { CURRENCY_SYMBOL } from '../lib/currency'
 import { useUiPanels } from '../hooks/useUiPanels'
+import { useRowReorder, type RowRect } from '../hooks/useRowReorder'
 import { EstimateRow } from './EstimateRow'
-import type { BoqCategoryGroup } from '../lib/boq-types'
+import { labelToName } from './TotalsRow'
+import type { BoqCategoryGroup, BoqItemRow } from '../lib/boq-types'
 
 /**
  * EstimateCategoryBlock — a collapsible category section in the Estimate grid
@@ -26,6 +28,14 @@ import type { BoqCategoryGroup } from '../lib/boq-types'
  */
 export interface EstimateCategoryBlockProps {
   category: BoqCategoryGroup
+  /** Phase 17 (D-01): route a row right-click up to the panel to open the shared group menu. */
+  onContextMenu?: (item: BoqItemRow, x: number, y: number) => void
+  /** Phase 17 (D-02): the `name|type` key of the row whose inline rename editor is open, or null. */
+  renamingKey?: string | null
+  /** Phase 17 (D-02): open the inline rename editor for the row with this `name|type` key. */
+  onStartRename?: (key: string) => void
+  /** Phase 17 (D-02): the inline editor closed (committed / cancelled / collision-free). */
+  onEndRename?: () => void
 }
 
 /** ₱ money cell — non-finite guard → ₱0.00. */
@@ -35,11 +45,51 @@ function formatMoney(n: number): string {
 }
 
 export function EstimateCategoryBlock(props: EstimateCategoryBlockProps): React.JSX.Element {
-  const { category } = props
+  const { category, onContextMenu, renamingKey, onStartRename, onEndRename } = props
   const { collapsedCategories, toggleCategoryCollapsed } = useUiPanels()
   const [hoverHeading, setHoverHeading] = useState(false)
 
   const isCollapsed = collapsedCategories.includes(category.name)
+
+  // Phase 17 (D-09/D-10/D-11): within-category drag-reorder — the SAME wiring as
+  // TotalsCategoryBlock (both surfaces share useRowReorder so they never diverge).
+  // `catKey` is the aggregator's order-map key (categoryId | '__uncat__'); `orderedKeys`
+  // are the `name|type` bucket keys in visual order — both match reorderItems + the
+  // aggregator rank sort exactly.
+  const catKey = category.items[0]?.categoryId ?? '__uncat__'
+  const orderedKeys = category.items.map((i) => `${labelToName(i.label)}|${i.type}`)
+  const { onGripPointerDown: startGripDrag, liftedKey, insertionIndex } = useRowReorder(
+    catKey,
+    orderedKeys
+  )
+
+  // Live row midpoints for the drop-index math — read from the real DOM each move (Pitfall 5)
+  // so a mid-drag scroll keeps the drop index correct. Rows are in visual (= orderedKeys) order.
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const getRowRects = (): RowRect[] => {
+    const container = bodyRef.current
+    if (!container) return []
+    const rowEls = Array.from(container.querySelectorAll('[data-testid="estimate-row"]'))
+    return rowEls.map((el, i) => {
+      const rect = el.getBoundingClientRect()
+      return { key: orderedKeys[i], mid: rect.top + rect.height / 2 }
+    })
+  }
+
+  // 2px accent insertion line (UI-SPEC §4) — rendered at the drop boundary, inset 16px to
+  // match the dense grid's padding, pointer-events off so it never intercepts the drag.
+  const insertionLine = (
+    <div
+      data-testid="estimate-insertion-line"
+      style={{
+        height: 2,
+        background: COLORS.accent,
+        borderRadius: 1,
+        margin: '0 16px',
+        pointerEvents: 'none'
+      }}
+    />
+  )
 
   return (
     <div data-testid="estimate-category-block" data-category-name={category.name}>
@@ -79,12 +129,45 @@ export function EstimateCategoryBlock(props: EstimateCategoryBlockProps): React.
         </span>
       </div>
 
-      {/* Body — item rows + the three subtotals (hidden when collapsed). */}
+      {/* Body — item rows + the three subtotals (hidden when collapsed). Rows keyed by the
+          stable `name|type` bucket key (not item.label) so a reorder never flickers a
+          neighbor's collision suffix (RESEARCH Open-Q 2). The bodyRef wraps ONLY the item
+          rows so getRowRects's `estimate-row` query is scoped past the subtotal row. */}
       {!isCollapsed && (
         <>
-          {category.items.map((item) => (
-            <EstimateRow key={item.label} item={item} />
-          ))}
+          <div ref={bodyRef} data-testid="estimate-category-body">
+            {category.items.map((item, rowIndex) => {
+              const rowKey = orderedKeys[rowIndex]
+              const isLifted = liftedKey === rowKey
+              return (
+                <Fragment key={rowKey}>
+                  {insertionIndex === rowIndex && insertionLine}
+                  <div
+                    style={
+                      isLifted
+                        ? {
+                            background: COLORS.activeSurface,
+                            opacity: 0.9,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                            borderRadius: 4
+                          }
+                        : undefined
+                    }
+                  >
+                    <EstimateRow
+                      item={item}
+                      onContextMenu={onContextMenu}
+                      onGripPointerDown={(e, itemKey) => startGripDrag(e, itemKey, getRowRects)}
+                      isRenaming={renamingKey === rowKey}
+                      onStartRename={() => onStartRename?.(rowKey)}
+                      onEndRename={onEndRename}
+                    />
+                  </div>
+                </Fragment>
+              )
+            })}
+            {insertionIndex === category.items.length && insertionLine}
+          </div>
 
           {/* Per-category Cost/TOTAL/Margin subtotals — aggregator-computed, in a
               bold row aligned under the money columns. Uses the same 10-column grid
