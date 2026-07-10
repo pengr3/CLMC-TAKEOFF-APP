@@ -667,13 +667,13 @@ Plans:
 
 **Wave 3** *(commands + rename UI — parallel)*:
 
-- [ ] 17-04-PLAN.md — Move / Copy / Duplicate forward commands (independent snapshots, fresh blank rate, auto-name); extend group-undo-atomic (Req 3/4/5)
-- [ ] 17-05-PLAN.md — Shared group context menu (4 actions + prop-gated Copy-as-text) + InlineRenameInput editor + RenameCollisionMessage (Req 1 UI)
+- [x] 17-04-PLAN.md — Move / Copy / Duplicate forward commands (independent snapshots, fresh blank rate, auto-name); extend group-undo-atomic (Req 3/4/5)
+- [x] 17-05-PLAN.md — Shared group context menu (4 actions + prop-gated Copy-as-text) + InlineRenameInput editor + RenameCollisionMessage (Req 1 UI)
 
 **Wave 4** *(surface wiring — parallel by surface)*:
 
-- [ ] 17-06-PLAN.md — Totals-panel wiring: grip + double-click rename (e.detail===2 guard) + context menu + drag reorder + Move/Copy dialog host (Req 1-5)
-- [ ] 17-07-PLAN.md — Estimate-sheet wiring: row-level context menu + grip + Item-cell double-click rename + drag reorder + dialog host (Req 1-5)
+- [x] 17-06-PLAN.md — Totals-panel wiring: grip + double-click rename (e.detail===2 guard) + context menu + drag reorder + Move/Copy dialog host (Req 1-5)
+- [x] 17-07-PLAN.md — Estimate-sheet wiring: row-level context menu + grip + Item-cell double-click rename + drag reorder + dialog host (Req 1-5)
 
 **Cross-cutting constraints:** `categoryItemOrder` lives in markupStore (mirrors `categoryOrder`) keyed `categoryId -> ordered name|type keys` — RESEARCH A4 divergence from CONTEXT's projectStore wording; rate key `name|type` (category-independent), visibility key `name|categoryId` (composite — rename re-keys per categoryId, Pitfall 1); aggregator sort replaced ONCE at boq-aggregator.ts:264 -> totals/estimate/export all inherit (writers unchanged); one Ctrl+Z atomic across markupStore + projectStore (applyProjectUndo/Redo before set()); additive `.clmc` field, NO formatVersion bump; block-on-collision (no merge, D-04); no new npm packages (pointer-events drag).
 
