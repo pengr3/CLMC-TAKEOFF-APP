@@ -175,6 +175,21 @@ describe('useRowReorder — grip-drag lifecycle (Phase 17 Req 2)', () => {
     }
   })
 
+  it('LW-02: unmounting mid-drag removes the window listeners so a late pointerup is inert', () => {
+    const spy = injectReorderSpy()
+    const h = mountHarness()
+    // Begin a drag on row A and move it past B's midpoint so a pointerup WOULD reorder.
+    firePointerDown(h.gripAt(0), 10)
+    firePointerMove(35)
+    // The owning tree unmounts mid-drag (user closes/switches project before releasing).
+    h.cleanup()
+    // The interrupted drag's window listeners were cleaned up on unmount, so a late
+    // pointerup dispatches nothing and never throws (it WOULD fire reorderItems before
+    // the LW-02 fix, against whatever project is now loaded).
+    expect(() => firePointerUp(35)).not.toThrow()
+    expect(spy).not.toHaveBeenCalled()
+  })
+
   it('moveKey re-inserts a key at the drop boundary (unit)', () => {
     expect(moveKey(ROWS, 'A|count', 2)).toEqual(['B|count', 'A|count', 'C|count'])
     expect(moveKey(ROWS, 'C|count', 0)).toEqual(['C|count', 'A|count', 'B|count'])

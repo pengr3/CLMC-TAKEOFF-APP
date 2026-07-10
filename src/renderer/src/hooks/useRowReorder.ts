@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type React from 'react'
 import { useMarkupStore } from '../stores/markupStore'
 
@@ -94,6 +94,20 @@ export function useRowReorder(catKey: string, orderedKeys: string[]): UseRowReor
   const [liftedKey, setLiftedKey] = useState<string | null>(null)
   const [insertionIndex, setInsertionIndex] = useState<number | null>(null)
 
+  // LW-02: teardown for the in-progress drag (removes the window listeners + cancels the
+  // rAF), or null when no drag is active. A drag's onUp clears this to null on a normal
+  // drop; the unmount effect below invokes it so an interrupted drag (component unmounts
+  // mid-drag — e.g. the user closes/switches project before releasing) can't leak a
+  // stale listener that later dispatches reorderItems against the wrong project.
+  const activeDragCleanupRef = useRef<(() => void) | null>(null)
+
+  useEffect(() => {
+    return () => {
+      activeDragCleanupRef.current?.()
+      activeDragCleanupRef.current = null
+    }
+  }, [])
+
   const onGripPointerDown = useCallback(
     (e: React.PointerEvent, itemKey: string, getRowRects: () => RowRect[]): void => {
       // Drag ONLY from the grip: never let the pointerdown reach the row's click/cycle (D-09).
@@ -135,12 +149,18 @@ export function useRowReorder(catKey: string, orderedKeys: string[]): UseRowReor
         dropIndex = computeDropIndex(ev.clientY, getRowRects())
         setInsertionIndex(dropIndex)
       }
-      const onUp = (): void => {
-        // Atomic listener removal — no dropped events on fast drags, no leak
-        // (T-17-07 / Splitter T-06-02-02). Both removed before any dispatch.
+      // Atomic listener removal + rAF cancel — no dropped events on fast drags, no leak
+      // (T-17-07 / Splitter T-06-02-02). Shared by the normal pointerup drop AND the
+      // unmount safety net (LW-02) so both tear the drag down the same way.
+      const removeDragListeners = (): void => {
         window.removeEventListener('pointermove', onMove)
         window.removeEventListener('pointerup', onUp)
         if (rafId) cancelAnimationFrame(rafId)
+      }
+      const onUp = (): void => {
+        // Both listeners removed (and rAF cancelled) before any dispatch.
+        removeDragListeners()
+        activeDragCleanupRef.current = null
         setLiftedKey(null)
         setInsertionIndex(null)
         const newOrder = moveKey(startOrder, itemKey, dropIndex)
@@ -151,6 +171,9 @@ export function useRowReorder(catKey: string, orderedKeys: string[]): UseRowReor
       }
       window.addEventListener('pointermove', onMove)
       window.addEventListener('pointerup', onUp)
+      // Expose this drag's teardown so an unmount mid-drag removes the listeners without
+      // dispatching (LW-02). onUp clears it back to null on a normal drop.
+      activeDragCleanupRef.current = removeDragListeners
     },
     [catKey, orderedKeys]
   )
