@@ -77,6 +77,17 @@ interface MarkupStoreState {
    * Ctrl+Z reverts BOTH stores (undo() calls applyProjectUndo before its set()).
    */
   renameGroup: (oldName: string, newName: string) => { ok: boolean }
+  /**
+   * Phase 17 (Req 3, D-06): move a whole markup group to another category as ONE undoable
+   * command. Reassigns `categoryId` to the resolved target on every markup named `name`
+   * (all pages); the row LEAVES its source category's manual order and APPENDS to the
+   * target's (A5). Name, quantity, color, and rate (the category-INDEPENDENT `name|type`
+   * key) are all unchanged. The target category is resolved via getOrCreateCategory BEFORE
+   * the set() (resolve-before-set, like editMarkup). Defensive no-op when no group named
+   * `name` exists. Single-store command (no projectStore payload — the move-group undo/redo
+   * branches from 17-02 revert categoryId + order with one Ctrl+Z).
+   */
+  moveGroup: (name: string, targetCategoryName: string) => void
   editMarkup: (
     markupId: string,
     page: number,
@@ -186,6 +197,18 @@ function arraysEqual(a: readonly string[], b: readonly string[]): boolean {
     if (a[i] !== b[i]) return false
   }
   return true
+}
+
+/**
+ * The categoryItemOrder bucket key for a markup's `categoryId` — the real id when set,
+ * else '__uncat__'. Mirrors the aggregator's `categoryId && length>0 ? categoryId :
+ * UNCAT_BUCKET_KEY` convention (boq-aggregator.ts:116/139) so the manual-order keys that
+ * move/copy/duplicate write line up with the buckets the aggregator ranks. (The aggregator's
+ * UNCAT_BUCKET_KEY is module-private there; this local const keeps the literal in one place.)
+ */
+const UNCAT_ORDER_KEY = '__uncat__'
+function orderCatKey(categoryId: string): string {
+  return categoryId && categoryId.length > 0 ? categoryId : UNCAT_ORDER_KEY
 }
 
 /**
@@ -467,6 +490,90 @@ export const useMarkupStore = create<MarkupStoreState>()(
       }
     })
     return { ok: true }
+  },
+
+  moveGroup: (name, targetCategoryName) => {
+    // Resolve the target category BEFORE set() (avoid a nested set() — mirrors editMarkup).
+    const targetCat = get().getOrCreateCategory(targetCategoryName)
+    const state = get()
+    const sourceMarkups = Object.values(state.pageMarkups)
+      .flat()
+      .filter((m) => m.name === name)
+    if (sourceMarkups.length === 0) return // defensive no-op (no group named `name`)
+
+    const markupIdsAffected = sourceMarkups.map((m) => m.id)
+    // The 17-02 move-group command carries a SINGLE oldCategoryId. A well-formed group
+    // shares one source category; a group spanning categories (Pitfall 3) COLLAPSES onto
+    // the target on move, and undo restores every markup to this captured id — a documented
+    // limitation of the locked command shape (single-category is the exercised path).
+    const oldCategoryId: string | null = sourceMarkups[0].categoryId ?? null
+
+    // orderRemove: for each DISTINCT (source catKey, type) present, capture the item's index
+    // in that category's manual order — read from the ORIGINAL array so undo can splice it
+    // back exactly. Skip the target itself and any category without a manual-order entry.
+    const orderRemove: Array<{ catKey: string; itemKey: string; index: number }> = []
+    const seenRemove = new Set<string>()
+    for (const m of sourceMarkups) {
+      const srcCatKey = orderCatKey(m.categoryId)
+      if (srcCatKey === targetCat.id) continue // already in the target — nothing to move out
+      const itemKey = `${name}|${m.type}`
+      const dedupe = `${srcCatKey}::${itemKey}`
+      if (seenRemove.has(dedupe)) continue
+      const arr = state.categoryItemOrder[srcCatKey]
+      if (!arr) continue
+      const index = arr.indexOf(itemKey)
+      if (index < 0) continue
+      seenRemove.add(dedupe)
+      orderRemove.push({ catKey: srcCatKey, itemKey, index })
+    }
+    // Ascending index so the undo branch's in-order splices reconstruct the source array.
+    orderRemove.sort((a, b) => a.index - b.index)
+
+    // orderAppend: one `name|type` per DISTINCT type in the group → APPEND to the target's
+    // order (A5/D-06). Skip a type already present in the target order (idempotent).
+    const targetOrder = state.categoryItemOrder[targetCat.id] ?? []
+    const orderAppend: Array<{ catKey: string; itemKey: string }> = []
+    const seenAppend = new Set<string>()
+    for (const m of sourceMarkups) {
+      const itemKey = `${name}|${m.type}`
+      if (seenAppend.has(itemKey) || targetOrder.includes(itemKey)) continue
+      seenAppend.add(itemKey)
+      orderAppend.push({ catKey: targetCat.id, itemKey })
+    }
+
+    set((s) => {
+      const idSet = new Set(markupIdsAffected)
+      const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+      for (const p of Object.keys(nextPageMarkups).map(Number)) {
+        nextPageMarkups[p] = (nextPageMarkups[p] ?? []).map((m) =>
+          idSet.has(m.id) ? ({ ...m, categoryId: targetCat.id } as Markup) : m
+        )
+      }
+      // Forward order edit mirrors the move-group REDO branch: filter the moved keys out of
+      // their source arrays, then append them to the target array.
+      const nextOrder: Record<string, string[]> = { ...s.categoryItemOrder }
+      for (const rm of orderRemove) {
+        const arr = nextOrder[rm.catKey]
+        if (arr) nextOrder[rm.catKey] = arr.filter((k) => k !== rm.itemKey)
+      }
+      for (const ap of orderAppend) {
+        nextOrder[ap.catKey] = [...(nextOrder[ap.catKey] ?? []), ap.itemKey]
+      }
+      const cmd: MarkupCommand = {
+        type: 'move-group',
+        markupIdsAffected,
+        oldCategoryId,
+        newCategoryId: targetCat.id,
+        orderRemove,
+        orderAppend
+      }
+      return {
+        pageMarkups: nextPageMarkups,
+        categoryItemOrder: nextOrder,
+        undoStack: pushCommand(s.undoStack, cmd),
+        redoStack: []
+      }
+    })
   },
 
   editMarkup: (markupId, page, oldName, oldCategoryName, oldColor, newName, newCategoryName, newColor, oldWallHeight?, newWallHeight?) => {
