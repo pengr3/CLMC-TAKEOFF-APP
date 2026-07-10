@@ -63,6 +63,30 @@ interface ProjectStoreState {
    * NaN / negative input lands as 0 (a legitimate "no markup" default).
    */
   setDefaultMarkupPct: (pct: number) => void
+  /**
+   * Phase 17 (Req 1, D-03): move the PriceEntry at `oldKey` (a `${name}|${type}`
+   * rate key) to `newKey`, deleting `oldKey`. No-op when `oldKey` is absent or equals
+   * `newKey`. The rename command captures the moved entry so undo can move it back.
+   * Mirrors setPrice's trailing get().markDirty() so a rename survives Save.
+   */
+  reKeyRate: (oldKey: string, newKey: string) => void
+  /**
+   * Phase 17 (Req 1, D-03): move the composite visibility key `oldKey`
+   * (`${name}|${categoryId}` — Pitfall 1) to `newKey` in hiddenItemNames, rebuilding
+   * hiddenItemSet. No-op when `oldKey` is not hidden or equals `newKey`. Mirrors
+   * toggleHiddenItem's filter + `new Set(next)` rebuild + trailing markDirty.
+   */
+  reKeyHidden: (oldKey: string, newKey: string) => void
+  /**
+   * Phase 17 (D-07): seed a fresh blank PriceEntry `{ material: 0, labor: 0, markup:
+   * DEFAULT_MARKUP_PCT }` at `key` (used by copy/duplicate redo in 17-04). Marks dirty.
+   */
+  addBlankRate: (key: string) => void
+  /**
+   * Phase 17 (D-07): delete the PriceEntry at `key` (used by copy/duplicate undo in
+   * 17-04). No-op when absent. Marks dirty.
+   */
+  removeRate: (key: string) => void
 }
 
 // Module-level guard — Pitfall 1 protection.
@@ -145,6 +169,44 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
   setDefaultMarkupPct: (pct) => {
     const safe = Number.isFinite(pct) && pct >= 0 ? pct : 0
     set({ defaultMarkupPct: safe })
+    get().markDirty()
+  },
+
+  reKeyRate: (oldKey, newKey) => {
+    set((s) => {
+      const entry = s.rates[oldKey]
+      if (entry === undefined || oldKey === newKey) return s
+      const next = { ...s.rates }
+      delete next[oldKey]
+      next[newKey] = entry
+      return { rates: next }
+    })
+    get().markDirty()
+  },
+
+  reKeyHidden: (oldKey, newKey) => {
+    set((s) => {
+      if (oldKey === newKey || !s.hiddenItemNames.includes(oldKey)) return s
+      const next = s.hiddenItemNames.map((n) => (n === oldKey ? newKey : n))
+      return { hiddenItemNames: next, hiddenItemSet: new Set(next) }
+    })
+    get().markDirty()
+  },
+
+  addBlankRate: (key) => {
+    set((s) => ({
+      rates: { ...s.rates, [key]: { material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT } }
+    }))
+    get().markDirty()
+  },
+
+  removeRate: (key) => {
+    set((s) => {
+      if (s.rates[key] === undefined) return s
+      const next = { ...s.rates }
+      delete next[key]
+      return { rates: next }
+    })
     get().markDirty()
   }
 }))

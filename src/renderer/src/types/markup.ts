@@ -1,4 +1,5 @@
 import type { StagePoint } from '../hooks/useCalibrationMode'
+import type { PriceEntry } from '../lib/boq-types'
 
 export type MarkupType = 'count' | 'linear' | 'area' | 'perimeter' | 'wall'
 
@@ -169,6 +170,70 @@ export type MarkupCommand =
       catKey: string
       oldOrder: string[]
       newOrder: string[]
+    }
+  | {
+      /**
+       * Phase 17 (Req 1, D-03/D-04): rename every markup in a group across all pages
+       * and atomically re-key the three name-keyed structures. `markupIdsAffected`
+       * are the ids whose `.name` flips (mirrors recolor-group's per-id discipline).
+       * `rateReKeys` moves `${old}|${type}` → `${new}|${type}` in projectStore.rates
+       * PER TYPE present (carrying the moved entry for undo); `hiddenReKeys` moves the
+       * COMPOSITE `${old}|${categoryId}` → `${new}|${categoryId}` in hiddenItemNames PER
+       * categoryId the group touches (Pitfall 1 — the visibility key is name|categoryId,
+       * NOT bare name); `orderReKeys` re-keys `${old}|${type}` → `${new}|${type}` inside
+       * each categoryItemOrder array that contains it. The projectStore side (rate/hidden)
+       * is applied by applyProjectUndo/applyProjectRedo; the markup + order side is applied
+       * in the undo()/redo() set() branch. Per-name color follows automatically (D-03).
+       */
+      type: 'rename-group'
+      oldName: string
+      newName: string
+      markupIdsAffected: string[]
+      rateReKeys: Array<{ oldKey: string; newKey: string; entry: PriceEntry }>
+      hiddenReKeys: Array<{ oldKey: string; newKey: string }>
+      orderReKeys: Array<{ catKey: string; oldItemKey: string; newItemKey: string }>
+    }
+  | {
+      /**
+       * Phase 17 (Req 3, D-06): move a group to another category. Reassigns
+       * `categoryId` on every markup in the group; removes the item from the source
+       * category's manual order (at `index`, for exact undo re-insertion) and appends
+       * it to the target category's order. Single-store (no projectStore payload — name,
+       * quantity, color, rate unchanged). Undo/redo branches land in THIS plan so the
+       * union stays compile-exhaustive; the FORWARD `moveGroup` action lands in 17-04.
+       */
+      type: 'move-group'
+      markupIdsAffected: string[]
+      oldCategoryId: string | null
+      newCategoryId: string | null
+      orderRemove: Array<{ catKey: string; itemKey: string; index: number }>
+      orderAppend: Array<{ catKey: string; itemKey: string }>
+    }
+  | {
+      /**
+       * Phase 17 (Req 4, D-07): copy a group into a category as INDEPENDENT new markups
+       * (fresh ids + geometry, auto-named, blank rate). `newMarkups` are the full snapshots
+       * (mirrors delete-group.markups); `rateKeys` are the blank PriceEntry rows to add on
+       * redo / remove on undo (cross-store, applied by applyProjectRedo/applyProjectUndo);
+       * `orderAppends` append the new `name|type` keys to categoryItemOrder. Undo/redo
+       * branches land in THIS plan; the FORWARD `copyGroup` action lands in 17-04.
+       */
+      type: 'copy-group'
+      newMarkups: Markup[]
+      rateKeys: Array<{ key: string; entry: PriceEntry }>
+      orderAppends: Array<{ catKey: string; itemKey: string }>
+    }
+  | {
+      /**
+       * Phase 17 (Req 5, D-08): duplicate a group in place (same category, auto-named,
+       * blank rate, independent snapshot). Identical shape + undo/redo semantics to
+       * copy-group; distinct discriminant only so history reads correctly. FORWARD
+       * `duplicateGroup` action lands in 17-04.
+       */
+      type: 'duplicate-group'
+      newMarkups: Markup[]
+      rateKeys: Array<{ key: string; entry: PriceEntry }>
+      orderAppends: Array<{ catKey: string; itemKey: string }>
     }
 
 export const CATEGORY_PALETTE = [

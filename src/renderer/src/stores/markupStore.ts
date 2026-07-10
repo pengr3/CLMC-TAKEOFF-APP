@@ -665,6 +665,80 @@ export const useMarkupStore = create<MarkupStoreState>()(
         }
       }
 
+      // Phase 17 (Req 1/3/4/5): the whole-group command branches MUST come BEFORE the
+      // `cmd.markup.page` fallthrough — none carry a `cmd.markup` field. The projectStore
+      // side (rate/hidden re-key for rename; blank-rate add/remove for copy/dup) is applied
+      // by applyProjectUndo(cmd) BEFORE this set() (Phase 17-02 Task 2); here we revert
+      // ONLY the markupStore side (names / categoryId + categoryItemOrder).
+      if (cmd.type === 'rename-group') {
+        const idSet = new Set(cmd.markupIdsAffected)
+        const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+        for (const p of Object.keys(nextPageMarkups).map(Number)) {
+          nextPageMarkups[p] = (nextPageMarkups[p] ?? []).map((m) =>
+            idSet.has(m.id) ? ({ ...m, name: cmd.oldName } as Markup) : m
+          )
+        }
+        const nextOrder: Record<string, string[]> = { ...s.categoryItemOrder }
+        for (const rk of cmd.orderReKeys) {
+          const arr = nextOrder[rk.catKey]
+          if (arr) nextOrder[rk.catKey] = arr.map((k) => (k === rk.newItemKey ? rk.oldItemKey : k))
+        }
+        return {
+          pageMarkups: nextPageMarkups,
+          categoryItemOrder: nextOrder,
+          undoStack: s.undoStack.slice(0, -1),
+          redoStack: [...s.redoStack, cmd]
+        }
+      }
+
+      if (cmd.type === 'move-group') {
+        const idSet = new Set(cmd.markupIdsAffected)
+        const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+        for (const p of Object.keys(nextPageMarkups).map(Number)) {
+          nextPageMarkups[p] = (nextPageMarkups[p] ?? []).map((m) =>
+            idSet.has(m.id) ? ({ ...m, categoryId: cmd.oldCategoryId ?? '' } as Markup) : m
+          )
+        }
+        // Reverse the forward order edit: remove the appended key from the target,
+        // then re-insert into the source at the captured index (exact restore).
+        const nextOrder: Record<string, string[]> = { ...s.categoryItemOrder }
+        for (const ap of cmd.orderAppend) {
+          const arr = nextOrder[ap.catKey]
+          if (arr) nextOrder[ap.catKey] = arr.filter((k) => k !== ap.itemKey)
+        }
+        for (const rm of cmd.orderRemove) {
+          const arr = [...(nextOrder[rm.catKey] ?? [])]
+          arr.splice(rm.index, 0, rm.itemKey)
+          nextOrder[rm.catKey] = arr
+        }
+        return {
+          pageMarkups: nextPageMarkups,
+          categoryItemOrder: nextOrder,
+          undoStack: s.undoStack.slice(0, -1),
+          redoStack: [...s.redoStack, cmd]
+        }
+      }
+
+      if (cmd.type === 'copy-group' || cmd.type === 'duplicate-group') {
+        // Undo the copy: remove the added snapshots and their appended order keys.
+        const idSet = new Set(cmd.newMarkups.map((m) => m.id))
+        const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+        for (const p of Object.keys(nextPageMarkups).map(Number)) {
+          nextPageMarkups[p] = (nextPageMarkups[p] ?? []).filter((m) => !idSet.has(m.id))
+        }
+        const nextOrder: Record<string, string[]> = { ...s.categoryItemOrder }
+        for (const ap of cmd.orderAppends) {
+          const arr = nextOrder[ap.catKey]
+          if (arr) nextOrder[ap.catKey] = arr.filter((k) => k !== ap.itemKey)
+        }
+        return {
+          pageMarkups: nextPageMarkups,
+          categoryItemOrder: nextOrder,
+          undoStack: s.undoStack.slice(0, -1),
+          redoStack: [...s.redoStack, cmd]
+        }
+      }
+
       const page = cmd.markup.page
       const pageList = s.pageMarkups[page] ?? []
       let nextList: Markup[]
@@ -818,6 +892,73 @@ export const useMarkupStore = create<MarkupStoreState>()(
       if (cmd.type === 'reorder-items') {
         return {
           categoryItemOrder: { ...s.categoryItemOrder, [cmd.catKey]: cmd.newOrder },
+          undoStack: pushCommand(s.undoStack, cmd),
+          redoStack: s.redoStack.slice(0, -1)
+        }
+      }
+
+      // Phase 17 (Req 1/3/4/5): whole-group redo branches MUST precede the
+      // `cmd.markup.page` fallthrough. The projectStore side is re-applied by
+      // applyProjectRedo(cmd) BEFORE this set() (Phase 17-02 Task 2); here we re-apply
+      // ONLY the markupStore side (names / categoryId + categoryItemOrder).
+      if (cmd.type === 'rename-group') {
+        const idSet = new Set(cmd.markupIdsAffected)
+        const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+        for (const p of Object.keys(nextPageMarkups).map(Number)) {
+          nextPageMarkups[p] = (nextPageMarkups[p] ?? []).map((m) =>
+            idSet.has(m.id) ? ({ ...m, name: cmd.newName } as Markup) : m
+          )
+        }
+        const nextOrder: Record<string, string[]> = { ...s.categoryItemOrder }
+        for (const rk of cmd.orderReKeys) {
+          const arr = nextOrder[rk.catKey]
+          if (arr) nextOrder[rk.catKey] = arr.map((k) => (k === rk.oldItemKey ? rk.newItemKey : k))
+        }
+        return {
+          pageMarkups: nextPageMarkups,
+          categoryItemOrder: nextOrder,
+          undoStack: pushCommand(s.undoStack, cmd),
+          redoStack: s.redoStack.slice(0, -1)
+        }
+      }
+
+      if (cmd.type === 'move-group') {
+        const idSet = new Set(cmd.markupIdsAffected)
+        const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+        for (const p of Object.keys(nextPageMarkups).map(Number)) {
+          nextPageMarkups[p] = (nextPageMarkups[p] ?? []).map((m) =>
+            idSet.has(m.id) ? ({ ...m, categoryId: cmd.newCategoryId ?? '' } as Markup) : m
+          )
+        }
+        const nextOrder: Record<string, string[]> = { ...s.categoryItemOrder }
+        for (const rm of cmd.orderRemove) {
+          const arr = nextOrder[rm.catKey]
+          if (arr) nextOrder[rm.catKey] = arr.filter((k) => k !== rm.itemKey)
+        }
+        for (const ap of cmd.orderAppend) {
+          nextOrder[ap.catKey] = [...(nextOrder[ap.catKey] ?? []), ap.itemKey]
+        }
+        return {
+          pageMarkups: nextPageMarkups,
+          categoryItemOrder: nextOrder,
+          undoStack: pushCommand(s.undoStack, cmd),
+          redoStack: s.redoStack.slice(0, -1)
+        }
+      }
+
+      if (cmd.type === 'copy-group' || cmd.type === 'duplicate-group') {
+        // Re-apply the copy: re-add the snapshots and re-append their order keys.
+        const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+        for (const m of cmd.newMarkups) {
+          nextPageMarkups[m.page] = [...(nextPageMarkups[m.page] ?? []), m]
+        }
+        const nextOrder: Record<string, string[]> = { ...s.categoryItemOrder }
+        for (const ap of cmd.orderAppends) {
+          nextOrder[ap.catKey] = [...(nextOrder[ap.catKey] ?? []), ap.itemKey]
+        }
+        return {
+          pageMarkups: nextPageMarkups,
+          categoryItemOrder: nextOrder,
           undoStack: pushCommand(s.undoStack, cmd),
           redoStack: s.redoStack.slice(0, -1)
         }
