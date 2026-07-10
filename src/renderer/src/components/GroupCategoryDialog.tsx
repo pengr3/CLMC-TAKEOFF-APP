@@ -68,8 +68,16 @@ export function GroupCategoryDialog({
   const title = isCopy ? 'Copy to category' : 'Move to category'
   const confirmLabel = isCopy ? 'Copy Group' : 'Move Group'
 
+  // HG-01: a blank/whitespace category name must never be submitted — it would create a
+  // permanent, unrecoverable blank-named category (there is no rename/delete-category action).
+  // Mirrors useMarkupTool.ts:495's non-empty guard for the same class of input.
+  const canConfirm = categoryName.trim().length > 0
+
   const handleConfirm = useCallback((): void => {
     const typed = categoryName.trim()
+    // HG-01: reject a blank/whitespace name outright — guards the Enter path (handleKey),
+    // which bypasses the disabled button. Zero writes, no category created.
+    if (typed.length === 0) return
     // Existing-or-new (D-05): canonicalize against the passed categories so an existing
     // category (case-insensitive) resolves to its stored name; otherwise the typed name
     // flows through as a new category for the panel's moveGroup/copyGroup to resolve.
@@ -269,25 +277,29 @@ export function GroupCategoryDialog({
             type="button"
             aria-label={confirmLabel}
             onClick={handleConfirm}
+            // HG-01: disabled while the trimmed input is empty so the primary action can't
+            // create a blank-named category. The Enter path is guarded in handleConfirm too.
+            disabled={!canConfirm}
             style={{
               height: 28,
               padding: '4px 8px',
-              background: COLORS.accent,
+              background: canConfirm ? COLORS.accent : COLORS.hoverSurface,
               border: 'none',
               borderRadius: 4,
-              color: COLORS.textOnAccent,
+              color: canConfirm ? COLORS.textOnAccent : COLORS.textSecondary,
               fontSize: 13,
               fontWeight: 600,
-              cursor: 'pointer'
+              cursor: canConfirm ? 'pointer' : 'not-allowed',
+              opacity: canConfirm ? 1 : 0.6
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = COLORS.accentHover
+              if (canConfirm) e.currentTarget.style.background = COLORS.accentHover
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = COLORS.accent
+              if (canConfirm) e.currentTarget.style.background = COLORS.accent
             }}
             onMouseDown={(e) => {
-              e.currentTarget.style.background = COLORS.accentActive
+              if (canConfirm) e.currentTarget.style.background = COLORS.accentActive
             }}
           >
             {confirmLabel}

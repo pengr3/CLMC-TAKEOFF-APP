@@ -586,6 +586,9 @@ export const useMarkupStore = create<MarkupStoreState>()(
   },
 
   moveGroup: (name, targetCategoryName) => {
+    // HG-01: an empty/whitespace target is a safe no-op — never reach getOrCreateCategory('')
+    // (which would mint a permanent, unrecoverable blank-named category). Defends any caller.
+    if (targetCategoryName.trim().length === 0) return
     // Resolve the target category BEFORE set() (avoid a nested set() — mirrors editMarkup).
     const targetCat = get().getOrCreateCategory(targetCategoryName)
     const state = get()
@@ -670,6 +673,9 @@ export const useMarkupStore = create<MarkupStoreState>()(
   },
 
   copyGroup: (name, targetCategoryName) => {
+    // HG-01: an empty/whitespace target is a safe no-op — never reach getOrCreateCategory('')
+    // (which would mint a permanent, unrecoverable blank-named category). Defends any caller.
+    if (targetCategoryName.trim().length === 0) return
     // Resolve the target category BEFORE set() (avoid a nested set() — mirrors editMarkup).
     const targetCat = get().getOrCreateCategory(targetCategoryName)
     const allMarkups = Object.values(get().pageMarkups).flat()

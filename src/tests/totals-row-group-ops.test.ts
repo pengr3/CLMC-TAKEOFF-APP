@@ -264,6 +264,60 @@ describe('TotalsPanel group ops — menu → command routing (17-06)', () => {
     }
   })
 
+  it('HG-01: confirming Move with a BLANK category field neither creates a category nor moves the group', () => {
+    const moveSpy = vi.fn()
+    const { container, unmount } = mountPanelAndOpenMenu()
+    try {
+      useMarkupStore.setState({ moveGroup: moveSpy as unknown as typeof REAL.moveGroup })
+      act(() => {
+        findMenuItem(container, 'Move to…')!.click()
+      })
+      // Category field is left EMPTY (auto-focused; user presses the primary action).
+      const confirmBtn = container.querySelector(
+        'button[aria-label="Move Group"]'
+      ) as HTMLButtonElement
+      expect(confirmBtn).not.toBeNull()
+      // Guarded: the button is disabled while the trimmed input is empty.
+      expect(confirmBtn.disabled).toBe(true)
+      act(() => {
+        confirmBtn.click()
+      })
+      // No move dispatched — and since a disabled button swallows the click, the dialog
+      // stays open (no blank-named category created downstream).
+      expect(moveSpy).not.toHaveBeenCalled()
+      // The store never minted a blank-named category via the guarded moveGroup path.
+      const names = Object.values(useMarkupStore.getState().categories).map((c) => c.name)
+      expect(names).not.toContain('')
+    } finally {
+      unmount()
+    }
+  })
+
+  it('HG-01: pressing Enter with a BLANK category field (bypassing the disabled button) is a no-op', () => {
+    const moveSpy = vi.fn()
+    const { container, unmount } = mountPanelAndOpenMenu()
+    try {
+      useMarkupStore.setState({ moveGroup: moveSpy as unknown as typeof REAL.moveGroup })
+      act(() => {
+        findMenuItem(container, 'Move to…')!.click()
+      })
+      const dialog = container.querySelector(
+        '[data-testid="group-category-dialog"]'
+      ) as HTMLElement
+      expect(dialog).not.toBeNull()
+      // Enter reaches the backdrop handleKey → handleConfirm, bypassing the disabled
+      // button entirely; handleConfirm's own non-empty guard must reject it.
+      act(() => {
+        dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+      })
+      expect(moveSpy).not.toHaveBeenCalled()
+      // Dialog stays open (a rejected confirm does not close it).
+      expect(container.querySelector('[data-testid="group-category-dialog"]')).not.toBeNull()
+    } finally {
+      unmount()
+    }
+  })
+
   it('Copy to… confirm dispatches copyGroup(name, categoryName) (D-07)', () => {
     const copySpy = vi.fn()
     const { container, unmount } = mountPanelAndOpenMenu()
