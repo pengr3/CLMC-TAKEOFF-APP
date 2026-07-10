@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: phase_17_executing
-stopped_at: "Phase 17 (markup-rename-and-reorder) EXECUTED — all 7 plans complete (suite 786 green, typecheck + build clean). Running goal verification + code review. NOTE: moving a hidden group currently un-hides it (move-group has no hidden re-key) — flagged for verifier."
+status: phase_17_awaiting_uat
+stopped_at: "Phase 17 (markup-rename-and-reorder) EXECUTED + VERIFIED (automated PASS) + review-fixed — suite 793 green, typecheck + build clean. Awaiting human UAT (4 items in 17-HUMAN-UAT.md). Deferred review findings MD-02/MD-03/LW-03 (see 17-REVIEW.md)."
 last_updated: "2026-07-09T08:53:22.850Z"
 last_activity: 2026-07-09
 progress:
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 17 — markup-rename-and-reorder (PLANNED — 7 plans in 4 waves, ready to execute)
+**Current Focus:** Phase 17 — markup-rename-and-reorder (EXECUTED + VERIFIED + review-fixed; awaiting human UAT)
 
 ---
 
 ## Current Position
 
-Phase: 17 (markup-rename-and-reorder) — PLANNED (7 plans, 4 waves); plan-checker 0 blockers. Phase 16 COMPLETE (UAT approved 2026-07-01).
-Plan: 0 of 7 complete — ready for /gsd-execute-phase 17
+Phase: 17 (markup-rename-and-reorder) — EXECUTED + VERIFIED (automated PASS) + review-fixed; awaiting human UAT. Phase 16 COMPLETE (UAT approved 2026-07-01).
+Plan: 7 of 7 complete (suite 793 green, typecheck + build clean); 4 human-UAT items pending in 17-HUMAN-UAT.md
 
 ## Performance Metrics
 
@@ -250,9 +250,9 @@ None.
 
 **Last session:** 2026-07-09T08:53:22.850Z
 
-**Stopped at:** Phase 17 (markup-rename-and-reorder) PLANNED — 7 plans in 4 waves, plan-checker 0 blockers, ready to execute.
+**Stopped at:** Phase 17 (markup-rename-and-reorder) EXECUTED + VERIFIED (automated PASS) + review-fixed — suite 793 green, typecheck + build clean; awaiting human UAT (4 items).
 
-**Next action:** **Phase 17 (Markup Rename and Reorder) PLANNED — ready to execute.** Full research-first plan-phase pipeline: 17-RESEARCH.md (HIGH confidence — corrected CONTEXT shorthand: the BOQ aggregator is renderer-side at boq-aggregator.ts:264 not src/main; the visibility key is the composite name|categoryId; categoryItemOrder lives in markupStore so reorder+move are single-store commands), 17-VALIDATION.md (Vitest; 12 Wave-0 test files), 17-PATTERNS.md (19 files → line-cited analogs), then 7 PLAN.md in 4 waves. Plan-checker: 0 blockers, 3 warnings resolved (D-02 double-click `e.detail===2` regression test added to 17-06; markupStore↔projectStore circular-import note + lazy fallback added to 17-02; RESEARCH Open Questions marked RESOLVED). Coverage: SPEC Req 1–5 ✓, decisions D-01..D-11 ✓. Waves — W1: 17-01 categoryItemOrder spine + aggregator sort swap (all 3 surfaces) + additive .clmc (no formatVersion bump). W2: 17-02 rename + cross-store one-Ctrl+Z atomic undo + group-ops, 17-03 GroupCategoryDialog + useRowReorder. W3: 17-04 move/copy/duplicate commands, 17-05 shared context menu + InlineRenameInput + collision message. W4: 17-06 totals-panel wiring, 17-07 estimate-sheet wiring. Commits: research 8855d9c, validation 494e157, patterns 505d946, plans 0b1d6ff (+ warning-fix commit). Delivers the Phase-16-deferred rename+reorder (user: "sooner or later"), extended in discuss to move/copy/duplicate; rename blocks on name collision (no merge, per user's rejection of silent merge). Next: /clear then /gsd-execute-phase 17.
+**Next action:** **Phase 17 (Markup Rename and Reorder) EXECUTED + VERIFIED + review-fixed — awaiting human UAT.** All 7 plans built sequentially on master (feat commits `b7c651c`..`c20e383`). gsd-verifier confirmed 10/10 SPEC acceptance criteria + 11/11 decisions (D-01..D-11) against real source; suite 793 green, typecheck + build clean; the shared-order goal claim verified end-to-end (one aggregator sort → totals panel + Estimate sheet + xlsx/csv). gsd-code-reviewer found 1 High / 3 Med / 3 Low → FIXED HG-01 (blank-category guard `10daec6`), MD-01 (category-scoped inline-rename `93db214`), LW-01 (`__proto__` hydrate hardening `b0c319f`), LW-02 (drag unmount cleanup `6efe392`); DEFERRED MD-02 (move un-hides a hidden group — verifier ruled acceptable per SPEC), MD-03 (same-category cross-type visibility coupling), LW-03 (group-name case-sensitivity) — recorded in `17-REVIEW.md`. **4 human-UAT items pending** in `17-HUMAN-UAT.md`: grip-drag feel, collision-message readability, export cross-surface order parity, totals single-click-stays-instant. Once UAT-approved, mark Phase 17 complete (`phase.complete`). — Prior context (planning): **Phase 17 (Markup Rename and Reorder) PLANNED — ready to execute.** Full research-first plan-phase pipeline: 17-RESEARCH.md (HIGH confidence — corrected CONTEXT shorthand: the BOQ aggregator is renderer-side at boq-aggregator.ts:264 not src/main; the visibility key is the composite name|categoryId; categoryItemOrder lives in markupStore so reorder+move are single-store commands), 17-VALIDATION.md (Vitest; 12 Wave-0 test files), 17-PATTERNS.md (19 files → line-cited analogs), then 7 PLAN.md in 4 waves. Plan-checker: 0 blockers, 3 warnings resolved (D-02 double-click `e.detail===2` regression test added to 17-06; markupStore↔projectStore circular-import note + lazy fallback added to 17-02; RESEARCH Open Questions marked RESOLVED). Coverage: SPEC Req 1–5 ✓, decisions D-01..D-11 ✓. Waves — W1: 17-01 categoryItemOrder spine + aggregator sort swap (all 3 surfaces) + additive .clmc (no formatVersion bump). W2: 17-02 rename + cross-store one-Ctrl+Z atomic undo + group-ops, 17-03 GroupCategoryDialog + useRowReorder. W3: 17-04 move/copy/duplicate commands, 17-05 shared context menu + InlineRenameInput + collision message. W4: 17-06 totals-panel wiring, 17-07 estimate-sheet wiring. Commits: research 8855d9c, validation 494e157, patterns 505d946, plans 0b1d6ff (+ warning-fix commit). Delivers the Phase-16-deferred rename+reorder (user: "sooner or later"), extended in discuss to move/copy/duplicate; rename blocks on name collision (no merge, per user's rejection of silent merge). Next: /clear then /gsd-execute-phase 17.
 
 ---
 
