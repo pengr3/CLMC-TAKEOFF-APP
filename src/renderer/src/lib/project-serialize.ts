@@ -108,6 +108,12 @@ export function hydrateStores(data: ProjectFileV2): void {
     const safeOrder: Record<string, string[]> = {}
     if (rawOrder && typeof rawOrder === 'object') {
       for (const [k, v] of Object.entries(rawOrder as Record<string, unknown>)) {
+        // T-17-01 hardening (LW-01): a crafted `.clmc` with a dunder key
+        // (`{ "__proto__": [...] }`) would, via the Annex-B legacy accessor, silently
+        // repoint safeOrder's own prototype instead of being sanitized. Drop dunder keys
+        // outright so the coercion "always sanitizes untrusted fields / never throws"
+        // contract holds; a real bucket key is never one of these reserved names.
+        if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue
         if (Array.isArray(v)) {
           safeOrder[k] = v.filter((x): x is string => typeof x === 'string')
         }

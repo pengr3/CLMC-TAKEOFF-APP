@@ -130,6 +130,26 @@ describe('project-serialize — categoryItemOrder persistence (Phase 17 Req 2)',
     expect(JSON.parse(JSON.stringify(snap)).formatVersion).toBe(2)
   })
 
+  it('(e) LW-01: a __proto__ key is dropped, is inert, does not repoint the prototype, never throws', () => {
+    // JSON.parse materializes "__proto__" as a genuine OWN enumerable property (it does
+    // NOT invoke the setter), so it reaches the coercion loop. Without the dunder guard,
+    // `safeOrder["__proto__"] = [...]` would repoint safeOrder's prototype to the array.
+    const raw = JSON.parse('{"__proto__":["x"],"cat-e":["Outlet|count"]}')
+    const data = { ...MINIMAL_V2, categoryItemOrder: raw } as unknown as ProjectFileV2
+
+    const call = (): void => hydrateStores(data)
+    expect(call).not.toThrow()
+    call()
+
+    const result = useMarkupStore.getState().categoryItemOrder
+    // The dunder key is dropped entirely; the legitimate key survives.
+    expect(Object.prototype.hasOwnProperty.call(result, '__proto__')).toBe(false)
+    expect(result).toEqual({ 'cat-e': ['Outlet|count'] })
+    // The sanitized object's prototype is untouched (NOT repointed to the injected array).
+    expect(Object.getPrototypeOf(result)).toBe(Object.prototype)
+    expect(Array.isArray(Object.getPrototypeOf(result))).toBe(false)
+  })
+
   it('opening a file with categoryItemOrder does NOT mark the project dirty', () => {
     // Hydration runs inside the suspend/resume bracket → isDirty stays false.
     const data = {
