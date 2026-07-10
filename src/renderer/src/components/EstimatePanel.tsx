@@ -6,8 +6,14 @@ import { DEFAULT_MARKUP_PCT } from '../lib/estimate-defaults'
 import { useBoqLive } from '../hooks/useBoqLive'
 import { useViewerStore } from '../stores/viewerStore'
 import { useProjectStore } from '../stores/projectStore'
+import { useMarkupStore } from '../stores/markupStore'
 import { EstimateCategoryBlock } from './EstimateCategoryBlock'
 import { DefaultMarkupChangeModal } from './DefaultMarkupChangeModal'
+import { TotalsRowContextMenu } from './TotalsRowContextMenu'
+import { GroupCategoryDialog } from './GroupCategoryDialog'
+import { labelToName } from './TotalsRow'
+import { autoUniqueName } from '../lib/group-ops'
+import type { BoqItemRow } from '../lib/boq-types'
 
 /**
  * EstimatePanel — the full-width center-area Estimate sheet (Phase 16, D-01/D-07).
@@ -217,6 +223,28 @@ export function EstimatePanel(): React.JSX.Element {
   const boq = useBoqLive()
   const totalPages = useViewerStore((s) => s.totalPages)
 
+  // Phase 17 (D-01): shared group context menu state — routed from a row right-click
+  // (the Estimate row has none today; this panel adds it, mirroring TotalsPanel).
+  const [contextMenuState, setContextMenuState] = useState<{
+    item: BoqItemRow
+    x: number
+    y: number
+  } | null>(null)
+  // Phase 17 (D-05/D-07): Move/Copy category dialog state. `name` is the group name;
+  // `autoName` is the copy-mode preview. Null → dialog unmounted.
+  const [dialogState, setDialogState] = useState<{
+    mode: 'move' | 'copy'
+    name: string
+    autoName?: string
+  } | null>(null)
+  // Phase 17 (D-02): the `name|type` key of the row whose inline rename editor is open.
+  // Set by the menu "Rename" action OR a row double-click; both open the same editor.
+  const [renamingKey, setRenamingKey] = useState<string | null>(null)
+
+  // Stable-reference selector (the record itself, NOT a fresh array — EMPTY_MARKUPS
+  // discipline); converted to an array only when the Move/Copy dialog actually mounts.
+  const categoriesRecord = useMarkupStore((s) => s.categories)
+
   // Empty-state decision tree (mirrors TotalsPanel :143-151).
   let emptyMsg: string | null = null
   if (totalPages === 0) {
@@ -335,7 +363,14 @@ export function EstimatePanel(): React.JSX.Element {
           style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}
         >
           {boq.categories.map((cat) => (
-            <EstimateCategoryBlock key={cat.name} category={cat} />
+            <EstimateCategoryBlock
+              key={cat.name}
+              category={cat}
+              onContextMenu={(item, x, y) => setContextMenuState({ item, x, y })}
+              renamingKey={renamingKey}
+              onStartRename={(key) => setRenamingKey(key)}
+              onEndRename={() => setRenamingKey(null)}
+            />
           ))}
         </div>
       )}
@@ -385,6 +420,66 @@ export function EstimatePanel(): React.JSX.Element {
             {formatMoney(boq.grandTotalMargin)}
           </span>
         </div>
+      )}
+
+      {/* Phase 17 (D-01): shared group context menu — mounted when a row is right-clicked.
+          showCopyAsText={false}: the four group actions are shared with the totals panel, but
+          "Copy as text" is totals-only (the Estimate sheet has its own xlsx/csv export).
+          onCopy/onCopyError are required props but never fire while showCopyAsText is false. */}
+      {contextMenuState !== null && (
+        <TotalsRowContextMenu
+          screenPos={{ x: contextMenuState.x, y: contextMenuState.y }}
+          item={contextMenuState.item}
+          showCopyAsText={false}
+          onClose={() => setContextMenuState(null)}
+          onCopy={() => {}}
+          onCopyError={() => {}}
+          // Phase 17 (D-01): the four shared group actions routed to their commands.
+          onRename={() => {
+            const it = contextMenuState.item
+            // Same key the block/row use for isRenaming — opens the SAME inline editor
+            // as a double-click.
+            setRenamingKey(`${labelToName(it.label)}|${it.type}`)
+          }}
+          onMove={() => {
+            const it = contextMenuState.item
+            setDialogState({ mode: 'move', name: labelToName(it.label) })
+          }}
+          onCopyTo={() => {
+            const it = contextMenuState.item
+            const name = labelToName(it.label)
+            // D-07 "no surprise": compute the copy auto-name preview from the live markups,
+            // type-scoped to the group's types (matches copyGroup's own naming).
+            const allMarkups = Object.values(useMarkupStore.getState().pageMarkups).flat()
+            const sourceTypes = new Set(allMarkups.filter((m) => m.name === name).map((m) => m.type))
+            const autoName = autoUniqueName(name, sourceTypes, allMarkups)
+            setDialogState({ mode: 'copy', name, autoName })
+          }}
+          onDuplicate={() => {
+            // D-08: Duplicate is immediate — no dialog.
+            useMarkupStore.getState().duplicateGroup(labelToName(contextMenuState.item.label))
+          }}
+        />
+      )}
+
+      {/* Phase 17 (D-05/D-07): Move/Copy category dialog — mounted only while dialogState is set.
+          onConfirm dispatches moveGroup or copyGroup; both close the dialog. */}
+      {dialogState !== null && (
+        <GroupCategoryDialog
+          mode={dialogState.mode}
+          groupName={dialogState.name}
+          autoName={dialogState.autoName}
+          categories={Object.values(categoriesRecord)}
+          onConfirm={(categoryName) => {
+            if (dialogState.mode === 'move') {
+              useMarkupStore.getState().moveGroup(dialogState.name, categoryName)
+            } else {
+              useMarkupStore.getState().copyGroup(dialogState.name, categoryName)
+            }
+            setDialogState(null)
+          }}
+          onCancel={() => setDialogState(null)}
+        />
       )}
     </div>
   )
