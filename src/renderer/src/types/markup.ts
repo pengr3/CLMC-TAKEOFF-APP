@@ -157,6 +157,19 @@ export type MarkupCommand =
        * pages (A4 / D-17 condition 5 — same-page guard in the reopen handler).
        */
     }
+  | {
+      /**
+       * Phase 17 (Req 2, D-11): set the persisted per-category manual item order as
+       * a single undoable command. `catKey` is a categoryId or '__uncat__'
+       * (UNCAT_BUCKET_KEY); `oldOrder`/`newOrder` are ordered lists of `${name}|${type}`
+       * bucket keys. Single-store command (order lives in markupStore) — no projectStore
+       * side-payload, unlike rename/copy/duplicate.
+       */
+      type: 'reorder-items'
+      catKey: string
+      oldOrder: string[]
+      newOrder: string[]
+    }
 
 export const CATEGORY_PALETTE = [
   '#0078d4',

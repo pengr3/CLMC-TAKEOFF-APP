@@ -140,6 +140,14 @@ export interface AggregateOptions {
   totalPages?: number
   categoriesById?: Record<string, { id: string; name: string }>
   categoryOrder?: string[]
+  /**
+   * Phase 17 (Req 2, D-11): per-category manual item order — categoryId (or
+   * '__uncat__') → ordered `${name}|${type}` bucket keys. Ranks the bucket entries
+   * before rows are built (stable sort → unranked/new keys keep placement order and
+   * append last), replacing the former alphabetical label sort. Default
+   * useMarkupStore.getState().categoryItemOrder.
+   */
+  categoryItemOrder?: Record<string, string[]>
   pdfOriginalFilename?: string
   currentFilePath?: string | null
   getColorForName?: (name: string) => string | null

@@ -9,6 +9,14 @@ interface MarkupStoreState {
   pageMarkups: Record<number, Markup[]>
   categories: Record<string, Category>
   categoryOrder: string[]
+  /**
+   * Phase 17 (Req 2, D-11): persisted per-category manual item order. Key is a
+   * categoryId or '__uncat__' (UNCAT_BUCKET_KEY); value is the ordered list of
+   * `${name}|${type}` bucket keys. Consumed by aggregateBoq to order rows (replacing
+   * the former alphabetical sort). Absent key → placement order. Additive in the
+   * .clmc (no formatVersion bump); mirrors categoryOrder's wiring.
+   */
+  categoryItemOrder: Record<string, string[]>
   undoStack: MarkupCommand[]
   redoStack: MarkupCommand[]
 
@@ -32,6 +40,15 @@ interface MarkupStoreState {
    */
   deleteGroup: (markups: Markup[]) => void
   recolorGroup: (name: string, newColor: string, page?: number) => void
+  /**
+   * Phase 17 (Req 2): set the persisted manual item order for a category as a single
+   * undoable command. `catKey` is a categoryId or '__uncat__'; `newOrder` is the
+   * ordered list of `${name}|${type}` bucket keys. Defensive no-op (no command
+   * pushed, state reference unchanged) when the order is unchanged. undo() restores
+   * the prior order; redo() re-applies. Single-store command — mirrors recolorGroup's
+   * push-one-command / clear-redo discipline.
+   */
+  reorderItems: (catKey: string, newOrder: string[]) => void
   editMarkup: (
     markupId: string,
     page: number,
@@ -115,6 +132,12 @@ interface MarkupStoreState {
     pageMarkups: Record<number, Markup[]>
     categories: Record<string, Category>
     categoryOrder: string[]
+    /**
+     * Phase 17 (Req 2): optional so pre-Phase-17 callers (and any that omit it)
+     * still compile; the store coerces an absent value to {} on set. project-serialize
+     * passes the V5-coerced order here.
+     */
+    categoryItemOrder?: Record<string, string[]>
   }) => void
   reset: () => void
 }
@@ -122,6 +145,19 @@ interface MarkupStoreState {
 function pushCommand(stack: MarkupCommand[], cmd: MarkupCommand): MarkupCommand[] {
   const next = [...stack, cmd]
   return next.length > UNDO_STACK_MAX ? next.slice(next.length - UNDO_STACK_MAX) : next
+}
+
+/**
+ * Order-sensitive shallow equality for the reorderItems no-op guard (Phase 17).
+ * Two orders are equal iff same length and same elements in the same positions.
+ */
+function arraysEqual(a: readonly string[], b: readonly string[]): boolean {
+  if (a === b) return true
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
 }
 
 /**
@@ -147,6 +183,7 @@ export const useMarkupStore = create<MarkupStoreState>()(
   pageMarkups: {},
   categories: {},
   categoryOrder: [],
+  categoryItemOrder: {},
   undoStack: [],
   redoStack: [],
 
@@ -260,6 +297,20 @@ export const useMarkupStore = create<MarkupStoreState>()(
       }
       return {
         pageMarkups: nextPageMarkups,
+        undoStack: pushCommand(s.undoStack, cmd),
+        redoStack: []
+      }
+    }),
+
+  reorderItems: (catKey, newOrder) =>
+    set((s) => {
+      const oldOrder = s.categoryItemOrder[catKey] ?? []
+      // Defensive no-op — an unchanged order pushes no command and leaves the state
+      // reference intact (mirrors recolorGroup's `idsAffected.length === 0` guard).
+      if (arraysEqual(oldOrder, newOrder)) return s
+      const cmd: MarkupCommand = { type: 'reorder-items', catKey, oldOrder, newOrder }
+      return {
+        categoryItemOrder: { ...s.categoryItemOrder, [catKey]: newOrder },
         undoStack: pushCommand(s.undoStack, cmd),
         redoStack: []
       }
@@ -603,6 +654,17 @@ export const useMarkupStore = create<MarkupStoreState>()(
         }
       }
 
+      // Phase 17 (Req 2): reorder-items branch MUST come BEFORE the `cmd.markup.page`
+      // access below — it carries `catKey`/`oldOrder`/`newOrder`, not `markup`. Undo
+      // restores the prior per-category order.
+      if (cmd.type === 'reorder-items') {
+        return {
+          categoryItemOrder: { ...s.categoryItemOrder, [cmd.catKey]: cmd.oldOrder },
+          undoStack: s.undoStack.slice(0, -1),
+          redoStack: [...s.redoStack, cmd]
+        }
+      }
+
       const page = cmd.markup.page
       const pageList = s.pageMarkups[page] ?? []
       let nextList: Markup[]
@@ -751,6 +813,16 @@ export const useMarkupStore = create<MarkupStoreState>()(
         }
       }
 
+      // Phase 17 (Req 2): reorder-items redo re-applies the new per-category order,
+      // mirroring the undo branch above. MUST precede the `cmd.markup.page` fallthrough.
+      if (cmd.type === 'reorder-items') {
+        return {
+          categoryItemOrder: { ...s.categoryItemOrder, [cmd.catKey]: cmd.newOrder },
+          undoStack: pushCommand(s.undoStack, cmd),
+          redoStack: s.redoStack.slice(0, -1)
+        }
+      }
+
       const page = cmd.markup.page
       const pageList = s.pageMarkups[page] ?? []
       let nextList: Markup[]
@@ -775,6 +847,7 @@ export const useMarkupStore = create<MarkupStoreState>()(
       pageMarkups: data.pageMarkups,
       categories: data.categories,
       categoryOrder: data.categoryOrder,
+      categoryItemOrder: data.categoryItemOrder ?? {},
       undoStack: [],
       redoStack: []
     })
@@ -786,6 +859,7 @@ export const useMarkupStore = create<MarkupStoreState>()(
       pageMarkups: {},
       categories: {},
       categoryOrder: [],
+      categoryItemOrder: {},
       undoStack: [],
       redoStack: []
     })

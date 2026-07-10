@@ -171,7 +171,9 @@ export function attachDirtyTracking(): () => void {
   const markDirty = useProjectStore.getState().markDirty
 
   const unsubMarkup = useMarkupStore.subscribe(
-    (s) => [s.pageMarkups, s.categories, s.categoryOrder] as const,
+    // Phase 17 (Req 2): watch categoryItemOrder so a reorder-only change (no
+    // pageMarkups/categories mutation) still marks the project dirty.
+    (s) => [s.pageMarkups, s.categories, s.categoryOrder, s.categoryItemOrder] as const,
     () => markDirty(),
     { equalityFn: shallowEqualArr }
   )
