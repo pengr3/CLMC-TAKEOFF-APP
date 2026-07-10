@@ -3,7 +3,7 @@ import type React from 'react'
 import { COLORS } from '../lib/constants'
 import { useUiPanels } from '../hooks/useUiPanels'
 import { useRowReorder, type RowRect } from '../hooks/useRowReorder'
-import { TotalsRow, labelToName, rowTypeToMarkupType } from './TotalsRow'
+import { TotalsRow, labelToName, rowTypeToMarkupType, renameKeyForItem } from './TotalsRow'
 import type { BoqCategoryGroup, BoqItemRow } from '../lib/boq-types'
 import type { Markup } from '../types/markup'
 
@@ -162,6 +162,9 @@ export function TotalsCategoryBlock(props: TotalsCategoryBlockProps): React.JSX.
         <div ref={bodyRef} data-testid="totals-category-body">
           {category.items.map((item, rowIndex) => {
             const rowKey = orderedKeys[rowIndex]
+            // MD-01: rename identity is category-scoped so a group spanning two categories
+            // opens exactly ONE editor (rowKey stays `name|type` for drag/lift/React-key).
+            const renameKey = renameKeyForItem(item)
             const cycleKey = `${category.name}|${item.label}`
             const cycleIndex = cycleIndexByKey?.[cycleKey] ?? 0
             const isLifted = liftedKey === rowKey
@@ -190,8 +193,8 @@ export function TotalsCategoryBlock(props: TotalsCategoryBlockProps): React.JSX.
                     onTriggerPulse={onTriggerPulse}
                     onArmTool={onArmTool ? (it) => onArmTool(it, category.name) : undefined}
                     onGripPointerDown={(e, itemKey) => startGripDrag(e, itemKey, getRowRects)}
-                    isRenaming={renamingKey === rowKey}
-                    onStartRename={() => onStartRename?.(rowKey)}
+                    isRenaming={renamingKey === renameKey}
+                    onStartRename={() => onStartRename?.(renameKey)}
                     onEndRename={onEndRename}
                   />
                 </div>

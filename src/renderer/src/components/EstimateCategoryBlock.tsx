@@ -5,7 +5,7 @@ import { CURRENCY_SYMBOL } from '../lib/currency'
 import { useUiPanels } from '../hooks/useUiPanels'
 import { useRowReorder, type RowRect } from '../hooks/useRowReorder'
 import { EstimateRow } from './EstimateRow'
-import { labelToName } from './TotalsRow'
+import { labelToName, renameKeyForItem } from './TotalsRow'
 import type { BoqCategoryGroup, BoqItemRow } from '../lib/boq-types'
 
 /**
@@ -138,6 +138,9 @@ export function EstimateCategoryBlock(props: EstimateCategoryBlockProps): React.
           <div ref={bodyRef} data-testid="estimate-category-body">
             {category.items.map((item, rowIndex) => {
               const rowKey = orderedKeys[rowIndex]
+              // MD-01: rename identity is category-scoped so a group spanning two categories
+              // opens exactly ONE editor (rowKey stays `name|type` for drag/lift/React-key).
+              const renameKey = renameKeyForItem(item)
               const isLifted = liftedKey === rowKey
               return (
                 <Fragment key={rowKey}>
@@ -158,8 +161,8 @@ export function EstimateCategoryBlock(props: EstimateCategoryBlockProps): React.
                       item={item}
                       onContextMenu={onContextMenu}
                       onGripPointerDown={(e, itemKey) => startGripDrag(e, itemKey, getRowRects)}
-                      isRenaming={renamingKey === rowKey}
-                      onStartRename={() => onStartRename?.(rowKey)}
+                      isRenaming={renamingKey === renameKey}
+                      onStartRename={() => onStartRename?.(renameKey)}
                       onEndRename={onEndRename}
                     />
                   </div>

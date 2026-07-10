@@ -11,7 +11,7 @@ import { EstimateCategoryBlock } from './EstimateCategoryBlock'
 import { DefaultMarkupChangeModal } from './DefaultMarkupChangeModal'
 import { TotalsRowContextMenu } from './TotalsRowContextMenu'
 import { GroupCategoryDialog } from './GroupCategoryDialog'
-import { labelToName } from './TotalsRow'
+import { labelToName, renameKeyForItem } from './TotalsRow'
 import { autoUniqueName } from '../lib/group-ops'
 import type { BoqItemRow } from '../lib/boq-types'
 
@@ -438,8 +438,9 @@ export function EstimatePanel(): React.JSX.Element {
           onRename={() => {
             const it = contextMenuState.item
             // Same key the block/row use for isRenaming — opens the SAME inline editor
-            // as a double-click.
-            setRenamingKey(`${labelToName(it.label)}|${it.type}`)
+            // as a double-click. MD-01: category-scoped so a group spanning two categories
+            // opens only the row the user right-clicked.
+            setRenamingKey(renameKeyForItem(it))
           }}
           onMove={() => {
             const it = contextMenuState.item

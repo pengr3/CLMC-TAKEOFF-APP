@@ -79,6 +79,23 @@ export function labelToName(label: string): string {
 }
 
 /**
+ * MD-01: the identity of the inline-rename target, scoped by CATEGORY as well as
+ * `name|type`. A single name-group can legitimately span two categories (Pitfall 3);
+ * the bare `name|type` key is then the rowKey of two rows at once, so double-clicking
+ * one would open BOTH editors. Prefixing the categoryId (empty/null → '__uncat__',
+ * matching the aggregator's UNCAT bucket) makes each row's rename key unique so only
+ * the row the user interacted with opens its editor. The value passed to renameGroup
+ * is still the bare group name (labelToName) — renameGroup operates across all
+ * categories, so its input is unchanged.
+ */
+export function renameKeyForItem(
+  item: Pick<BoqItemRow, 'label' | 'type' | 'categoryId'>
+): string {
+  const catId = item.categoryId && item.categoryId.length > 0 ? item.categoryId : '__uncat__'
+  return `${catId}::${labelToName(item.label)}|${item.type}`
+}
+
+/**
  * Map a BoqRowType back to the underlying Markup.type. Since Phase 15 the
  * perimeter row type equals the markup type ('perimeter'), so this is an
  * identity mapping — kept as a named seam for callsite clarity.
