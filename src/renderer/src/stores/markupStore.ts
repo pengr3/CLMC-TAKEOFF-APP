@@ -4,8 +4,9 @@ import type { Markup, Category, MarkupCommand, CountMarkup } from '../types/mark
 import { CATEGORY_PALETTE, UNDO_STACK_MAX } from '../types/markup'
 import type { StagePoint } from '../hooks/useCalibrationMode'
 import { setReopenSnapshot } from '../lib/markup-reopen-ref'
-import { collisionExists } from '../lib/group-ops'
+import { collisionExists, autoUniqueName, snapshotGroup } from '../lib/group-ops'
 import type { PriceEntry } from '../lib/boq-types'
+import { DEFAULT_MARKUP_PCT } from '../lib/estimate-defaults'
 // Phase 17-02: markupStore orchestrates the projectStore side of the cross-store
 // commands (rename re-keys rates/hidden; copy/dup add/remove a blank rate). This is a
 // NEW markupStore→projectStore module reference, while projectStore already imports
@@ -88,6 +89,24 @@ interface MarkupStoreState {
    * branches from 17-02 revert categoryId + order with one Ctrl+Z).
    */
   moveGroup: (name: string, targetCategoryName: string) => void
+  /**
+   * Phase 17 (Req 4, D-07): copy a whole group into the chosen category as INDEPENDENT new
+   * markups — fresh ids, DEEP-cloned geometry, fresh per-page count sequences (Pitfall 6) —
+   * under an auto-unique name ("{base} (n)", first-free) with a fresh BLANK rate
+   * `{ material:0, labor:0, markup: DEFAULT_MARKUP_PCT }` at a DISTINCT `name|type` key.
+   * Editing the source geometry never changes the copy. Target resolved via
+   * getOrCreateCategory BEFORE set(); the blank rate is seeded in projectStore BEFORE set()
+   * (cross-store — one Ctrl+Z removes BOTH the new markups and their rate via the 17-02
+   * copy-group undo branch). Defensive no-op when no group named `name` exists.
+   */
+  copyGroup: (name: string, targetCategoryName: string) => void
+  /**
+   * Phase 17 (Req 5, D-08): duplicate a group IN PLACE — identical to copyGroup but the
+   * target is the source group's own category and there is NO dialog. The auto-unique name
+   * ("{base} (n)") produces a DISTINCT bucket, so the duplicate never merges into the source
+   * (no quantity doubling). One undoable, cross-store command. Defensive no-op when absent.
+   */
+  duplicateGroup: (name: string) => void
   editMarkup: (
     markupId: string,
     page: number,
@@ -209,6 +228,80 @@ function arraysEqual(a: readonly string[], b: readonly string[]): boolean {
 const UNCAT_ORDER_KEY = '__uncat__'
 function orderCatKey(categoryId: string): string {
   return categoryId && categoryId.length > 0 ? categoryId : UNCAT_ORDER_KEY
+}
+
+/**
+ * The independent-snapshot payload shared by copyGroup and duplicateGroup — the full new
+ * markups, the fresh blank rate rows to add, and the order keys to append. Copy and
+ * Duplicate build this IDENTICALLY; they differ ONLY in the target category (copy: the
+ * resolved destination; duplicate: the source category) and the command discriminant.
+ */
+interface SnapshotPayload {
+  newMarkups: Markup[]
+  rateKeys: Array<{ key: string; entry: PriceEntry }>
+  orderAppends: Array<{ catKey: string; itemKey: string }>
+}
+
+/**
+ * Build the copy/duplicate snapshot payload (D-07/D-08). Auto-names the group first-free
+ * ("{base} (n)"), deep-clones every source markup into `targetCategoryId` with fresh ids +
+ * fresh per-page count sequences (snapshotGroup — Pitfall 6), and derives a fresh BLANK rate
+ * `{ material:0, labor:0, markup: DEFAULT_MARKUP_PCT }` at a DISTINCT `${newName}|${type}`
+ * key per type present, plus the matching order-append key. Pure — callers inject
+ * `allMarkups` (no store reads), so it is Node-testable and never double-reads state.
+ */
+function buildSnapshotPayload(
+  name: string,
+  targetCategoryId: string,
+  allMarkups: Markup[]
+): SnapshotPayload {
+  const sourceMarkups = allMarkups.filter((m) => m.name === name)
+  const sourceTypes = new Set(sourceMarkups.map((m) => m.type))
+  const newName = autoUniqueName(name, sourceTypes, allMarkups)
+  const newMarkups = snapshotGroup(sourceMarkups, newName, targetCategoryId)
+  const catKey = orderCatKey(targetCategoryId)
+  const rateKeys: Array<{ key: string; entry: PriceEntry }> = []
+  const orderAppends: Array<{ catKey: string; itemKey: string }> = []
+  for (const t of sourceTypes) {
+    const itemKey = `${newName}|${t}`
+    rateKeys.push({ key: itemKey, entry: { material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT } })
+    orderAppends.push({ catKey, itemKey })
+  }
+  return { newMarkups, rateKeys, orderAppends }
+}
+
+/**
+ * The markupStore side of a copy/duplicate forward apply: add the new snapshots to their
+ * pages, append the order keys, and push the copy-group / duplicate-group command (clearing
+ * redo). Symmetric with the copy/duplicate REDO branch (17-02). The projectStore blank rates
+ * are seeded by the caller BEFORE set() (like getOrCreateCategory / rename re-keys), so the
+ * two stores land together in one Ctrl+Z unit.
+ */
+function snapshotForwardReducer(
+  s: MarkupStoreState,
+  commandType: 'copy-group' | 'duplicate-group',
+  payload: SnapshotPayload
+): Partial<MarkupStoreState> {
+  const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+  for (const m of payload.newMarkups) {
+    nextPageMarkups[m.page] = [...(nextPageMarkups[m.page] ?? []), m]
+  }
+  const nextOrder: Record<string, string[]> = { ...s.categoryItemOrder }
+  for (const ap of payload.orderAppends) {
+    nextOrder[ap.catKey] = [...(nextOrder[ap.catKey] ?? []), ap.itemKey]
+  }
+  const cmd: MarkupCommand = {
+    type: commandType,
+    newMarkups: payload.newMarkups,
+    rateKeys: payload.rateKeys,
+    orderAppends: payload.orderAppends
+  }
+  return {
+    pageMarkups: nextPageMarkups,
+    categoryItemOrder: nextOrder,
+    undoStack: pushCommand(s.undoStack, cmd),
+    redoStack: []
+  }
 }
 
 /**
@@ -574,6 +667,32 @@ export const useMarkupStore = create<MarkupStoreState>()(
         redoStack: []
       }
     })
+  },
+
+  copyGroup: (name, targetCategoryName) => {
+    // Resolve the target category BEFORE set() (avoid a nested set() — mirrors editMarkup).
+    const targetCat = get().getOrCreateCategory(targetCategoryName)
+    const allMarkups = Object.values(get().pageMarkups).flat()
+    if (!allMarkups.some((m) => m.name === name)) return // defensive no-op (no group named `name`)
+    const payload = buildSnapshotPayload(name, targetCat.id, allMarkups)
+    // Seed the fresh blank rates in projectStore BEFORE set() (resolve-before-set, like the
+    // rename re-keys). The forward action does NOT flow through redo (redoStack is cleared
+    // below) so applyProjectRedo never double-adds; undo removes them via applyProjectUndo.
+    const ps = useProjectStore.getState()
+    for (const rk of payload.rateKeys) ps.addBlankRate(rk.key)
+    set((s) => snapshotForwardReducer(s, 'copy-group', payload))
+  },
+
+  duplicateGroup: (name) => {
+    const allMarkups = Object.values(get().pageMarkups).flat()
+    const source = allMarkups.filter((m) => m.name === name)
+    if (source.length === 0) return // defensive no-op (no group named `name`)
+    // D-08: same category as the source (no dialog). A group spanning categories collapses
+    // onto the first source category — consistent with moveGroup's single-target collapse.
+    const payload = buildSnapshotPayload(name, source[0].categoryId, allMarkups)
+    const ps = useProjectStore.getState()
+    for (const rk of payload.rateKeys) ps.addBlankRate(rk.key)
+    set((s) => snapshotForwardReducer(s, 'duplicate-group', payload))
   },
 
   editMarkup: (markupId, page, oldName, oldCategoryName, oldColor, newName, newCategoryName, newColor, oldWallHeight?, newWallHeight?) => {
