@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react'
 import type React from 'react'
-import { Lightbulb, LightbulbOff, Plus } from 'lucide-react'
+import { GripVertical, Lightbulb, LightbulbOff, Plus } from 'lucide-react'
 import { COLORS } from '../lib/constants'
 import type { BoqItemRow, BoqRowType } from '../lib/boq-types'
 import type { Markup, MarkupType } from '../types/markup'
 import { useViewerStore } from '../stores/viewerStore'
 import { useMarkupStore } from '../stores/markupStore'
 import { useProjectStore } from '../stores/projectStore'
+import { InlineRenameInput } from './InlineRenameInput'
 
 /**
  * TotalsRow — single BOQ item row in the right TotalsPanel.
@@ -53,6 +54,18 @@ export interface TotalsRowProps {
   onTriggerPulse?: (matches: Markup[], color: string) => void
   /** Arm the matching markup tool with this item's name/type/color. Fired on every row click. */
   onArmTool?: (item: BoqItemRow) => void
+  /**
+   * Phase 17 (D-09): grip pointerdown → drag-reorder lifecycle. The category block binds
+   * `getRowRects` and passes this down so the drag starts ONLY from the grip. `itemKey` is
+   * the row's `name|type` bucket key.
+   */
+  onGripPointerDown?: (e: React.PointerEvent, itemKey: string) => void
+  /** Phase 17 (D-02): this row's inline rename editor is open (block/panel owns which row). */
+  isRenaming?: boolean
+  /** Phase 17 (D-02): open the inline rename editor for this row (double-click / menu Rename). */
+  onStartRename?: () => void
+  /** Phase 17 (D-02): the inline editor closed (committed / cancelled / collision-free). */
+  onEndRename?: () => void
 }
 
 function formatQuantity(item: BoqItemRow): string {
@@ -106,7 +119,10 @@ function findPagesWithMatches(
 }
 
 export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
-  const { item, cycleIndex: cycleIndexProp, currentPageMatches, onHover, onClick, onContextMenu, onTriggerPulse, onArmTool } = props
+  const {
+    item, cycleIndex: cycleIndexProp, currentPageMatches, onHover, onClick, onContextMenu,
+    onTriggerPulse, onArmTool, onGripPointerDown, isRenaming, onStartRename, onEndRename
+  } = props
   const [bg, setBg] = useState<string>('transparent')
 
   // Internal cycle state. Reset on mouse-leave (D-10 "until row-leave").
@@ -155,7 +171,13 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
   const handleMouseUp = (): void => {
     setBg(COLORS.hoverSurface)
   }
-  const handleClick = (): void => {
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>): void => {
+    // D-02 (load-bearing perceived-perf): the SECOND click of a double-click (detail === 2)
+    // must not cycle/arm — the double-click opens inline rename via onDoubleClick instead.
+    // Only the redundant SECOND click is skipped; the FIRST click (detail 1) still fires
+    // instantly, so the single-click cycle stays instant.
+    if (e.detail === 2) return
+
     // Always notify the legacy click observer.
     onClick(item)
 
@@ -201,6 +223,7 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
       onClick={handleClick}
       onContextMenu={handleContextMenu}
       style={{
+        position: 'relative',
         height: 28,
         display: 'flex',
         alignItems: 'center',
@@ -214,6 +237,27 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
         flexShrink: 0
       }}
     >
+      {/* Grip handle (D-09 / UI-SPEC §4) — absolutely positioned in the leading 16px gutter
+           so it does NOT reflow row content. Hover-revealed (same bg !== 'transparent' gate as
+           the Plus). Drag starts ONLY from here (onGripPointerDown preventDefaults + stops). */}
+      <div
+        role="button"
+        aria-label={`Reorder ${itemName}`}
+        data-testid="totals-row-grip"
+        onPointerDown={(e) => onGripPointerDown?.(e, `${itemName}|${item.type}`)}
+        style={{
+          position: 'absolute',
+          left: 1,
+          top: 0,
+          bottom: 0,
+          display: 'flex',
+          alignItems: 'center',
+          cursor: 'grab'
+        }}
+      >
+        {bg !== 'transparent' && <GripVertical size={14} color={COLORS.textSecondary} />}
+      </div>
+
       {/* Cycle dot — fixed 6px slot so absence/presence doesn't reflow the row */}
       <div
         style={{
@@ -266,17 +310,27 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
         }}
       />
 
-      {/* Item label — flex:1 so quantity stays right-aligned. */}
-      <span
-        style={{
-          flex: 1,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap'
-        }}
-      >
-        {item.label}
-      </span>
+      {/* Item label — flex:1 so quantity stays right-aligned. Double-click opens the inline
+           rename editor (D-02); when editing, the input replaces the label text in place
+           (chip / quantity / uom stay put). */}
+      {isRenaming ? (
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <InlineRenameInput currentName={itemName} onDone={onEndRename ?? (() => {})} />
+        </span>
+      ) : (
+        <span
+          data-testid="totals-row-label"
+          onDoubleClick={() => onStartRename?.()}
+          style={{
+            flex: 1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          {item.label}
+        </span>
+      )}
 
       {/* Quantity — right-aligned, tabular-nums for column alignment. */}
       <span
