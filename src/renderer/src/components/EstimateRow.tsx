@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type React from 'react'
+import { GripVertical } from 'lucide-react'
 import { COLORS } from '../lib/constants'
 import { CURRENCY_SYMBOL } from '../lib/currency'
 import { DEFAULT_MARKUP_PCT } from '../lib/estimate-defaults'
 import { labelToName } from './TotalsRow'
+import { InlineRenameInput } from './InlineRenameInput'
 import type { BoqItemRow } from '../lib/boq-types'
 import { useProjectStore } from '../stores/projectStore'
 
@@ -55,6 +57,24 @@ export interface EstimateRowProps {
   /** Optional row-level click observer. In-cell interaction must NOT reach this
    *  (each cell stopPropagation()s) — the grid is a spreadsheet. */
   onRowClick?: (item: BoqItemRow) => void
+  /**
+   * Phase 17 (D-01): right-click the row → open the shared group context menu at the
+   * cursor. The row has none today; its editable cells stopPropagation click/mousedown/
+   * keydown but NOT contextmenu, so a row-level handler on the grid `<div>` fires cleanly.
+   */
+  onContextMenu?: (item: BoqItemRow, x: number, y: number) => void
+  /**
+   * Phase 17 (D-09): grip pointerdown → drag-reorder lifecycle. The category block binds
+   * `getRowRects` and passes this down so the drag starts ONLY from the grip. `itemKey` is
+   * the row's `name|type` bucket key (== priceKey).
+   */
+  onGripPointerDown?: (e: React.PointerEvent, itemKey: string) => void
+  /** Phase 17 (D-02): this row's inline rename editor is open (block/panel owns which row). */
+  isRenaming?: boolean
+  /** Phase 17 (D-02): open the inline rename editor for this row (double-click / menu Rename). */
+  onStartRename?: () => void
+  /** Phase 17 (D-02): the inline editor closed (committed / cancelled / collision-free). */
+  onEndRename?: () => void
 }
 
 /** Quantity display — count → rounded int, else 2dp (mirrors TotalsRow.formatQuantity). */
@@ -96,7 +116,12 @@ function seedRateText(r: number | undefined): string {
 }
 
 export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
-  const { item, onRowClick } = props
+  const { item, onRowClick, onContextMenu, onGripPointerDown, isRenaming, onStartRename, onEndRename } =
+    props
+
+  // Hover-reveal gate for the leading grip handle (mirrors TotalsRow's bg gate; the
+  // Estimate row has no hover-background of its own, so a boolean suffices).
+  const [hover, setHover] = useState(false)
 
   // Category-INDEPENDENT price key `${name}|${type}` (Pitfall 4). Same key the
   // aggregator reads; strips the '(perimeter)'/'(count)' disambiguation suffix.
@@ -298,7 +323,14 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
       data-testid="estimate-row"
       data-item-label={item.label}
       onClick={() => onRowClick?.(item)}
+      onContextMenu={(e) => {
+        e.preventDefault()
+        onContextMenu?.(item, e.clientX, e.clientY)
+      }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       style={{
+        position: 'relative',
         display: 'grid',
         gridTemplateColumns:
           'minmax(120px, 1fr) 64px 48px 88px 88px 80px 72px 80px 80px 80px',
@@ -311,10 +343,43 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
         flexShrink: 0
       }}
     >
-      {/* Item · Qty · UoM */}
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {item.label}
-      </span>
+      {/* Grip handle (D-09 / UI-SPEC §4) — absolutely positioned in the leading 16px
+           gutter so it never reflows the dense 10-column grid. Hover-revealed. Drag starts
+           ONLY from here (onGripPointerDown preventDefaults + stops inside the hook). */}
+      <div
+        role="button"
+        aria-label={`Reorder ${itemName}`}
+        data-testid="estimate-row-grip"
+        onPointerDown={(e) => onGripPointerDown?.(e, priceKey)}
+        style={{
+          position: 'absolute',
+          left: 1,
+          top: 0,
+          bottom: 0,
+          display: 'flex',
+          alignItems: 'center',
+          cursor: 'grab'
+        }}
+      >
+        {hover && <GripVertical size={14} color={COLORS.textSecondary} />}
+      </div>
+
+      {/* Item · Qty · UoM. Double-click the Item cell opens the inline rename editor
+           (D-02) — clean, no e.detail guard needed (the Item cell has no click handler);
+           when editing, the input replaces the label in place (numeric cells stay put). */}
+      {isRenaming ? (
+        <span style={{ minWidth: 0 }}>
+          <InlineRenameInput currentName={itemName} onDone={onEndRename ?? (() => {})} />
+        </span>
+      ) : (
+        <span
+          data-testid="estimate-row-label"
+          onDoubleClick={() => onStartRename?.()}
+          style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+        >
+          {item.label}
+        </span>
+      )}
       <span
         style={{ fontVariantNumeric: 'tabular-nums', textAlign: 'right', color: COLORS.textSecondary }}
       >
