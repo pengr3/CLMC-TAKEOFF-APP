@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import type React from 'react'
 import { COLORS } from '../lib/constants'
 import { useUiPanels } from '../hooks/useUiPanels'
+import { useRowReorder, type RowRect } from '../hooks/useRowReorder'
 import { TotalsRow, labelToName, rowTypeToMarkupType } from './TotalsRow'
 import type { BoqCategoryGroup, BoqItemRow } from '../lib/boq-types'
 import type { Markup } from '../types/markup'
@@ -39,14 +40,61 @@ export interface TotalsCategoryBlockProps {
   onTriggerPulse?: (matches: Markup[], color: string) => void
   /** Phase 7.1: arms the matching markup tool with item name/category/color. */
   onArmTool?: (item: BoqItemRow, categoryName: string) => void
+  /** Phase 17 (D-02): the `name|type` key of the row whose inline rename editor is open, or null. */
+  renamingKey?: string | null
+  /** Phase 17 (D-02): open the inline rename editor for the row with this `name|type` key. */
+  onStartRename?: (key: string) => void
+  /** Phase 17 (D-02): the inline editor closed (committed / cancelled / collision-free). */
+  onEndRename?: () => void
 }
 
 export function TotalsCategoryBlock(props: TotalsCategoryBlockProps): React.JSX.Element {
-  const { category, pageMarkups, cycleIndexByKey, onRowHover, onRowClick, onRowContextMenu, onTriggerPulse, onArmTool } = props
+  const {
+    category, pageMarkups, cycleIndexByKey, onRowHover, onRowClick, onRowContextMenu,
+    onTriggerPulse, onArmTool, renamingKey, onStartRename, onEndRename
+  } = props
   const { collapsedCategories, toggleCategoryCollapsed } = useUiPanels()
   const [hoverHeading, setHoverHeading] = useState(false)
 
   const isCollapsed = collapsedCategories.includes(category.name)
+
+  // Phase 17 (D-09/D-10/D-11): within-category drag-reorder. `catKey` is the aggregator's
+  // order-map key (categoryId | '__uncat__'); `orderedKeys` are the `name|type` bucket keys
+  // in current visual order — both match reorderItems + the aggregator rank sort exactly.
+  const catKey = category.items[0]?.categoryId ?? '__uncat__'
+  const orderedKeys = category.items.map((i) => `${labelToName(i.label)}|${i.type}`)
+  const { onGripPointerDown: startGripDrag, liftedKey, insertionIndex } = useRowReorder(
+    catKey,
+    orderedKeys
+  )
+
+  // Live row midpoints for the drop-index math — read from the real DOM each move (Pitfall 5)
+  // so a mid-drag scroll keeps the drop index correct. Rows are in visual (= orderedKeys) order.
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const getRowRects = (): RowRect[] => {
+    const container = bodyRef.current
+    if (!container) return []
+    const rowEls = Array.from(container.querySelectorAll('[data-testid="totals-row"]'))
+    return rowEls.map((el, i) => {
+      const rect = el.getBoundingClientRect()
+      return { key: orderedKeys[i], mid: rect.top + rect.height / 2 }
+    })
+  }
+
+  // 2px accent insertion line (UI-SPEC §4) — rendered at the drop boundary, inset 16px,
+  // pointer-events off so it never intercepts the drag.
+  const insertionLine = (
+    <div
+      data-testid="totals-insertion-line"
+      style={{
+        height: 2,
+        background: COLORS.accent,
+        borderRadius: 1,
+        margin: '0 16px',
+        pointerEvents: 'none'
+      }}
+    />
+  )
 
   const matchesForRow = (row: BoqItemRow): Markup[] => {
     const name = labelToName(row.label)
@@ -107,25 +155,52 @@ export function TotalsCategoryBlock(props: TotalsCategoryBlockProps): React.JSX.
       </div>
 
       {/* Body — item rows only (hidden when collapsed). Quantity-only (D-02):
-          the per-category ₱ cost subtotal was removed. */}
-      {!isCollapsed &&
-        category.items.map((item) => {
-          const key = `${category.name}|${item.label}`
-          const cycleIndex = cycleIndexByKey?.[key] ?? 0
-          return (
-            <TotalsRow
-              key={item.label}
-              item={item}
-              cycleIndex={cycleIndex}
-              currentPageMatches={matchesForRow(item)}
-              onHover={onRowHover}
-              onClick={(it) => onRowClick(it, category.name)}
-              onContextMenu={(x, y) => onRowContextMenu(item, x, y)}
-              onTriggerPulse={onTriggerPulse}
-              onArmTool={onArmTool ? (it) => onArmTool(it, category.name) : undefined}
-            />
-          )
-        })}
+          the per-category ₱ cost subtotal was removed. Rows keyed by the stable
+          `name|type` bucket key (not item.label) so a reorder never flickers a
+          neighbor's collision suffix (RESEARCH Open-Q 2). */}
+      {!isCollapsed && (
+        <div ref={bodyRef} data-testid="totals-category-body">
+          {category.items.map((item, rowIndex) => {
+            const rowKey = orderedKeys[rowIndex]
+            const cycleKey = `${category.name}|${item.label}`
+            const cycleIndex = cycleIndexByKey?.[cycleKey] ?? 0
+            const isLifted = liftedKey === rowKey
+            return (
+              <Fragment key={rowKey}>
+                {insertionIndex === rowIndex && insertionLine}
+                <div
+                  style={
+                    isLifted
+                      ? {
+                          background: COLORS.activeSurface,
+                          opacity: 0.9,
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                          borderRadius: 4
+                        }
+                      : undefined
+                  }
+                >
+                  <TotalsRow
+                    item={item}
+                    cycleIndex={cycleIndex}
+                    currentPageMatches={matchesForRow(item)}
+                    onHover={onRowHover}
+                    onClick={(it) => onRowClick(it, category.name)}
+                    onContextMenu={(x, y) => onRowContextMenu(item, x, y)}
+                    onTriggerPulse={onTriggerPulse}
+                    onArmTool={onArmTool ? (it) => onArmTool(it, category.name) : undefined}
+                    onGripPointerDown={(e, itemKey) => startGripDrag(e, itemKey, getRowRects)}
+                    isRenaming={renamingKey === rowKey}
+                    onStartRename={() => onStartRename?.(rowKey)}
+                    onEndRename={onEndRename}
+                  />
+                </div>
+              </Fragment>
+            )
+          })}
+          {insertionIndex === category.items.length && insertionLine}
+        </div>
+      )}
     </div>
   )
 }
