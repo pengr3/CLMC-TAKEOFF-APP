@@ -658,12 +658,12 @@ Plans:
 
 **Wave 1** *(data-model + persistence spine)*:
 
-- [ ] 17-01-PLAN.md — Persisted per-category `categoryItemOrder` (markupStore field + reorderItems command), aggregator sort replacement (all 3 surfaces), useBoqLive liveness, additive `.clmc` persistence with V5 hydrate coercion (Req 2 data half)
+- [x] 17-01-PLAN.md — Persisted per-category `categoryItemOrder` (markupStore field + reorderItems command), aggregator sort replacement (all 3 surfaces), useBoqLive liveness, additive `.clmc` persistence with V5 hydrate coercion (Req 2 data half)
 
 **Wave 2** *(cross-store undo infra + rename; UI primitives — parallel)*:
 
-- [ ] 17-02-PLAN.md — Rename command + cross-store atomic undo refactor (applyProjectUndo/Redo), group-ops pure helpers (autoUniqueName/snapshotGroup/collisionExists), projectStore re-key/rate actions, block-on-collision; group-undo-atomic proof (Req 1)
-- [ ] 17-03-PLAN.md — GroupCategoryDialog (Move/Copy, mode-switch) + useRowReorder pointer-drag hook (standalone units) (Req 2/3/4 UI primitives)
+- [x] 17-02-PLAN.md — Rename command + cross-store atomic undo refactor (applyProjectUndo/Redo), group-ops pure helpers (autoUniqueName/snapshotGroup/collisionExists), projectStore re-key/rate actions, block-on-collision; group-undo-atomic proof (Req 1)
+- [x] 17-03-PLAN.md — GroupCategoryDialog (Move/Copy, mode-switch) + useRowReorder pointer-drag hook (standalone units) (Req 2/3/4 UI primitives)
 
 **Wave 3** *(commands + rename UI — parallel)*:
 

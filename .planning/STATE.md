@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: phase_17_executing
-stopped_at: "Phase 17 (markup-rename-and-reorder) EXECUTING — 7 plans in 4 waves, sequential on main tree. Wave 1 (17-01) starting."
+stopped_at: "Phase 17 (markup-rename-and-reorder) EXECUTING — Waves 1–2 done (17-01..17-03: order spine, rename+cross-store undo, dialog+drag hook; suite 746 green). Wave 3 (17-04 move/copy/duplicate, 17-05 menu+inline-rename) starting."
 last_updated: "2026-07-09T08:53:22.850Z"
 last_activity: 2026-07-09
 progress:
