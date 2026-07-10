@@ -4,6 +4,17 @@ import type { Markup, Category, MarkupCommand, CountMarkup } from '../types/mark
 import { CATEGORY_PALETTE, UNDO_STACK_MAX } from '../types/markup'
 import type { StagePoint } from '../hooks/useCalibrationMode'
 import { setReopenSnapshot } from '../lib/markup-reopen-ref'
+import { collisionExists } from '../lib/group-ops'
+import type { PriceEntry } from '../lib/boq-types'
+// Phase 17-02: markupStore orchestrates the projectStore side of the cross-store
+// commands (rename re-keys rates/hidden; copy/dup add/remove a blank rate). This is a
+// NEW markupStore→projectStore module reference, while projectStore already imports
+// useMarkupStore (attachDirtyTracking) — a deliberate bidirectional cycle. It is SAFE
+// because every cross-store call lives inside a deferred action/closure (invoked at
+// undo/redo/rename time), so neither module dereferences the other during its own
+// initialization. (FALLBACK if a build/ESM-init issue ever surfaces: resolve the store
+// lazily inside applyProjectUndo/applyProjectRedo/renameGroup instead of this top import.)
+import { useProjectStore } from './projectStore'
 
 interface MarkupStoreState {
   pageMarkups: Record<number, Markup[]>
@@ -49,6 +60,23 @@ interface MarkupStoreState {
    * push-one-command / clear-redo discipline.
    */
   reorderItems: (catKey: string, newOrder: string[]) => void
+  /**
+   * Phase 17 (Req 1, D-03/D-04): rename a whole markup group as ONE undoable, cross-store
+   * command. Flips `.name` on every markup named `oldName` (all pages) and atomically
+   * re-keys the three name-keyed structures — `rates` (`old|type`→`new|type` per type),
+   * `hiddenItemNames` (the COMPOSITE `old|categoryId`→`new|categoryId` per category the
+   * group touches — Pitfall 1), and `categoryItemOrder` (`old|type`→`new|type`). Per-name
+   * color follows automatically (getColorForName reads the renamed markups).
+   *
+   * Returns `{ ok: false }` with ZERO store writes when `newName` is blank/whitespace
+   * (D-03), when no group named `oldName` exists, or when `newName` collides with another
+   * group OF THE SAME TYPE outside the rename set (D-04 — block, never merge). Returns
+   * `{ ok: true }` (no command) when `newName` equals `oldName` (trivial no-op).
+   *
+   * The rate/hidden re-key is applied to projectStore BEFORE the markupStore set(); one
+   * Ctrl+Z reverts BOTH stores (undo() calls applyProjectUndo before its set()).
+   */
+  renameGroup: (oldName: string, newName: string) => { ok: boolean }
   editMarkup: (
     markupId: string,
     page: number,
@@ -176,6 +204,41 @@ function withArcs(
   const next = { ...markup } as { arcs?: unknown }
   delete next.arcs
   return next as Markup
+}
+
+/**
+ * Apply the projectStore side of an UNDO, synchronously, immediately BEFORE the
+ * markupStore set() in undo() (Phase 17-02 cross-store atomicity — Shared Pattern B):
+ *   - rename-group → move the rate/hidden keys BACK (newKey→oldKey).
+ *   - copy-/duplicate-group → remove the blank rates the forward action added.
+ *   - every other command type is single-store → no-op.
+ * Both this projectStore write and the following markupStore set() are synchronous, so
+ * one Ctrl+Z reverts BOTH stores (React 19 batches the renders). Resolves the store via
+ * useProjectStore.getState() at CALL time (deferred) — safe despite the module cycle.
+ */
+function applyProjectUndo(cmd: MarkupCommand): void {
+  const ps = useProjectStore.getState()
+  if (cmd.type === 'rename-group') {
+    for (const rk of cmd.rateReKeys) ps.reKeyRate(rk.newKey, rk.oldKey)
+    for (const hk of cmd.hiddenReKeys) ps.reKeyHidden(hk.newKey, hk.oldKey)
+  } else if (cmd.type === 'copy-group' || cmd.type === 'duplicate-group') {
+    for (const rk of cmd.rateKeys) ps.removeRate(rk.key)
+  }
+}
+
+/**
+ * Mirror of applyProjectUndo for REDO: re-apply the rename re-keys (oldKey→newKey) and
+ * re-add the copy/duplicate blank rates (setPrice sets the full captured entry). Called
+ * before the markupStore set() in redo(). Single-store commands are a no-op.
+ */
+function applyProjectRedo(cmd: MarkupCommand): void {
+  const ps = useProjectStore.getState()
+  if (cmd.type === 'rename-group') {
+    for (const rk of cmd.rateReKeys) ps.reKeyRate(rk.oldKey, rk.newKey)
+    for (const hk of cmd.hiddenReKeys) ps.reKeyHidden(hk.oldKey, hk.newKey)
+  } else if (cmd.type === 'copy-group' || cmd.type === 'duplicate-group') {
+    for (const rk of cmd.rateKeys) ps.setPrice(rk.key, rk.entry)
+  }
 }
 
 export const useMarkupStore = create<MarkupStoreState>()(
@@ -315,6 +378,96 @@ export const useMarkupStore = create<MarkupStoreState>()(
         redoStack: []
       }
     }),
+
+  renameGroup: (oldName, newName) => {
+    const trimmed = newName.trim()
+    if (trimmed.length === 0) return { ok: false } // D-03: blank/whitespace rejected, no writes
+    if (trimmed === oldName) return { ok: true } // trivial no-op — nothing to re-key or push
+
+    const state = get()
+    const allMarkups: Markup[] = Object.values(state.pageMarkups).flat()
+    const sourceMarkups = allMarkups.filter((m) => m.name === oldName)
+    if (sourceMarkups.length === 0) return { ok: false } // no group to rename
+
+    const sourceTypes = new Set(sourceMarkups.map((m) => m.type))
+    const renameSetIds = new Set(sourceMarkups.map((m) => m.id))
+
+    // D-04: BLOCK on a same-type collision with a group OUTSIDE the rename set. Only
+    // reads have happened so far → returning here is a guaranteed ZERO-write no-op.
+    if (collisionExists(trimmed, renameSetIds, sourceTypes, allMarkups)) {
+      return { ok: false }
+    }
+
+    // Compute the three name-keyed re-keys from CURRENT projectStore + order state.
+    const ps = useProjectStore.getState()
+
+    // rates: `${name}|${type}`, category-INDEPENDENT — re-key per type actually present.
+    const rateReKeys: Array<{ oldKey: string; newKey: string; entry: PriceEntry }> = []
+    for (const t of sourceTypes) {
+      const oldKey = `${oldName}|${t}`
+      const entry = ps.rates[oldKey]
+      if (entry) rateReKeys.push({ oldKey, newKey: `${trimmed}|${t}`, entry })
+    }
+
+    // hiddenItemNames: the COMPOSITE `${name}|${categoryId}` (Pitfall 1). A group can span
+    // categories (Pitfall 3) → re-key per DISTINCT category the group touches. Match the
+    // visibility layer's normalization (aggregator: empty/missing categoryId → '' bucket).
+    const catKeyOf = (m: Markup): string =>
+      m.categoryId && m.categoryId.length > 0 ? m.categoryId : ''
+    const hiddenReKeys: Array<{ oldKey: string; newKey: string }> = []
+    for (const cp of new Set(sourceMarkups.map(catKeyOf))) {
+      const oldKey = `${oldName}|${cp}`
+      if (ps.hiddenItemNames.includes(oldKey)) {
+        hiddenReKeys.push({ oldKey, newKey: `${trimmed}|${cp}` })
+      }
+    }
+
+    // categoryItemOrder values are `${name}|${type}` keys — re-key in every category
+    // order array that contains one.
+    const orderReKeys: Array<{ catKey: string; oldItemKey: string; newItemKey: string }> = []
+    for (const [catKey, order] of Object.entries(state.categoryItemOrder)) {
+      for (const t of sourceTypes) {
+        const oldItemKey = `${oldName}|${t}`
+        if (order.includes(oldItemKey)) {
+          orderReKeys.push({ catKey, oldItemKey, newItemKey: `${trimmed}|${t}` })
+        }
+      }
+    }
+
+    // Apply the projectStore side BEFORE set() (resolve-before-set, like getOrCreateCategory).
+    for (const rk of rateReKeys) ps.reKeyRate(rk.oldKey, rk.newKey)
+    for (const hk of hiddenReKeys) ps.reKeyHidden(hk.oldKey, hk.newKey)
+
+    set((s) => {
+      const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
+      for (const p of Object.keys(nextPageMarkups).map(Number)) {
+        nextPageMarkups[p] = (nextPageMarkups[p] ?? []).map((m) =>
+          renameSetIds.has(m.id) ? ({ ...m, name: trimmed } as Markup) : m
+        )
+      }
+      const nextOrder: Record<string, string[]> = { ...s.categoryItemOrder }
+      for (const rk of orderReKeys) {
+        const arr = nextOrder[rk.catKey]
+        if (arr) nextOrder[rk.catKey] = arr.map((k) => (k === rk.oldItemKey ? rk.newItemKey : k))
+      }
+      const cmd: MarkupCommand = {
+        type: 'rename-group',
+        oldName,
+        newName: trimmed,
+        markupIdsAffected: [...renameSetIds],
+        rateReKeys,
+        hiddenReKeys,
+        orderReKeys
+      }
+      return {
+        pageMarkups: nextPageMarkups,
+        categoryItemOrder: nextOrder,
+        undoStack: pushCommand(s.undoStack, cmd),
+        redoStack: []
+      }
+    })
+    return { ok: true }
+  },
 
   editMarkup: (markupId, page, oldName, oldCategoryName, oldColor, newName, newCategoryName, newColor, oldWallHeight?, newWallHeight?) => {
     // Resolve category BEFORE entering set() — avoids nested set() calls
@@ -519,7 +672,14 @@ export const useMarkupStore = create<MarkupStoreState>()(
     return latest ? latest.color : null
   },
 
-  undo: () =>
+  undo: () => {
+    // Phase 17-02: apply the projectStore side (rate/hidden re-key for rename;
+    // blank-rate removal for copy/dup) synchronously BEFORE the markupStore set() so
+    // ONE Ctrl+Z reverts BOTH stores. No-op for every single-store command. The set()
+    // body below is unchanged from the pre-Phase-17-02 reducer.
+    const topCmd = get().undoStack.at(-1)
+    if (!topCmd) return
+    applyProjectUndo(topCmd)
     set((s) => {
       if (s.undoStack.length === 0) return s
       const cmd = s.undoStack[s.undoStack.length - 1]
@@ -752,9 +912,14 @@ export const useMarkupStore = create<MarkupStoreState>()(
         undoStack: s.undoStack.slice(0, -1),
         redoStack: [...s.redoStack, cmd]
       }
-    }),
+    })
+  },
 
-  redo: () =>
+  redo: () => {
+    // Phase 17-02: mirror of undo() — re-apply the projectStore side BEFORE the set().
+    const topCmd = get().redoStack.at(-1)
+    if (!topCmd) return
+    applyProjectRedo(topCmd)
     set((s) => {
       if (s.redoStack.length === 0) return s
       const cmd = s.redoStack[s.redoStack.length - 1]
@@ -977,7 +1142,8 @@ export const useMarkupStore = create<MarkupStoreState>()(
         undoStack: pushCommand(s.undoStack, cmd),
         redoStack: s.redoStack.slice(0, -1)
       }
-    }),
+    })
+  },
 
   canUndo: () => get().undoStack.length > 0,
   canRedo: () => get().redoStack.length > 0,
