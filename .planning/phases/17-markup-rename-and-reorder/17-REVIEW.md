@@ -31,6 +31,17 @@ findings:
   low: 3
   total: 7
 status: issues
+remediation:
+  fixed_at: 2026-07-10
+  fixed:
+    HG-01: 10daec6
+    MD-01: 93db214
+    LW-01: b0c319f
+    LW-02: 6efe392
+  deferred:
+    - MD-02  # moving a hidden group un-hides it — out of scope by decision
+    - MD-03  # same-category different-type rename visibility coupling — documented limitation
+    - LW-03  # case-sensitive rename collision vs case-insensitive category match — by design
 ---
 
 # Phase 17: Code Review Report
@@ -51,6 +62,8 @@ That said, one concrete data-integrity bug was found in the new Move/Copy catego
 ## High
 
 ### HG-01: Move/Copy category dialog allows confirming a blank category name — creates a permanent, unrecoverable blank-named category
+
+**Status:** ✅ Fixed (commit `10daec6`) — `GroupCategoryDialog.handleConfirm` early-returns on a blank/whitespace name and the Confirm button is `disabled` while the trimmed input is empty; `moveGroup`/`copyGroup` also guard against an empty target so no caller can reach `getOrCreateCategory('')`. Covered by two new tests in `totals-row-group-ops.test.ts` (disabled-button and Enter-bypass paths).
 
 **File:** `src/renderer/src/components/GroupCategoryDialog.tsx:71-78`, wired from `src/renderer/src/components/TotalsPanel.tsx:341-349` and `src/renderer/src/components/EstimatePanel.tsx:473-481`; consumed by `src/renderer/src/stores/markupStore.ts:391-407` (`getOrCreateCategory`) via `moveGroup`/`copyGroup` (`markupStore.ts:588-696`).
 
@@ -89,6 +102,8 @@ and pass `disabled={categoryName.trim().length === 0}` to the Confirm button. Al
 
 ### MD-01: `isRenaming`/`renamingKey` is keyed only by `name|type` (no categoryId) — a group spanning two categories opens two simultaneous rename editors
 
+**Status:** ✅ Fixed (commit `93db214`) — added `renameKeyForItem` (`${categoryId}::${name}|${type}`, empty/null → `__uncat__`) in `TotalsRow.tsx`; both category blocks and both panels' context-menu Rename now set/compare the category-scoped key, so only the interacted row opens its editor. The value passed to `renameGroup` is still the bare group name. New test `rename-key-category-scope.test.ts` asserts exactly one editor mounts for the group-spans-two-categories scenario (double-click AND context-menu paths).
+
 **File:** `src/renderer/src/components/TotalsCategoryBlock.tsx:64-65,193`, `src/renderer/src/components/EstimateCategoryBlock.tsx:59-60,161`, `src/renderer/src/components/TotalsPanel.tsx:308` / `EstimatePanel.tsx:442` (`onRename` sets `renamingKey`).
 
 **Issue:** `renamingKey` (owned by the parent panel) and each row's `rowKey` are both the bare `${labelToName(label)}|${type}` string — it does not include `categoryId`. Per the SPEC/CONTEXT ("Pitfall 3"), a single name-group can legitimately span two categories (e.g. via the pre-existing single-markup `editMarkup` category edit, or the documented `moveGroup` multi-category-collapse limitation) — this exact scenario is directly exercised by `rename-group-command.test.ts`'s `"group spanning two categories"` describe block and `move-group-command.test.ts`. When this happens, the SAME `name|type` string is simultaneously the `rowKey` of **two different rows** — one per category block. Double-clicking (or choosing "Rename" from the context menu on) either row sets `renamingKey` to that shared string, so `renamingKey === rowKey` is `true` for **both** rows at once (`TotalsCategoryBlock.tsx:193`, `EstimateCategoryBlock.tsx:161`), mounting `InlineRenameInput` twice — once per category block — both auto-focusing/select-all on mount and racing for keyboard focus.
@@ -99,6 +114,8 @@ If the user commits from the first editor, the group is renamed correctly (this 
 
 ### MD-02: `moveGroup` does not re-key `hiddenItemNames`'s composite `name|categoryId` entry — moving a hidden group silently un-hides it
 
+**Status:** ⏸️ Open — deferred by decision (out of scope for this remediation pass; tracked as a known limitation).
+
 **File:** `src/renderer/src/stores/markupStore.ts:588-670` (`moveGroup`); contrast `renameGroup`'s `hiddenReKeys` handling at `markupStore.ts:528-539,555`.
 
 **Issue:** `renameGroup` correctly re-keys the composite hidden-visibility key (`${name}|${categoryId}`) per distinct category the group touches. `moveGroup` reassigns every markup's `categoryId` to the target category but never touches `hiddenItemNames`. Since the visibility key includes the **old** `categoryId`, a group that was hidden on the canvas (`hiddenItemNames` contains `"{name}|{oldCategoryId}"`) becomes visible again the moment it is moved, because the canvas renderers (`AreaMarkup.tsx:56`, `CountPinMarkup.tsx:57`, etc.) recompute `itemKey` from the markup's **new** `categoryId` and it no longer matches any entry in `hiddenItemNames`. There is no user-facing warning that a move resets visibility, and the stale `"{name}|{oldCategoryId}"` entry is left orphaned in `hiddenItemNames` forever (harmless but a silent leak).
@@ -108,6 +125,8 @@ This exact gap is called out internally in `.planning/phases/17-markup-rename-an
 **Fix:** Either (a) extend the `move-group` command with an optional `hiddenReKeys` field (mirroring `rename-group`) so a moved-and-hidden group re-keys its hidden entry and the move remains reversible in one Ctrl+Z, or (b) if staying out of scope, surface this to the user (e.g. a one-time toast "Visibility reset — this item is no longer hidden") so the silent behavior change is not surprising.
 
 ### MD-03: A same-category, different-type rename collision can silently couple two unrelated groups' hidden/visible state
+
+**Status:** ⏸️ Open — deferred by decision (documented limitation next to D-04; out of scope for this remediation pass).
 
 **File:** `src/renderer/src/lib/group-ops.ts:49-58` (`collisionExists`) + `src/renderer/src/stores/markupStore.ts:511-539` (rename collision check + `hiddenReKeys` computation).
 
@@ -120,6 +139,8 @@ Concretely: category C has "A" (count, not hidden) and "B" (area, **hidden** —
 ## Low
 
 ### LW-01: `hydrateStores`'s new `categoryItemOrder` coercion is vulnerable to a `__proto__` key silently repointing the sanitized object's prototype
+
+**Status:** ✅ Fixed (commit `b0c319f`) — the coercion loop now skips dunder keys (`__proto__`/`constructor`/`prototype`) so a crafted `.clmc` cannot repoint the sanitized object's prototype. New test in `project-order-roundtrip.test.ts` asserts the key is dropped, the prototype is untouched, and it never throws.
 
 **File:** `src/renderer/src/lib/project-serialize.ts:107-115`
 
@@ -140,6 +161,8 @@ A crafted `.clmc` with `"categoryItemOrder": { "__proto__": ["a"] }` assigns thr
 
 ### LW-02: `useRowReorder`'s window pointer listeners are not cleaned up if the component unmounts mid-drag
 
+**Status:** ✅ Fixed (commit `6efe392`) — the in-progress drag's teardown (remove both window listeners + cancel the rAF) is tracked in a ref and invoked from a `useEffect` unmount cleanup, so an interrupted drag can't leak a listener across a project switch. Normal pointerup drop behavior unchanged. New unmount-mid-drag test in `row-reorder-drag.test.ts`.
+
 **File:** `src/renderer/src/hooks/useRowReorder.ts:132-154`
 
 **Issue:** `onGripPointerDown` registers `pointermove`/`pointerup` listeners on `window` and only removes them inside the `onUp` handler (i.e., on `pointerup`). If the owning `TotalsCategoryBlock`/`EstimateCategoryBlock` (or the whole app tree) unmounts while a drag is in progress — e.g. the user starts dragging a row and then closes the project / opens a different `.clmc` file before releasing the pointer — the listeners are never removed, and the stale closure (capturing the old `catKey`/`startOrder`/`itemKey`) will fire `useMarkupStore.getState().reorderItems(...)` against whatever project happens to be loaded when the pointer is eventually released. This mirrors the same unguarded idiom already used by `Splitter`/`useDraggable` elsewhere in the codebase (not a regression specific to this file), but since this is new Phase-17 code it's a reasonable place to add the missing safety net.
@@ -147,6 +170,8 @@ A crafted `.clmc` with `"categoryItemOrder": { "__proto__": ["a"] }` assigns thr
 **Fix:** Return a cleanup from `useRowReorder` (or track drag state in a ref and add a `useEffect` unmount handler) that calls the same `window.removeEventListener` pair and cancels any pending `requestAnimationFrame`, so an interrupted drag can't leak a listener across a project switch.
 
 ### LW-03: Rename collision check is case-sensitive while category-name matching is case-insensitive — inconsistent naming discipline
+
+**Status:** ⏸️ Open — deferred by decision (group names are case-sensitive by design; out of scope for this remediation pass).
 
 **File:** `src/renderer/src/lib/group-ops.ts:49-58` (`collisionExists`, exact `m.name === newName`) vs. `src/renderer/src/stores/markupStore.ts:371-377` (`findCategoryByName`, `.trim().toLowerCase()` comparison) and `GroupCategoryDialog.tsx:76` (also case-insensitive).
 
