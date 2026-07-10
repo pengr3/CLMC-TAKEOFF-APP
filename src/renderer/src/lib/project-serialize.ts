@@ -57,6 +57,9 @@ export function snapshotProject(params: SnapshotParams): ProjectFileV2 {
     globalUnit: scale.globalUnit,
     categories: markup.categories,
     categoryOrder: markup.categoryOrder,
+    // Phase 17 (Req 2, D-11): persist the per-category manual item order additively
+    // (read from markupStore, exactly like categoryOrder above). No formatVersion bump.
+    categoryItemOrder: markup.categoryItemOrder,
     currentPage: viewer.currentPage,
     pages,
     hiddenItemNames: useProjectStore.getState().hiddenItemNames,
@@ -94,11 +97,29 @@ export function hydrateStores(data: ProjectFileV2): void {
     // viewerStore keeps its existing resetViewer for filePath/fileName etc;
     // we don't call it here because loadPdfFromPath will set those fields.
 
+    // Hydrate the per-category manual item order — additive Phase 17 field (Req 2,
+    // D-11; threat-model mitigation T-17-01). A crafted/corrupt .clmc could carry a
+    // non-object, or values that are not string arrays; this order feeds aggregateBoq,
+    // so coerce to a safe Record<string,string[]> here (accept only array values, keep
+    // only string elements), defaulting to {} when absent/non-object. Never throws. An
+    // injected key with no matching bucket is inert — the aggregator only ranks buckets
+    // it builds. Mirrors the safeRates per-field coercion discipline below.
+    const rawOrder = (data as { categoryItemOrder?: unknown }).categoryItemOrder
+    const safeOrder: Record<string, string[]> = {}
+    if (rawOrder && typeof rawOrder === 'object') {
+      for (const [k, v] of Object.entries(rawOrder as Record<string, unknown>)) {
+        if (Array.isArray(v)) {
+          safeOrder[k] = v.filter((x): x is string => typeof x === 'string')
+        }
+      }
+    }
+
     // Each hydrate() is ONE setState call per store.
     useMarkupStore.getState().hydrate({
       pageMarkups,
       categories: data.categories,
-      categoryOrder: data.categoryOrder
+      categoryOrder: data.categoryOrder,
+      categoryItemOrder: safeOrder
     })
 
     useScaleStore.getState().hydrate({

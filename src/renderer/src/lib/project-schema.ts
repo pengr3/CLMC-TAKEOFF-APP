@@ -106,6 +106,17 @@ export interface ProjectFileV2 {
    * sanitized (→ 30) at hydrate, not here.
    */
   defaultMarkupPct?: number
+  /**
+   * Additive in Phase 17 (Req 2, D-11) — absent in every pre-Phase-17 file; defaults
+   * to {} on load. Per-category manual item order: categoryId (or '__uncat__') →
+   * ordered `${name}|${type}` bucket keys, consumed by aggregateBoq to order rows.
+   * Like `rates`/`hiddenItemNames`/`defaultMarkupPct` it is ADDITIVE with NO
+   * formatVersion bump — validateV2 adds no branch, the field rides the trailing
+   * `return raw as ProjectFileV2` cast. Malformed values (non-object, non-array
+   * values, non-string elements) are sanitized to a safe Record<string,string[]> at
+   * hydrate, not here.
+   */
+  categoryItemOrder?: Record<string, string[]>
 }
 
 export type ProjectFile = ProjectFileV2

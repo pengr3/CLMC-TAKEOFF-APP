@@ -210,3 +210,43 @@ describe('buildBoqCsv — Phase 16 ten-column export (proof f)', () => {
     expect(csv.startsWith('﻿')).toBe(true)
   })
 })
+
+// =============================================================================
+// Phase 17 (Req 2, D-11 / Shared Pattern F) — the CSV writer iterates cat.items
+// in ARRAY order, so the manual item order (baked into BoqStructure by
+// aggregateBoq in the renderer, before IPC) is inherited with ZERO writer change.
+// This test only ASSERTS that inheritance: a deliberately NON-alphabetical
+// item array must appear in that exact order in the CSV (NOT re-sorted A→Z).
+// =============================================================================
+
+function orderedStructure(): BoqStructure {
+  // Item array order is Zebra THEN Apple — deliberately not alphabetical.
+  return {
+    metadata: {
+      projectName: 'Test', planFilename: 'plan.pdf',
+      exportedDate: '2026-05-02', totalPages: 1, totalMarkups: 2
+    },
+    categories: [{
+      name: 'Electrical',
+      items: [
+        { label: 'Zebra', quantity: 2, uom: 'ea', color: '#0078d4', type: 'count' },
+        { label: 'Apple', quantity: 3, uom: 'ea', color: '#d13438', type: 'count' }
+      ],
+      subtotals: [{ uom: 'ea', total: 5 }]
+    }],
+    grandTotals: [{ uom: 'ea', total: 5 }]
+  }
+}
+
+describe('buildBoqCsv — Phase 17 manual item order preservation (Req 2)', () => {
+  it('writes item rows in cat.items array order (Zebra before Apple, NOT alphabetical)', () => {
+    const csv = buildBoqCsv(orderedStructure())
+    const lines = csv.replace(/^﻿/, '').split('\r\n')
+    const zebraIdx = lines.findIndex((l) => l.startsWith('Zebra'))
+    const appleIdx = lines.findIndex((l) => l.startsWith('Apple'))
+    expect(zebraIdx).toBeGreaterThan(-1)
+    expect(appleIdx).toBeGreaterThan(-1)
+    // Array order preserved: Zebra's row precedes Apple's. Alphabetical would flip this.
+    expect(zebraIdx).toBeLessThan(appleIdx)
+  })
+})

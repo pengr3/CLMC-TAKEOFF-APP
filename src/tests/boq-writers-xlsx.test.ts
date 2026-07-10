@@ -361,3 +361,49 @@ describe('buildBoqXlsx — Phase 16 ten-column export (proof f)', () => {
     expect(merges).not.toContain(`A${headingRowNum}:E${headingRowNum}`)
   })
 })
+
+// =============================================================================
+// Phase 17 (Req 2, D-11 / Shared Pattern F) — the xlsx writer iterates cat.items
+// in ARRAY order, so the manual item order (baked into BoqStructure by
+// aggregateBoq in the renderer, before IPC) is inherited with ZERO writer change.
+// This test only ASSERTS that inheritance: a deliberately NON-alphabetical item
+// array must appear in that exact row order in the sheet (NOT re-sorted A→Z).
+// =============================================================================
+
+function orderedStructure(): BoqStructure {
+  // Item array order is Zebra THEN Apple — deliberately not alphabetical.
+  return {
+    metadata: {
+      projectName: 'Test', planFilename: 'plan.pdf',
+      exportedDate: '2026-05-02', totalPages: 1, totalMarkups: 2
+    },
+    categories: [{
+      name: 'Electrical',
+      items: [
+        { label: 'Zebra', quantity: 2, uom: 'ea', color: '#0078d4', type: 'count' },
+        { label: 'Apple', quantity: 3, uom: 'ea', color: '#d13438', type: 'count' }
+      ],
+      subtotals: [{ uom: 'ea', total: 5 }]
+    }],
+    grandTotals: [{ uom: 'ea', total: 5 }]
+  }
+}
+
+describe('buildBoqXlsx — Phase 17 manual item order preservation (Req 2)', () => {
+  it('writes item rows in cat.items array order (Zebra before Apple, NOT alphabetical)', async () => {
+    const buf = await buildBoqXlsx(orderedStructure())
+    const wb = new ExcelJS.Workbook()
+    await wb.xlsx.load(buf)
+    const ws = wb.getWorksheet('BOQ')!
+    let zebraRow = 0
+    let appleRow = 0
+    ws.eachRow((row, rowNum) => {
+      if (row.getCell(1).value === 'Zebra') zebraRow = rowNum
+      if (row.getCell(1).value === 'Apple') appleRow = rowNum
+    })
+    expect(zebraRow).toBeGreaterThan(0)
+    expect(appleRow).toBeGreaterThan(0)
+    // Array order preserved: Zebra's row precedes Apple's. Alphabetical would flip this.
+    expect(zebraRow).toBeLessThan(appleRow)
+  })
+})
