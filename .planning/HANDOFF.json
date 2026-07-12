@@ -1,53 +1,48 @@
 {
   "version": "1.0",
-  "timestamp": "2026-07-01T11:18:19.192Z",
-  "phase": "16",
-  "phase_name": "estimating-workspace",
-  "phase_dir": ".planning/phases/16-estimating-workspace",
-  "plan": 5,
+  "timestamp": "2026-07-12T17:03:00.111Z",
+  "phase": "17",
+  "phase_name": "markup-rename-and-reorder",
+  "phase_dir": ".planning/phases/17-markup-rename-and-reorder",
+  "plan": 7,
   "task": null,
-  "total_tasks": 5,
-  "status": "paused",
-  "phase_status": "complete",
-  "head_commit": "df61b11",
+  "total_tasks": 7,
+  "status": "awaiting_uat",
+  "phase_status": "executed_verified_pending_uat",
+  "head_commit": "2fa4d09",
   "branch": "master",
   "completed_tasks": [
-    {"id": "16-01", "name": "Nyquist RED test surface (tests-first)", "status": "done"},
-    {"id": "16-02", "name": "PriceEntry {material,labor,markup} data-model spine + aggregator + 4-way type lock", "status": "done"},
-    {"id": "16-03", "name": "Estimate workspace: Plan|Estimate toggle (mount-preserving) + editable grid", "status": "done"},
-    {"id": "16-04", "name": "Totals-panel revert to quantity-only (D-02)", "status": "done"},
-    {"id": "16-05", "name": "9-column export + Settings default-markup stub + PROJECT.md + manual notes", "status": "done"},
-    {"id": "CR-01/WR-02", "name": "Fix decimal-entry clobber: commit on blur/Enter + activeElement seed guard + real-store regression test", "status": "done", "commit": "d9e7e58"},
-    {"id": "GAP-1", "name": "Reveal Plan workspace when leaving the Estimating tab", "status": "done", "commit": "2b4db86"},
-    {"id": "GAP-2", "name": "Friendly locked-file export error + retry + export-specific dialog", "status": "done", "commit": "d7200b1"},
-    {"id": "export-10col", "name": "Add UNIT PRICE column + rename Price->TOTAL (xlsx+csv AND on-screen grid)", "status": "done", "commit": "af9a260, 415ac2d"},
-    {"id": "WR-01", "name": "Wire project-scoped defaultMarkupPct (store/schema/serialize/aggregator/live) in Estimate-sheet header; remove Settings stub", "status": "done", "commit": "b3b9f26..0609769"},
-    {"id": "perf-smoke", "name": "Fix snapping-engine perf-smoke flake (100->600ms contention-tolerant ceiling)", "status": "done", "commit": "faecf8d"},
-    {"id": "default-markup-confirm", "name": "Confirm-with-impact dialog before applying a default-markup change (not silent)", "status": "done", "commit": "8d1cf59"}
+    {"id": "17-01", "name": "categoryItemOrder spine + reorderItems + aggregator sort swap + additive .clmc", "status": "done"},
+    {"id": "17-02", "name": "renameGroup + cross-store atomic undo + group-ops helpers + projectStore re-key", "status": "done"},
+    {"id": "17-03", "name": "GroupCategoryDialog (Move/Copy) + useRowReorder pointer-drag hook", "status": "done"},
+    {"id": "17-04", "name": "moveGroup / copyGroup / duplicateGroup forward actions", "status": "done"},
+    {"id": "17-05", "name": "shared context menu + InlineRenameInput + RenameCollisionMessage", "status": "done"},
+    {"id": "17-06", "name": "totals-panel wiring (grip, double-click rename + e.detail guard, menu, drag, dialog host)", "status": "done"},
+    {"id": "17-07", "name": "estimate-sheet wiring (row context menu, grip, Item-cell rename, drag, dialog host)", "status": "done"},
+    {"id": "verify", "name": "gsd-verifier: automated PASS (10/10 SPEC criteria, 11/11 decisions) — 17-VERIFICATION.md (status human_needed)", "status": "done"},
+    {"id": "review", "name": "gsd-code-reviewer: 1 High/3 Med/3 Low — 17-REVIEW.md", "status": "done"},
+    {"id": "fixes", "name": "Fixed HG-01 (blank-category guard), MD-01 (category-scoped rename), LW-01 (__proto__ hydrate), LW-02 (drag unmount cleanup) — each with regression test", "status": "done", "commit": "10daec6,93db214,b0c319f,6efe392"}
   ],
   "remaining_tasks": [
-    {"id": "lows", "name": "3 advisory Low review findings: IN-01 formatMoney duplicated x3, IN-02 CSV 'Markup' header lacks %, IN-03 category collapse-key collision on duplicate display names (see 16-REVIEW.md)", "status": "optional"},
-    {"id": "phase-17", "name": "DEFERRED: rename plotted markups (migrate {material,labor,markup} price key; handle name collisions) + drag-reorder within a category (persisted per-category order shared by totals panel/estimate sheet/export). Needs /gsd:discuss-phase or /gsd:spec-phase before planning", "status": "deferred"},
-    {"id": "confirm-count", "name": "Optional: show the affected-item count in the default-markup confirm dialog (currently a scope statement; a count needs exposing the raw name on BoqItemRow or a usesDefault flag)", "status": "optional"},
-    {"id": "p15-uat", "name": "Phase 15 UAT items (perimeter-render, priced-export) remain valid to check", "status": "optional"}
+    {"id": "UAT", "name": "Human UAT of the 4 items in 17-HUMAN-UAT.md", "status": "not_started"},
+    {"id": "complete", "name": "Mark Phase 17 complete (phase.complete) after UAT approval — advances ROADMAP/STATE", "status": "not_started"},
+    {"id": "deferred-fixes", "name": "Optional: address deferred review findings MD-02/MD-03/LW-03 via /gsd-code-review-fix 17", "status": "optional"}
   ],
   "blockers": [],
   "human_actions_pending": [
-    {"action": "Optional: eyeball the Estimate workspace live (default-markup confirm dialog + UNIT PRICE/TOTAL columns; save+reload persists the default markup)", "context": "Renderer-only changes hot-reload on `npm run dev`; no restart needed. NOTE: main-process changes (like the GAP-2 export fix) DO require a full app restart.", "blocking": false}
+    {"action": "UAT the 4 items in 17-HUMAN-UAT.md (grip-drag feel, collision-message readability, export cross-surface order parity, totals single-click-stays-instant)", "context": "gsd-verifier returned human_needed — visual/tactile items only a human can confirm; all automated checks pass. Renderer changes hot-reload on `npm run dev`.", "blocking": true}
   ],
   "decisions": [
-    {"decision": "Sequential gsd-executor subagents on the main working tree (no worktree isolation)", "rationale": "This harness's Agent(isolation=worktree) does not return the worktree path/branch/agent-id metadata the workflow's manifest-based cleanup requires, so worktree cleanup would hard-block; only Wave 2 had parallelism and it was small; also Windows worktree fragility", "phase": "16"},
-    {"decision": "Orchestrator owns all STATE.md/ROADMAP.md writes via direct Edit (executors instructed NOT to touch them)", "rationale": "gsd-sdk state.*/roadmap.* mutation verbs fail on this project's STATE.md format (known issue); direct editing is the reliable path", "phase": "16"},
-    {"decision": "UNIT PRICE = (material+labor)*(1+markup/100) = TOTAL/qty; TOTAL = the former Price (extended). Applied to xlsx+csv AND the estimate grid", "rationale": "User request: insert a per-unit client price + rename the line total; formula is qty-safe and reconciles UNIT PRICE * qty === TOTAL", "phase": "16"},
-    {"decision": "WR-01 default-markup control lives in the Estimate-sheet header (not the Settings tab); persists in the .clmc", "rationale": "It is project data (must follow the project, not the workstation); the codebase reserves the Settings tab / localStorage for workstation prefs", "phase": "16"},
-    {"decision": "A default-markup change is gated behind a confirm-with-impact dialog; scope statement only (no exact affected count)", "rationale": "User flagged the silent bulk re-price; BoqItemRow exposes only a suffixed label (not the raw name needed to key rates), so a precise count would require a forbidden data-model/type-lock change", "phase": "16"},
-    {"decision": "Inline-edit numeric inputs commit on blur/Enter (never per-keystroke) + guard the store->field seed effect with document.activeElement", "rationale": "Per-keystroke commit + a value-seeding effect clobber mid-typing decimals (CR-01, High); real-store tests (not mocked) are required to catch it", "phase": "16"}
+    {"decision": "Executed sequentially on the main tree (not parallel git-worktrees)", "rationale": "This harness's Agent(isolation=worktree) merge-back is fragile to hand-drive on Windows (matches the Phase-16 handoff finding); sequential satisfies the wave dependency spine (17-01 -> 17-02/03 -> 17-04/05 -> 17-06/07) and avoids the risk", "phase": "17"},
+    {"decision": "Fixed HG-01/MD-01/LW-01/LW-02; deferred MD-02/MD-03/LW-03", "rationale": "User chose 'Fix High + quick wins'; MD-02 is a scope decision (extend the locked move command to re-key hidden-state), MD-03/LW-03 are pre-existing visibility-model/naming quirks", "phase": "17"},
+    {"decision": "categoryItemOrder lives in markupStore (not projectStore)", "rationale": "RESEARCH A4 divergence from CONTEXT's Integration-Points wording — makes reorder + move single-store commands; only rename/copy/duplicate cross into projectStore (rates)", "phase": "17"},
+    {"decision": "Rename collision = BLOCK, no merge (D-04)", "rationale": "User rejected silent merge; a group's identity is its name|type (aggregator buckets by it)", "phase": "17"},
+    {"decision": "Orchestrator owns all STATE.md/ROADMAP.md writes via direct Edit (executors instructed NOT to touch them)", "rationale": "gsd-sdk state.*/roadmap.* mutation verbs are not available in this project's gsd-tools; direct editing is the reliable path (matches Phase 16)", "phase": "17"}
   ],
   "uncommitted_files": [],
   "untracked_leave_alone": [
-    ".planning/spikes/004-toolbar-redesign/ (user's separate WIP spike)",
-    ".planning/spikes/003b-curved-polygon-area/demo.html (throwaway from prior session)"
+    ".planning/spikes/004-toolbar-redesign/ (user's separate WIP spike, if present)"
   ],
-  "next_action": "Phase 16 is COMPLETE (UAT approved 2026-07-01) and hardened; nothing blocking. Pick one to continue: (a) knock out the 3 advisory Lows in 16-REVIEW.md; (b) /gsd:discuss-phase 17 to design the deferred rename + drag-reorder features; (c) add the affected-item count to the default-markup confirm dialog. Full suite green (681/681, 88 files), typecheck + production build clean, working tree clean (only pre-existing untracked .planning/spikes/**).",
-  "context_notes": "This session executed all 5 plans of Phase 16 across 4 waves, then a chain of UAT-driven refinements (CR-01/WR-02 fix, GAP-1/GAP-2 fixes, the 10-column UNIT PRICE/TOTAL export+grid restructure, WR-01 wiring, the perf-smoke flake fix, and the default-markup confirm dialog). Everything was done via sequential gsd-executor subagents on the main tree with the orchestrator owning tracking writes and verifying each step (typecheck + full suite + build). All green. This is a clean stopping point AFTER phase completion, not a mid-task pause."
+  "next_action": "Human UAT the 4 items in 17-HUMAN-UAT.md; on 'approved', mark Phase 17 complete (phase.complete) which advances ROADMAP + STATE. If issues, gap-closure via /gsd-plan-phase 17 --gaps. Optionally clear the 3 deferred Med/Low review findings via /gsd-code-review-fix 17.",
+  "context_notes": "Phase 17 fully built + automated-verified (10/10 SPEC criteria, 11/11 decisions D-01..D-11) + review-fixed. Suite 705->793 green, typecheck + production build clean throughout. Ran the full GSD chain this session: /gsd-plan-phase (research/validation/patterns/7-plans/checker 0-blockers) then /gsd-execute-phase (7 plans sequential on main) then verifier + code-reviewer + code-fixer. Only human UAT gates completion. Commits pushed to origin at end of session. Clean stopping point AFTER execution+verification, not a mid-task pause."
 }
