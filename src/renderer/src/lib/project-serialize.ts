@@ -157,6 +157,12 @@ export function hydrateStores(data: ProjectFileV2): void {
     const safeRates: Record<string, PriceEntry> = {}
     if (data.rates && typeof data.rates === 'object') {
       for (const [k, v] of Object.entries(data.rates as Record<string, unknown>)) {
+        // T-15-02-01 hardening (mirrors the safeOrder LW-01 guard above): a crafted
+        // `.clmc` with a dunder key (`{ "__proto__": {...} }`) would, via the Annex-B
+        // legacy accessor, silently repoint safeRates's own prototype on the bracket
+        // assignment below instead of storing a rate. Drop dunder keys outright — a real
+        // `${name}|${type}` rate key is never one of these reserved names.
+        if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue
         if (typeof v === 'number') {
           safeRates[k] = {
             material: coerceField(v, 0),
