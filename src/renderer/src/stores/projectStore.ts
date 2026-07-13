@@ -78,6 +78,16 @@ interface ProjectStoreState {
    */
   reKeyHidden: (oldKey: string, newKey: string) => void
   /**
+   * Phase 17 (move-group hidden re-key): atomically remove `remove` keys and add `add`
+   * keys to hiddenItemNames, rebuilding hiddenItemSet. Order-independent and idempotent
+   * (result is deduped). moveGroup uses this to migrate a group's composite visibility
+   * keys (`${name}|${categoryId}`) from its source category to the target in ONE step —
+   * a plain reKeyHidden can't, because several source categories collapse to one target
+   * key (reKeyHidden's 1:1 rename would create duplicates). No-op when both lists are
+   * empty. Marks dirty. Undo passes the swapped lists.
+   */
+  setHiddenBatch: (remove: string[], add: string[]) => void
+  /**
    * Phase 17 (D-07): seed a fresh blank PriceEntry `{ material: 0, labor: 0, markup:
    * DEFAULT_MARKUP_PCT }` at `key` (used by copy/duplicate redo in 17-04). Marks dirty.
    */
@@ -188,6 +198,24 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     set((s) => {
       if (oldKey === newKey || !s.hiddenItemNames.includes(oldKey)) return s
       const next = s.hiddenItemNames.map((n) => (n === oldKey ? newKey : n))
+      return { hiddenItemNames: next, hiddenItemSet: new Set(next) }
+    })
+    get().markDirty()
+  },
+
+  setHiddenBatch: (remove, add) => {
+    if (remove.length === 0 && add.length === 0) return
+    set((s) => {
+      const removeSet = new Set(remove)
+      const kept = s.hiddenItemNames.filter((n) => !removeSet.has(n))
+      const keptSet = new Set(kept)
+      const next = [...kept]
+      for (const k of add) {
+        if (!keptSet.has(k)) {
+          keptSet.add(k)
+          next.push(k)
+        }
+      }
       return { hiddenItemNames: next, hiddenItemSet: new Set(next) }
     })
     get().markDirty()

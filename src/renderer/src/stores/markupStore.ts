@@ -231,6 +231,55 @@ function orderCatKey(categoryId: string): string {
 }
 
 /**
+ * Append `newKeys` to a category's manual order, SEEDING it to completeness first.
+ *
+ * Bug this fixes: the aggregator ranks listed order keys 0..n-1 and every UNLISTED bucket
+ * at Infinity (so newly-placed items fall to the bottom in placement order). move/copy/
+ * duplicate previously appended a single key to `categoryItemOrder[catKey]`; when that
+ * category had never been drag-reordered (its order was empty/absent), the appended key
+ * became the ONLY ranked entry (rank 0) while every existing item stayed unranked
+ * (Infinity) — so the moved/copied/duplicated row jumped to the TOP of the category
+ * instead of the bottom the "append" intent (A5/D-06) promises.
+ *
+ * Seeding: keep the existing order VERBATIM (a genuinely-reordered category is untouched,
+ * and a stored key with no live bucket is preserved — the aggregator ignores it), then
+ * back-fill any PRESENT-but-unranked bucket keys in page-scan (placement) order — matching
+ * the aggregator's bucket-insertion order so the seeded ranks equal what the user sees —
+ * and finally append `newKeys`. The result is a COMPLETE order with the new keys last.
+ *
+ * `pageMarkups` must be the state BEFORE the move/copy adds or re-homes markups, so the
+ * placement scan reflects the target category's pre-existing items only (the new keys are
+ * appended explicitly, never double-counted).
+ */
+function orderWithAppend(
+  pageMarkups: Record<number, Markup[]>,
+  catKey: string,
+  existingOrder: string[] | undefined,
+  newKeys: string[]
+): string[] {
+  const existing = existingOrder ?? []
+  const existingSet = new Set(existing)
+  const placement: string[] = []
+  const seen = new Set<string>()
+  const pages = Object.keys(pageMarkups)
+    .map(Number)
+    .sort((a, b) => a - b)
+  for (const p of pages) {
+    for (const m of pageMarkups[p] ?? []) {
+      if (orderCatKey(m.categoryId) !== catKey) continue
+      const k = `${m.name}|${m.type}`
+      if (!seen.has(k)) {
+        seen.add(k)
+        placement.push(k)
+      }
+    }
+  }
+  const seededComplete = [...existing, ...placement.filter((k) => !existingSet.has(k))]
+  const completeSet = new Set(seededComplete)
+  return [...seededComplete, ...newKeys.filter((k) => !completeSet.has(k))]
+}
+
+/**
  * The independent-snapshot payload shared by copyGroup and duplicateGroup — the full new
  * markups, the fresh blank rate rows to add, and the order keys to append. Copy and
  * Duplicate build this IDENTICALLY; they differ ONLY in the target category (copy: the
@@ -289,9 +338,18 @@ function snapshotForwardReducer(
   for (const m of payload.newMarkups) {
     nextPageMarkups[m.page] = [...(nextPageMarkups[m.page] ?? []), m]
   }
+  // Seed the target order to completeness before appending so the copy/duplicate lands at
+  // the BOTTOM (not the top of a never-reordered category). Group appends by catKey and
+  // reads s.pageMarkups (WITHOUT the new snapshots) so their keys are appended exactly once.
   const nextOrder: Record<string, string[]> = { ...s.categoryItemOrder }
+  const appendsByCat = new Map<string, string[]>()
   for (const ap of payload.orderAppends) {
-    nextOrder[ap.catKey] = [...(nextOrder[ap.catKey] ?? []), ap.itemKey]
+    const list = appendsByCat.get(ap.catKey) ?? []
+    list.push(ap.itemKey)
+    appendsByCat.set(ap.catKey, list)
+  }
+  for (const [catKey, keys] of appendsByCat) {
+    nextOrder[catKey] = orderWithAppend(s.pageMarkups, catKey, nextOrder[catKey], keys)
   }
   const cmd: MarkupCommand = {
     type: commandType,
@@ -342,6 +400,9 @@ function applyProjectUndo(cmd: MarkupCommand): void {
     for (const hk of cmd.hiddenReKeys) ps.reKeyHidden(hk.newKey, hk.oldKey)
   } else if (cmd.type === 'copy-group' || cmd.type === 'duplicate-group') {
     for (const rk of cmd.rateKeys) ps.removeRate(rk.key)
+  } else if (cmd.type === 'move-group') {
+    // Reverse the visibility migration: drop the target key, restore the source keys.
+    ps.setHiddenBatch(cmd.hiddenAdd, cmd.hiddenRemove)
   }
 }
 
@@ -357,6 +418,9 @@ function applyProjectRedo(cmd: MarkupCommand): void {
     for (const hk of cmd.hiddenReKeys) ps.reKeyHidden(hk.oldKey, hk.newKey)
   } else if (cmd.type === 'copy-group' || cmd.type === 'duplicate-group') {
     for (const rk of cmd.rateKeys) ps.setPrice(rk.key, rk.entry)
+  } else if (cmd.type === 'move-group') {
+    // Re-apply the visibility migration: drop the source keys, add the target key.
+    ps.setHiddenBatch(cmd.hiddenRemove, cmd.hiddenAdd)
   }
 }
 
@@ -601,11 +665,33 @@ export const useMarkupStore = create<MarkupStoreState>()(
     if (sourceMarkups.length === 0) return // defensive no-op (no group named `name`)
 
     const markupIdsAffected = sourceMarkups.map((m) => m.id)
-    // The 17-02 move-group command carries a SINGLE oldCategoryId. A well-formed group
-    // shares one source category; a group spanning categories (Pitfall 3) COLLAPSES onto
-    // the target on move, and undo restores every markup to this captured id — a documented
-    // limitation of the locked command shape (single-category is the exercised path).
-    const oldCategoryId: string | null = sourceMarkups[0].categoryId ?? null
+    // Capture each markup's ORIGINAL categoryId so undo restores every markup to where it
+    // actually came from. A group can span categories (same name in ≥2 categories, Pitfall 3)
+    // and collapses onto the target on move; a single scalar oldCategoryId would wrongly
+    // re-home them all to one category on undo. Per-id capture mirrors recolor-group.oldColors.
+    const oldCategoryById: Record<string, string> = {}
+    for (const m of sourceMarkups) oldCategoryById[m.id] = m.categoryId
+
+    // Hidden/visibility re-key (the composite key is `${name}|${categoryId}` — '' for
+    // uncategorized, matching TotalsRow/renameGroup, NOT the '__uncat__' order sentinel).
+    // Moving a group changes categoryId, so without this a hidden group would silently
+    // reappear and its stale `${name}|${sourceCat}` key would leak. Migrate every hidden
+    // SOURCE key to the single target key so a hidden group stays hidden after the move.
+    const ps = useProjectStore.getState()
+    const hiddenCatOf = (m: Markup): string =>
+      m.categoryId && m.categoryId.length > 0 ? m.categoryId : ''
+    const hiddenRemove: string[] = []
+    const seenHidden = new Set<string>()
+    for (const m of sourceMarkups) {
+      const srcRaw = hiddenCatOf(m)
+      if (srcRaw === targetCat.id) continue // already in the target — nothing to migrate
+      const key = `${name}|${srcRaw}`
+      if (seenHidden.has(key)) continue
+      seenHidden.add(key)
+      if (ps.hiddenItemSet.has(key)) hiddenRemove.push(key)
+    }
+    // If the group was hidden in ANY source category, keep it hidden under the target key.
+    const hiddenAdd = hiddenRemove.length > 0 ? [`${name}|${targetCat.id}`] : []
 
     // orderRemove: for each DISTINCT (source catKey, type) present, capture the item's index
     // in that category's manual order — read from the ORIGINAL array so undo can splice it
@@ -640,6 +726,11 @@ export const useMarkupStore = create<MarkupStoreState>()(
       orderAppend.push({ catKey: targetCat.id, itemKey })
     }
 
+    // Apply the projectStore (visibility) side BEFORE set() — resolve-before-set, mirroring
+    // renameGroup's rate/hidden re-key. One Ctrl+Z reverts both stores (undo() calls
+    // applyProjectUndo before its set()).
+    ps.setHiddenBatch(hiddenRemove, hiddenAdd)
+
     set((s) => {
       const idSet = new Set(markupIdsAffected)
       const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
@@ -649,22 +740,32 @@ export const useMarkupStore = create<MarkupStoreState>()(
         )
       }
       // Forward order edit mirrors the move-group REDO branch: filter the moved keys out of
-      // their source arrays, then append them to the target array.
+      // their source arrays, then SEED the target order to completeness before appending so
+      // the moved row lands at the BOTTOM (not the top of a never-reordered target). Reads
+      // s.pageMarkups (moved markups still carry their SOURCE categoryId here) so the target
+      // seed reflects only its pre-existing items.
       const nextOrder: Record<string, string[]> = { ...s.categoryItemOrder }
       for (const rm of orderRemove) {
         const arr = nextOrder[rm.catKey]
         if (arr) nextOrder[rm.catKey] = arr.filter((k) => k !== rm.itemKey)
       }
-      for (const ap of orderAppend) {
-        nextOrder[ap.catKey] = [...(nextOrder[ap.catKey] ?? []), ap.itemKey]
+      if (orderAppend.length > 0) {
+        nextOrder[targetCat.id] = orderWithAppend(
+          s.pageMarkups,
+          targetCat.id,
+          nextOrder[targetCat.id],
+          orderAppend.map((ap) => ap.itemKey)
+        )
       }
       const cmd: MarkupCommand = {
         type: 'move-group',
         markupIdsAffected,
-        oldCategoryId,
+        oldCategoryById,
         newCategoryId: targetCat.id,
         orderRemove,
-        orderAppend
+        orderAppend,
+        hiddenRemove,
+        hiddenAdd
       }
       return {
         pageMarkups: nextPageMarkups,
@@ -1093,7 +1194,7 @@ export const useMarkupStore = create<MarkupStoreState>()(
         const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
         for (const p of Object.keys(nextPageMarkups).map(Number)) {
           nextPageMarkups[p] = (nextPageMarkups[p] ?? []).map((m) =>
-            idSet.has(m.id) ? ({ ...m, categoryId: cmd.oldCategoryId ?? '' } as Markup) : m
+            idSet.has(m.id) ? ({ ...m, categoryId: cmd.oldCategoryById[m.id] ?? '' } as Markup) : m
           )
         }
         // Reverse the forward order edit: remove the appended key from the target,
@@ -1337,8 +1438,15 @@ export const useMarkupStore = create<MarkupStoreState>()(
           const arr = nextOrder[rm.catKey]
           if (arr) nextOrder[rm.catKey] = arr.filter((k) => k !== rm.itemKey)
         }
-        for (const ap of cmd.orderAppend) {
-          nextOrder[ap.catKey] = [...(nextOrder[ap.catKey] ?? []), ap.itemKey]
+        // Seed the target to completeness before re-appending (same as the forward action)
+        // so redo lands the moved row at the bottom, not the top of an unordered target.
+        if (cmd.orderAppend.length > 0 && cmd.newCategoryId) {
+          nextOrder[cmd.newCategoryId] = orderWithAppend(
+            s.pageMarkups,
+            cmd.newCategoryId,
+            nextOrder[cmd.newCategoryId],
+            cmd.orderAppend.map((ap) => ap.itemKey)
+          )
         }
         return {
           pageMarkups: nextPageMarkups,
@@ -1349,14 +1457,23 @@ export const useMarkupStore = create<MarkupStoreState>()(
       }
 
       if (cmd.type === 'copy-group' || cmd.type === 'duplicate-group') {
-        // Re-apply the copy: re-add the snapshots and re-append their order keys.
+        // Re-apply the copy: re-add the snapshots and re-append their order keys. Seed the
+        // target order to completeness (same as the forward reducer) so the redone copy
+        // lands at the bottom. s.pageMarkups here excludes the copies (undo removed them),
+        // so their keys are appended exactly once.
         const nextPageMarkups: Record<number, Markup[]> = { ...s.pageMarkups }
         for (const m of cmd.newMarkups) {
           nextPageMarkups[m.page] = [...(nextPageMarkups[m.page] ?? []), m]
         }
         const nextOrder: Record<string, string[]> = { ...s.categoryItemOrder }
+        const redoAppendsByCat = new Map<string, string[]>()
         for (const ap of cmd.orderAppends) {
-          nextOrder[ap.catKey] = [...(nextOrder[ap.catKey] ?? []), ap.itemKey]
+          const list = redoAppendsByCat.get(ap.catKey) ?? []
+          list.push(ap.itemKey)
+          redoAppendsByCat.set(ap.catKey, list)
+        }
+        for (const [catKey, keys] of redoAppendsByCat) {
+          nextOrder[catKey] = orderWithAppend(s.pageMarkups, catKey, nextOrder[catKey], keys)
         }
         return {
           pageMarkups: nextPageMarkups,

@@ -198,16 +198,25 @@ export type MarkupCommand =
        * Phase 17 (Req 3, D-06): move a group to another category. Reassigns
        * `categoryId` on every markup in the group; removes the item from the source
        * category's manual order (at `index`, for exact undo re-insertion) and appends
-       * it to the target category's order. Single-store (no projectStore payload — name,
-       * quantity, color, rate unchanged). Undo/redo branches land in THIS plan so the
-       * union stays compile-exhaustive; the FORWARD `moveGroup` action lands in 17-04.
+       * it to the target category's order. Cross-store: `hiddenRemove`/`hiddenAdd`
+       * migrate the group's composite `${name}|${categoryId}` visibility keys from the
+       * source category(ies) to the target so a hidden group stays hidden after the move
+       * and no stale source key leaks (applied via setHiddenBatch by applyProjectUndo/Redo).
+       *
+       * `oldCategoryById` maps each affected markup id → its ORIGINAL categoryId so undo
+       * restores every markup to where it actually came from — a group that spans
+       * categories (same name in ≥2 categories) collapses onto the target on move, and a
+       * single scalar would wrongly re-home them all to one category on undo (mirrors
+       * recolor-group's per-id oldColors).
        */
       type: 'move-group'
       markupIdsAffected: string[]
-      oldCategoryId: string | null
+      oldCategoryById: Record<string, string>
       newCategoryId: string | null
       orderRemove: Array<{ catKey: string; itemKey: string; index: number }>
       orderAppend: Array<{ catKey: string; itemKey: string }>
+      hiddenRemove: string[]
+      hiddenAdd: string[]
     }
   | {
       /**
