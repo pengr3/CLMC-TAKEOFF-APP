@@ -262,6 +262,11 @@ export function TotalsRow(props: TotalsRowProps): React.JSX.Element {
         aria-label={`Reorder ${itemName}`}
         data-testid="totals-row-grip"
         onPointerDown={(e) => onGripPointerDown?.(e, `${itemName}|${item.type}`)}
+        // A stationary click on the grip (pointerdown without a drag) still synthesizes a
+        // click event; pointerdown's stopPropagation does NOT suppress it, so without this
+        // the click bubbles to the row's onClick → cycle-nav + arm-tool fire. Mirrors the
+        // lightbulb's onClick stopPropagation (Pitfall 9).
+        onClick={(e) => e.stopPropagation()}
         style={{
           position: 'absolute',
           left: 1,

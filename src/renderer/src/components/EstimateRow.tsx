@@ -351,6 +351,9 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
         aria-label={`Reorder ${itemName}`}
         data-testid="estimate-row-grip"
         onPointerDown={(e) => onGripPointerDown?.(e, priceKey)}
+        // Stop a stationary grip click from bubbling to the row's onRowClick (parity with
+        // TotalsRow's grip; pointerdown stopPropagation does not cancel the synthesized click).
+        onClick={(e) => e.stopPropagation()}
         style={{
           position: 'absolute',
           left: 1,

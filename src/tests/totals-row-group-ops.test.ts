@@ -405,4 +405,34 @@ describe('TotalsRow double-click guard — single-click stays instant (D-02)', (
       unmount()
     }
   })
+
+  it('a stationary click on the grip does NOT fire the row cycle/arm (GRIP-CLICK fix)', () => {
+    const onClick = vi.fn()
+    const onArmTool = vi.fn()
+    const { container, unmount } = mount(
+      React.createElement(TotalsRow, {
+        item,
+        cycleIndex: 0,
+        currentPageMatches: [],
+        onHover: vi.fn(),
+        onClick,
+        onContextMenu: vi.fn(),
+        onArmTool,
+        onGripPointerDown: vi.fn()
+      })
+    )
+    try {
+      const grip = container.querySelector('[data-testid="totals-row-grip"]') as HTMLElement
+      expect(grip).not.toBeNull()
+      // A stationary grip click (pointerdown without a drag) synthesizes a click; the grip's
+      // onClick stopPropagation must keep it from bubbling to the row → no page-nav / arm-tool.
+      act(() => {
+        grip.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }))
+      })
+      expect(onClick).not.toHaveBeenCalled()
+      expect(onArmTool).not.toHaveBeenCalled()
+    } finally {
+      unmount()
+    }
+  })
 })
