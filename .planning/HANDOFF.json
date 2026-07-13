@@ -1,48 +1,42 @@
 {
   "version": "1.0",
-  "timestamp": "2026-07-12T17:03:00.111Z",
+  "timestamp": "2026-07-13T10:05:18.992Z",
   "phase": "17",
   "phase_name": "markup-rename-and-reorder",
   "phase_dir": ".planning/phases/17-markup-rename-and-reorder",
   "plan": 7,
-  "task": null,
+  "task": 7,
   "total_tasks": 7,
-  "status": "awaiting_uat",
-  "phase_status": "executed_verified_pending_uat",
-  "head_commit": "2fa4d09",
-  "branch": "master",
+  "status": "paused",
+  "phase_status": "complete_all_gates_passed_pending_state_reconcile",
+  "head_commit": "205beeb",
+  "branch": "claude/sync-status-check-768f9c",
   "completed_tasks": [
-    {"id": "17-01", "name": "categoryItemOrder spine + reorderItems + aggregator sort swap + additive .clmc", "status": "done"},
-    {"id": "17-02", "name": "renameGroup + cross-store atomic undo + group-ops helpers + projectStore re-key", "status": "done"},
-    {"id": "17-03", "name": "GroupCategoryDialog (Move/Copy) + useRowReorder pointer-drag hook", "status": "done"},
-    {"id": "17-04", "name": "moveGroup / copyGroup / duplicateGroup forward actions", "status": "done"},
-    {"id": "17-05", "name": "shared context menu + InlineRenameInput + RenameCollisionMessage", "status": "done"},
-    {"id": "17-06", "name": "totals-panel wiring (grip, double-click rename + e.detail guard, menu, drag, dialog host)", "status": "done"},
-    {"id": "17-07", "name": "estimate-sheet wiring (row context menu, grip, Item-cell rename, drag, dialog host)", "status": "done"},
-    {"id": "verify", "name": "gsd-verifier: automated PASS (10/10 SPEC criteria, 11/11 decisions) — 17-VERIFICATION.md (status human_needed)", "status": "done"},
-    {"id": "review", "name": "gsd-code-reviewer: 1 High/3 Med/3 Low — 17-REVIEW.md", "status": "done"},
-    {"id": "fixes", "name": "Fixed HG-01 (blank-category guard), MD-01 (category-scoped rename), LW-01 (__proto__ hydrate), LW-02 (drag unmount cleanup) — each with regression test", "status": "done", "commit": "10daec6,93db214,b0c319f,6efe392"}
+    {"id": "17-01..07", "name": "All 7 plans executed + gsd-verifier automated PASS (10/10 SPEC criteria, 11/11 decisions D-01..D-11)", "status": "done", "commit": "c20e383"},
+    {"id": "review-fix", "name": "code-review 17 --fix (xhigh): 7 verified findings → 5 atomic fix commits, each with a regression test (__proto__ hydrate guard, grip-click no-arm, pipe-safe bucket-key split, orphan-rate-safe auto-name, move/copy/duplicate order+visibility+undo)", "status": "done", "commit": "3bcf50c,0ea71f1,ec82baf,24c0db4,945d198"},
+    {"id": "UAT", "name": "Human UAT — 4/4 passed, 0 issues (17-HUMAN-UAT.md)", "status": "done", "commit": "4e401ef"},
+    {"id": "security", "name": "Security threat verification (17-SECURITY.md)", "status": "done", "commit": "f4716d2"},
+    {"id": "validate", "name": "Nyquist validation audit — 0 gaps, nyquist_compliant:true; no new tests needed (17-VALIDATION.md)", "status": "done", "commit": "205beeb"}
   ],
   "remaining_tasks": [
-    {"id": "UAT", "name": "Human UAT of the 4 items in 17-HUMAN-UAT.md", "status": "not_started"},
-    {"id": "complete", "name": "Mark Phase 17 complete (phase.complete) after UAT approval — advances ROADMAP/STATE", "status": "not_started"},
-    {"id": "deferred-fixes", "name": "Optional: address deferred review findings MD-02/MD-03/LW-03 via /gsd-code-review-fix 17", "status": "optional"}
+    {"id": "state-reconcile", "name": "Update STATE.md — still reads status:phase_17_awaiting_uat + stopped_at 'awaiting human UAT'; reconcile to Phase 17 COMPLETE (UAT+security+Nyquist all passed). Edit STATE.md DIRECTLY — gsd-sdk state ops fail on this format.", "status": "not_started"},
+    {"id": "complete", "name": "Mark Phase 17 complete in ROADMAP (status -> Complete)", "status": "not_started"},
+    {"id": "audit-milestone", "name": "Run /gsd-audit-milestone for v1.0 — Phase 17 is the last defined phase; v1.1-planning is already queued", "status": "not_started"},
+    {"id": "deferred-fixes", "name": "Optional: deferred non-blocking review findings — MD-02 (move un-hides a hidden group, verifier-accepted per SPEC), MD-03 (same-category cross-type visibility coupling), LW-03 (group-name case-sensitivity), labelToName suffix-strip, editMarkup/deleteGroup key upkeep, 5 DRY cleanups (17-REVIEW.md)", "status": "optional"}
   ],
   "blockers": [],
-  "human_actions_pending": [
-    {"action": "UAT the 4 items in 17-HUMAN-UAT.md (grip-drag feel, collision-message readability, export cross-surface order parity, totals single-click-stays-instant)", "context": "gsd-verifier returned human_needed — visual/tactile items only a human can confirm; all automated checks pass. Renderer changes hot-reload on `npm run dev`.", "blocking": true}
-  ],
+  "human_actions_pending": [],
   "decisions": [
-    {"decision": "Executed sequentially on the main tree (not parallel git-worktrees)", "rationale": "This harness's Agent(isolation=worktree) merge-back is fragile to hand-drive on Windows (matches the Phase-16 handoff finding); sequential satisfies the wave dependency spine (17-01 -> 17-02/03 -> 17-04/05 -> 17-06/07) and avoids the risk", "phase": "17"},
-    {"decision": "Fixed HG-01/MD-01/LW-01/LW-02; deferred MD-02/MD-03/LW-03", "rationale": "User chose 'Fix High + quick wins'; MD-02 is a scope decision (extend the locked move command to re-key hidden-state), MD-03/LW-03 are pre-existing visibility-model/naming quirks", "phase": "17"},
-    {"decision": "categoryItemOrder lives in markupStore (not projectStore)", "rationale": "RESEARCH A4 divergence from CONTEXT's Integration-Points wording — makes reorder + move single-store commands; only rename/copy/duplicate cross into projectStore (rates)", "phase": "17"},
+    {"decision": "No new tests generated by the Nyquist audit", "rationale": "All 12 planned test files exist and run green; 6+ supplementary tests landed during code-review fixes. 0 MISSING/PARTIAL requirements -> no gsd-nyquist-auditor spawn needed. VALIDATION.md statuses reconciled to reality only.", "phase": "17"},
+    {"decision": "STATE.md left un-reconciled during this pause", "rationale": "pause-work scope is handoff + WIP commit only; STATE.md edits are a separate action. Recorded as remaining_task 'state-reconcile'.", "phase": "17"},
+    {"decision": "Orchestrator owns all STATE.md/ROADMAP.md writes via direct Edit", "rationale": "gsd-sdk state.*/roadmap.* mutation verbs are not available in this project's gsd-tools; direct editing is the reliable path (matches Phase 16). gsd-sdk query commit DOES work.", "phase": "17"},
     {"decision": "Rename collision = BLOCK, no merge (D-04)", "rationale": "User rejected silent merge; a group's identity is its name|type (aggregator buckets by it)", "phase": "17"},
-    {"decision": "Orchestrator owns all STATE.md/ROADMAP.md writes via direct Edit (executors instructed NOT to touch them)", "rationale": "gsd-sdk state.*/roadmap.* mutation verbs are not available in this project's gsd-tools; direct editing is the reliable path (matches Phase 16)", "phase": "17"}
+    {"decision": "categoryItemOrder lives in markupStore (not projectStore)", "rationale": "Makes reorder + move single-store commands; only rename/copy/duplicate cross into projectStore (rates)", "phase": "17"}
   ],
   "uncommitted_files": [],
   "untracked_leave_alone": [
     ".planning/spikes/004-toolbar-redesign/ (user's separate WIP spike, if present)"
   ],
-  "next_action": "Human UAT the 4 items in 17-HUMAN-UAT.md; on 'approved', mark Phase 17 complete (phase.complete) which advances ROADMAP + STATE. If issues, gap-closure via /gsd-plan-phase 17 --gaps. Optionally clear the 3 deferred Med/Low review findings via /gsd-code-review-fix 17.",
-  "context_notes": "Phase 17 fully built + automated-verified (10/10 SPEC criteria, 11/11 decisions D-01..D-11) + review-fixed. Suite 705->793 green, typecheck + production build clean throughout. Ran the full GSD chain this session: /gsd-plan-phase (research/validation/patterns/7-plans/checker 0-blockers) then /gsd-execute-phase (7 plans sequential on main) then verifier + code-reviewer + code-fixer. Only human UAT gates completion. Commits pushed to origin at end of session. Clean stopping point AFTER execution+verification, not a mid-task pause."
+  "next_action": "Reconcile STATE.md to 'Phase 17 COMPLETE' (edit directly — gsd-sdk state ops fail on this format), mark the phase Complete in ROADMAP, then run /gsd-audit-milestone for the v1.0 milestone.",
+  "context_notes": "Phase 17 (rename/reorder/move/copy/duplicate markup groups) is feature-complete and has passed EVERY quality gate: execution+verification, code-review --fix, human UAT (4/4, 0 issues), security, and Nyquist validation (0 gaps, compliant). Full suite 803 green, typecheck clean. Nothing is broken or half-done — this is a clean milestone-boundary pause. The ONE loose thread: STATE.md's frontmatter (status:phase_17_awaiting_uat) and stopped_at still predate today's UAT/security/validation commits, so a resuming agent must reconcile it before the milestone audit. Deferred non-blocking review findings remain open (see 17-REVIEW.md) and are safe to carry to a future phase. This session ran on branch claude/sync-status-check-768f9c (worktree), not master."
 }
