@@ -248,6 +248,8 @@ None.
 
 **Last activity:** 2026-07-01
 
+**Session resumed:** 2026-07-13 — restored via /gsd-resume-work, then ran `/code-review 17 --fix` (xhigh): 7 verified findings → 5 atomic fix commits — `3bcf50c` guard `__proto__` in the rates hydrate loop, `0ea71f1` grip click no longer arms the row tool, `ec82baf` pipe-safe BOQ bucket-key split, `24c0db4` orphan-rate-safe copy/duplicate auto-name, `945d198` group move/copy/duplicate order+visibility+undo. Suite 803 green, typecheck clean; each fix carries a regression test. Deferred (non-blocking): labelToName suffix-strip, editMarkup/deleteGroup key upkeep, MD-03 cross-type visibility, 5 DRY cleanups. Phase 17 STILL awaiting human UAT (4 items in 17-HUMAN-UAT.md).
+
 **Last session:** 2026-07-09T08:53:22.850Z
 
 **Stopped at:** Phase 17 (markup-rename-and-reorder) EXECUTED + VERIFIED (automated PASS) + review-fixed — suite 793 green, typecheck + build clean; awaiting human UAT (4 items).
