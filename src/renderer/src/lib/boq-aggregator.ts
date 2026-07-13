@@ -49,6 +49,20 @@ function typeWord(t: BoqRowType): 'count' | 'linear' | 'area' | 'perimeter' | 'w
 }
 
 /**
+ * Split a `${name}|${type}` bucket key into [name, type] on its LAST '|'.
+ *
+ * Freehand rename (Phase 17) accepts any non-blank name, INCLUDING one that contains
+ * a '|' (e.g. "Grid A|B"). The type word never contains '|', so splitting on the last
+ * '|' recovers the full name and the correct type; a naive `k.split('|')` mis-parsed
+ * such names — the type became a name fragment ("B"), yielding the wrong UoM and a
+ * missed rate lookup (price silently 0/default) in the exported BOQ.
+ */
+function splitBucketKey(k: string): [string, BoqRowType] {
+  const i = k.lastIndexOf('|')
+  return [k.slice(0, i), k.slice(i + 1) as BoqRowType]
+}
+
+/**
  * Returns the pages that have ≥1 linear/area/perimeter markup AND no pageScale.
  * Used by useExport to decide whether to show UncalibratedExportWarningModal (D-06).
  *
@@ -210,7 +224,7 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
     //     no longer excluded from the D-02 collision set).
     const nameTypes = new Map<string, Set<BoqRowType>>()
     for (const k of bucket.keys()) {
-      const [name, type] = k.split('|') as [string, BoqRowType]
+      const [name, type] = splitBucketKey(k)
       let s = nameTypes.get(name)
       if (!s) {
         s = new Set()
@@ -236,7 +250,7 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
     //     {name}, gaining {name} ({typeWord}) only when ≥2 types collide on a name).
     const items: BoqItemRow[] = []
     for (const [k, acc] of entries) {
-      const [name, type] = k.split('|') as [string, BoqRowType]
+      const [name, type] = splitBucketKey(k)
       let label = name
       const typeSet = nameTypes.get(name)
       if (typeSet && typeSet.size >= 2) {
