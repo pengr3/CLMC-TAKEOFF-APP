@@ -25,10 +25,24 @@ import type { Markup, MarkupType } from '../types/markup'
 export function autoUniqueName(
   sourceName: string,
   sourceTypes: Set<MarkupType>,
-  allMarkups: Markup[]
+  allMarkups: Markup[],
+  /**
+   * Existing `${name}|${type}` rate keys (projectStore.rates). A rate can OUTLIVE its
+   * markups — deleteMarkup/deleteGroup never clean rates — so an orphaned rate can sit at
+   * a name that has no live markup. Excluding those names too prevents copy/duplicate from
+   * choosing an auto-name whose rate key already exists: addBlankRate would clobber the
+   * orphan, and undo (removeRate) would then delete it entirely — a silent, unrecoverable
+   * rate loss. Optional (defaults to none) so the pure Node-tested callers stay unchanged.
+   */
+  existingRateKeys: Iterable<string> = []
 ): string {
   const base = sourceName.replace(/ \(\d+\)$/, '')
   const taken = new Set(allMarkups.filter((m) => sourceTypes.has(m.type)).map((m) => m.name))
+  for (const key of existingRateKeys) {
+    const i = key.lastIndexOf('|')
+    if (i < 0) continue
+    if (sourceTypes.has(key.slice(i + 1) as MarkupType)) taken.add(key.slice(0, i))
+  }
   for (let n = 2; ; n++) {
     const candidate = `${base} (${n})`
     if (!taken.has(candidate)) return candidate

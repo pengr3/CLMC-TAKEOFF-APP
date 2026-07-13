@@ -253,11 +253,14 @@ interface SnapshotPayload {
 function buildSnapshotPayload(
   name: string,
   targetCategoryId: string,
-  allMarkups: Markup[]
+  allMarkups: Markup[],
+  /** Existing projectStore rate keys — excluded from the auto-name so copy/duplicate never
+   *  reuses a name that already carries an orphaned rate (see autoUniqueName). */
+  existingRateKeys: Iterable<string> = []
 ): SnapshotPayload {
   const sourceMarkups = allMarkups.filter((m) => m.name === name)
   const sourceTypes = new Set(sourceMarkups.map((m) => m.type))
-  const newName = autoUniqueName(name, sourceTypes, allMarkups)
+  const newName = autoUniqueName(name, sourceTypes, allMarkups, existingRateKeys)
   const newMarkups = snapshotGroup(sourceMarkups, newName, targetCategoryId)
   const catKey = orderCatKey(targetCategoryId)
   const rateKeys: Array<{ key: string; entry: PriceEntry }> = []
@@ -680,11 +683,13 @@ export const useMarkupStore = create<MarkupStoreState>()(
     const targetCat = get().getOrCreateCategory(targetCategoryName)
     const allMarkups = Object.values(get().pageMarkups).flat()
     if (!allMarkups.some((m) => m.name === name)) return // defensive no-op (no group named `name`)
-    const payload = buildSnapshotPayload(name, targetCat.id, allMarkups)
     // Seed the fresh blank rates in projectStore BEFORE set() (resolve-before-set, like the
     // rename re-keys). The forward action does NOT flow through redo (redoStack is cleared
     // below) so applyProjectRedo never double-adds; undo removes them via applyProjectUndo.
     const ps = useProjectStore.getState()
+    // Pass the current rate keys so the auto-name skips any that already carry an orphaned
+    // rate (addBlankRate would otherwise clobber it and undo would delete it — data loss).
+    const payload = buildSnapshotPayload(name, targetCat.id, allMarkups, Object.keys(ps.rates))
     for (const rk of payload.rateKeys) ps.addBlankRate(rk.key)
     set((s) => snapshotForwardReducer(s, 'copy-group', payload))
   },
@@ -693,10 +698,10 @@ export const useMarkupStore = create<MarkupStoreState>()(
     const allMarkups = Object.values(get().pageMarkups).flat()
     const source = allMarkups.filter((m) => m.name === name)
     if (source.length === 0) return // defensive no-op (no group named `name`)
+    const ps = useProjectStore.getState()
     // D-08: same category as the source (no dialog). A group spanning categories collapses
     // onto the first source category — consistent with moveGroup's single-target collapse.
-    const payload = buildSnapshotPayload(name, source[0].categoryId, allMarkups)
-    const ps = useProjectStore.getState()
+    const payload = buildSnapshotPayload(name, source[0].categoryId, allMarkups, Object.keys(ps.rates))
     for (const rk of payload.rateKeys) ps.addBlankRate(rk.key)
     set((s) => snapshotForwardReducer(s, 'duplicate-group', payload))
   },
