@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { MousePointer, MapPin, Minus, Square, Hexagon, BrickWall, Ruler } from 'lucide-react'
+import { MousePointer, MapPin, Minus, Square, Hexagon, BrickWall, Ruler, Magnet, Spline } from 'lucide-react'
 import { useViewerStore } from '../stores/viewerStore'
 import { useScaleStore } from '../stores/scaleStore'
 import { getCalibrationControls, getChainArmedItem, setChainArmedFromTotals } from './CanvasViewport'
+import { getArcSticky, subscribeArcSticky, getArcStickyToggleHandler } from '../lib/markup-arc-ref'
 import { ScaleContextMenu } from './ScaleContextMenu'
 import { COLORS } from '../lib/constants'
 
@@ -240,6 +241,18 @@ export function ToolRail(): React.JSX.Element {
   const getScale = useScaleStore((s) => s.getScale)
   const calibMode = useScaleStore((s) => s.calibMode)
 
+  // Snap state (D-05) — runtime-only viewerStore flags F3/Alt also mutate. Reading
+  // them via selectors keeps the rail toggle in sync with the shortcuts for free.
+  const snapEnabled = useViewerStore((s) => s.snapEnabled)
+  const snapSuspended = useViewerStore((s) => s.snapSuspended)
+  const setSnapEnabled = useViewerStore((s) => s.setSnapEnabled)
+
+  // Arc on-state (18-04 reactive seam). Shift+A flips sticky arc with NO coincident
+  // store change, so the rail MUST subscribe to the seam — a bare getArcSticky()
+  // read would leave the chrome stale. useSyncExternalStore(subscribeArcSticky,
+  // getArcSticky) re-renders on every arc change including the keyboard shortcut.
+  const arcOn = React.useSyncExternalStore(subscribeArcSticky, getArcSticky)
+
   // Local UI state
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
 
@@ -375,7 +388,32 @@ export function ToolRail(): React.JSX.Element {
 
       <RailDivider />
 
-      {/* Snap + Arc toggles are added in Task 2 (18-07). */}
+      {/* Snap toggle (D-05, SC-3) — reads the SAME viewerStore.snapEnabled field
+          F3 mutates, so the rail toggle and the F3 shortcut stay in sync for free.
+          On-state chrome when snapping is active; dimmed while Alt-held (suspended). */}
+      <RailButton
+        icon={Magnet}
+        label="Snap"
+        testId="rail-snap-toggle"
+        pressed={snapEnabled}
+        on={snapEnabled && !snapSuspended}
+        dimmed={snapEnabled && snapSuspended}
+        onClick={() => setSnapEnabled(!snapEnabled)}
+        title="Snap to vertices/edges (F3 · hold Alt to suspend)"
+      />
+
+      {/* Arc toggle (D-05, SC-3) — click mirrors Shift+A via the registered
+          getArcStickyToggleHandler; the on-state is driven reactively by the
+          18-04 seam so Shift+A updates the chrome with no other interaction. */}
+      <RailButton
+        icon={Spline}
+        label="Arc"
+        testId="rail-arc-toggle"
+        pressed={arcOn}
+        on={arcOn}
+        onClick={() => getArcStickyToggleHandler()?.()}
+        title="Sticky arc segments (Shift+A · hold A for one-off)"
+      />
 
       {/* Scale context menu (rendered at document level via fixed positioning). */}
       {contextMenu && (
