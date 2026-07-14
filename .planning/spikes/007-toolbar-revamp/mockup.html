@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CLMC Toolbar Revamp — A/B Mockup</title>
+<style>
+  :root{
+    --dominant:#1a1a1a; --secondary:#252526; --accent:#0078d4; --accentHover:#1a86db;
+    --accentActive:#0067b8; --border:#3c3c3c; --textP:#cccccc; --textS:#808080;
+    --hover:#2d2d30; --active:#37373d; --title:#1e1e1e; --warn:#e8a838;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#0d0d0d;color:var(--textP);
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;font-size:13px;
+    display:flex;flex-direction:column;align-items:center;padding:20px 12px 40px}
+  .switch{display:flex;align-items:center;gap:8px;margin-bottom:12px;width:100%;max-width:1000px}
+  .swlabel{color:var(--textS);font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-right:2px}
+  .swbtn{height:30px;padding:0 14px;background:var(--secondary);border:1px solid var(--border);
+    border-radius:5px;color:var(--textS);font:inherit;font-weight:600;cursor:pointer}
+  .swbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .swnote{margin-left:auto;color:var(--textS);font-size:12px;font-style:italic}
+
+  .frame{width:100%;max-width:1000px;height:600px;background:var(--dominant);
+    border:1px solid var(--border);border-radius:8px;overflow:hidden;
+    display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+
+  .titlebar{height:32px;background:var(--title);display:flex;align-items:center;
+    padding:0 12px;gap:8px;flex-shrink:0;border-bottom:1px solid var(--border)}
+  .titlebar .brand{width:9px;height:9px;border-radius:50%;background:var(--accent)}
+  .titlebar .name{font-size:12px;color:var(--textP)}
+  .titlebar .name b{font-weight:600}
+  .titlebar .wc{margin-left:auto;display:flex;gap:14px;color:var(--textS);font-size:13px}
+
+  #chrome{flex-shrink:0}
+
+  .topbar,.strip{background:var(--secondary);display:flex;align-items:center;
+    padding:0 8px;gap:4px;border-bottom:1px solid var(--border)}
+  .topbar{height:46px}
+  .strip{height:54px;flex-wrap:nowrap;overflow-x:auto}
+  .grp{display:flex;align-items:center;gap:3px}
+  .flex1{flex:1}
+  .sep{width:1px;height:32px;background:var(--border);margin:0 6px;flex-shrink:0}
+
+  .tbtn{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;background:transparent;border:1px solid transparent;border-radius:5px;
+    color:var(--textP);font:inherit;cursor:pointer;position:relative;padding:0}
+  .tbtn:hover{background:var(--hover)}
+  .tbtn.active{background:var(--accent);color:#fff}
+  .tbtn.on{color:var(--accent);border-color:var(--accent)}
+  .tbtn .lbl{font-size:11px;line-height:1}
+  .tbtn .lbl9{font-size:9px;line-height:1}
+  .tbtn.strip{width:52px;height:44px}
+  .tbtn.bar{flex-direction:row;gap:5px;height:34px;padding:0 10px}
+  .tbtn.bar .lbl{font-size:12px}
+  .tbtn .dot{position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+
+  .rail{width:56px;background:var(--secondary);border-right:1px solid var(--border);
+    flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:6px 0;gap:3px}
+  .tbtn.railb{width:48px;height:46px}
+  .rsep{width:32px;height:1px;background:var(--border);margin:4px 0}
+
+  .ro{display:inline-flex;align-items:center;justify-content:center;min-width:88px;height:34px;
+    padding:0 8px;font-size:12px;font-weight:600;color:var(--textP);white-space:nowrap}
+  .ro.zoom{min-width:52px}
+  .ib{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;
+    background:transparent;border:1px solid transparent;border-radius:5px;color:var(--textP);cursor:pointer}
+  .ib:hover{background:var(--hover)}
+  .ib:disabled{color:var(--textS);cursor:default;background:transparent}
+
+  .seg{display:inline-flex;border:1px solid var(--border);border-radius:5px;overflow:hidden}
+  .segb{height:30px;min-width:66px;padding:0 12px;background:transparent;border:none;
+    color:var(--textS);font:inherit;font-weight:600;cursor:pointer}
+  .segb.on{background:var(--accent);color:#fff}
+
+  .ctx{height:34px;background:var(--dominant);border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:8px;padding:0 12px;overflow-x:auto;white-space:nowrap}
+  .ctag{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--textS);
+    border:1px solid var(--border);border-radius:3px;padding:2px 6px}
+  .ctx b{color:#fff;font-weight:600}
+  .cinput{display:inline-flex;align-items:center;gap:6px;background:var(--secondary);
+    border:1px solid var(--border);border-radius:4px;padding:2px 8px;height:26px}
+  .cinput .sw{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+  .cinput input{background:transparent;border:none;color:var(--textP);font:inherit;width:110px;outline:none}
+  .cdiv{width:1px;height:18px;background:var(--border)}
+  .mini{height:24px;padding:0 9px;border-radius:12px;border:1px solid var(--border);
+    background:transparent;color:var(--textS);font:inherit;font-size:11px;font-weight:600;cursor:pointer;
+    display:inline-flex;align-items:center;gap:5px}
+  .mini.on{color:var(--accent);border-color:var(--accent)}
+  .mini .d{width:6px;height:6px;border-radius:50%;background:currentColor}
+  .chip{font-size:11px;color:var(--textP);border:1px solid var(--border);border-radius:3px;padding:2px 6px}
+  .chint{color:var(--textS);font-size:12px;font-style:italic}
+  .cbtn{height:24px;padding:0 10px;border-radius:4px;border:1px solid var(--border);
+    background:transparent;color:var(--textP);font:inherit;font-size:11px;font-weight:600;cursor:pointer}
+  .cbtn.danger{color:#e06c6c;border-color:#5a2b2b}
+
+  .stage{flex:1;display:flex;min-height:0}
+  .canvaswrap{flex:1;min-width:0;background:var(--dominant);display:flex;
+    align-items:center;justify-content:center;position:relative;overflow:hidden}
+  #planview{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+  #planview.crosshair{cursor:crosshair}
+  .plansvg{width:88%;max-height:92%}
+  .mk{cursor:pointer}
+  .mk .selbox{fill:transparent;stroke:none}
+  .mk.sel .selbox{stroke:var(--accent);stroke-width:2;stroke-dasharray:5 3}
+  .mklabel{font:600 11px 'Segoe UI',sans-serif}
+
+  #estview{display:none;width:100%;height:100%;flex-direction:column;padding:16px;overflow:auto}
+  #estview h4{margin:0 0 10px;font-size:13px;color:var(--textP);font-weight:600}
+  .egrid{width:100%;border-collapse:collapse;font-size:12px}
+  .egrid th,.egrid td{border:1px solid var(--border);padding:5px 8px;text-align:right;white-space:nowrap}
+  .egrid th{background:var(--secondary);color:var(--textS);font-weight:600;text-align:right}
+  .egrid td.l,.egrid th.l{text-align:left}
+  .egrid tr.tot td{font-weight:700;color:#fff;background:var(--secondary)}
+
+  .totals{width:250px;flex-shrink:0;background:var(--secondary);border-left:1px solid var(--border);
+    display:flex;flex-direction:column}
+  .totals .th{height:34px;display:flex;align-items:center;padding:0 12px;font-weight:600;
+    color:var(--textP);border-bottom:1px solid var(--border);font-size:12px}
+  .titem{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #303031}
+  .titem .sw{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+  .titem .nm{flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .titem .qty{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+  .tcat{padding:6px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--textS);
+    background:#232324}
+
+  .status{height:28px;background:var(--secondary);border-top:1px solid var(--border);
+    display:flex;align-items:center;padding:0 14px;font-size:12px;color:var(--textP);flex-shrink:0}
+  .status .sdiv{width:1px;height:15px;background:var(--border);margin:0 14px}
+  .status .warn{color:var(--warn)}
+  .status .sdot{width:6px;height:6px;border-radius:50%;background:var(--accent);margin-left:5px}
+  .mode-a #rail{display:flex}
+</style>
+</head>
+<body>
+  <div class="switch" id="switch">
+    <span class="swlabel">Layout</span>
+    <button id="swa" class="swbtn" data-act="setMode" data-mode="a">A · Left rail + top bar</button>
+    <button id="swb" class="swbtn" data-act="setMode" data-mode="b">B · Unified strip</button>
+    <span class="swnote">Every action is one click — no tabs in either.</span>
+  </div>
+
+  <div id="root">
+    <div class="frame mode-a" id="frame">
+      <div class="titlebar">
+        <span class="brand"></span>
+        <span class="name">CLMC Takeoff — <b>Ground-Floor-Plan.pdf</b></span>
+        <span class="wc"><span>—</span><span>▢</span><span>✕</span></span>
+      </div>
+
+      <div id="chrome"></div>
+
+      <div class="stage">
+        <div class="rail" id="rail"></div>
+        <div class="canvaswrap">
+          <div id="planview">
+            <svg class="plansvg" viewBox="0 0 560 380" xmlns="http://www.w3.org/2000/svg">
+              <rect x="34" y="20" width="492" height="340" fill="#ffffff"/>
+              <g stroke="#9aa0a6" stroke-width="2" fill="none">
+                <rect x="70" y="52" width="420" height="276"/>
+                <line x1="70" y1="170" x2="300" y2="170"/>
+                <line x1="300" y1="52" x2="300" y2="328"/>
+                <line x1="300" y1="240" x2="490" y2="240"/>
+              </g>
+              <path d="M110 170 A40 40 0 0 1 150 210" stroke="#c0c4c8" stroke-width="1.5" fill="none"/>
+              <text x="120" y="112" fill="#7b8085" font-size="11" font-family="Segoe UI">LIVING</text>
+              <text x="360" y="120" fill="#7b8085" font-size="11" font-family="Segoe UI">BED 1</text>
+              <text x="360" y="290" fill="#7b8085" font-size="11" font-family="Segoe UI">BATH</text>
+
+              <g class="mk" data-act="selectMarkup" data-id="m1">
+                <polygon points="82,64 288,64 288,158 82,158" fill="#0078d4" fill-opacity="0.18" stroke="#4f9cf0" stroke-width="2"/>
+                <rect class="selbox" x="76" y="58" width="218" height="106" rx="2"/>
+                <text class="mklabel" x="150" y="115" fill="#2a6fb0">45.2 m²</text>
+              </g>
+
+              <g class="mk" data-act="selectMarkup" data-id="m3">
+                <line x1="312" y1="66" x2="476" y2="66" stroke="#5bbf6a" stroke-width="3"/>
+                <circle cx="312" cy="66" r="3.5" fill="#5bbf6a"/><circle cx="476" cy="66" r="3.5" fill="#5bbf6a"/>
+                <rect class="selbox" x="306" y="56" width="176" height="22" rx="2"/>
+                <text class="mklabel" x="360" y="84" fill="#3f9a4f">3.80 m</text>
+              </g>
+
+              <g class="mk" data-act="selectMarkup" data-id="m2">
+                <g transform="translate(396,270)">
+                  <path d="M0 0a13 13 0 00-13 13c0 9 13 22 13 22s13-13 13-22a13 13 0 00-13-13z" fill="#e05252"/>
+                  <text x="0" y="17" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">12</text>
+                </g>
+                <rect class="selbox" x="376" y="252" width="40" height="52" rx="2"/>
+              </g>
+            </svg>
+          </div>
+
+          <div id="estview">
+            <h4>Estimate sheet — priced BOQ</h4>
+            <table class="egrid">
+              <thead><tr>
+                <th class="l">Item</th><th>Qty</th><th>UoM</th><th>Material</th>
+                <th>Labor</th><th>Cost</th><th>Markup</th><th>Unit&nbsp;Price</th><th>Total</th>
+              </tr></thead>
+              <tbody>
+                <tr><td class="l">Concrete Slab</td><td>45.2</td><td>m²</td><td>₱320</td><td>₱180</td><td>₱22,600</td><td>30%</td><td>₱650</td><td>₱29,380</td></tr>
+                <tr><td class="l">Skirting</td><td>3.8</td><td>m</td><td>₱90</td><td>₱40</td><td>₱494</td><td>30%</td><td>₱169</td><td>₱642</td></tr>
+                <tr><td class="l">Power Outlet</td><td>12</td><td>ea</td><td>₱120</td><td>₱80</td><td>₱2,400</td><td>30%</td><td>₱260</td><td>₱3,120</td></tr>
+                <tr class="tot"><td class="l">Grand total</td><td></td><td></td><td></td><td></td><td>₱25,494</td><td></td><td></td><td>₱33,142</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="totals" id="totals">
+          <div class="th">Totals</div>
+          <div class="tcat">Concrete</div>
+          <div class="titem"><span class="sw" style="background:#4f9cf0"></span><span class="nm">Concrete Slab</span><span class="qty">45.2 m²</span></div>
+          <div class="tcat">Finishes</div>
+          <div class="titem"><span class="sw" style="background:#5bbf6a"></span><span class="nm">Skirting</span><span class="qty">3.80 m</span></div>
+          <div class="tcat">Electrical</div>
+          <div class="titem"><span class="sw" style="background:#e05252"></span><span class="nm">Power Outlet</span><span class="qty">12</span></div>
+        </div>
+      </div>
+
+      <div class="status" id="status"></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  var $ = function(s,r){return (r||document).querySelector(s)};
+  var ZOOM=[25,50,75,100,125,150,200,300,400,800];
+  var TOOLS=[
+    {id:'select',name:'Select',icon:'select'},
+    {id:'count',name:'Count',icon:'pin'},
+    {id:'linear',name:'Linear',icon:'linear'},
+    {id:'area',name:'Area',icon:'area'},
+    {id:'perimeter',name:'Perim',icon:'hex'},
+    {id:'wall',name:'Wall',icon:'wall'}
+  ];
+  var TOOLNAME={select:'Select',count:'Count',linear:'Linear',area:'Area',perimeter:'Perimeter',wall:'Wall',scale:'Set Scale'};
+  var CHAIN={name:'Concrete Slab',color:'#4f9cf0'};
+  var MKDATA={m1:{name:'Concrete Slab',cat:'Concrete',color:'#4f9cf0',label:'45.2 m²'},
+              m3:{name:'Skirting',cat:'Finishes',color:'#5bbf6a',label:'3.80 m'},
+              m2:{name:'Power Outlet',cat:'Electrical',color:'#e05252',label:'12 count'}};
+
+  var ICONS={
+    select:'<path d="M5 3l6 15 2-6 6-2z"/>',
+    pin:'<path d="M12 2a6 6 0 00-6 6c0 4 6 12 6 12s6-8 6-12a6 6 0 00-6-6z" fill="currentColor" stroke="none"/><circle cx="12" cy="8" r="2.1" fill="#1a1a1a" stroke="none"/>',
+    linear:'<path d="M4 18L20 6"/><circle cx="4" cy="18" r="1.5" fill="currentColor"/><circle cx="20" cy="6" r="1.5" fill="currentColor"/>',
+    area:'<rect x="4" y="5" width="16" height="14" rx="1"/>',
+    hex:'<path d="M12 3l7.5 4.5v9L12 21l-7.5-4.5v-9z"/>',
+    wall:'<rect x="3" y="6" width="18" height="12" rx="1"/><path d="M3 12h18M9 6v6M15 12v6"/>',
+    ruler:'<path d="M15 3l6 6L9 21l-6-6z"/><path d="M14 8l-2 2M11 11l-2 2M8 14l-2 2"/>',
+    magnet:'<path d="M6 4v7a6 6 0 0012 0V4h-4v7a2 2 0 01-4 0V4z"/><path d="M6 4h4M14 4h4"/>',
+    arc:'<path d="M4 19a15 15 0 0115-15"/><circle cx="4" cy="19" r="1.5" fill="currentColor"/><circle cx="19" cy="4" r="1.5" fill="currentColor"/>',
+    zoomin:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="M10.5 7.5v6M7.5 10.5h6M20 20l-4.9-4.9"/>',
+    zoomout:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="M7.5 10.5h6M20 20l-4.9-4.9"/>',
+    fit:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+    totals:'<rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 10h16M4 15h16M10 4v16"/>',
+    open:'<path d="M4 5h5l2 2h9v11H4z"/>',
+    save:'<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7M8 20v-6h8v6"/>',
+    export:'<path d="M12 4v11M8 11l4 4 4-4M5 20h14"/>',
+    chevL:'<path d="M14 6l-6 6 6 6"/>',
+    chevR:'<path d="M10 6l6 6-6 6"/>'
+  };
+  function svg(n,s){return '<svg viewBox="0 0 24 24" width="'+s+'" height="'+s+'" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICONS[n]||'')+'</svg>'}
+
+  var state={mode:'a',tool:'select',snap:true,arc:false,page:3,pages:12,zi:3,totals:true,view:'plan',sel:null};
+
+  function toolBtn(t,variant){
+    var on = (state.tool===t.id);
+    var lc = variant==='railb'?'lbl9':'lbl';
+    return '<button class="tbtn '+variant+(on?' active':'')+'" data-act="setTool" data-tool="'+t.id+'" title="'+t.name+'">'+svg(t.icon,variant==='strip'?18:20)+'<span class="'+lc+'">'+t.name+'</span></button>';
+  }
+  function scaleBtn(variant){
+    var on=(state.tool==='scale');
+    var lc=variant==='railb'?'lbl9':'lbl';
+    return '<button class="tbtn '+variant+(on?' active':'')+'" data-act="setTool" data-tool="scale" title="Set Scale">'+svg('ruler',variant==='strip'?18:20)+'<span class="'+lc+'">Scale</span></button>';
+  }
+  function toggleBtn(kind,variant){
+    var on = kind==='snap'?state.snap:state.arc;
+    var ic = kind==='snap'?'magnet':'arc';
+    var nm = kind==='snap'?'Snap':'Arc';
+    var act = kind==='snap'?'toggleSnap':'toggleArc';
+    var lc=variant==='railb'?'lbl9':'lbl';
+    return '<button class="tbtn '+variant+(on?' on':'')+'" data-act="'+act+'" title="'+nm+(on?' on':' off')+'">'+(on?'<span class="dot"></span>':'')+svg(ic,variant==='strip'?18:20)+'<span class="'+lc+'">'+nm+'</span></button>';
+  }
+  function barBtn(icon,label,act,extra){
+    return '<button class="tbtn bar'+(extra?' '+extra:'')+'" data-act="'+act+'" title="'+label+'">'+svg(icon,17)+'<span class="lbl">'+label+'</span></button>';
+  }
+  function ib(icon,act,label,dis){
+    return '<button class="ib" data-act="'+act+'" title="'+label+'" aria-label="'+label+'"'+(dis?' disabled':'')+'>'+svg(icon,18)+'</button>';
+  }
+  function pageGrp(){return '<div class="grp">'+ib('chevL','pagePrev','Previous page',state.page<=1)+'<span class="ro">Page '+state.page+' of '+state.pages+'</span>'+ib('chevR','pageNext','Next page',state.page>=state.pages)+'</div>'}
+  function zoomGrp(){return '<div class="grp">'+ib('zoomout','zoomOut','Zoom out',state.zi<=0)+'<span class="ro zoom">'+ZOOM[state.zi]+'%</span>'+ib('zoomin','zoomIn','Zoom in',state.zi>=ZOOM.length-1)+barBtn('fit','Fit','fit')+'</div>'}
+  function fileGrp(){return '<div class="grp">'+barBtn('open','Open','open')+barBtn('save','Save','save')+barBtn('export','Export','export')+'</div>'}
+  function viewToggle(){
+    return '<div class="seg" role="radiogroup" aria-label="Workspace view">'+
+      '<button class="segb'+(state.view==='plan'?' on':'')+'" data-act="setView" data-view="plan">Plan</button>'+
+      '<button class="segb'+(state.view==='estimate'?' on':'')+'" data-act="setView" data-view="estimate">Estimate</button></div>';
+  }
+
+  function topbarA(){
+    return '<div class="topbar">'+fileGrp()+
+      '<div class="flex1"></div>'+pageGrp()+'<div class="sep"></div>'+zoomGrp()+
+      '<div class="flex1"></div>'+
+      '<div class="grp">'+viewToggle()+barBtn('totals','Totals','toggleTotals',state.totals?'on':'')+'</div>'+
+    '</div>';
+  }
+  function railA(){
+    var h='';
+    TOOLS.forEach(function(t){h+=toolBtn(t,'railb')});
+    h+='<div class="rsep"></div>'+scaleBtn('railb')+'<div class="rsep"></div>'+toggleBtn('snap','railb')+toggleBtn('arc','railb');
+    return h;
+  }
+  function stripB(){
+    var tools='';TOOLS.forEach(function(t){tools+=toolBtn(t,'strip')});tools+=scaleBtn('strip');
+    return '<div class="strip">'+fileGrp()+'<div class="sep"></div>'+pageGrp()+'<div class="sep"></div>'+
+      '<div class="grp">'+tools+'</div>'+'<div class="sep"></div>'+zoomGrp()+
+      barBtn('totals','Totals','toggleTotals',state.totals?'on':'')+'<div class="sep"></div>'+
+      '<div class="grp">'+toggleBtn('snap','strip')+toggleBtn('arc','strip')+'</div>'+
+      '<div class="sep"></div>'+'<div class="grp">'+viewToggle()+'</div>'+
+    '</div>';
+  }
+  function miniToggle(kind){
+    var on=kind==='snap'?state.snap:state.arc;var nm=kind==='snap'?'Snap':'Arc';
+    var act=kind==='snap'?'toggleSnap':'toggleArc';
+    return '<button class="mini'+(on?' on':'')+'" data-act="'+act+'">'+(on?'<span class="d"></span>':'')+nm+' '+(on?'on':'off')+'</button>';
+  }
+  function ctxBar(){
+    var inner;
+    if(state.tool!=='select'&&state.tool!=='scale'){
+      inner='<span class="ctag">Placing</span><b>'+TOOLNAME[state.tool]+'</b>'+
+        '<span class="cinput"><span class="sw" style="background:'+CHAIN.color+'"></span><input value="'+CHAIN.name+'" aria-label="Item name"/></span>'+
+        '<span class="cdiv"></span>'+miniToggle('snap')+miniToggle('arc')+
+        '<span class="cdiv"></span><span class="chip">Chain ●</span>'+
+        '<span class="chint">Enter to finish · Esc to cancel</span>';
+    } else if(state.tool==='scale'){
+      inner='<span class="ctag">Set Scale</span><span class="chint">Draw a line over a known dimension, then type its real length. Everything else stays put — no tab change.</span>';
+    } else if(state.sel){
+      var m=MKDATA[state.sel];
+      inner='<span class="ctag">Selected</span>'+
+        '<span class="cinput"><span class="sw" style="background:'+m.color+'"></span><input value="'+m.name+'" aria-label="Markup name"/></span>'+
+        '<span class="chip">'+m.cat+'</span><span class="cdiv"></span>'+
+        '<button class="cbtn" data-act="noop">Recolor</button>'+
+        '<button class="cbtn danger" data-act="delete">Delete</button>'+
+        '<span class="chint">'+m.label+'</span>';
+    } else {
+      inner='<span class="chint">Pick a tool to mark up, or click a markup to edit it — every control above is one click away.</span>';
+    }
+    return '<div class="ctx">'+inner+'</div>';
+  }
+
+  function statusBar(){
+    return '<span>Ground-Floor-Plan.pdf</span><span class="sdiv"></span>'+
+      '<span>Page '+state.page+' of '+state.pages+'</span><span class="sdiv"></span>'+
+      '<span>Zoom: '+ZOOM[state.zi]+'%</span><span class="sdiv"></span>'+
+      '<span>Scale: 1:100</span><span class="sdiv"></span>'+
+      '<span>Snap: '+(state.snap?'<span>ON</span><span class="sdot"></span>':'<span class="warn">OFF</span>')+'</span>';
+  }
+
+  function render(){
+    var f=$('#frame');
+    f.className='frame mode-'+state.mode;
+    $('#chrome').innerHTML=(state.mode==='a'?topbarA():stripB())+ctxBar();
+    var rail=$('#rail');
+    if(state.mode==='a'){rail.style.display='flex';rail.innerHTML=railA();}
+    else{rail.style.display='none';rail.innerHTML='';}
+    $('#totals').style.display=state.totals?'flex':'none';
+    $('#status').innerHTML=statusBar();
+    $('#planview').style.display=state.view==='plan'?'flex':'none';
+    $('#estview').style.display=state.view==='estimate'?'flex':'none';
+    $('#planview').classList.toggle('crosshair',state.tool!=='select'&&state.tool!=='scale');
+    var mks=document.querySelectorAll('.mk');
+    for(var i=0;i<mks.length;i++){mks[i].classList.toggle('sel',mks[i].getAttribute('data-id')===state.sel)}
+    $('#swa').classList.toggle('on',state.mode==='a');
+    $('#swb').classList.toggle('on',state.mode==='b');
+  }
+
+  document.getElementById('root').addEventListener('click',function(e){handle(e)});
+  document.getElementById('switch').addEventListener('click',function(e){handle(e)});
+  function handle(e){
+    var el=e.target.closest('[data-act]');if(!el)return;
+    var act=el.getAttribute('data-act');
+    if(act==='setMode')state.mode=el.getAttribute('data-mode');
+    else if(act==='setTool'){var t=el.getAttribute('data-tool');state.tool=(state.tool===t?'select':t);state.sel=null;}
+    else if(act==='toggleSnap')state.snap=!state.snap;
+    else if(act==='toggleArc')state.arc=!state.arc;
+    else if(act==='pagePrev')state.page=Math.max(1,state.page-1);
+    else if(act==='pageNext')state.page=Math.min(state.pages,state.page+1);
+    else if(act==='zoomIn')state.zi=Math.min(ZOOM.length-1,state.zi+1);
+    else if(act==='zoomOut')state.zi=Math.max(0,state.zi-1);
+    else if(act==='fit')state.zi=3;
+    else if(act==='toggleTotals')state.totals=!state.totals;
+    else if(act==='setView')state.view=el.getAttribute('data-view');
+    else if(act==='selectMarkup'){if(state.tool!=='select')return;state.sel=el.getAttribute('data-id');}
+    else if(act==='delete'){if(state.sel){var g=document.querySelector('.mk[data-id="'+state.sel+'"]');if(g)g.style.display='none';state.sel=null;}}
+    else if(act==='noop'){return;}
+    render();
+  }
+  render();
+})();
+</script>
+</body>
+</html>

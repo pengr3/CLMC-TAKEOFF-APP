@@ -8,9 +8,17 @@
 | 002 | snapping-engine | VALIDATED | 2026-06-16 | Grid-hash vertex snap 2–15µs at N=1k–50k (~130× under frame budget), 0 correctness mismatches. Rule: cell = zoom-compensated tolerance; index segments by padded bbox; defer intersection snap. → MM-06 |
 | 003 | arc-segment-measure | VALIDATED | 2026-06-16 | 3-point arc length accurate to ~1e-10 vs numerical oracle, robust on all edge cases. Straight-line under-measures a 90° bend ~10%. Needs per-segment arc metadata + 3-click input. → MM-05 |
 | 003b | curved-polygon-area | VALIDATED | 2026-06-16 | Curved AREA = shoelace ± circular-segment, accurate to ~2.9e-8 for inward+outward bulges; all edge cases pass. Sign rule: OUTWARD ⟺ sign(cross)≠sign(shoelace). Straight-only under-measures a stadium ~24%. Guard self-intersecting inward bulges. → MM-05 |
+| 007 | toolbar-revamp | WINNER: A | 2026-07-14 | UX spike — kill the 7-tab ribbon (mode-gating forces tab round-trips mid-markup). Two co-visible layouts prototyped in one interactive demo (`007-toolbar-revamp/mockup.html`). **A (left tool-rail + top action bar) won the feel-test.** Rail = 6 tools + Set Scale + Snap/Arc; top bar = File · Page · Zoom · Plan\|Estimate · Totals; morphing context sub-bar carries placement/edit options. Snap/Arc become clickable; duplicate top/bottom page+scale chrome folds into one status line. → /gsd-plan-phase. |
 
 ## Spike idea (2026-06-16)
 **"In terms of core measurement & markup functionality, what do we lack?"**
 Gap analysis grounded in the codebase (`markup-math.ts`, `markup.ts`, `scale.ts`) produced
 `.planning/BACKLOG.md` (MM-01 … MM-12). The three feasibility-uncertain gaps were spiked
 (001/002/003 above); the rest are known build-work awaiting planning.
+
+## Spike idea (2026-07-14)
+**"Revamp the scattered toolbar so markup is seamless — everything one click away."**
+Diagnosis: the 7-tab ribbon mode-gates the markup inner loop (tool=Tools tab, zoom=View,
+page=Page, save=Home) → constant tab round-trips. Prototyped two tab-less, co-visible layouts
+(A left rail / B unified strip) as one interactive `mockup.html`. GAP-002 installer/PDF-flatten/
+cutout spikes (004/005/006) intentionally backseated for this UX polish pass.
