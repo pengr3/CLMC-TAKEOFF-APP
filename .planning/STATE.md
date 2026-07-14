@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: phase_17_complete
+status: phase_18_planned
 stopped_at: "Phase 17 (markup-rename-and-reorder) COMPLETE — all quality gates passed: execution + gsd-verifier PASS (10/10 SPEC, 11/11 decisions D-01..D-11), code-review --fix (7 findings -> 5 atomic fix commits + regression tests), human UAT 4/4 (0 issues), security verified, Nyquist validation 0-gap/compliant. Suite 803 green, typecheck + build clean. Phase 17 is the last defined v1.0 phase — next: /gsd-audit-milestone for v1.0. Deferred non-blocking findings MD-02/MD-03/LW-03 (17-REVIEW.md) carry forward."
 last_updated: "2026-07-14T02:13:10.000Z"
 last_activity: 2026-07-14
 progress:
-  total_phases: 21
+  total_phases: 22
   completed_phases: 21
-  total_plans: 113
+  total_plans: 122
   completed_plans: 113
-  percent: 100
+  percent: 95
 ---
 
 # Project State: CLMC Takeoff App
@@ -243,10 +243,13 @@ None.
 - Phase 10 added (2026-05-19): Granular Undo Foundation — Ctrl+Z during in-progress multi-point drawing pops the last placed point; Ctrl+Y re-adds it; first-point Ctrl+Z cancels; post-commit undo/redo unchanged. Sets the step-level undo/redo base for future work.
 - Phase 9 added (2026-05-15) and completed (2026-05-18): five UX improvements — click-to-select + Delete-key deletion, rubber-band multi-select with group delete, every modal centred + draggable, 7-tab Office-style ribbon (Home/Page/Tools/View/Estimating/Settings/Help) replacing the flat Toolbar, and Enter / double-click commit for in-progress linear / area / perimeter / wall markups. 6 plans across 3 waves; 12/12 UAT scenarios PASS after two fix loops — quick task 260518-uat (commit 4db36bb) addressed Ctrl+Z selection-restore + LMB-no-pan-during-markup, and debug session lmb-hold-drops-markup-on-release (commit 665835f) added a 4px movement-threshold click-vs-hold gate mirroring the rubber-band suppression pattern. No new v1 requirements (pure quality-of-life). v1.0-extended milestone now reads 12/12 phases, 70/70 plans, 25/25 requirements delivered.
 - Phase 14 edited: Dropped Pricing and Item Library; Phase 14 redefined as Markup Geometry Precision (snapping MM-06 + curved-edge measurement MM-05), validated by spikes 002/003/003b. Pricing decisions D-16-D-22 retained in v1.1-CONTEXT.md.
+- Phase 18 added (2026-07-14): Toolbar Revamp — Seamless One-Click Toolbar. Replaces the 7-tab ribbon with a tab-less, co-visible layout (persistent left tool rail + slim top action bar + morphing context sub-bar) per feel-tested spike 007 (Direction A, "everything one click away"). Extends v1.0 (user chose extend over new v1.1 milestone). Snap/Arc become clickable controls; Settings/Help stubs drop to a reserved ⋯ button; duplicate top/bottom page+scale chrome folds into one status line. Planned via /gsd-plan-phase: 9 plans / 4 waves, plan-checker PASS (1 HIGH resolved — Arc on-state made reactive via subscribeArcSticky + useSyncExternalStore so Shift+A updates the toggle; 2 doc warnings closed). Next: /gsd-execute-phase 18.
 
 ## Session Continuity
 
 **Last activity:** 2026-07-14
+
+**Session continued:** 2026-07-14 — ran `/gsd-spike` on the scattered toolbar → built spike 007 (two interactive mockups, Direction A vs B); user feel-tested and chose **A** ("everything one click away"). Then `/gsd-plan-phase 18`: added **Phase 18 (Toolbar Revamp)** to the roadmap extending v1.0, seeded `18-CONTEXT.md` from the spike (express path, no discuss round), and ran the full pipeline — gsd-phase-researcher (`18-RESEARCH.md`, HIGH confidence, 21-row behavior-parity inventory), gsd-pattern-mapper (`18-PATTERNS.md`, 10 files/8 analogs), gsd-planner (**9 plans, 4 waves**), gsd-plan-checker (**PASS** after one revision: HIGH Arc-reactivity gap fixed via `subscribeArcSticky` + `useSyncExternalStore`; 2 doc warnings closed). Key commits: `e710f1a` (plans), `5810735` (revision). **Next: `/gsd-execute-phase 18`.** Phase 17 remains COMPLETE; the v1.0 milestone audit (`/gsd-audit-milestone`) is still pending and can run before or after Phase 18.
 
 **Session resumed:** 2026-07-14 — restored via /gsd-resume-work from HANDOFF.json (2026-07-13 pause). Reconciled STATE.md + ROADMAP.md to Phase 17 COMPLETE: every quality gate had already passed (execution + gsd-verifier 10/10 SPEC + 11/11 decisions, code-review `--fix` 7→5 fix commits + regression tests, human UAT 4/4, security, Nyquist 0-gap/compliant) but the frontmatter still read `phase_17_awaiting_uat`. Flipped status → `phase_17_complete`, bumped progress to 21/21 phases · 113/113 plans · 100%, checked Phase 17 in ROADMAP + set its Status to Complete. Working tree clean at HEAD `3cc56c0`; HANDOFF.json + phase-17 `.continue-here.md` consumed. **Next: /gsd-audit-milestone for v1.0** (Phase 17 is the last defined phase; v1.1-planning queued). Deferred non-blocking findings MD-02/MD-03/LW-03 + DRY cleanups (`17-REVIEW.md`) carry forward.
 
