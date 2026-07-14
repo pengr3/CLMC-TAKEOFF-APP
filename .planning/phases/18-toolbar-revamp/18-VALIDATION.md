@@ -3,7 +3,7 @@ phase: 18
 slug: toolbar-revamp
 status: draft
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-07-14
 ---
 
@@ -51,9 +51,9 @@ created: 2026-07-14
 | 18-02-01 | 02 | 0 | RED: TopActionBar file ops (Open/Save/Save As/Replace/Export) + disabled derivations | render | `npx vitest run src/tests/top-action-bar-file-ops.test.ts` | ✅ W0 | ❌ red (expected) |
 | 18-02-02 | 02 | 0 | RED: TopActionBar page ◀ N/M ▶ + zoom −/%/+ / Fit + Totals nav | render | `npx vitest run src/tests/top-action-bar-nav.test.ts` | ✅ W0 | ❌ red (expected) |
 | 18-02-03 | 02 | 0 | RED: standalone Plan\|Estimate toggle (NO reset, R-1) + Show/Hide All markDirty; retire 5 obsolete Toolbar/ribbon tests | render | `npx vitest run src/tests/view-mode-toggle.test.ts src/tests/visibility-markdirty.test.ts` | ✅ W0 | ❌ red (expected) |
-| 18-03-01 | 03 | 0 | RED: ContextBar four morph states (placing/scale/selected/idle) mutually exclusive | render | `npx vitest run src/tests/context-bar-morph.test.ts` | ❌ → W0 | ❌ red (expected) |
-| 18-03-02 | 03 | 0 | RED: ContextBar selected-markup edit ops (rename→renameGroup, Recolor→recolorGroup, Delete→deleteMarkup, category chip) | render | `npx vitest run src/tests/context-bar-edit.test.ts` | ❌ → W0 | ❌ red (expected) |
-| 18-03-03 | 03 | 0 | RED: consolidated status line — folded 3-branch scale nudge (migrates canvas-header-bar coverage) | render | `npx vitest run src/tests/status-line.test.ts` | ❌ → W0 | ❌ red (expected) |
+| 18-03-01 | 03 | 0 | RED: ContextBar four morph states (placing/scale/selected/idle) mutually exclusive | render | `npx vitest run src/tests/context-bar-morph.test.ts` | ✅ W0 | ❌ red (expected) |
+| 18-03-02 | 03 | 0 | RED: ContextBar selected-markup edit ops (rename→renameGroup, Recolor→recolorGroup, Delete→deleteMarkup, category chip) | render | `npx vitest run src/tests/context-bar-edit.test.ts` | ✅ W0 | ❌ red (expected) |
+| 18-03-03 | 03 | 0 | RED: consolidated status line — folded 3-branch scale nudge (migrates canvas-header-bar coverage) | render | `npx vitest run src/tests/status-line.test.ts` | ✅ W0 | ❌ red (expected) |
 | 18-04-01 | 04 | 1 | GREEN source: reactive getArcSticky/subscribeArcSticky seam + publish arcMode from CanvasViewport (notify on change) | unit (tdd) | `npx vitest run src/tests/arc-sticky-seam.test.ts` | ✅ W0 | ⬜ pending |
 | 18-05-01 | 05 | 1 | GREEN source: TopActionBar file-ops left group + center page/zoom group | render | `npx vitest run src/tests/top-action-bar-file-ops.test.ts src/tests/top-action-bar-nav.test.ts` | ✅ W0 | ⬜ pending |
 | 18-05-02 | 05 | 1 | GREEN source: right group — Plan\|Estimate (no reset) + Totals + Show/Hide All (markDirty) + inert ⋯ | render | `npx vitest run src/tests/view-mode-toggle.test.ts src/tests/visibility-markdirty.test.ts` | ✅ W0 | ⬜ pending |
@@ -89,10 +89,10 @@ created: 2026-07-14
 - [x] `src/tests/visibility-markdirty.test.ts` — Show All / Hide All BOTH call `markDirty()` (Pitfall 7); Hide All disabled at no-markups (→ 18-05)
 - [x] **Retire** (deleted in 18-02 Task 3): `ribbon-leave-estimating-reveals-plan.test.ts` (premise void — R-1 viewMode reset deleted) + the 4 `toolbar-*.test.ts` that import the dead legacy `Toolbar.tsx` (`toolbar-open-prop`, `toolbar-export-button`, `toolbar-replace-pdf`, `toolbar-saving-disabled`)
 
-**Plan 18-03 — ContextBar + status line (SC-4/SC-5):**
-- [ ] `src/tests/context-bar-morph.test.ts` — four mutually-exclusive morph states (→ 18-08)
-- [ ] `src/tests/context-bar-edit.test.ts` — selected rename/recolor/delete + category chip (→ 18-08)
-- [ ] `src/tests/status-line.test.ts` — consolidated status line with the folded 3-branch scale nudge; migrates `canvas-header-bar.test.ts` coverage (→ 18-06); `canvas-header-bar.test.ts` deleted in 18-09 Task 2
+**Plan 18-03 — ContextBar + status line (SC-4/SC-5):** _(all three RED files created + red — 18-03 executed)_
+- [x] `src/tests/context-bar-morph.test.ts` — four mutually-exclusive morph states (→ 18-08)
+- [x] `src/tests/context-bar-edit.test.ts` — selected rename/recolor/delete + category chip (→ 18-08)
+- [x] `src/tests/status-line.test.ts` — consolidated status line with the folded 3-branch scale nudge; migrates `canvas-header-bar.test.ts` coverage (→ 18-06); `canvas-header-bar.test.ts` deleted in 18-09 Task 2
 
 **Unaffected — must stay GREEN (no Wave 0 work):** `chain-mode.test.ts`, keyboard-shortcut tests, `status-bar-scale.test.ts` (pure selector path).
 
