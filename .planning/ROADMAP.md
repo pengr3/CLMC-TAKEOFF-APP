@@ -696,7 +696,18 @@ Plans:
   5. The duplicated page+scale chrome (top `CanvasHeaderBar` + bottom `StatusBar` both print page + scale today) is consolidated into one status line that preserves the "page not calibrated → Set Scale" nudge; Plan|Estimate toggle, Totals toggle, and all Open/Save/Save As/Replace PDF/Export actions remain reachable; Settings/Help tabs are removed and replaced by a reserved ⋯/overflow affordance (no content this phase)
   6. All existing keyboard shortcuts, chain mode, resume-from-totals arming, and the calibration flow continue to work; the full test suite passes; the new tool/gesture access is captured for the how-to-manual
 
-**Plans:** TBD (planning in progress)
+**Plans:** 9 plans in 4 waves
+
+Plans:
+- [ ] 18-01-PLAN.md — Wave 0 RED tests: ToolRail tools/chain-badge + Snap/Arc toggles + Arc-seam unit
+- [ ] 18-02-PLAN.md — Wave 0 RED tests: TopActionBar file-ops/nav + standalone Plan|Estimate toggle (no reset) + Show/Hide All markDirty; retire legacy Toolbar/ribbon-reset tests
+- [ ] 18-03-PLAN.md — Wave 0 RED tests: ContextBar morph + edit ops + consolidated status-line nudge
+- [ ] 18-04-PLAN.md — Arc read seam (getArcSticky) in markup-arc-ref + CanvasViewport publish
+- [ ] 18-05-PLAN.md — TopActionBar (file ops / page / zoom / Plan|Estimate / Totals / Show-Hide All / inert overflow)
+- [ ] 18-06-PLAN.md — Consolidated status line: fold CanvasHeaderBar nudge into StatusBar, snap reflect-only
+- [ ] 18-07-PLAN.md — ToolRail (6 tools + Set Scale + Snap/Arc toggles, chain badges, scale context menu)
+- [ ] 18-08-PLAN.md — ContextBar (morphing sub-bar: placing/scale/selected/idle + inline rename/recolor/delete)
+- [ ] 18-09-PLAN.md — App shell rewire + delete RibbonToolbar/RibbonButton/Toolbar/CanvasHeaderBar + 18-MANUAL-NOTES.md (+ human-verify checkpoint)
 
 ---
 
