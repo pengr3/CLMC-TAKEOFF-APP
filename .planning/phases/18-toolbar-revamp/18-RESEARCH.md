@@ -475,17 +475,17 @@ onClick={() => getArcStickyToggleHandler()?.()}   // toggles sticky (markup-arc-
 
 ## Open Questions
 
-1. **Where do Show All / Hide All live?** The spike mockup shows no home for them (rail/top-bar/context-bar all omit them). They were in the old View tab (`RibbonToolbar.tsx:533-546`).
+1. **Where do Show All / Hide All live?** *(RESOLVED — 18-05: TopActionBar right group, adjacent to Totals; both handlers copied verbatim incl. explicit `markDirty()`, Pitfall 7.)* The spike mockup shows no home for them (rail/top-bar/context-bar all omit them). They were in the old View tab (`RibbonToolbar.tsx:533-546`).
    - What we know: both MUST call `markDirty()` (Pitfall 3); `Hide All` disabled when `!hasMarkups`.
    - What's unclear: which surface. Candidates: the reserved **⋯ overflow menu** (natural fit — infrequent, layer-management actions), or a small pair on the **TopActionBar** near Totals, or inside the **TotalsPanel** header (where per-item visibility already lives).
    - Recommendation: park them in the ⋯ overflow this phase (keeps the top bar clean, matches "reserved home for secondary actions"), OR surface them in the Totals panel where visibility is already managed. Planner/user to confirm.
 
-2. **ContextBar "selected markup" panel scope.** SC-4 requires name / category / Recolor / Delete when a markup is selected. The canvas already offers edit via double-click popup + right-click `MarkupContextMenu`.
+2. **ContextBar "selected markup" panel scope.** *(RESOLVED — 18-08: inline name via InlineRenameInput→renameGroup, category as a display-only chip, Recolor opens the MARKUP_PALETTE swatch row→recolorGroup, Delete→deleteMarkup; canvas edit popup + right-click MarkupContextMenu left untouched, Q2.)* SC-4 requires name / category / Recolor / Delete when a markup is selected. The canvas already offers edit via double-click popup + right-click `MarkupContextMenu`.
    - What we know: selection is readable (`viewerStore.selectedMarkupIds`); ops exist (`editMarkup`/`recolorGroup`/`deleteMarkup`); recolor swatch UI exists in `MarkupContextMenu.tsx:116-148`.
    - What's unclear: how much of Recolor (full palette popover vs a single swatch) to surface inline, and whether category is editable here or display-only.
    - Recommendation: inline name (uncontrolled, commit-on-blur/Enter → `editMarkup`), category as a chip (display-only for parity; editing stays in the existing popup), Recolor opens the same swatch row as `MarkupContextMenu` (→ `recolorGroup`), Delete → `deleteMarkup`. Canvas popup + right-click menu remain untouched (additive surface).
 
-3. **⋯/gear button shape + contents.** D-07 reserves it with no content this phase. Confirm it renders as an inert/disabled affordance (or opens an empty "Coming soon" popover) so it doesn't imply missing functionality.
+3. **⋯/gear button shape + contents.** *(RESOLVED — 18-05: renders as an inert `data-testid="overflow-menu-button"` with NO onClick; no content this phase, D-07.)* D-07 reserves it with no content this phase. Confirm it renders as an inert/disabled affordance (or opens an empty "Coming soon" popover) so it doesn't imply missing functionality.
 
 ## Environment Availability
 
