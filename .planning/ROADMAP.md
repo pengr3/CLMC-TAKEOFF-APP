@@ -31,6 +31,7 @@
 - [x] **Phase 15: BOQ Pricing & Perimeter Simplification** - Priced BOQ (per-(name,type) unit rate × quantity = cost, category cost subtotals, ₱ grand total) in the totals panel and xlsx/csv export; Perimeter tool narrowed to length-only (perimeter-area removed) so every markup maps to exactly one priceable row (completed 2026-06-29)
 - [x] **Phase 16: Estimating Workspace** (completed 2026-07-01) - Dedicated Estimate sheet in the Estimating tab (Plan | Estimate view toggle) with per-item material + labor unit rates → internal cost, plus a default-30% editable markup → client price and margin; the right-side totals panel reverts to quantity-only and pricing leaves the Plan workspace; xlsx/csv + on-screen grid export the 10-column set Item·Qty·UoM·Material·Labor·Cost·Markup·UNIT PRICE·TOTAL·Margin
 - [x] **Phase 17: Markup Rename and Reorder** - Rename already-plotted markup groups (totals panel + Estimate sheet) with price-key/color/visibility migration and name-collision handling, plus drag-to-reorder items within a category on both surfaces backed by a persisted per-category order shared by panel/sheet/export (completed 2026-07-14)
+- [ ] **Phase 18: Toolbar Revamp — Seamless One-Click Toolbar** - Replace the 7-tab Office ribbon with a tab-less, co-visible layout (persistent left tool rail + slim top action bar + morphing context sub-bar) so every markup-loop action is one click with no tab round-trips; Snap/Arc become clickable controls, Settings/Help stubs drop to a reserved ⋯ button, and the duplicated top/bottom page+scale chrome folds into one status line. Source: spike 007 (Direction A, feel-tested WINNER). (planned)
 
 ---
 
@@ -676,6 +677,26 @@ Plans:
 - [x] 17-07-PLAN.md — Estimate-sheet wiring: row-level context menu + grip + Item-cell double-click rename + drag reorder + dialog host (Req 1-5)
 
 **Cross-cutting constraints:** `categoryItemOrder` lives in markupStore (mirrors `categoryOrder`) keyed `categoryId -> ordered name|type keys` — RESEARCH A4 divergence from CONTEXT's projectStore wording; rate key `name|type` (category-independent), visibility key `name|categoryId` (composite — rename re-keys per categoryId, Pitfall 1); aggregator sort replaced ONCE at boq-aggregator.ts:264 -> totals/estimate/export all inherit (writers unchanged); one Ctrl+Z atomic across markupStore + projectStore (applyProjectUndo/Redo before set()); additive `.clmc` field, NO formatVersion bump; block-on-collision (no merge, D-04); no new npm packages (pointer-events drag).
+
+---
+
+### Phase 18: Toolbar Revamp — Seamless One-Click Toolbar
+
+**Goal:** Replace the 7-tab Office ribbon (`RibbonToolbar.tsx`) with a tab-less, co-visible toolbar — a persistent left tool rail, a slim top action bar, and a morphing context sub-bar — so every markup inner-loop action (pick tool, zoom/pan, flip page, save/export) is reachable in one click with **zero tab round-trips**, and the Phase-14 Snap/Arc features become discoverable clickable controls instead of keyboard-only.
+**Depends on:** Phase 17 (full markup + estimating + canvas-control UI stack)
+**Requirements:** No new v1 requirement IDs (UX / quality-of-life). Source: spike 007 (`.planning/spikes/007-toolbar-revamp/`, Direction A — feel-tested WINNER).
+**Locked decisions:** see `.planning/phases/18-toolbar-revamp/18-CONTEXT.md`
+
+**Success Criteria** (what must be TRUE):
+
+  1. The 7-tab ribbon (and its tab strip) is gone; the tool palette (Select/Count/Linear/Area/Perimeter/Wall + Set Scale) and canvas navigation (page prev/next, zoom −/+/fit) are simultaneously visible and each reachable in a single click at all times during markup — no tab or mode switch is needed to move between picking a tool, zooming, and changing page
+  2. A persistent left tool rail holds Select · Count · Linear · Area · Perimeter · Wall · Set Scale · Snap · Arc; the active tool and the Snap/Arc on/off states are always visible without opening anything
+  3. Snap and Arc are clickable toggle controls (not keyboard-only); the existing F3 / Alt / A / Shift+A shortcuts still work; the bottom status Snap indicator is no longer a read-only pill
+  4. A contextual sub-bar changes with state: while placing a tool it shows the chain item name + color + Snap/Arc toggles + chain indicator; with a markup selected it shows name / category / recolor / delete; idle shows a hint — all existing chain-mode and edit behaviors preserved
+  5. The duplicated page+scale chrome (top `CanvasHeaderBar` + bottom `StatusBar` both print page + scale today) is consolidated into one status line that preserves the "page not calibrated → Set Scale" nudge; Plan|Estimate toggle, Totals toggle, and all Open/Save/Save As/Replace PDF/Export actions remain reachable; Settings/Help tabs are removed and replaced by a reserved ⋯/overflow affordance (no content this phase)
+  6. All existing keyboard shortcuts, chain mode, resume-from-totals arming, and the calibration flow continue to work; the full test suite passes; the new tool/gesture access is captured for the how-to-manual
+
+**Plans:** TBD (planning in progress)
 
 ---
 
