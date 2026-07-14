@@ -30,7 +30,7 @@
 - [x] **Phase 14: Markup Geometry Precision — Snapping + Curved-Edge Measurement** - Cursor snapping (endpoint/vertex/segment, screen-constant tolerance, F3/Alt) during placement and editing, plus true circular-arc edges (3-click gesture, bulge reshaping) with exact arc length and circular-segment area; arcs round-trip through save/reload and BOQ export (completed 2026-06-29)
 - [x] **Phase 15: BOQ Pricing & Perimeter Simplification** - Priced BOQ (per-(name,type) unit rate × quantity = cost, category cost subtotals, ₱ grand total) in the totals panel and xlsx/csv export; Perimeter tool narrowed to length-only (perimeter-area removed) so every markup maps to exactly one priceable row (completed 2026-06-29)
 - [x] **Phase 16: Estimating Workspace** (completed 2026-07-01) - Dedicated Estimate sheet in the Estimating tab (Plan | Estimate view toggle) with per-item material + labor unit rates → internal cost, plus a default-30% editable markup → client price and margin; the right-side totals panel reverts to quantity-only and pricing leaves the Plan workspace; xlsx/csv + on-screen grid export the 10-column set Item·Qty·UoM·Material·Labor·Cost·Markup·UNIT PRICE·TOTAL·Margin
-- [ ] **Phase 17: Markup Rename and Reorder** - Rename already-plotted markup groups (totals panel + Estimate sheet) with price-key/color/visibility migration and name-collision handling, plus drag-to-reorder items within a category on both surfaces backed by a persisted per-category order shared by panel/sheet/export (scoping in progress)
+- [x] **Phase 17: Markup Rename and Reorder** - Rename already-plotted markup groups (totals panel + Estimate sheet) with price-key/color/visibility migration and name-collision handling, plus drag-to-reorder items within a category on both surfaces backed by a persisted per-category order shared by panel/sheet/export (completed 2026-07-14)
 
 ---
 
@@ -650,7 +650,7 @@ Plans:
 **Goal:** Estimators can rename any already-plotted markup group and reorder items within a category directly from the totals panel and the Estimate sheet — without re-drawing — where a rename carries the group's pricing / color / hidden-state across, and a chosen row order persists in the .clmc and is shared identically by the totals panel, the Estimate sheet, and the BOQ export.
 **Depends on:** Phase 16 (Estimating Workspace — PriceEntry model + Estimate sheet + quantity-only totals panel)
 **Requirements:** Extends the v1.1 "Estimating" milestone (Phases 15–16). Deferred from Phase 16 UAT (user: "sooner or later"). No new v1 requirement IDs. Source: `.planning/phases/16-estimating-workspace/16-HUMAN-UAT.md` + memory `deferred-item-rename-reorder`.
-**Status:** Planned — 7 plans across 4 waves (`/gsd-plan-phase 17`); requirements locked by `17-SPEC.md`, decisions D-01..D-11 in `17-CONTEXT.md`.
+**Status:** Complete (2026-07-14) — 7/7 plans; all gates passed: execution + gsd-verifier (10/10 SPEC criteria, 11/11 decisions D-01..D-11), code-review `--fix` (7 findings → 5 atomic fix commits + regression tests), human UAT 4/4 (0 issues, `17-HUMAN-UAT.md`), security (`17-SECURITY.md`), Nyquist validation 0-gap/compliant (`17-VALIDATION.md`). Suite 803 green, typecheck + build clean. Deferred non-blocking: MD-02/MD-03/LW-03 (`17-REVIEW.md`).
 
 **Plans:** 7 plans across 4 waves
 

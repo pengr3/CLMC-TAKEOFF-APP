@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: phase_17_awaiting_uat
-stopped_at: "Phase 17 (markup-rename-and-reorder) EXECUTED + VERIFIED (automated PASS) + review-fixed — suite 793 green, typecheck + build clean. Awaiting human UAT (4 items in 17-HUMAN-UAT.md). Deferred review findings MD-02/MD-03/LW-03 (see 17-REVIEW.md)."
-last_updated: "2026-07-09T08:53:22.850Z"
-last_activity: 2026-07-09
+status: phase_17_complete
+stopped_at: "Phase 17 (markup-rename-and-reorder) COMPLETE — all quality gates passed: execution + gsd-verifier PASS (10/10 SPEC, 11/11 decisions D-01..D-11), code-review --fix (7 findings -> 5 atomic fix commits + regression tests), human UAT 4/4 (0 issues), security verified, Nyquist validation 0-gap/compliant. Suite 803 green, typecheck + build clean. Phase 17 is the last defined v1.0 phase — next: /gsd-audit-milestone for v1.0. Deferred non-blocking findings MD-02/MD-03/LW-03 (17-REVIEW.md) carry forward."
+last_updated: "2026-07-14T02:13:10.000Z"
+last_activity: 2026-07-14
 progress:
   total_phases: 21
-  completed_phases: 20
+  completed_phases: 21
   total_plans: 113
-  completed_plans: 106
-  percent: 94
+  completed_plans: 113
+  percent: 100
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 17 — markup-rename-and-reorder (EXECUTED + VERIFIED + review-fixed; awaiting human UAT)
+**Current Focus:** Phase 17 — markup-rename-and-reorder COMPLETE (all gates passed). Milestone boundary — next: /gsd-audit-milestone for v1.0.
 
 ---
 
 ## Current Position
 
-Phase: 17 (markup-rename-and-reorder) — EXECUTED + VERIFIED (automated PASS) + review-fixed; awaiting human UAT. Phase 16 COMPLETE (UAT approved 2026-07-01).
-Plan: 7 of 7 complete (suite 793 green, typecheck + build clean); 4 human-UAT items pending in 17-HUMAN-UAT.md
+Phase: 17 (markup-rename-and-reorder) — COMPLETE. All gates passed: execution + verification, code-review --fix, human UAT 4/4, security, Nyquist 0-gap validation. Last defined v1.0 phase. Phase 16 COMPLETE (UAT approved 2026-07-01).
+Plan: 7 of 7 complete (suite 803 green, typecheck + build clean). Human UAT 4/4 passed (17-HUMAN-UAT.md). Next: /gsd-audit-milestone for v1.0.
 
 ## Performance Metrics
 
@@ -246,7 +246,9 @@ None.
 
 ## Session Continuity
 
-**Last activity:** 2026-07-01
+**Last activity:** 2026-07-14
+
+**Session resumed:** 2026-07-14 — restored via /gsd-resume-work from HANDOFF.json (2026-07-13 pause). Reconciled STATE.md + ROADMAP.md to Phase 17 COMPLETE: every quality gate had already passed (execution + gsd-verifier 10/10 SPEC + 11/11 decisions, code-review `--fix` 7→5 fix commits + regression tests, human UAT 4/4, security, Nyquist 0-gap/compliant) but the frontmatter still read `phase_17_awaiting_uat`. Flipped status → `phase_17_complete`, bumped progress to 21/21 phases · 113/113 plans · 100%, checked Phase 17 in ROADMAP + set its Status to Complete. Working tree clean at HEAD `3cc56c0`; HANDOFF.json + phase-17 `.continue-here.md` consumed. **Next: /gsd-audit-milestone for v1.0** (Phase 17 is the last defined phase; v1.1-planning queued). Deferred non-blocking findings MD-02/MD-03/LW-03 + DRY cleanups (`17-REVIEW.md`) carry forward.
 
 **Session resumed:** 2026-07-13 — restored via /gsd-resume-work, then ran `/code-review 17 --fix` (xhigh): 7 verified findings → 5 atomic fix commits — `3bcf50c` guard `__proto__` in the rates hydrate loop, `0ea71f1` grip click no longer arms the row tool, `ec82baf` pipe-safe BOQ bucket-key split, `24c0db4` orphan-rate-safe copy/duplicate auto-name, `945d198` group move/copy/duplicate order+visibility+undo. Suite 803 green, typecheck clean; each fix carries a regression test. Deferred (non-blocking): labelToName suffix-strip, editMarkup/deleteGroup key upkeep, MD-03 cross-type visibility, 5 DRY cleanups. Phase 17 STILL awaiting human UAT (4 items in 17-HUMAN-UAT.md).
 
