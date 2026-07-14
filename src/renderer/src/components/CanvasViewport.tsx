@@ -36,7 +36,11 @@ import { buildSnapIndex, resolveSnap, type SnapIndex, type SnapCandidate, type S
 import { COLORS } from '../lib/constants'
 import { formatScaleRatio } from '../lib/scale-math'
 import { setMarkupUndoHandler, setMarkupRedoHandler } from '../lib/markup-undo-ref'
-import { setArcHeldHandler, setArcStickyToggleHandler } from '../lib/markup-arc-ref'
+import {
+  setArcHeldHandler,
+  setArcStickyToggleHandler,
+  setArcStickyState
+} from '../lib/markup-arc-ref'
 import { setMarkupReopenHandler, getReopenSnapshot, setReopenSnapshot } from '../lib/markup-reopen-ref'
 import {
   polylineLength,
@@ -392,6 +396,17 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
       setArcStickyToggleHandler(null)
     }
   }, [setArcHeld, toggleArcSticky])
+
+  // Phase 18 (18-04, R-2): publish the live sticky-arc on/off state into the
+  // reactive markup-arc-ref seam. This is the single publish point — because
+  // setArcStickyState notifies its subscribers, the Shift+A path (which flips
+  // markupState.arcMode with NO coincident store change) re-renders every
+  // useSyncExternalStore(subscribeArcSticky, getArcSticky) consumer (ToolRail
+  // 18-07, ContextBar 18-08). No cleanup reset: on unmount the seam retains its
+  // last value (harmless — the toggle chrome is not visible without the canvas).
+  useEffect(() => {
+    setArcStickyState(markupState.arcMode === 'sticky')
+  }, [markupState.arcMode])
 
   useEffect(() => {
     setMarkupRedoHandler(repushLastPoint)
