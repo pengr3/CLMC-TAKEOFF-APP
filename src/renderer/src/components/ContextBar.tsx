@@ -1,8 +1,12 @@
 import React from 'react'
 import { useViewerStore } from '../stores/viewerStore'
+import { useMarkupStore } from '../stores/markupStore'
 import { isMarkupTool } from '../types/viewer'
+import type { Markup } from '../types/markup'
 import { getChainArmedItem } from './CanvasViewport'
 import { getArcSticky, subscribeArcSticky, getArcStickyToggleHandler } from '../lib/markup-arc-ref'
+import { MARKUP_PALETTE } from '../lib/markup-palette'
+import { InlineRenameInput } from './InlineRenameInput'
 import { COLORS } from '../lib/constants'
 
 /**
@@ -101,6 +105,34 @@ const SWATCH_STYLE: React.CSSProperties = {
   flexShrink: 0
 }
 
+// mockup.html .cbtn — bordered action button (Recolor).
+const CBTN_STYLE: React.CSSProperties = {
+  height: 24,
+  padding: '0 10px',
+  borderRadius: 4,
+  border: `1px solid ${COLORS.border}`,
+  background: 'transparent',
+  color: COLORS.textPrimary,
+  font: 'inherit',
+  fontSize: 11,
+  fontWeight: 600,
+  cursor: 'pointer',
+  flexShrink: 0
+}
+
+// mockup.html .cbtn.danger — red-tinted destructive variant (Delete).
+const CBTN_DANGER_STYLE: React.CSSProperties = {
+  ...CBTN_STYLE,
+  color: '#e06c6c',
+  border: '1px solid #5a2b2b'
+}
+
+// Stable empty-array reference for the per-page markup slice selector (Pitfall 6).
+// A fresh `[]` literal inside a Zustand selector breaks useSyncExternalStore's
+// Object.is snapshot check and causes an infinite re-render loop. Mirrors
+// CanvasHeaderBar.tsx:31 / CanvasViewport.tsx:62.
+const EMPTY_MARKUPS: Markup[] = []
+
 const TOOL_LABELS: Record<string, string> = {
   count: 'Count',
   linear: 'Linear',
@@ -166,6 +198,109 @@ function MiniToggle({
       />
       {label}
     </button>
+  )
+}
+
+/**
+ * Selected-markup panel (D-04 selected state). Re-homes the SAME store ops the
+ * right-click MarkupContextMenu already dispatches (CanvasViewport.tsx:2733-2737),
+ * so behavior is byte-identical and no new plumbing is introduced (Q2 — additive):
+ *   - inline rename via InlineRenameInput → renameGroup(old, new) on native Enter/blur
+ *     (group rename, matching totals/estimate + recolorGroup semantics; reconciles
+ *     RESEARCH P19's "editMarkup" shorthand with the established InlineRenameInput pattern)
+ *   - display-only category chip via getCategory(categoryId).name
+ *   - Recolor → toggled MARKUP_PALETTE swatch row → recolorGroup(name, hex) (whole
+ *     name-group flips, D-29)
+ *   - Delete → deleteMarkup(page, id)
+ *
+ * Resolves the selected markup from the per-page slice (Pitfall 6 EMPTY_MARKUPS guard).
+ */
+function SelectedPanel(): React.JSX.Element {
+  const currentPage = useViewerStore((s) => s.currentPage)
+  const selectedMarkupIds = useViewerStore((s) => s.selectedMarkupIds)
+  const pageMarkups = useMarkupStore((s) => s.pageMarkups[currentPage] ?? EMPTY_MARKUPS)
+  const [showSwatches, setShowSwatches] = React.useState(false)
+
+  const selected = pageMarkups.find((m) => m.id === selectedMarkupIds[0])
+  if (!selected) {
+    // Defensive: selection id with no matching markup on the page. Keep the tag so
+    // the morph root stays non-empty; the main component owns the root wrapper.
+    return <span style={TAG_STYLE}>Selected</span>
+  }
+
+  const categoryName =
+    useMarkupStore.getState().getCategory(selected.categoryId)?.name ?? 'Uncategorized'
+
+  return (
+    <>
+      <span style={TAG_STYLE}>Selected</span>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+        <span style={{ ...SWATCH_STYLE, background: selected.color }} />
+        <span style={{ display: 'inline-block', width: 140 }}>
+          <InlineRenameInput
+            currentName={selected.name}
+            onDone={() => {
+              // Parity with the existing rename UX (D-04): leave selection as-is —
+              // do NOT force clearSelection. The input closes on commit.
+            }}
+          />
+        </span>
+      </span>
+      <span style={CHIP_STYLE}>{categoryName}</span>
+      <span style={DIVIDER_STYLE} />
+      <button
+        type="button"
+        aria-label="Recolor"
+        onClick={() => setShowSwatches((v) => !v)}
+        style={CBTN_STYLE}
+      >
+        Recolor
+      </button>
+      {showSwatches && (
+        <span
+          role="radiogroup"
+          aria-label="Color"
+          style={{ display: 'inline-flex', flexWrap: 'nowrap', gap: 4, flexShrink: 0 }}
+        >
+          {MARKUP_PALETTE.map((hex) => {
+            const isCurrent = hex === selected.color
+            return (
+              <button
+                key={hex}
+                type="button"
+                role="radio"
+                aria-checked={isCurrent}
+                aria-label={`Color ${hex}`}
+                onClick={() => {
+                  useMarkupStore.getState().recolorGroup(selected.name, hex)
+                  setShowSwatches(false)
+                }}
+                style={{
+                  width: 20,
+                  height: 20,
+                  padding: 0,
+                  borderRadius: 3,
+                  background: hex,
+                  border: isCurrent
+                    ? `2px solid ${COLORS.accent}`
+                    : `2px solid ${COLORS.border}`,
+                  boxShadow: isCurrent ? 'inset 0 0 0 2px #ffffff' : 'none',
+                  cursor: 'pointer'
+                }}
+              />
+            )
+          })}
+        </span>
+      )}
+      <button
+        type="button"
+        aria-label="Delete markup"
+        onClick={() => useMarkupStore.getState().deleteMarkup(selected.page, selected.id)}
+        style={CBTN_DANGER_STYLE}
+      >
+        Delete
+      </button>
+    </>
   )
 }
 
@@ -263,7 +398,7 @@ export function ContextBar(): React.JSX.Element {
 
       {selected && (
         <div data-testid="context-bar-selected" style={ROOT_STYLE}>
-          <span style={TAG_STYLE}>Selected</span>
+          <SelectedPanel />
         </div>
       )}
 
