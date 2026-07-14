@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { TitleBar } from './components/TitleBar'
-import { RibbonToolbar } from './components/RibbonToolbar'
+import { TopActionBar } from './components/TopActionBar'
+import { ContextBar } from './components/ContextBar'
+import { ToolRail } from './components/ToolRail'
 import { StatusBar } from './components/StatusBar'
 import { EmptyState } from './components/EmptyState'
 import { CanvasViewport } from './components/CanvasViewport'
 import { TotalsPanel } from './components/TotalsPanel'
 import { EstimatePanel } from './components/EstimatePanel'
-import { CanvasHeaderBar } from './components/CanvasHeaderBar'
 import { Splitter } from './components/Splitter'
 import { ArchiveCorruptedModal } from './components/ArchiveCorruptedModal'
 import { DimensionMismatchModal } from './components/DimensionMismatchModal'
@@ -310,11 +311,12 @@ function App(): React.JSX.Element {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
       <TitleBar />
-      <RibbonToolbar
+      <TopActionBar
         onOpenClick={handleOpenClick}
         onReplaceClick={handleReplaceClick}
         onExportClick={handleExportClick}
       />
+      <ContextBar />
       <main
         ref={containerRef}
         style={{
@@ -326,6 +328,12 @@ function App(): React.JSX.Element {
           flexDirection: 'row'
         }}
       >
+        {/* Phase 18 (SC-1): the persistent left ToolRail is the FIRST column of the
+            stage row — a SIBLING of the center region, never a wrapper. Prepending it
+            here (Pitfall 4) leaves the mount-preserving CanvasViewport subtree and its
+            `display: viewMode` swap structurally untouched; the minWidth:0 floor on the
+            center flex child below is preserved. */}
+        <ToolRail />
         {/* Center region — Phase 16 D-01 mount-preserving view swap (Pitfall 1):
             BOTH the Plan subtree (canvas) AND the Estimate sheet are ALWAYS mounted;
             a CSS `display` gate (driven by viewMode) picks which is visible. The
@@ -335,7 +343,9 @@ function App(): React.JSX.Element {
             data is ever at risk; keeping the (cheap) Estimate DOM mounted while
             hidden costs nothing meaningful. */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'row', minWidth: 0, overflow: 'hidden' }}>
-        {/* Plan subtree: CanvasHeaderBar + CanvasViewport + toasts.
+        {/* Plan subtree: CanvasViewport + toasts. Phase 18 (D-06): the top
+            CanvasHeaderBar is gone — its page/scale + "Page not calibrated → Set Scale"
+            nudge now live on the single consolidated bottom StatusBar line.
             CRITICAL: minWidth: 0 prevents the canvas's intrinsic content from blocking
             shrinking when both panels are open (flex-child needs explicit 0 floor). */}
         <div
@@ -348,7 +358,6 @@ function App(): React.JSX.Element {
             overflow: 'hidden'
           }}
         >
-          {totalPages > 0 && <CanvasHeaderBar />}
           <div data-testid="canvas-viewport-container" style={{ flex: 1, position: 'relative', minHeight: 0 }}>
             {totalPages === 0
               ? <EmptyState />
