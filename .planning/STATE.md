@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: phase_18_planned
-stopped_at: "Phase 17 (markup-rename-and-reorder) COMPLETE — all quality gates passed: execution + gsd-verifier PASS (10/10 SPEC, 11/11 decisions D-01..D-11), code-review --fix (7 findings -> 5 atomic fix commits + regression tests), human UAT 4/4 (0 issues), security verified, Nyquist validation 0-gap/compliant. Suite 803 green, typecheck + build clean. Phase 17 is the last defined v1.0 phase — next: /gsd-audit-milestone for v1.0. Deferred non-blocking findings MD-02/MD-03/LW-03 (17-REVIEW.md) carry forward."
-last_updated: "2026-07-14T02:13:10.000Z"
+stopped_at: Phase 17 (markup-rename-and-reorder) EXECUTED + VERIFIED (automated PASS) + review-fixed — suite 793 green, typecheck + build clean; awaiting human UAT (4 items).
+last_updated: "2026-07-14T07:16:00.382Z"
 last_activity: 2026-07-14
 progress:
   total_phases: 22
   completed_phases: 21
   total_plans: 122
   completed_plans: 113
-  percent: 95
+  percent: 93
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 17 — markup-rename-and-reorder COMPLETE (all gates passed). Milestone boundary — next: /gsd-audit-milestone for v1.0.
+**Current Focus:** Phase 18 — toolbar-revamp
 
 ---
 
 ## Current Position
 
-Phase: 17 (markup-rename-and-reorder) — COMPLETE. All gates passed: execution + verification, code-review --fix, human UAT 4/4, security, Nyquist 0-gap validation. Last defined v1.0 phase. Phase 16 COMPLETE (UAT approved 2026-07-01).
-Plan: 7 of 7 complete (suite 803 green, typecheck + build clean). Human UAT 4/4 passed (17-HUMAN-UAT.md). Next: /gsd-audit-milestone for v1.0.
+Phase: 18 (toolbar-revamp) — EXECUTING
+Plan: 1 of 9
 
 ## Performance Metrics
 
