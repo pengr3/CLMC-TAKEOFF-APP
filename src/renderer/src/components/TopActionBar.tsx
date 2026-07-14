@@ -10,9 +10,13 @@ import {
   ZoomIn,
   ZoomOut,
   Maximize,
-  Table
+  Table,
+  Eye,
+  EyeOff,
+  MoreHorizontal
 } from 'lucide-react'
 import { useViewerStore } from '../stores/viewerStore'
+import type { ViewMode } from '../types/viewer'
 import { useProjectStore } from '../stores/projectStore'
 import { useMarkupStore } from '../stores/markupStore'
 import { useProject } from '../hooks/useProject'
@@ -127,6 +131,10 @@ export function TopActionBar({
   // --- Store selectors (copied verbatim from RibbonToolbar.tsx:134-154) ---
   const { totalPages, currentPage, nextPage, prevPage } = useViewerStore()
   const getViewport = useViewerStore((s) => s.getViewport)
+  // Phase 16 D-01: Plan | Estimate workspace toggle. Store-driven (viewMode IS
+  // React state) — read the field + dispatch the setter directly.
+  const viewMode = useViewerStore((s) => s.viewMode)
+  const setViewMode = useViewerStore((s) => s.setViewMode)
 
   const { saveProject, saveProjectAs } = useProject()
   const isSaving = useProjectStore((s) => s.isSaving)
@@ -160,6 +168,64 @@ export function TopActionBar({
 
   const handleToggleTotals = (): void => {
     setTotalsOpen(!totals.open)
+  }
+
+  // Show All / Hide All — both MUST call markDirty explicitly (Pitfall 7).
+  // setHiddenItemNames does NOT markDirty internally (built for hydration).
+  const handleShowAll = (): void => {
+    useProjectStore.getState().setHiddenItemNames([])
+    useProjectStore.getState().markDirty()
+  }
+
+  const handleHideAll = (): void => {
+    const { pageMarkups } = useMarkupStore.getState()
+    const allKeys = Array.from(
+      new Set(
+        Object.values(pageMarkups)
+          .flat()
+          .map((m) => `${m.name}|${m.categoryId}`)
+      )
+    )
+    useProjectStore.getState().setHiddenItemNames(allKeys)
+    useProjectStore.getState().markDirty()
+  }
+
+  // Plan | Estimate segmented control (Phase 16 D-01). Two adjacent role="radio"
+  // buttons dispatching setViewMode. Copied verbatim from RibbonToolbar.tsx:555-587.
+  // CRITICAL (R-1): NO tab-leave reset useEffect — the standalone toggle is
+  // self-consistent; RibbonToolbar.tsx:170-174 is intentionally NOT ported.
+  const renderViewModeSegment = (mode: ViewMode, label: string): React.JSX.Element => {
+    const isActive = viewMode === mode
+    return (
+      <button
+        role="radio"
+        aria-checked={isActive}
+        aria-label={`${label} view`}
+        data-testid={`view-mode-${mode}`}
+        onClick={() => setViewMode(mode)}
+        style={{
+          height: 28,
+          minWidth: 72,
+          padding: '0 16px',
+          background: isActive ? COLORS.dominant : 'transparent',
+          border: `1px solid ${COLORS.border}`,
+          borderBottom: isActive ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
+          color: isActive ? COLORS.textPrimary : COLORS.textSecondary,
+          fontSize: 12,
+          fontWeight: 600,
+          cursor: 'pointer',
+          lineHeight: 1
+        }}
+        onMouseEnter={(e) => {
+          if (!isActive) e.currentTarget.style.color = COLORS.textPrimary
+        }}
+        onMouseLeave={(e) => {
+          if (!isActive) e.currentTarget.style.color = COLORS.textSecondary
+        }}
+      >
+        {label}
+      </button>
+    )
   }
 
   // Accent Open button — reshapes RibbonToolbar.tsx:270-312 (72×80 column) into
@@ -354,12 +420,61 @@ export function TopActionBar({
 
       {/* Right group — Plan|Estimate · Totals · Show All · Hide All · ⋯ */}
       <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <div
+          role="radiogroup"
+          aria-label="Workspace view"
+          data-testid="view-mode-toggle"
+          style={{
+            display: 'inline-flex',
+            flexDirection: 'row',
+            alignItems: 'center'
+          }}
+        >
+          {renderViewModeSegment('plan', 'Plan')}
+          {renderViewModeSegment('estimate', 'Estimate')}
+        </div>
         <BarButton
           icon={Table}
           onClick={handleToggleTotals}
           active={totals.open}
           title="Toggle Totals panel visibility"
         />
+        <BarButton
+          icon={Eye}
+          onClick={handleShowAll}
+          disabled={totalPages === 0}
+          title="Make every markup visible (clears hidden-items)"
+          ariaLabel="Show All markups"
+        />
+        <BarButton
+          icon={EyeOff}
+          onClick={handleHideAll}
+          disabled={totalPages === 0 || !hasMarkups}
+          title="Hide every markup on every page"
+          ariaLabel="Hide All markups"
+        />
+        {/* Inert overflow home (D-07/Q3) — reserved, no menu wired yet. */}
+        <button
+          data-testid="overflow-menu-button"
+          aria-label="More (coming soon)"
+          title="More (coming soon)"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 34,
+            height: 34,
+            padding: 0,
+            background: 'transparent',
+            border: 'none',
+            borderRadius: 4,
+            color: COLORS.textSecondary,
+            cursor: 'default',
+            flexShrink: 0
+          }}
+        >
+          <MoreHorizontal size={18} color="currentColor" />
+        </button>
       </div>
     </div>
   )
