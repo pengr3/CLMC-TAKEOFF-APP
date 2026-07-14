@@ -45,9 +45,9 @@ created: 2026-07-14
 
 | Task ID | Plan | Wave | Behavior (parity unless noted) | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|--------------------------------|-----------|-------------------|-------------|--------|
-| 18-01-01 | 01 | 0 | RED: reactive Arc seam — getArcSticky/setArcStickyState/subscribeArcSticky; listener fires on change, not on no-op, stops after unsubscribe | unit | `npx vitest run src/tests/arc-sticky-seam.test.ts` | ❌ → W0 | ❌ red (expected) |
-| 18-01-02 | 01 | 0 | RED: rail tools arm/disarm-on-retap, no role=tab, chain badge gate, Set Scale activate + right-click menu | render | `npx vitest run src/tests/toolrail-tools.test.ts src/tests/toolrail-chain-badge.test.ts` | ❌ → W0 | ❌ red (expected) |
-| 18-01-03 | 01 | 0 | RED: rail Snap toggle (F3-shared field) + Arc toggle; Arc on-state reactive (Shift+A-equivalent flip, no re-render) | render | `npx vitest run src/tests/snap-toggle.test.ts src/tests/arc-toggle.test.ts` | ❌ → W0 | ❌ red (expected) |
+| 18-01-01 | 01 | 0 | RED: reactive Arc seam — getArcSticky/setArcStickyState/subscribeArcSticky; listener fires on change, not on no-op, stops after unsubscribe | unit | `npx vitest run src/tests/arc-sticky-seam.test.ts` | ✅ W0 | ❌ red (expected) |
+| 18-01-02 | 01 | 0 | RED: rail tools arm/disarm-on-retap, no role=tab, chain badge gate, Set Scale activate + right-click menu | render | `npx vitest run src/tests/toolrail-tools.test.ts src/tests/toolrail-chain-badge.test.ts` | ✅ W0 | ❌ red (expected) |
+| 18-01-03 | 01 | 0 | RED: rail Snap toggle (F3-shared field) + Arc toggle; Arc on-state reactive (Shift+A-equivalent flip, no re-render) | render | `npx vitest run src/tests/snap-toggle.test.ts src/tests/arc-toggle.test.ts` | ✅ W0 | ❌ red (expected) |
 | 18-02-01 | 02 | 0 | RED: TopActionBar file ops (Open/Save/Save As/Replace/Export) + disabled derivations | render | `npx vitest run src/tests/top-action-bar-file-ops.test.ts` | ❌ → W0 | ❌ red (expected) |
 | 18-02-02 | 02 | 0 | RED: TopActionBar page ◀ N/M ▶ + zoom −/%/+ / Fit + Totals nav | render | `npx vitest run src/tests/top-action-bar-nav.test.ts` | ❌ → W0 | ❌ red (expected) |
 | 18-02-03 | 02 | 0 | RED: standalone Plan\|Estimate toggle (NO reset, R-1) + Show/Hide All markDirty; retire 5 obsolete Toolbar/ribbon tests | render | `npx vitest run src/tests/view-mode-toggle.test.ts src/tests/visibility-markdirty.test.ts` | ❌ → W0 | ❌ red (expected) |
@@ -75,12 +75,12 @@ created: 2026-07-14
 
 > RED test files created by plans 18-01 / 18-02 / 18-03 (+ retirements). Each turns GREEN when its Wave 1/2 source plan lands.
 
-**Plan 18-01 — ToolRail + reactive Arc seam (SC-1/SC-2/SC-3):**
-- [ ] `src/tests/arc-sticky-seam.test.ts` — reactive Arc seam: getArcSticky/setArcStickyState/**subscribeArcSticky**; listener fires on change, not on no-op, stops after unsubscribe (→ 18-04)
-- [ ] `src/tests/toolrail-tools.test.ts` — rail tools arm/disarm-on-retap, NO role=tab (SC-1), Set Scale activate + right-click ScaleContextMenu (→ 18-07)
-- [ ] `src/tests/toolrail-chain-badge.test.ts` — chain badge gate `activeTool===tool && getChainArmedItem()!==null` (→ 18-07)
-- [ ] `src/tests/snap-toggle.test.ts` — rail Snap toggle ↔ `setSnapEnabled` / F3 share one field (→ 18-07)
-- [ ] `src/tests/arc-toggle.test.ts` — rail Arc toggle fires `getArcStickyToggleHandler`; on-state stays reactive via `subscribeArcSticky`/`getArcSticky` on a Shift+A-equivalent flip with NO manual re-render (→ 18-04 + 18-07)
+**Plan 18-01 — ToolRail + reactive Arc seam (SC-1/SC-2/SC-3):** _(all five RED files created + red — 18-01 executed)_
+- [x] `src/tests/arc-sticky-seam.test.ts` — reactive Arc seam: getArcSticky/setArcStickyState/**subscribeArcSticky**; listener fires on change, not on no-op, stops after unsubscribe (→ 18-04)
+- [x] `src/tests/toolrail-tools.test.ts` — rail tools arm/disarm-on-retap, NO role=tab (SC-1), Set Scale activate + right-click ScaleContextMenu (→ 18-07)
+- [x] `src/tests/toolrail-chain-badge.test.ts` — chain badge gate `activeTool===tool && getChainArmedItem()!==null` (→ 18-07)
+- [x] `src/tests/snap-toggle.test.ts` — rail Snap toggle ↔ `setSnapEnabled` / F3 share one field (→ 18-07)
+- [x] `src/tests/arc-toggle.test.ts` — rail Arc toggle fires `getArcStickyToggleHandler`; on-state stays reactive via `subscribeArcSticky`/`getArcSticky` on a Shift+A-equivalent flip with NO manual re-render (→ 18-04 + 18-07)
 
 **Plan 18-02 — TopActionBar (SC-4/SC-5/SC-6):**
 - [ ] `src/tests/top-action-bar-file-ops.test.ts` — Open/Save/Save As/Replace/Export + disabled derivations (→ 18-05)
