@@ -48,9 +48,9 @@ created: 2026-07-14
 | 18-01-01 | 01 | 0 | RED: reactive Arc seam — getArcSticky/setArcStickyState/subscribeArcSticky; listener fires on change, not on no-op, stops after unsubscribe | unit | `npx vitest run src/tests/arc-sticky-seam.test.ts` | ✅ W0 | ❌ red (expected) |
 | 18-01-02 | 01 | 0 | RED: rail tools arm/disarm-on-retap, no role=tab, chain badge gate, Set Scale activate + right-click menu | render | `npx vitest run src/tests/toolrail-tools.test.ts src/tests/toolrail-chain-badge.test.ts` | ✅ W0 | ❌ red (expected) |
 | 18-01-03 | 01 | 0 | RED: rail Snap toggle (F3-shared field) + Arc toggle; Arc on-state reactive (Shift+A-equivalent flip, no re-render) | render | `npx vitest run src/tests/snap-toggle.test.ts src/tests/arc-toggle.test.ts` | ✅ W0 | ❌ red (expected) |
-| 18-02-01 | 02 | 0 | RED: TopActionBar file ops (Open/Save/Save As/Replace/Export) + disabled derivations | render | `npx vitest run src/tests/top-action-bar-file-ops.test.ts` | ❌ → W0 | ❌ red (expected) |
-| 18-02-02 | 02 | 0 | RED: TopActionBar page ◀ N/M ▶ + zoom −/%/+ / Fit + Totals nav | render | `npx vitest run src/tests/top-action-bar-nav.test.ts` | ❌ → W0 | ❌ red (expected) |
-| 18-02-03 | 02 | 0 | RED: standalone Plan\|Estimate toggle (NO reset, R-1) + Show/Hide All markDirty; retire 5 obsolete Toolbar/ribbon tests | render | `npx vitest run src/tests/view-mode-toggle.test.ts src/tests/visibility-markdirty.test.ts` | ❌ → W0 | ❌ red (expected) |
+| 18-02-01 | 02 | 0 | RED: TopActionBar file ops (Open/Save/Save As/Replace/Export) + disabled derivations | render | `npx vitest run src/tests/top-action-bar-file-ops.test.ts` | ✅ W0 | ❌ red (expected) |
+| 18-02-02 | 02 | 0 | RED: TopActionBar page ◀ N/M ▶ + zoom −/%/+ / Fit + Totals nav | render | `npx vitest run src/tests/top-action-bar-nav.test.ts` | ✅ W0 | ❌ red (expected) |
+| 18-02-03 | 02 | 0 | RED: standalone Plan\|Estimate toggle (NO reset, R-1) + Show/Hide All markDirty; retire 5 obsolete Toolbar/ribbon tests | render | `npx vitest run src/tests/view-mode-toggle.test.ts src/tests/visibility-markdirty.test.ts` | ✅ W0 | ❌ red (expected) |
 | 18-03-01 | 03 | 0 | RED: ContextBar four morph states (placing/scale/selected/idle) mutually exclusive | render | `npx vitest run src/tests/context-bar-morph.test.ts` | ❌ → W0 | ❌ red (expected) |
 | 18-03-02 | 03 | 0 | RED: ContextBar selected-markup edit ops (rename→renameGroup, Recolor→recolorGroup, Delete→deleteMarkup, category chip) | render | `npx vitest run src/tests/context-bar-edit.test.ts` | ❌ → W0 | ❌ red (expected) |
 | 18-03-03 | 03 | 0 | RED: consolidated status line — folded 3-branch scale nudge (migrates canvas-header-bar coverage) | render | `npx vitest run src/tests/status-line.test.ts` | ❌ → W0 | ❌ red (expected) |
@@ -82,12 +82,12 @@ created: 2026-07-14
 - [x] `src/tests/snap-toggle.test.ts` — rail Snap toggle ↔ `setSnapEnabled` / F3 share one field (→ 18-07)
 - [x] `src/tests/arc-toggle.test.ts` — rail Arc toggle fires `getArcStickyToggleHandler`; on-state stays reactive via `subscribeArcSticky`/`getArcSticky` on a Shift+A-equivalent flip with NO manual re-render (→ 18-04 + 18-07)
 
-**Plan 18-02 — TopActionBar (SC-4/SC-5/SC-6):**
-- [ ] `src/tests/top-action-bar-file-ops.test.ts` — Open/Save/Save As/Replace/Export + disabled derivations (→ 18-05)
-- [ ] `src/tests/top-action-bar-nav.test.ts` — page prev/next, zoom −/%/+ / Fit, Totals (→ 18-05)
-- [ ] `src/tests/view-mode-toggle.test.ts` — standalone Plan|Estimate toggle, NO auto-reset (R-1); preserve `view-mode-toggle`/`view-mode-plan`/`view-mode-estimate` testids (→ 18-05)
-- [ ] `src/tests/visibility-markdirty.test.ts` — Show All / Hide All BOTH call `markDirty()` (Pitfall 7); Hide All disabled at no-markups (→ 18-05)
-- [ ] **Retire** (deleted in 18-02 Task 3): `ribbon-leave-estimating-reveals-plan.test.ts` (premise void — R-1 viewMode reset deleted) + the 4 `toolbar-*.test.ts` that import the dead legacy `Toolbar.tsx` (`toolbar-open-prop`, `toolbar-export-button`, `toolbar-replace-pdf`, `toolbar-saving-disabled`)
+**Plan 18-02 — TopActionBar (SC-4/SC-5/SC-6):** _(all four RED files created + red; 5 obsolete tests retired — 18-02 executed)_
+- [x] `src/tests/top-action-bar-file-ops.test.ts` — Open/Save/Save As/Replace/Export + disabled derivations (→ 18-05)
+- [x] `src/tests/top-action-bar-nav.test.ts` — page prev/next, zoom −/%/+ / Fit, Totals (→ 18-05)
+- [x] `src/tests/view-mode-toggle.test.ts` — standalone Plan|Estimate toggle, NO auto-reset (R-1); preserve `view-mode-toggle`/`view-mode-plan`/`view-mode-estimate` testids (→ 18-05)
+- [x] `src/tests/visibility-markdirty.test.ts` — Show All / Hide All BOTH call `markDirty()` (Pitfall 7); Hide All disabled at no-markups (→ 18-05)
+- [x] **Retire** (deleted in 18-02 Task 3): `ribbon-leave-estimating-reveals-plan.test.ts` (premise void — R-1 viewMode reset deleted) + the 4 `toolbar-*.test.ts` that import the dead legacy `Toolbar.tsx` (`toolbar-open-prop`, `toolbar-export-button`, `toolbar-replace-pdf`, `toolbar-saving-disabled`)
 
 **Plan 18-03 — ContextBar + status line (SC-4/SC-5):**
 - [ ] `src/tests/context-bar-morph.test.ts` — four mutually-exclusive morph states (→ 18-08)
