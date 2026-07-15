@@ -18,37 +18,54 @@ interface ScaleStoreState {
   reset: () => void
 }
 
-export const useScaleStore = create<ScaleStoreState>()(
-  subscribeWithSelector((set, get) => ({
-    pageScales: {},
-    globalUnit: DEFAULT_UNIT,
-    calibMode: 'idle',
+// Factory kept as a function so the store is created once and REUSED across Vite
+// HMR updates (see the import.meta.hot block below). Prevents the dual-instance
+// desync that a re-evaluated store module would otherwise cause in dev.
+// Return type left to inference (see viewerStore.ts) so ReturnType<> stays exact.
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const createScaleStore = () =>
+  create<ScaleStoreState>()(
+    subscribeWithSelector((set, get) => ({
+      pageScales: {},
+      globalUnit: DEFAULT_UNIT,
+      calibMode: 'idle',
 
-    setScale: (page, pixelsPerMm, displayUnit) =>
-      set((state) => ({
-        pageScales: {
-          ...state.pageScales,
-          [page]: { pixelsPerMm, displayUnit }
-        }
-      })),
+      setScale: (page, pixelsPerMm, displayUnit) =>
+        set((state) => ({
+          pageScales: {
+            ...state.pageScales,
+            [page]: { pixelsPerMm, displayUnit }
+          }
+        })),
 
-    getScale: (page) => get().pageScales[page] ?? null,
+      getScale: (page) => get().pageScales[page] ?? null,
 
-    clearScale: (page) =>
-      set((state) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { [page]: _removed, ...rest } = state.pageScales
-        return { pageScales: rest }
-      }),
+      clearScale: (page) =>
+        set((state) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [page]: _removed, ...rest } = state.pageScales
+          return { pageScales: rest }
+        }),
 
-    setGlobalUnit: (unit) => set({ globalUnit: unit }),
+      setGlobalUnit: (unit) => set({ globalUnit: unit }),
 
-    setCalibMode: (mode) => set({ calibMode: mode }),
+      setCalibMode: (mode) => set({ calibMode: mode }),
 
-    hydrate: (data) =>
-      set({ pageScales: data.pageScales, globalUnit: data.globalUnit, calibMode: 'idle' }),
+      hydrate: (data) =>
+        set({ pageScales: data.pageScales, globalUnit: data.globalUnit, calibMode: 'idle' }),
 
-    reset: () =>
-      set({ pageScales: {}, globalUnit: DEFAULT_UNIT, calibMode: 'idle' })
-  }))
-)
+      reset: () => set({ pageScales: {}, globalUnit: DEFAULT_UNIT, calibMode: 'idle' })
+    }))
+  )
+
+// See viewerStore.ts for the full rationale. Prod build strips this; Vitest falls
+// through to `createScaleStore()` (double optional-chain guards the web-transform
+// stub whose `import.meta.hot.data` is undefined).
+export const useScaleStore =
+  (import.meta.hot?.data?.store as ReturnType<typeof createScaleStore> | undefined) ??
+  createScaleStore()
+
+if (import.meta.hot) {
+  if (import.meta.hot.data) import.meta.hot.data.store = useScaleStore
+  import.meta.hot.accept()
+}

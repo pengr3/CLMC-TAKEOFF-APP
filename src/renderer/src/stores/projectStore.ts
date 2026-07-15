@@ -115,135 +115,150 @@ export function isHydrating(): boolean {
   return _hydrating
 }
 
-export const useProjectStore = create<ProjectStoreState>((set, get) => ({
-  currentFilePath: null,
-  isDirty: false,
-  isSaving: false,
-  isExporting: false,
-  lastSavedAt: null,
-  hiddenItemNames: [],
-  hiddenItemSet: new Set<string>(),
-  rates: {},
-  defaultMarkupPct: DEFAULT_MARKUP_PCT,
-
-  setSaved: (filePath) =>
-    set({ currentFilePath: filePath, isDirty: false, lastSavedAt: Date.now() }),
-
-  setSaving: (v) => set({ isSaving: v }),
-
-  setExporting: (v) => set({ isExporting: v }),
-
-  setCurrentFilePath: (filePath) => set({ currentFilePath: filePath }),
-
-  markDirty: () => {
-    if (_hydrating) return
-    if (get().isDirty) return
-    set({ isDirty: true })
-  },
-
-  reset: () => set({
+// Factory kept as a function so the store is created once and REUSED across Vite
+// HMR updates (see the import.meta.hot block below). Keeps the store a singleton
+// so dirty-tracking subscriptions and every consumer share one instance in dev.
+// Return type left to inference (see viewerStore.ts) so ReturnType<> stays exact.
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const createProjectStore = () =>
+  create<ProjectStoreState>((set, get) => ({
     currentFilePath: null,
     isDirty: false,
     isSaving: false,
     isExporting: false,
     lastSavedAt: null,
     hiddenItemNames: [],
-    hiddenItemSet: new Set(),
+    hiddenItemSet: new Set<string>(),
     rates: {},
-    defaultMarkupPct: DEFAULT_MARKUP_PCT
-  }),
+    defaultMarkupPct: DEFAULT_MARKUP_PCT,
 
-  toggleHiddenItem: (name) => {
-    set((s) => {
-      const idx = s.hiddenItemNames.indexOf(name)
-      const next = idx >= 0
-        ? s.hiddenItemNames.filter((n) => n !== name)
-        : [...s.hiddenItemNames, name]
-      return { hiddenItemNames: next, hiddenItemSet: new Set(next) }
-    })
-    get().markDirty()
-  },
+    setSaved: (filePath) =>
+      set({ currentFilePath: filePath, isDirty: false, lastSavedAt: Date.now() }),
 
-  setHiddenItemNames: (names) => {
-    set({ hiddenItemNames: names, hiddenItemSet: new Set(names) })
-  },
+    setSaving: (v) => set({ isSaving: v }),
 
-  setPrice: (key, patch) => {
-    set((s) => {
-      const cur = s.rates[key] ?? { material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT }
-      return { rates: { ...s.rates, [key]: { ...cur, ...patch } } }
-    })
-    get().markDirty()
-  },
+    setExporting: (v) => set({ isExporting: v }),
 
-  setDefaultMarkupPct: (pct) => {
-    const safe = Number.isFinite(pct) && pct >= 0 ? pct : 0
-    set({ defaultMarkupPct: safe })
-    get().markDirty()
-  },
+    setCurrentFilePath: (filePath) => set({ currentFilePath: filePath }),
 
-  reKeyRate: (oldKey, newKey) => {
-    set((s) => {
-      const entry = s.rates[oldKey]
-      if (entry === undefined || oldKey === newKey) return s
-      const next = { ...s.rates }
-      delete next[oldKey]
-      next[newKey] = entry
-      return { rates: next }
-    })
-    get().markDirty()
-  },
+    markDirty: () => {
+      if (_hydrating) return
+      if (get().isDirty) return
+      set({ isDirty: true })
+    },
 
-  reKeyHidden: (oldKey, newKey) => {
-    set((s) => {
-      if (oldKey === newKey || !s.hiddenItemNames.includes(oldKey)) return s
-      const next = s.hiddenItemNames.map((n) => (n === oldKey ? newKey : n))
-      return { hiddenItemNames: next, hiddenItemSet: new Set(next) }
-    })
-    get().markDirty()
-  },
+    reset: () =>
+      set({
+        currentFilePath: null,
+        isDirty: false,
+        isSaving: false,
+        isExporting: false,
+        lastSavedAt: null,
+        hiddenItemNames: [],
+        hiddenItemSet: new Set(),
+        rates: {},
+        defaultMarkupPct: DEFAULT_MARKUP_PCT
+      }),
 
-  setHiddenBatch: (remove, add) => {
-    if (remove.length === 0 && add.length === 0) return
-    set((s) => {
-      const removeSet = new Set(remove)
-      const kept = s.hiddenItemNames.filter((n) => !removeSet.has(n))
-      const keptSet = new Set(kept)
-      const next = [...kept]
-      for (const k of add) {
-        if (!keptSet.has(k)) {
-          keptSet.add(k)
-          next.push(k)
+    toggleHiddenItem: (name) => {
+      set((s) => {
+        const idx = s.hiddenItemNames.indexOf(name)
+        const next =
+          idx >= 0 ? s.hiddenItemNames.filter((n) => n !== name) : [...s.hiddenItemNames, name]
+        return { hiddenItemNames: next, hiddenItemSet: new Set(next) }
+      })
+      get().markDirty()
+    },
+
+    setHiddenItemNames: (names) => {
+      set({ hiddenItemNames: names, hiddenItemSet: new Set(names) })
+    },
+
+    setPrice: (key, patch) => {
+      set((s) => {
+        const cur = s.rates[key] ?? { material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT }
+        return { rates: { ...s.rates, [key]: { ...cur, ...patch } } }
+      })
+      get().markDirty()
+    },
+
+    setDefaultMarkupPct: (pct) => {
+      const safe = Number.isFinite(pct) && pct >= 0 ? pct : 0
+      set({ defaultMarkupPct: safe })
+      get().markDirty()
+    },
+
+    reKeyRate: (oldKey, newKey) => {
+      set((s) => {
+        const entry = s.rates[oldKey]
+        if (entry === undefined || oldKey === newKey) return s
+        const next = { ...s.rates }
+        delete next[oldKey]
+        next[newKey] = entry
+        return { rates: next }
+      })
+      get().markDirty()
+    },
+
+    reKeyHidden: (oldKey, newKey) => {
+      set((s) => {
+        if (oldKey === newKey || !s.hiddenItemNames.includes(oldKey)) return s
+        const next = s.hiddenItemNames.map((n) => (n === oldKey ? newKey : n))
+        return { hiddenItemNames: next, hiddenItemSet: new Set(next) }
+      })
+      get().markDirty()
+    },
+
+    setHiddenBatch: (remove, add) => {
+      if (remove.length === 0 && add.length === 0) return
+      set((s) => {
+        const removeSet = new Set(remove)
+        const kept = s.hiddenItemNames.filter((n) => !removeSet.has(n))
+        const keptSet = new Set(kept)
+        const next = [...kept]
+        for (const k of add) {
+          if (!keptSet.has(k)) {
+            keptSet.add(k)
+            next.push(k)
+          }
         }
-      }
-      return { hiddenItemNames: next, hiddenItemSet: new Set(next) }
-    })
-    get().markDirty()
-  },
+        return { hiddenItemNames: next, hiddenItemSet: new Set(next) }
+      })
+      get().markDirty()
+    },
 
-  addBlankRate: (key) => {
-    set((s) => ({
-      rates: { ...s.rates, [key]: { material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT } }
-    }))
-    get().markDirty()
-  },
+    addBlankRate: (key) => {
+      set((s) => ({
+        rates: { ...s.rates, [key]: { material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT } }
+      }))
+      get().markDirty()
+    },
 
-  removeRate: (key) => {
-    set((s) => {
-      if (s.rates[key] === undefined) return s
-      const next = { ...s.rates }
-      delete next[key]
-      return { rates: next }
-    })
-    get().markDirty()
-  }
-}))
+    removeRate: (key) => {
+      set((s) => {
+        if (s.rates[key] === undefined) return s
+        const next = { ...s.rates }
+        delete next[key]
+        return { rates: next }
+      })
+      get().markDirty()
+    }
+  }))
+
+// See viewerStore.ts for the full rationale. Prod build strips this; Vitest falls
+// through to `createProjectStore()` (double optional-chain guards the web-transform
+// stub whose `import.meta.hot.data` is undefined).
+export const useProjectStore =
+  (import.meta.hot?.data?.store as ReturnType<typeof createProjectStore> | undefined) ??
+  createProjectStore()
+
+if (import.meta.hot) {
+  if (import.meta.hot.data) import.meta.hot.data.store = useProjectStore
+  import.meta.hot.accept()
+}
 
 // Shallow-equal for array-tuple selectors returned by subscribeWithSelector.
-function shallowEqualArr(
-  a: readonly unknown[],
-  b: readonly unknown[]
-): boolean {
+function shallowEqualArr(a: readonly unknown[], b: readonly unknown[]): boolean {
   if (a === b) return true
   if (a.length !== b.length) return false
   for (let i = 0; i < a.length; i++) {
