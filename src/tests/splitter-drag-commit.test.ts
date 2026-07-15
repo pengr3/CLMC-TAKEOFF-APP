@@ -10,16 +10,20 @@ import { Splitter } from '@renderer/components/Splitter'
  * Splitter width-drag / commit contract (Phase 6, guarded during the Phase-18
  * splitter-drag-lag perf fix).
  *
- * The perf fix memoizes CanvasViewport / EstimatePanel and stabilizes the
- * onReopenToast callback so App's per-pointermove setTotalsDragWidth no longer
- * re-renders the Konva Stage. NONE of that is allowed to change the Splitter's
- * behavioral contract, which App depends on:
+ * The Phase-18 perf fix memoizes CanvasViewport / EstimatePanel AND drives the
+ * live Totals width IMPERATIVELY (App writes el.style.width via a ref on every
+ * onDragWidth — NO setState until pointerup). NONE of that is allowed to change
+ * the Splitter's behavioral contract, which App depends on:
  *   - onDragWidth fires on EVERY pointermove with the clamped candidate width
- *     (App writes this to totalsDragWidth → live resize),
+ *     (App writes this straight to the panel node's style.width — live resize),
  *   - the candidate is clamped to [minWidth, containerWidth * 0.5],
  *   - onCommit fires EXACTLY ONCE on pointerup with the final width
- *     (App: setTotalsWidth + clear totalsDragWidth),
+ *     (App: setTotalsWidth — the single re-render + single localStorage write),
  *   - after pointerup the window listeners are gone (no late drag callbacks).
+ *
+ * The companion suite splitter-drag-imperative.test.ts proves the App-side
+ * wiring: onDragWidth mutates the DOM without a React render, and only the
+ * pointerup commit re-renders.
  *
  * side="right": dragging LEFT (clientX decreases) grows the panel — dx = startX - clientX.
  */

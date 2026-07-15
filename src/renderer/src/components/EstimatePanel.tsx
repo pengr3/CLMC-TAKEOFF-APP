@@ -487,12 +487,13 @@ function EstimatePanelComponent(): React.JSX.Element {
 }
 
 /**
- * Phase 6 perf fix (splitter-drag lag): memoize EstimatePanel so a parent (App)
+ * Phase 6/18 perf fix (splitter-drag lag): memoize EstimatePanel so a parent (App)
  * re-render does not re-render this (non-trivial) sheet. EstimatePanel takes NO props,
- * so the shallow comparison is always equal — it now re-renders ONLY when its own
- * store subscriptions (useBoqLive / useViewerStore / useMarkupStore) change, never
- * merely because App re-rendered (e.g. the per-pointermove setTotalsDragWidth during a
- * TotalsPanel splitter drag). It is mounted-but-hidden in Plan view, so this avoids
- * wasted per-frame work on an off-screen subtree.
+ * so the shallow comparison is always equal — it re-renders ONLY when its own store
+ * subscriptions (useBoqLive / useViewerStore / useMarkupStore) change, never merely
+ * because App re-rendered. (Phase 18: the TotalsPanel splitter drag now updates width
+ * imperatively via a ref and no longer re-renders App at all — this memo remains as
+ * defense-in-depth.) It is mounted-but-hidden in Plan view, so this avoids wasted
+ * per-frame work on an off-screen subtree.
  */
 export const EstimatePanel = memo(EstimatePanelComponent)

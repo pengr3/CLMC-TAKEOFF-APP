@@ -58,10 +58,50 @@ function App(): React.JSX.Element {
   // Phase 6: Transient highlight state (hover ring + click pulse).
   const { hoverMatches, setHoverMatches, pulse, triggerPulse, clearPulse } = useMarkupHighlight()
 
-  // Phase 6: Live drag-width for Splitter (held in local state; only committed to
-  // useUiPanels on pointerup so localStorage isn't written 60-120x/sec during drag).
-  const [totalsDragWidth, setTotalsDragWidth] = useState<number | null>(null)
-  const effectiveTotalsWidth = totalsDragWidth ?? totals.width
+  // Phase 18 splitter-drag perf: drive the live Totals width IMPERATIVELY via a
+  // DOM ref during the drag — NO React setState on pointermove. The prior fix
+  // (32e62be) memoized CanvasViewport, but a per-move `setTotalsDragWidth`
+  // setState still re-rendered App + the heavy (non-memo) TotalsPanel every
+  // frame, dropping frames and smearing ("trail"). Now onDragWidth writes
+  // `el.style.width` directly on the panel node and freezes its width
+  // transition; the committed width is applied once on pointerup via
+  // setTotalsWidth (single re-render + single localStorage write). The
+  // committed width still flows through the normal `width` prop below.
+  const totalsPanelRef = useRef<HTMLDivElement>(null)
+  // Stashes the panel's pre-drag `transition` so we can restore it on commit.
+  // (React won't re-apply an unchanged inline-style prop, so a value we mutate
+  // imperatively must be restored imperatively — not left to reconciliation.)
+  const dragBaseTransitionRef = useRef<string | null>(null)
+
+  const handleTotalsDragWidth = useCallback((w: number): void => {
+    const el = totalsPanelRef.current
+    if (!el) return
+    if (dragBaseTransitionRef.current === null) {
+      // First move of this drag: freeze the 150ms width transition so the panel
+      // tracks the pointer 1:1 instead of easing behind it.
+      dragBaseTransitionRef.current = el.style.transition
+      el.style.transition = 'none'
+    }
+    el.style.width = `${w}px`
+  }, [])
+
+  const handleTotalsCommitWidth = useCallback(
+    (finalWidth: number): void => {
+      const el = totalsPanelRef.current
+      if (el && dragBaseTransitionRef.current !== null) {
+        // Restore the collapse/expand transition we froze at drag start.
+        el.style.transition = dragBaseTransitionRef.current
+        dragBaseTransitionRef.current = null
+      }
+      // Single commit: writes localStorage once and re-renders TotalsPanel with
+      // the committed `width` prop. That prop value === the width the imperative
+      // drag already left on the DOM, so React reconciles style.width with no
+      // visual jump. The min-width auto-collapse threshold applies to this
+      // committed value (via the persisted totals.width), exactly as before.
+      setTotalsWidth(finalWidth)
+    },
+    [setTotalsWidth]
+  )
 
   // Phase 6: Container width for Splitter max-width (50% cap) calculation.
   const containerRef = useRef<HTMLDivElement>(null)
@@ -157,11 +197,12 @@ function App(): React.JSX.Element {
     setReopenToast(null)
   }, [currentPage])
 
-  // Phase 6 perf fix (splitter-drag lag): stable callback for CanvasViewport.onReopenToast.
-  // CanvasViewport is now React.memo'd; an inline lambda here would be a NEW reference on
-  // every App render (e.g. the per-pointermove setTotalsDragWidth during a splitter drag),
-  // defeating the memo and re-rendering the Konva Stage each frame. setReopenToast is a
-  // stable useState setter, so [] deps are correct.
+  // Phase 6/18 perf: stable callback for CanvasViewport.onReopenToast. CanvasViewport is
+  // React.memo'd; an inline lambda here would be a NEW reference on every App render,
+  // defeating the memo and re-rendering the Konva Stage. The splitter drag itself no
+  // longer re-renders App (width is now driven imperatively via totalsPanelRef — see
+  // handleTotalsDragWidth), but keeping this callback stable is defense-in-depth for any
+  // OTHER App re-render. setReopenToast is a stable useState setter, so [] deps are correct.
   const handleReopenToast = useCallback(
     () => setReopenToast('Shape re-opened — continue drawing or press Enter to commit'),
     []
@@ -501,18 +542,19 @@ function App(): React.JSX.Element {
           <>
             <Splitter
               side="right"
-              panelWidth={effectiveTotalsWidth}
+              panelWidth={totals.width}
               containerWidth={containerWidth}
               minWidth={28}
-              onDragWidth={setTotalsDragWidth}
-              onCommit={(w) => { setTotalsWidth(w); setTotalsDragWidth(null) }}
+              onDragWidth={handleTotalsDragWidth}
+              onCommit={handleTotalsCommitWidth}
               ariaLabel="Resize Totals panel"
             />
 
             {/* Right: Totals panel — collapsible BOQ summary */}
             <TotalsPanel
+              ref={totalsPanelRef}
               open={totals.open}
-              width={effectiveTotalsWidth}
+              width={totals.width}
               onSetOpen={setTotalsOpen}
               onSetWidth={setTotalsWidth}
               onRowHover={setHoverMatches}

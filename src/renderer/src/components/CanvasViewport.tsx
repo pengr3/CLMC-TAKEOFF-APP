@@ -2789,16 +2789,16 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
 }
 
 /**
- * Phase 6 perf fix (splitter-drag lag): memoize the Konva-heavy CanvasViewport so a
+ * Phase 6/18 perf fix (splitter-drag lag): memoize the Konva-heavy CanvasViewport so a
  * PARENT (App) re-render with unchanged props does NOT re-render the Stage.
  *
- * During a right-side TotalsPanel splitter drag, App.tsx calls setTotalsDragWidth on
- * every pointermove (~60-120x/sec). That re-renders the whole App subtree; without
- * memo, each frame re-rendered the entire Konva Stage (the expensive part), making the
- * drag feel laggy. The props App passes here are all referentially STABLE during a
- * width-only drag — `hoverMatches`/`pulse` are useState values that don't change while
- * dragging, and `onPulseComplete` + `onReopenToast` are stable useCallbacks in App.tsx
- * — so React.memo's default shallow prop comparison short-circuits the re-render.
+ * Phase 18 hardened this: a right-side TotalsPanel splitter drag now drives the panel
+ * width IMPERATIVELY (App writes totalsPanelRef.current.style.width per pointermove — see
+ * handleTotalsDragWidth), so it no longer calls setState and no longer re-renders App at
+ * all during the drag. This memo remains as defense-in-depth: for any OTHER App re-render
+ * the props App passes here are referentially STABLE — `hoverMatches`/`pulse` are useState
+ * values and `onPulseComplete` + `onReopenToast` are stable useCallbacks — so React.memo's
+ * default shallow prop comparison short-circuits the re-render.
  *
  * Correctness note: memo only blocks parent-driven re-renders whose props are
  * shallow-equal. The store subscriptions INSIDE this component (useViewerStore,

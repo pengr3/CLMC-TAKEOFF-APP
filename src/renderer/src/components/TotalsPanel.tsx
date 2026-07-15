@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { forwardRef, useState } from 'react'
 import type React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { COLORS } from '../lib/constants'
@@ -76,7 +76,20 @@ const SPLITTER_ANIM_MS = 150
 // re-runs and loops React with the "Maximum update depth exceeded" guard.
 const EMPTY_MARKUPS: Markup[] = []
 
-export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
+/**
+ * Phase 18 splitter-drag perf (ref forwarding): App forwards a ref to the
+ * panel's width-bearing root div so a live splitter drag can write
+ * `el.style.width` imperatively (and freeze the width transition) WITHOUT any
+ * React setState per pointermove. The committed width still flows through the
+ * `width` prop on pointerup — React reconciles style.width back to the same
+ * value the imperative drag left, so there is no visual jump. The ref is
+ * attached to BOTH the collapsed rail and the open panel (only one mounts at a
+ * time), so it always points at whichever root is live.
+ */
+export const TotalsPanel = forwardRef<HTMLDivElement, TotalsPanelProps>(function TotalsPanel(
+  props,
+  ref
+): React.JSX.Element {
   const {
     open, width, onSetOpen,
     onRowHover, onRowClick, onRowContextMenu, cycleIndexByKey,
@@ -121,6 +134,7 @@ export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
   if (!open) {
     return (
       <div
+        ref={ref}
         data-testid="totals-panel-rail"
         style={{
           width: RAIL_WIDTH,
@@ -178,6 +192,7 @@ export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
 
   return (
     <div
+      ref={ref}
       data-testid="totals-panel"
       style={{
         width,
@@ -353,4 +368,4 @@ export function TotalsPanel(props: TotalsPanelProps): React.JSX.Element {
 
     </div>
   )
-}
+})
