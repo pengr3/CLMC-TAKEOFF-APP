@@ -126,9 +126,33 @@ afterEach(() => {
 })
 
 describe('ContextBar — selected-markup edit ops (SC-4)', () => {
-  it('rename: typing a new name + a native Enter commits via renameGroup(old, new)', () => {
+  it('selection alone does NOT steal keyboard focus into the rename input (focus-steal regression guard)', () => {
     renderBar()
-    const input = container.querySelector('[aria-label="Rename Skirting"]') as HTMLInputElement | null
+    // The auto-focusing InlineRenameInput must NOT be mounted on mere selection —
+    // if it were, isTextInputActive() would trap F3/Delete/Shift+A/Ctrl+Z.
+    const input = container.querySelector('input[aria-label="Rename Skirting"]')
+    expect(input).toBeNull()
+    // And nothing may have grabbed focus into a text field: document.activeElement
+    // must not be a text input (this is exactly what useKeyboardShortcuts guards on).
+    const active = document.activeElement
+    const isTextInput =
+      active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement
+    expect(isTextInput).toBe(false)
+  })
+
+  it('rename: input is mounted only after clicking the Rename affordance; typing + native Enter commits via renameGroup(old, new)', () => {
+    renderBar()
+    // Not present on mere selection…
+    expect(container.querySelector('input[aria-label="Rename Skirting"]')).toBeNull()
+
+    // …clicking the click-to-edit name trigger mounts the auto-focusing editor.
+    const trigger = container.querySelector(
+      '[data-testid="context-rename-trigger"]'
+    ) as HTMLElement | null
+    expect(trigger).not.toBeNull()
+    act(() => trigger!.click())
+
+    const input = container.querySelector('input[aria-label="Rename Skirting"]') as HTMLInputElement | null
     expect(input).not.toBeNull()
     act(() => {
       input!.value = 'Trunking'

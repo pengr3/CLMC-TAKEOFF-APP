@@ -127,6 +127,31 @@ const CBTN_DANGER_STYLE: React.CSSProperties = {
   border: '1px solid #5a2b2b'
 }
 
+// Read-only selected-name display that doubles as the click-to-edit rename trigger.
+// Styled to read as plain text (transparent chrome) but carries a text cursor so the
+// edit affordance is discoverable. Clicking it — and ONLY clicking it — mounts the
+// auto-focusing InlineRenameInput, so mere selection never steals keyboard focus.
+const NAME_TRIGGER_STYLE: React.CSSProperties = {
+  display: 'inline-block',
+  maxWidth: 140,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  height: 22,
+  lineHeight: '22px',
+  padding: '0 4px',
+  background: 'transparent',
+  border: '1px solid transparent',
+  borderRadius: 4,
+  color: COLORS.textPrimary,
+  font: 'inherit',
+  fontSize: 13,
+  fontWeight: 400,
+  textAlign: 'left',
+  cursor: 'text',
+  flexShrink: 0
+}
+
 // Stable empty-array reference for the per-page markup slice selector (Pitfall 6).
 // A fresh `[]` literal inside a Zustand selector breaks useSyncExternalStore's
 // Object.is snapshot check and causes an infinite re-render loop. Mirrors
@@ -205,9 +230,13 @@ function MiniToggle({
  * Selected-markup panel (D-04 selected state). Re-homes the SAME store ops the
  * right-click MarkupContextMenu already dispatches (CanvasViewport.tsx:2733-2737),
  * so behavior is byte-identical and no new plumbing is introduced (Q2 — additive):
- *   - inline rename via InlineRenameInput → renameGroup(old, new) on native Enter/blur
- *     (group rename, matching totals/estimate + recolorGroup semantics; reconciles
- *     RESEARCH P19's "editMarkup" shorthand with the established InlineRenameInput pattern)
+ *   - name shows as READ-ONLY text (swatch + name) on mere selection. Clicking it —
+ *     and ONLY clicking it — mounts the auto-focusing InlineRenameInput, which then
+ *     commits via renameGroup(old, new) on native Enter/blur (group rename, matching
+ *     the on-demand click-to-edit pattern used by Totals/Estimate rows). Selection
+ *     alone must NOT focus a text input, or every isTextInputActive()-guarded global
+ *     shortcut (F3 snap, Shift+A arc, Delete, Ctrl+Z) would silently bail — the exact
+ *     focus-steal this panel previously caused by rendering the input unconditionally.
  *   - display-only category chip via getCategory(categoryId).name
  *   - Recolor → toggled MARKUP_PALETTE swatch row → recolorGroup(name, hex) (whole
  *     name-group flips, D-29)
@@ -220,8 +249,18 @@ function SelectedPanel(): React.JSX.Element {
   const selectedMarkupIds = useViewerStore((s) => s.selectedMarkupIds)
   const pageMarkups = useMarkupStore((s) => s.pageMarkups[currentPage] ?? EMPTY_MARKUPS)
   const [showSwatches, setShowSwatches] = React.useState(false)
+  const [renaming, setRenaming] = React.useState(false)
 
-  const selected = pageMarkups.find((m) => m.id === selectedMarkupIds[0])
+  // A fresh selection returns to the read-only display (and closes any open swatch
+  // row): renaming is always an explicit, per-selection action — never carried over,
+  // so switching markups can never leave an auto-focused input behind.
+  const selectedId = selectedMarkupIds[0]
+  React.useEffect(() => {
+    setRenaming(false)
+    setShowSwatches(false)
+  }, [selectedId])
+
+  const selected = pageMarkups.find((m) => m.id === selectedId)
   if (!selected) {
     // Defensive: selection id with no matching markup on the page. Keep the tag so
     // the morph root stays non-empty; the main component owns the root wrapper.
@@ -236,15 +275,29 @@ function SelectedPanel(): React.JSX.Element {
       <span style={TAG_STYLE}>Selected</span>
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         <span style={{ ...SWATCH_STYLE, background: selected.color }} />
-        <span style={{ display: 'inline-block', width: 140 }}>
-          <InlineRenameInput
-            currentName={selected.name}
-            onDone={() => {
-              // Parity with the existing rename UX (D-04): leave selection as-is —
-              // do NOT force clearSelection. The input closes on commit.
-            }}
-          />
-        </span>
+        {renaming ? (
+          <span style={{ display: 'inline-block', width: 140 }}>
+            <InlineRenameInput
+              currentName={selected.name}
+              onDone={() => {
+                // Commit/cancel closes the editor and returns to the read-only name.
+                // Parity with the existing rename UX (D-04): leave selection as-is —
+                // do NOT force clearSelection.
+                setRenaming(false)
+              }}
+            />
+          </span>
+        ) : (
+          <button
+            type="button"
+            data-testid="context-rename-trigger"
+            title="Rename"
+            onClick={() => setRenaming(true)}
+            style={NAME_TRIGGER_STYLE}
+          >
+            {selected.name}
+          </button>
+        )}
       </span>
       <span style={CHIP_STYLE}>{categoryName}</span>
       <span style={DIVIDER_STYLE} />
