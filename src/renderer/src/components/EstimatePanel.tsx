@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, memo } from 'react'
 import type React from 'react'
 import { COLORS } from '../lib/constants'
 import { CURRENCY_SYMBOL } from '../lib/currency'
@@ -219,7 +219,7 @@ function DefaultMarkupControl(): React.JSX.Element {
   )
 }
 
-export function EstimatePanel(): React.JSX.Element {
+function EstimatePanelComponent(): React.JSX.Element {
   const boq = useBoqLive()
   const totalPages = useViewerStore((s) => s.totalPages)
 
@@ -485,3 +485,14 @@ export function EstimatePanel(): React.JSX.Element {
     </div>
   )
 }
+
+/**
+ * Phase 6 perf fix (splitter-drag lag): memoize EstimatePanel so a parent (App)
+ * re-render does not re-render this (non-trivial) sheet. EstimatePanel takes NO props,
+ * so the shallow comparison is always equal — it now re-renders ONLY when its own
+ * store subscriptions (useBoqLive / useViewerStore / useMarkupStore) change, never
+ * merely because App re-rendered (e.g. the per-pointermove setTotalsDragWidth during a
+ * TotalsPanel splitter drag). It is mounted-but-hidden in Plan view, so this avoids
+ * wasted per-frame work on an off-screen subtree.
+ */
+export const EstimatePanel = memo(EstimatePanelComponent)

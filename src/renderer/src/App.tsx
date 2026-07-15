@@ -157,6 +157,16 @@ function App(): React.JSX.Element {
     setReopenToast(null)
   }, [currentPage])
 
+  // Phase 6 perf fix (splitter-drag lag): stable callback for CanvasViewport.onReopenToast.
+  // CanvasViewport is now React.memo'd; an inline lambda here would be a NEW reference on
+  // every App render (e.g. the per-pointermove setTotalsDragWidth during a splitter drag),
+  // defeating the memo and re-rendering the Konva Stage each frame. setReopenToast is a
+  // stable useState setter, so [] deps are correct.
+  const handleReopenToast = useCallback(
+    () => setReopenToast('Shape re-opened — continue drawing or press Enter to commit'),
+    []
+  )
+
   useCloseGuard(() => {
     if (!useProjectStore.getState().isDirty) {
       window.api.confirmClose()
@@ -365,7 +375,7 @@ function App(): React.JSX.Element {
                   hoverMatches={hoverMatches}
                   pulse={pulse}
                   onPulseComplete={clearPulse}
-                  onReopenToast={() => setReopenToast('Shape re-opened — continue drawing or press Enter to commit')}
+                  onReopenToast={handleReopenToast}
                 />
             }
 

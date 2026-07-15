@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react'
+import { useRef, useEffect, useState, useCallback, memo } from 'react'
 import { Stage, Layer, Image as KonvaImage, Circle, Line, Rect } from 'react-konva'
 import Konva from 'konva'
 import { usePdfRenderer } from '../hooks/usePdfRenderer'
@@ -246,7 +246,7 @@ export interface CanvasViewportProps {
   onReopenToast?: () => void
 }
 
-export function CanvasViewport(props: CanvasViewportProps = {}) {
+function CanvasViewportComponent(props: CanvasViewportProps = {}) {
   const stageRef = useRef<Konva.Stage>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const resizeObserverRef = useRef<ResizeObserver | null>(null)
@@ -2787,3 +2787,23 @@ export function CanvasViewport(props: CanvasViewportProps = {}) {
     </div>
   )
 }
+
+/**
+ * Phase 6 perf fix (splitter-drag lag): memoize the Konva-heavy CanvasViewport so a
+ * PARENT (App) re-render with unchanged props does NOT re-render the Stage.
+ *
+ * During a right-side TotalsPanel splitter drag, App.tsx calls setTotalsDragWidth on
+ * every pointermove (~60-120x/sec). That re-renders the whole App subtree; without
+ * memo, each frame re-rendered the entire Konva Stage (the expensive part), making the
+ * drag feel laggy. The props App passes here are all referentially STABLE during a
+ * width-only drag — `hoverMatches`/`pulse` are useState values that don't change while
+ * dragging, and `onPulseComplete` + `onReopenToast` are stable useCallbacks in App.tsx
+ * — so React.memo's default shallow prop comparison short-circuits the re-render.
+ *
+ * Correctness note: memo only blocks parent-driven re-renders whose props are
+ * shallow-equal. The store subscriptions INSIDE this component (useViewerStore,
+ * useMarkupStore, useScaleStore, …) still trigger normal re-renders, so the
+ * module-level imperative refs (_canvasControls, _calibrationControls,
+ * _activatePresetRef, _chainArmedItem) that are wired via useEffect stay correct.
+ */
+export const CanvasViewport = memo(CanvasViewportComponent)
