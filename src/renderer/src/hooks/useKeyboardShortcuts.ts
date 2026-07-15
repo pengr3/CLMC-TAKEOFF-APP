@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useViewerStore } from '../stores/viewerStore'
 import { useMarkupStore } from '../stores/markupStore'
 import { getMarkupUndoHandler, getMarkupRedoHandler } from '../lib/markup-undo-ref'
@@ -53,8 +53,26 @@ export function chooseSaveShortcut(currentFilePath: string | null): 'save' | 'sa
 export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
   const totalPages = useViewerStore((s) => s.totalPages)
 
+  // Keep the latest handlers + totalPages in refs so the window listeners can be
+  // registered ONCE (mount-only effect) and never churn on re-render.
+  //
+  // Cause A of the F3 intermittency bug: App.tsx passes a fresh `handlers` object
+  // literal on every render, and this effect used to depend on [handlers, totalPages].
+  // That tore down and re-added the keydown/keyup/blur listeners on EVERY App
+  // re-render (very frequent while placing markups) — and a keypress that arrived
+  // during the removeEventListener→addEventListener gap was silently dropped.
+  // Reading the latest values through refs decouples the handler identity from the
+  // listener lifecycle, so registration happens exactly once and no keypress is lost.
+  const handlersRef = useRef(handlers)
+  const totalPagesRef = useRef(totalPages)
+  handlersRef.current = handlers
+  totalPagesRef.current = totalPages
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
+      // Read the freshest values captured on every render (see ref note above).
+      const handlers = handlersRef.current
+      const totalPages = totalPagesRef.current
       // Ctrl+O: extension-sniffing open (D-20)
       if (e.ctrlKey && !e.shiftKey && e.key === 'o') {
         if (isTextInputActive()) return
@@ -181,11 +199,15 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
       }
 
       // Phase 14 (14-03 D-03): F3 — persistent snapping toggle. Bare F3 is free
-      // (Ctrl+A is select-all; no other binding uses F3). isTextInputActive()
-      // guard mirrors every other shortcut. NOT bound to bare 'A' — that key is
-      // reserved for arc mode in 14-04.
+      // (Ctrl+A is select-all; no other binding uses F3). NOT bound to bare 'A' —
+      // that key is reserved for arc mode in 14-04.
+      //
+      // Cause B of the F3 bug: F3 is DELIBERATELY exempt from the isTextInputActive()
+      // guard. Unlike Ctrl+Z / Delete / Shift+A / bare 'A' / Ctrl+A, F3 types nothing
+      // and never conflicts with editing, so it must toggle snap even while a text
+      // field (e.g. a markup-name popup) holds focus. All text-conflicting shortcuts
+      // keep their guards.
       if (e.key === 'F3') {
-        if (isTextInputActive()) return
         e.preventDefault()
         const { snapEnabled, setSnapEnabled } = useViewerStore.getState()
         setSnapEnabled(!snapEnabled)
@@ -316,5 +338,9 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers): void {
       window.removeEventListener('keyup', handleKeyUp)
       window.removeEventListener('blur', handleBlur)
     }
-  }, [handlers, totalPages])
+    // Mount-only: listeners register exactly once. Latest handlers/totalPages are
+    // read through refs (see note above), so this effect never re-runs — which is
+    // precisely what eliminates the add/remove churn (Cause A).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 }
