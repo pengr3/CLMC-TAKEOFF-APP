@@ -1,15 +1,13 @@
 /** @vitest-environment jsdom */
 /**
- * RED (Phase 18 Wave 0) — ToolRail chain badge gate (SC-2).
+ * ToolRail — rail declutter: the armed-item NAME is NOT shown on tool buttons.
  *
- * FAILS today because `@renderer/components/ToolRail` does not exist yet. Turns
- * GREEN when plan 18-07 renders the chain badge on the armed tool button.
- *
- * Contract (18-PATTERNS P3 / Pitfall 6): the chain-armed chip is gated on
- *   activeTool === tool && getChainArmedItem() !== null
- * and read at render time (re-renders are driven by activeTool changes). Here the
- * armed item is stubbed via the CanvasViewport mock; the badge must appear inside
- * the matching tool button only while that tool is active.
+ * The rail used to render a chain badge (color swatch + armed item name) on the
+ * active tool button. That duplicated the ContextBar header ("PLACING · Count ·
+ * Pin Lights"), so the badge was removed. This test locks in the new contract:
+ * even when an item IS armed (stubbed via the CanvasViewport mock's
+ * getChainArmedItem), the rail surfaces only the tool's own label ("Count", …)
+ * and never the armed item's name — regardless of which tool is active.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import React from 'react'
@@ -19,7 +17,7 @@ import { act } from 'react'
 vi.mock('@renderer/components/CanvasViewport', () => ({
   getCanvasControls: () => null,
   getCalibrationControls: () => null,
-  // Chain-armed item is present → the badge should render on the armed tool.
+  // An item IS armed — the rail must STILL not surface its name (declutter).
   getChainArmedItem: () => ({ name: 'Concrete Slab', color: '#4f9cf0' }),
   setChainArmedFromTotals: vi.fn()
 }))
@@ -75,18 +73,22 @@ afterEach(() => {
   container.remove()
 })
 
-describe('ToolRail — chain badge gate (SC-2)', () => {
-  it('shows the chain-armed item name inside the armed tool button (activeTool===count)', () => {
+describe('ToolRail — armed item name is not shown on the rail (declutter)', () => {
+  it('does NOT render the armed item name on the active tool button (label only)', () => {
     renderRail()
-    expect(countButton().textContent).toContain('Concrete Slab')
+    // The tool's own label stays visible…
+    expect(countButton().textContent).toContain('Count')
+    // …but the armed item's name is never surfaced on the rail, even though
+    // getChainArmedItem() returns an armed item.
+    expect(countButton().textContent).not.toContain('Concrete Slab')
+    expect(container.textContent).not.toContain('Concrete Slab')
   })
 
-  it('hides the badge when a different tool is active (gate is activeTool===tool)', () => {
+  it('keeps the armed name off the rail regardless of which tool is active', () => {
     renderRail()
-    expect(countButton().textContent).toContain('Concrete Slab')
+    expect(container.textContent).not.toContain('Concrete Slab')
 
-    // Switch away from count — the badge must disappear even though
-    // getChainArmedItem() still returns an item.
+    // Switch away from count — still no armed-item name anywhere on the rail.
     act(() => {
       useViewerStore.setState({ activeTool: 'select' })
     })

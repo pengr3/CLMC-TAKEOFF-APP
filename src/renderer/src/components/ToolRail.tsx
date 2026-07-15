@@ -1,8 +1,18 @@
 import React, { useState } from 'react'
-import { MousePointer, MapPin, Minus, Square, Hexagon, BrickWall, Ruler, Magnet, Spline } from 'lucide-react'
+import {
+  MousePointer,
+  MapPin,
+  Minus,
+  Square,
+  Hexagon,
+  BrickWall,
+  Ruler,
+  Magnet,
+  Spline
+} from 'lucide-react'
 import { useViewerStore } from '../stores/viewerStore'
 import { useScaleStore } from '../stores/scaleStore'
-import { getCalibrationControls, getChainArmedItem, setChainArmedFromTotals } from './CanvasViewport'
+import { getCalibrationControls, setChainArmedFromTotals } from './CanvasViewport'
 import { getArcSticky, subscribeArcSticky, getArcStickyToggleHandler } from '../lib/markup-arc-ref'
 import { ScaleContextMenu } from './ScaleContextMenu'
 import { COLORS } from '../lib/constants'
@@ -17,14 +27,14 @@ import { COLORS } from '../lib/constants'
  *   ── divider ──
  *   Snap · Arc   (clickable toggles — Task 2 / 18-07)
  *
- * The tool-arm/disarm handler, chain badges, and Set Scale activate/cancel +
- * its ScaleContextMenu are lifted VERBATIM from RibbonToolbar.tsx so behavior
- * is byte-identical (D-08 behavior parity). The 7-tab ribbon is gone, so no tab
+ * The tool-arm/disarm handler and Set Scale activate/cancel + its
+ * ScaleContextMenu are lifted VERBATIM from RibbonToolbar.tsx so behavior is
+ * byte-identical (D-08 behavior parity). The 7-tab ribbon is gone, so no tab
  * role is emitted anywhere in this component (SC-1).
  *
- * Pitfall 6 (09-RESEARCH): the chain-armed badge is gated on
- *   activeTool === tool && getChainArmedItem() !== null
- * and read during render — re-renders are driven by activeTool state changes.
+ * The armed-item NAME is intentionally NOT shown on the rail tool buttons — the
+ * ContextBar header ("PLACING · Count · Pin Lights") is the single place that
+ * surfaces the armed item, so the rail stays uncluttered (tool label only).
  *
  * COLORS tokens + inline styles only — no Tailwind (chrome-path convention).
  * Mounted by App.tsx in 18-09; standalone until then.
@@ -64,44 +74,6 @@ const MARKUP_TOOLS: Array<{
     title: 'Wall tool — measure wall area (length × height) in m²'
   }
 ]
-
-// Chain-armed badge chip — lifted verbatim from RibbonToolbar.tsx:87-127 so the
-// armed-item chrome is identical to the ribbon it replaces.
-function ChainBadge({ color, name }: { color: string; name: string }): React.JSX.Element {
-  return (
-    <span
-      style={{
-        position: 'absolute',
-        bottom: 2,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 3,
-        fontSize: 9,
-        fontWeight: 600,
-        background: COLORS.activeSurface,
-        borderRadius: 3,
-        padding: '1px 3px',
-        maxWidth: 52,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap'
-      }}
-    >
-      <span
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: '50%',
-          background: color,
-          flexShrink: 0
-        }}
-      />
-      {name}
-    </span>
-  )
-}
 
 // Rail separator (mockup .rsep — 32px wide 1px hairline between tool groups).
 function RailDivider(): React.JSX.Element {
@@ -330,7 +302,8 @@ export function ToolRail(): React.JSX.Element {
         title="Select tool — click a markup to select; drag to rubber-band multi-select"
       />
 
-      {/* Markup tools — disabled with no PDF; each renders its chain badge when armed. */}
+      {/* Markup tools — disabled with no PDF. The armed item's NAME is deliberately
+          NOT shown here; the ContextBar header is the single source for that. */}
       {MARKUP_TOOLS.map(({ tool, icon, label, title }) => (
         <RailButton
           key={tool}
@@ -342,11 +315,7 @@ export function ToolRail(): React.JSX.Element {
           disabled={setScaleDisabled}
           onClick={() => handleMarkupToolClick(tool)}
           title={title}
-        >
-          {activeTool === tool && getChainArmedItem() !== null && (
-            <ChainBadge color={getChainArmedItem()!.color} name={getChainArmedItem()!.name} />
-          )}
-        </RailButton>
+        />
       ))}
 
       <RailDivider />
