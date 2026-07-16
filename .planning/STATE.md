@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: phase_18_planned
-stopped_at: Phase 17 (markup-rename-and-reorder) EXECUTED + VERIFIED (automated PASS) + review-fixed — suite 793 green, typecheck + build clean; awaiting human UAT (4 items).
-last_updated: "2026-07-14T07:16:00.382Z"
-last_activity: 2026-07-14
+status: phase_18_complete
+stopped_at: Phase 18 (toolbar-revamp) COMPLETE — tab-less toolbar live; F3 snap-toggle bug root-caused (duplicate keydown listener) + fixed (8f0cc54); verifier 6/6 SC PASS; code-review no-blockers + 1 MED/3 LOW fixed (a0dbfbe); typecheck + production build clean; 817 tests pass (7 pre-existing cross-machine localStorage env failures, non-blocking). User-approved on clean build.
+last_updated: "2026-07-16T05:00:00.000Z"
+last_activity: 2026-07-16
 progress:
   total_phases: 22
-  completed_phases: 21
+  completed_phases: 22
   total_plans: 122
-  completed_plans: 113
-  percent: 93
+  completed_plans: 122
+  percent: 100
 ---
 
 # Project State: CLMC Takeoff App
@@ -32,8 +32,8 @@ progress:
 
 ## Current Position
 
-Phase: 18 (toolbar-revamp) — EXECUTING
-Plan: 1 of 9
+Phase: 18 (toolbar-revamp) — COMPLETE
+Plan: 9 of 9 — all plans complete; phase verified (6/6 SC PASS) + code-reviewed (no blockers, findings fixed)
 
 ## Performance Metrics
 
@@ -195,6 +195,7 @@ Plan: 1 of 9
 | Phase 15 (15-03): ₱ cost formatters coerce non-finite→0 (formatCost, category costSubtotal, grand-total) so rows/categories render ₱0.00 instead of throwing | Rule 1/2 hardening — the migrated do-not-edit fixtures (totals-row-cycle/context-menu) build BoqItemRow without the required 15-02 rate/cost fields, so item.cost is undefined at runtime; a bare .toFixed() threw and broke green fixtures. Also the correct production behavior (locked 'no rate set = ₱0.00'). Grand-total bar lives in TotalsPanel (pinned bottom bar, shown when totalPages>0), not the header rows[]. PerimeterMarkup: unfilled outline + length-only 'P: <len> <unit>' label, polygonArea/pixelAreaToReal removed, arc-aware length kept. Full suite 621 pass; only writer reds remain (15-04). Resolved 15-02's stale-comment deferred item |
 | Phase 15 Wave 2/3 (15-04): priced BOQ writers — buildBoqXlsx/buildBoqCsv emit the locked 5-column layout (Item·Quantity·UoM·Rate·Cost) | xlsx Rate/Cost are NATIVE numbers with a writer-LOCAL NUMFMT_PESO='₱#,##0.00' (main process can't import the renderer CURRENCY_SYMBOL — own copy per the duplication-with-test-lock convention, like NUMFMT_DECIMAL) so SUM() works; per-category ₱ cost-subtotal + grand-total-cost rows are unit-agnostic single numbers PARALLEL to the per-UoM qty subtotals; category-heading merge widened A:C→A:E. csv Rate/Cost are plain numerics (no ₱ glyph) with the UTF-8 BOM on line 1 preserved verbatim. money()=Number.isFinite?n:0 at all 8 ₱ write points = the locked 'no rate set=₱0.00' rule AND keeps the do-not-edit pre-Phase-15 fixtures (no rate/cost fields) from throwing (mirrors 15-03 formatCost). Closed the 15-02 deferred item: main-process BoqRowType reconciled to single 'perimeter' (4-way type lock complete). Rule-3 blocking fix: migrated ONE stale Wave-0 csv title assertion (3-col 'Item,Quantity,UoM' → 5-col) that contradicted the new priced assertion in the same file. 7 writer reds GREEN; full suite 628/628; typecheck clean |
 | Phase 15 (15-04): pricing scope flipped Out-of-Scope→Validated in PROJECT.md (GAP-002 reversal) + 15-MANUAL-NOTES.md written | Removed the 'pricing happens in separate tools' OoS bullet; added a Validated/Phase-15 pricing entry + a Key-Decision reversal row; Item Library + Settings currency picker remain explicitly deferred (no false 'currency picker shipped' claim). 15-MANUAL-NOTES.md documents old-.clmc perimeter back-compat (area computed live/never stored → NO data loss; arc-aware length kept; no formatVersion bump), the hardcoded ₱ constant + its two future-picker seams (renderer currency.ts + writer NUMFMT_PESO), and a numbered priced-BOQ/xlsx UAT checklist. Phase 15 feature-complete (all 4 plans landed); ROADMAP plan 4/4 Complete; status ready_for_verification |
+| Phase 18 (18-09): keyboard shortcuts have EXACTLY ONE owner — App.tsx's always-mounted useKeyboardShortcuts call | A second caller (CanvasViewport, mounted only with a PDF open) silently registered a duplicate window keydown listener that double-fired every shortcut (F3 toggled snap twice → net no-op — the "F3 broken only with a project open" bug, root-caused via alternating e.defaultPrevented on a clean build; fix 8f0cc54). Lesson: when a handler provably runs but has no net effect, COUNT the listeners before theorizing about downstream state plumbing. ToolRail is a stage-row SIBLING (not a wrapper) so the Konva Stage stays mounted across Plan|Estimate swaps |
 
 ### Critical Pitfalls to Watch
 
@@ -246,6 +247,10 @@ None.
 - Phase 18 added (2026-07-14): Toolbar Revamp — Seamless One-Click Toolbar. Replaces the 7-tab ribbon with a tab-less, co-visible layout (persistent left tool rail + slim top action bar + morphing context sub-bar) per feel-tested spike 007 (Direction A, "everything one click away"). Extends v1.0 (user chose extend over new v1.1 milestone). Snap/Arc become clickable controls; Settings/Help stubs drop to a reserved ⋯ button; duplicate top/bottom page+scale chrome folds into one status line. Planned via /gsd-plan-phase: 9 plans / 4 waves, plan-checker PASS (1 HIGH resolved — Arc on-state made reactive via subscribeArcSticky + useSyncExternalStore so Shift+A updates the toggle; 2 doc warnings closed). Next: /gsd-execute-phase 18.
 
 ## Session Continuity
+
+**Phase 18 COMPLETE:** 2026-07-16 — F3 snap-toggle bug resolved and Phase 18 closed. Root cause: a DUPLICATE window keydown listener — `useKeyboardShortcuts` was called in BOTH App.tsx (always mounted) and CanvasViewport.tsx (mounts only with a PDF open), so F3 toggled snap twice per press → net no-op (the "broken only with a project open" symptom). Decisive signal: on a CLEAN build, `e.defaultPrevented` alternated false/true on handler entry = same event through two listeners. Fix `8f0cc54` removed the redundant CanvasViewport call (App already wires every binding); user confirmed on a clean build ("Works now as advertised"). Then closed the phase: wrote 18-09-SUMMARY, corrected the debug record (the earlier HMR-store-dup "resolution" was wrong), ran gates — gsd-verifier **6/6 SC PASS** (18-VERIFICATION.md), gsd-code-reviewer **no blockers** (18-REVIEW.md) + fixed its 1 MED (ContextBar delete now clears selection) / 3 LOW (dead openPdfDialog, arc-sticky unmount reset, dead toolbarHeight) in `a0dbfbe`. Typecheck + production build clean; 817 tests pass (7 pre-existing cross-machine localStorage env failures — non-blocking follow-up queued). ROADMAP + STATE flipped complete: **22/22 phases, 122/122 plans, 100%.** Phase 18 was the last defined phase. **Next: `/gsd-audit-milestone` for v1.0** (still pending from the Phase-17 close), or plan v1.1. HANDOFF.json + phase-18 `.continue-here.md` consumed.
+
+**Session resumed:** 2026-07-16 — restored via /gsd-resume-work from HANDOFF.json (2026-07-15 pause). Phase 18 (tab-less toolbar revamp) is nearly done: plans 18-01..18-08 executed with SUMMARYs; 18-09 committed Tasks 1-3 (`37821c7`, `ac76fc0`, `529cb36`); PAUSED at Task 4 (human-verify checkpoint). At that checkpoint the user found 4 bugs + 1 declutter ask → ran a /gsd-debug loop: Bug1 ContextBar focus-steal `285f3d4`, Bug3 arc verified `2176405`, Bug4 splitter memoize+imperative `32e62be`/`935f420`, declutter `d967412` — **all user-approved**. Sole open item: **Bug2 F3 snap-toggle** — F3 doesn't toggle snap when a project is open (works with no project) and focus-highlights buttons (browser default for unhandled F3). Two F3 attempts landed (`c0cd9a3` register-once + guard-exempt, `08be351` HMR store singleton). Note: branch now lives in the PRIMARY repo (no longer the linked worktree the handoff was written from); `.git` is a directory, tree clean at HEAD `a2334b9`. STATE.md frontmatter was stale (worktree execution skips STATE writes) — reconciled to phase_18_executing_paused, 121/122 plans. **Next: resume F3 debug — re-add the 2 clean-build diagnostics (exact code in 18 `.continue-here.md`), clear vite cache, user CLEAN-restarts `npm run dev`, presses F3 once with a project open, reports 5 data points; datapoint (a) `[snap-debug] F3 INTERCEPTED` is make-or-break.** Local branch is well ahead of origin/master (`4c73103`).
 
 **Last activity:** 2026-07-14
 

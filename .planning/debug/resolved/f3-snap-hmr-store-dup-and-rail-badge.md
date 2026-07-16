@@ -50,3 +50,47 @@ files_changed: [src/renderer/src/stores/viewerStore.ts, src/renderer/src/stores/
 commits:
   - "08be351 — fix(stores): preserve Zustand store instances across Vite HMR"
   - "d967412 — refactor(toolrail): remove armed-item name badge from tool buttons"
+
+## Resolution — CORRECTION (2026-07-16)
+
+The HMR-store-duplication resolution above did NOT actually fix F3. After the
+push it was re-tested on a genuinely clean build (`node_modules/.vite` + `out`
+cleared, full restart) with a project open — and F3 was still dead. The
+declutter half (ChainBadge removal, `d967412`) was correct; the F3 diagnosis
+was wrong.
+
+true_root_cause: "A DUPLICATE keydown listener. `useKeyboardShortcuts` was
+  called in TWO places — `App.tsx` (always mounted) AND `CanvasViewport.tsx`
+  (mounts only when a PDF is open). Each call's mount-once effect adds its own
+  window keydown listener, so with a project open there were TWO. Both
+  intercepted F3 and both called `setSnapEnabled(!snapEnabled)`, toggling snap
+  TWICE per physical press → net zero visible change. This exactly explains
+  'works with no project, broken with a project open' (CanvasViewport is the
+  second listener) and 'internal logs show it toggling' (it does — twice)."
+
+decisive_evidence: "Clean-build console diagnostic showed `e.defaultPrevented`
+  alternating false/true on handler ENTRY across successive F3 presses. A fresh
+  keyboard event always starts defaultPrevented=false; seeing it already true
+  means the same event object had already passed through another handler that
+  called preventDefault() — i.e. a second registered listener. This is the
+  signal every prior HMR-churned session had masked."
+
+true_fix: "Removed the redundant `useKeyboardShortcuts` call from
+  CanvasViewport (a Plan-04-04 leftover — App.tsx became the shortcut owner but
+  the old call was never deleted) plus its now-dead `usePdfDocument`/
+  `openPdfDialog` import. App.tsx already wires every binding (zoom via
+  getCanvasControls). Exactly one listener remains."
+
+true_verification: "Typecheck clean; all keyboard-shortcut tests green; user
+  confirmed on a clean build — Snap toggles once per F3 and snapping engages/
+  disengages ('Works now as advertised'). 08be351 (HMR singleton) left in place:
+  harmless, stripped from prod, and legitimately prevents dev HMR store dup —
+  just orthogonal to F3."
+
+true_fix_commit: "8f0cc54 — fix(shortcuts): remove duplicate keydown listener that double-fired F3"
+
+lesson: "The 'eliminated' note above ('keyboard handler is broken or listener
+  churns') was too broad — it eliminated the WRONG-listener hypothesis but not
+  the DUPLICATE-listener one. When a handler provably runs yet has no net
+  effect, count the listeners (defaultPrevented-on-entry / addEventListener call
+  sites) before theorizing about downstream state plumbing."

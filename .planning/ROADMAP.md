@@ -31,7 +31,7 @@
 - [x] **Phase 15: BOQ Pricing & Perimeter Simplification** - Priced BOQ (per-(name,type) unit rate × quantity = cost, category cost subtotals, ₱ grand total) in the totals panel and xlsx/csv export; Perimeter tool narrowed to length-only (perimeter-area removed) so every markup maps to exactly one priceable row (completed 2026-06-29)
 - [x] **Phase 16: Estimating Workspace** (completed 2026-07-01) - Dedicated Estimate sheet in the Estimating tab (Plan | Estimate view toggle) with per-item material + labor unit rates → internal cost, plus a default-30% editable markup → client price and margin; the right-side totals panel reverts to quantity-only and pricing leaves the Plan workspace; xlsx/csv + on-screen grid export the 10-column set Item·Qty·UoM·Material·Labor·Cost·Markup·UNIT PRICE·TOTAL·Margin
 - [x] **Phase 17: Markup Rename and Reorder** - Rename already-plotted markup groups (totals panel + Estimate sheet) with price-key/color/visibility migration and name-collision handling, plus drag-to-reorder items within a category on both surfaces backed by a persisted per-category order shared by panel/sheet/export (completed 2026-07-14)
-- [ ] **Phase 18: Toolbar Revamp — Seamless One-Click Toolbar** - Replace the 7-tab Office ribbon with a tab-less, co-visible layout (persistent left tool rail + slim top action bar + morphing context sub-bar) so every markup-loop action is one click with no tab round-trips; Snap/Arc become clickable controls, Settings/Help stubs drop to a reserved ⋯ button, and the duplicated top/bottom page+scale chrome folds into one status line. Source: spike 007 (Direction A, feel-tested WINNER). (planned)
+- [x] **Phase 18: Toolbar Revamp — Seamless One-Click Toolbar** - Replace the 7-tab Office ribbon with a tab-less, co-visible layout (persistent left tool rail + slim top action bar + morphing context sub-bar) so every markup-loop action is one click with no tab round-trips; Snap/Arc become clickable controls, Settings/Help stubs drop to a reserved ⋯ button, and the duplicated top/bottom page+scale chrome folds into one status line. Source: spike 007 (Direction A, feel-tested WINNER). (completed 2026-07-16)
 
 ---
 
@@ -696,7 +696,7 @@ Plans:
   5. The duplicated page+scale chrome (top `CanvasHeaderBar` + bottom `StatusBar` both print page + scale today) is consolidated into one status line that preserves the "page not calibrated → Set Scale" nudge; Plan|Estimate toggle, Totals toggle, and all Open/Save/Save As/Replace PDF/Export actions remain reachable; Settings/Help tabs are removed and replaced by a reserved ⋯/overflow affordance (no content this phase)
   6. All existing keyboard shortcuts, chain mode, resume-from-totals arming, and the calibration flow continue to work; the full test suite passes; the new tool/gesture access is captured for the how-to-manual
 
-**Plans:** 8/9 plans executed
+**Plans:** 9/9 plans complete
 
 Plans:
 - [x] 18-01-PLAN.md — Wave 0 RED tests: ToolRail tools/chain-badge + Snap/Arc toggles + Arc-seam unit
@@ -707,7 +707,7 @@ Plans:
 - [x] 18-06-PLAN.md — Consolidated status line: fold CanvasHeaderBar nudge into StatusBar, snap reflect-only
 - [x] 18-07-PLAN.md — ToolRail (6 tools + Set Scale + Snap/Arc toggles, chain badges, scale context menu)
 - [x] 18-08-PLAN.md — ContextBar (morphing sub-bar: placing/scale/selected/idle + inline rename/recolor/delete)
-- [ ] 18-09-PLAN.md — App shell rewire + delete RibbonToolbar/RibbonButton/Toolbar/CanvasHeaderBar + 18-MANUAL-NOTES.md (+ human-verify checkpoint)
+- [x] 18-09-PLAN.md — App shell rewire + delete RibbonToolbar/RibbonButton/Toolbar/CanvasHeaderBar + 18-MANUAL-NOTES.md (+ human-verify checkpoint; F3 double-listener fix)
 
 ---
 
