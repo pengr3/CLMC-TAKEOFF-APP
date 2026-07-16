@@ -3,7 +3,19 @@
 Captured 2026-06-16 from `/gsd-spike` gap analysis of core measurement/markup
 functionality. Complements the broader product audit in
 `.planning/spikes/GAP-001-key-takeoff-app-gaps.md` (2026-05-19), which has largely
-shipped (vertex edit/translate = Phase 12, undo = Phases 10/13, pricing+library = Phase 14).
+shipped (vertex edit/translate = Phase 12, undo = Phases 10/13).
+
+> **Correction (2026-07-16, GAP-003):** the earlier note "pricing+library = Phase 14" was
+> **false**. Phase 14 was Markup Geometry Precision (snapping + arcs). **Pricing** shipped in
+> **Phases 15–16** (`PriceEntry` material/labor/markup %, Estimate workspace); the **item
+> library is still open**. Status of MM-series below is annotated inline.
+
+**Shipped since capture:** MM-05 (arcs, Ph14) · MM-06 (snapping, Ph14) · MM-11 partial
+(duplicate/copy/move/rename/reorder, Ph17). Still open + re-ranked in
+`.planning/spikes/GAP-003-markup-gaps.md`: **MM-01 cutouts** (signature, feasibility-uncertain →
+spike 006), MM-02 volume, MM-03 pitch, **MM-08 live readout** (feel-uncertain → spike 008),
+MM-07 ortho, MM-09 per-segment labels, MM-04 ruler, MM-11 remainder (array/cross-page),
+MM-12 rotation, **MM-10 auto-count product** (algo proven, UX-uncertain → spike 009).
 
 These are the **measurement/markup-specific** gaps. Items marked **(spike)** are being
 validated experientially in `.planning/spikes/` because their feasibility/feel is uncertain;
