@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spike 008 — Live Measurement Readout While Drawing</title>
+<style>
+  :root { --bg:#1e1e1e; --panel:#252526; --border:#3c3c3c; --accent:#0078d4; --text:#e8e8e8; --text2:#9d9d9d; --green:#4ec9b0; --amber:#ca8a04; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--text); font:13px/1.45 -apple-system,"Segoe UI",system-ui,sans-serif; }
+  #app { display:flex; height:100vh; }
+  #stageWrap { flex:1; position:relative; overflow:hidden; }
+  canvas { display:block; cursor:crosshair; }
+  #hud { position:absolute; top:12px; left:12px; background:rgba(0,0,0,.6); padding:8px 12px; border-radius:6px; pointer-events:none; font-variant-numeric:tabular-nums; }
+  #hud .big { font-size:22px; font-weight:700; color:var(--green); }
+  #hud .sub { color:var(--text2); font-size:12px; margin-top:2px; }
+  #hint { position:absolute; bottom:12px; left:12px; background:rgba(0,0,0,.5); padding:6px 10px; border-radius:6px; font-size:12px; color:var(--text2); pointer-events:none; }
+  #hint b { color:var(--text); }
+  #side { width:310px; flex-shrink:0; background:var(--panel); border-left:1px solid var(--border); display:flex; flex-direction:column; }
+  .sec { padding:12px 14px; border-bottom:1px solid var(--border); }
+  .sec h2 { margin:0 0 8px; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--text2); font-weight:600; }
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; margin:3px 3px 3px 0; background:#333; color:var(--text); border:1px solid var(--border); border-radius:5px; cursor:pointer; font-size:12px; }
+  .btn:hover { background:#3d3d3d; } .btn.on { background:var(--accent); border-color:var(--accent); color:#fff; }
+  label.chk { display:flex; align-items:center; gap:8px; padding:4px 0; cursor:pointer; }
+  input[type=range] { width:100%; }
+  .stat { display:flex; justify-content:space-between; padding:2px 0; color:var(--text2); font-variant-numeric:tabular-nums; }
+  .stat .v { color:var(--text); font-weight:600; }
+  kbd { background:#333; border:1px solid var(--border); border-bottom-width:2px; border-radius:4px; padding:0 5px; font-size:11px; }
+  #log { flex:1; overflow-y:auto; padding:8px 14px; font:11px/1.4 ui-monospace,"Cascadia Code",monospace; color:var(--text2); }
+  .foot { padding:10px 14px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stageWrap">
+    <canvas id="c"></canvas>
+    <div id="hud"><div class="big" id="hudBig">—</div><div class="sub" id="hudSub">start clicking to draw</div></div>
+    <div id="hint"></div>
+  </div>
+  <div id="side">
+    <div class="sec">
+      <h2>Tool</h2>
+      <button class="btn on" data-tool="linear" id="tLinear">╱ Linear</button>
+      <button class="btn" data-tool="area" id="tArea">▱ Area</button>
+      <button class="btn" data-tool="perimeter" id="tPerim">⬡ Perimeter</button>
+      <div style="margin-top:6px"><button class="btn" id="clear">Clear</button></div>
+    </div>
+    <div class="sec">
+      <h2>Readout placement <span style="color:var(--text2)">(the design question)</span></h2>
+      <button class="btn on" data-place="cursor" id="pCursor">Follow cursor</button>
+      <button class="btn" data-place="hud" id="pHud">Fixed corner (HUD)</button>
+      <button class="btn" data-place="both" id="pBoth">Both</button>
+    </div>
+    <div class="sec">
+      <h2>Options</h2>
+      <label class="chk"><input type="checkbox" id="oSeg" checked> Per-segment length labels <span style="color:var(--text2)">(MM-09)</span></label>
+      <label class="chk"><input type="checkbox" id="oAngle" checked> Show live angle of current leg</label>
+      <label class="chk"><input type="checkbox" id="oArc"> Curve the in-flight edge (arc-aware total)</label>
+      <div id="arcRow" style="display:none; margin-top:6px">
+        <div class="stat"><span>arc bulge (sagitta)</span><span class="v" id="arcVal">40 px</span></div>
+        <input type="range" id="arcSag" min="0" max="90" value="40">
+      </div>
+    </div>
+    <div class="sec">
+      <h2>Perf — readout cost per mousemove</h2>
+      <div class="stat"><span>points in shape</span><span class="v" id="sN">0</span></div>
+      <div class="stat"><span>mousemoves</span><span class="v" id="sMM">0</span></div>
+      <div class="stat"><span>avg compute</span><span class="v" id="sAvg">— µs</span></div>
+      <div class="stat"><span>p99 compute</span><span class="v" id="sP99">— µs</span></div>
+      <div class="stat"><span>avg move interval</span><span class="v" id="sInt">— ms</span></div>
+    </div>
+    <div class="sec" style="padding-bottom:6px"><h2>Log</h2></div>
+    <div id="log"></div>
+    <div class="foot"><button class="btn" id="export">⤓ Export log</button></div>
+  </div>
+</div>
+<script>
+'use strict'
+// ── ported geometry (solveCircle + arcLength) from arc-math.ts ──
+const EPS = 1e-9
+const dist = (a, b) => Math.hypot(b.x - a.x, b.y - a.y)
+function solveCircle(p1, mid, p2) {
+  const ax=p1.x,ay=p1.y,bx=mid.x,by=mid.y,cx=p2.x,cy=p2.y
+  const d = 2*(ax*(by-cy)+bx*(cy-ay)+cx*(ay-by))
+  const spread = Math.max(dist(p1,mid),dist(mid,p2),dist(p1,p2))||1
+  if (Math.abs(d) <= EPS*spread*spread) return { collinear:true }
+  const a2=ax*ax+ay*ay,b2=bx*bx+by*by,c2=cx*cx+cy*cy
+  const ux=(a2*(by-cy)+b2*(cy-ay)+c2*(ay-by))/d, uy=(a2*(cx-bx)+b2*(ax-cx)+c2*(bx-ax))/d
+  const r=Math.hypot(ux-ax,uy-ay)
+  const a1=Math.atan2(ay-uy,ax-ux), aMid=Math.atan2(by-uy,bx-ux), aEnd=Math.atan2(cy-uy,cx-ux)
+  const ccw=(f,t)=>{let x=t-f;while(x<0)x+=2*Math.PI;while(x>=2*Math.PI)x-=2*Math.PI;return x}
+  const goCcw = ccw(a1,aMid) <= ccw(a1,aEnd)
+  const sweepSigned = goCcw ? ccw(a1,aEnd) : -(2*Math.PI-ccw(a1,aEnd))
+  return { collinear:false, cx:ux, cy:uy, r, startAngle:a1, sweepSigned, sweep:Math.abs(sweepSigned) }
+}
+function arcLength(from, mid, to) {
+  const c = solveCircle(from, mid, to)
+  if (c.collinear) return dist(from, to)
+  return c.r * c.sweep
+}
+function polylineLength(pts) { let t=0; for (let i=1;i<pts.length;i++) t+=dist(pts[i-1],pts[i]); return t }
+function polygonArea(pts) { const n=pts.length; if(n<3) return 0; let d=0; for(let i=0;i<n;i++){const j=(i+1)%n; d+=pts[i].x*pts[j].y-pts[j].x*pts[i].y} return Math.abs(d)/2 }
+
+// ── state ──
+const S = { tool:'linear', place:'cursor', points:[], cursor:null,
+  opt:{ seg:true, angle:true, arc:false, sag:40 },
+  perf:{ mm:0, samples:[], lastMoveT:null, intervals:[] }, log:[] }
+const PX_PER_M = 100
+const Lm = (px)=>px/PX_PER_M, Am=(px2)=>px2/(PX_PER_M*PX_PER_M)
+const cvs=document.getElementById('c'), ctx=cvs.getContext('2d')
+let W=0,H=0,DPR=Math.min(window.devicePixelRatio||1,2)
+function resize(){ const r=cvs.parentElement.getBoundingClientRect(); W=r.width;H=r.height; cvs.width=W*DPR;cvs.height=H*DPR;cvs.style.width=W+'px';cvs.style.height=H+'px'; ctx.setTransform(DPR,0,0,DPR,0,0); draw() }
+window.addEventListener('resize', resize)
+
+let t0=null; const nowMs=()=>{ if(t0===null)t0=performance.now(); return +(performance.now()-t0).toFixed(1) }
+function log(msg){ S.log.push({t:nowMs(),msg}); const el=document.getElementById('log'); const d=document.createElement('div'); d.textContent=`+${String(S.log[S.log.length-1].t).padStart(7)}ms  ${msg}`; el.appendChild(d); el.scrollTop=el.scrollHeight }
+
+// in-flight edge as an arc (perpendicular sagitta) — proves arc-aware total
+function inflightMid(from, to, sag) {
+  const cx=(from.x+to.x)/2, cy=(from.y+to.y)/2, L=dist(from,to)||1
+  const px=-(to.y-from.y)/L, py=(to.x-from.x)/L
+  return { x:cx+px*sag, y:cy+py*sag }
+}
+// ── the running measurement (timed) ──
+function measure() {
+  const pts = S.points
+  const live = S.cursor ? pts.concat([S.cursor]) : pts
+  const t = performance.now()
+  let out = { big:'—', sub:'', segAngle:null }
+  if (pts.length === 0) { out.sub = 'click to place the first point'; S.lastMeasure=out; return out }
+  if (S.tool === 'linear') {
+    let len = polylineLength(pts)
+    // in-flight edge
+    if (S.cursor && pts.length >= 1) {
+      const from = pts[pts.length-1]
+      if (S.opt.arc && S.opt.sag > 0) len += arcLength(from, inflightMid(from, S.cursor, S.opt.sag), S.cursor)
+      else len += dist(from, S.cursor)
+    }
+    out.big = Lm(len).toFixed(3) + ' m'
+    out.sub = `${pts.length} pt${pts.length>1?'s':''} placed${S.opt.arc?'  ·  arc-aware':''}`
+  } else {
+    const area = polygonArea(live)
+    const perim = polylineLength(live) + (live.length>2 ? dist(live[live.length-1], live[0]) : 0)
+    if (S.tool === 'area') { out.big = Am(area).toFixed(3) + ' m²'; out.sub = `perimeter ${Lm(perim).toFixed(2)} m · ${pts.length} pts` }
+    else { out.big = Lm(perim).toFixed(3) + ' m'; out.sub = `encloses ${Am(area).toFixed(2)} m² · ${pts.length} pts` }
+  }
+  if (S.opt.angle && S.cursor && pts.length >= 1) {
+    const from = pts[pts.length-1]
+    let deg = Math.atan2(-(S.cursor.y-from.y), S.cursor.x-from.x) * 180/Math.PI
+    if (deg < 0) deg += 360
+    out.segAngle = deg
+    out.sub += `  ∠ ${deg.toFixed(1)}°  ·  leg ${Lm(dist(from,S.cursor)).toFixed(3)} m`
+  }
+  const dt = (performance.now() - t) * 1000 // µs
+  S.perf.samples.push(dt); if (S.perf.samples.length > 3000) S.perf.samples.shift()
+  S.lastMeasure = out
+  return out
+}
+function pctl(arr, p) { if(!arr.length) return 0; const s=[...arr].sort((a,b)=>a-b); return s[Math.min(s.length-1, Math.floor(p*s.length))] }
+function refreshPerf() {
+  const s = S.perf.samples
+  document.getElementById('sN').textContent = S.points.length
+  document.getElementById('sMM').textContent = S.perf.mm
+  document.getElementById('sAvg').textContent = s.length ? (s.reduce((a,b)=>a+b,0)/s.length).toFixed(1)+' µs' : '— µs'
+  document.getElementById('sP99').textContent = s.length ? pctl(s,0.99).toFixed(1)+' µs' : '— µs'
+  const iv = S.perf.intervals
+  document.getElementById('sInt').textContent = iv.length ? (iv.reduce((a,b)=>a+b,0)/iv.length).toFixed(1)+' ms' : '— ms'
+}
+
+// ── render ──
+function dot(p,r,f){ ctx.beginPath(); ctx.arc(p.x,p.y,r,0,7); ctx.fillStyle=f; ctx.fill() }
+function bg(){ ctx.fillStyle='#1e1e1e'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#2c2c2c'; for(let x=0;x<W;x+=24)for(let y=0;y<H;y+=24)ctx.fillRect(x,y,1.5,1.5) }
+function pill(x,y,lines){ ctx.font='600 13px "Segoe UI",system-ui'; const w=Math.max(...lines.map(l=>ctx.measureText(l).width))+16; const h=lines.length*17+10;
+  let px=x+14, py=y+14; if(px+w>W)px=x-14-w; if(py+h>H)py=y-14-h
+  ctx.fillStyle='rgba(0,0,0,.72)'; ctx.strokeStyle='rgba(78,201,176,.5)'; ctx.lineWidth=1; ctx.beginPath(); ctx.roundRect(px,py,w,h,6); ctx.fill(); ctx.stroke()
+  lines.forEach((l,i)=>{ ctx.fillStyle=i===0?'#4ec9b0':'#cfcfcf'; ctx.font=(i===0?'700 14px':'12px')+' "Segoe UI",system-ui'; ctx.fillText(l, px+8, py+16+i*17) }) }
+function segLabel(a,b,txt){ const mx=(a.x+b.x)/2,my=(a.y+b.y)/2; ctx.font='11px "Segoe UI"'; const w=ctx.measureText(txt).width+8;
+  ctx.fillStyle='rgba(0,0,0,.7)'; ctx.beginPath(); ctx.roundRect(mx-w/2,my-9,w,16,4); ctx.fill(); ctx.fillStyle='#dcdcaa'; ctx.textAlign='center'; ctx.fillText(txt,mx,my+3); ctx.textAlign='left' }
+function draw() {
+  bg()
+  const pts = S.points, closed = S.tool !== 'linear'
+  // committed path
+  if (pts.length) {
+    ctx.strokeStyle='#4aa3ff'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y)
+    for (let i=1;i<pts.length;i++) ctx.lineTo(pts[i].x,pts[i].y)
+    // in-flight edge to cursor
+    if (S.cursor) {
+      if (S.tool==='linear' && S.opt.arc && S.opt.sag>0 && pts.length>=1) {
+        const from=pts[pts.length-1], mid=inflightMid(from,S.cursor,S.opt.sag), c=solveCircle(from,mid,S.cursor)
+        if(!c.collinear){ const n=24; for(let i=0;i<=n;i++){const a=c.startAngle+c.sweepSigned*i/n; ctx.lineTo(c.cx+c.r*Math.cos(a),c.cy+c.r*Math.sin(a))} } else ctx.lineTo(S.cursor.x,S.cursor.y)
+      } else ctx.lineTo(S.cursor.x, S.cursor.y)
+    }
+    if (closed && (pts.length + (S.cursor?1:0)) > 2) {
+      ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle='rgba(74,163,255,.5)'
+      const last = S.cursor || pts[pts.length-1]; ctx.lineTo(last.x,last.y); ctx.lineTo(pts[0].x,pts[0].y); ctx.stroke(); ctx.restore()
+    }
+    ctx.stroke()
+    if (closed && pts.length>2) { ctx.fillStyle='rgba(0,120,212,.12)'; ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y); for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y); if(S.cursor)ctx.lineTo(S.cursor.x,S.cursor.y); ctx.closePath(); ctx.fill() }
+    for (const p of pts) dot(p,3.5,'#0078d4')
+    // per-segment labels (MM-09)
+    if (S.opt.seg) { for (let i=1;i<pts.length;i++) segLabel(pts[i-1],pts[i], Lm(dist(pts[i-1],pts[i])).toFixed(2)+'m')
+      if (S.cursor && S.tool==='linear') segLabel(pts[pts.length-1],S.cursor, Lm(dist(pts[pts.length-1],S.cursor)).toFixed(2)+'m') }
+  }
+  const m = S.lastMeasure || measure()
+  // cursor-follow readout
+  if (S.cursor && (S.place==='cursor'||S.place==='both') && pts.length) {
+    const lines=[m.big]; if(m.segAngle!=null) lines.push('∠ '+m.segAngle.toFixed(1)+'°'); pill(S.cursor.x,S.cursor.y,lines)
+    dot(S.cursor,3,'#4ec9b0')
+  }
+  // HUD
+  document.getElementById('hudBig').textContent = m.big
+  document.getElementById('hudSub').textContent = m.sub
+  document.getElementById('hud').style.opacity = (S.place==='hud'||S.place==='both') ? 1 : .35
+  hintEl()
+}
+function hintEl(){ const h=document.getElementById('hint'); const t=S.tool==='linear'?'polyline':'shape';
+  h.innerHTML = `<b>${S.tool[0].toUpperCase()+S.tool.slice(1)}:</b> click to add points to the ${t} · <kbd>Enter</kbd> finish · <kbd>Backspace</kbd> undo · <kbd>Esc</kbd> clear` }
+
+// ── interaction ──
+const posOf=(e)=>{ const r=cvs.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top } }
+cvs.addEventListener('mousemove', (e)=>{
+  const now = performance.now()
+  if (S.perf.lastMoveT!==null) { S.perf.intervals.push(now-S.perf.lastMoveT); if(S.perf.intervals.length>2000)S.perf.intervals.shift() }
+  S.perf.lastMoveT = now; S.perf.mm++
+  S.cursor = posOf(e); measure(); draw(); if ((S.perf.mm & 7)===0) refreshPerf()
+})
+cvs.addEventListener('click', (e)=>{ S.points.push(posOf(e)); log(`${S.tool} vertex ${S.points.length}`); measure(); draw(); refreshPerf() })
+window.addEventListener('keydown', (e)=>{
+  if (e.key==='Enter'){ e.preventDefault(); if(S.points.length){ const m=measure(); log(`FINISH ${S.tool} → ${m.big}`); } }
+  else if (e.key==='Backspace'){ if(S.points.length){ S.points.pop(); log('undo vertex'); measure(); draw(); refreshPerf() } }
+  else if (e.key==='Escape'){ S.points=[]; log('cleared'); measure(); draw(); refreshPerf() }
+})
+function setTool(t){ S.tool=t; S.points=[]; for(const b of document.querySelectorAll('[data-tool]'))b.classList.toggle('on',b.dataset.tool===t); log('tool → '+t); measure(); draw() }
+for(const b of document.querySelectorAll('[data-tool]')) b.addEventListener('click',()=>setTool(b.dataset.tool))
+function setPlace(p){ S.place=p; for(const b of document.querySelectorAll('[data-place]'))b.classList.toggle('on',b.dataset.place===p); log('readout placement → '+p); draw() }
+for(const b of document.querySelectorAll('[data-place]')) b.addEventListener('click',()=>setPlace(b.dataset.place))
+document.getElementById('oSeg').addEventListener('change',e=>{S.opt.seg=e.target.checked;draw()})
+document.getElementById('oAngle').addEventListener('change',e=>{S.opt.angle=e.target.checked;measure();draw()})
+document.getElementById('oArc').addEventListener('change',e=>{S.opt.arc=e.target.checked;document.getElementById('arcRow').style.display=e.target.checked?'block':'none';measure();draw()})
+document.getElementById('arcSag').addEventListener('input',e=>{S.opt.sag=+e.target.value;document.getElementById('arcVal').textContent=e.target.value+' px';measure();draw()})
+document.getElementById('clear').addEventListener('click',()=>{S.points=[];S.cursor=null;log('cleared');measure();draw();refreshPerf()})
+document.getElementById('export').addEventListener('click',()=>{
+  const s=S.perf.samples
+  const summary={ tool:S.tool, placement:S.place, mousemoves:S.perf.mm, points:S.points.length,
+    readout_compute_us:{ avg:s.length?+(s.reduce((a,b)=>a+b,0)/s.length).toFixed(2):0, p99:+pctl(s,0.99).toFixed(2), max:s.length?+Math.max(...s).toFixed(2):0 },
+    move_interval_ms_avg:S.perf.intervals.length?+(S.perf.intervals.reduce((a,b)=>a+b,0)/S.perf.intervals.length).toFixed(2):0 }
+  const blob=new Blob([JSON.stringify({summary,log:S.log},null,2)],{type:'application/json'})
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='spike-008-readout-log.json';a.click(); log('exported')
+})
+setTool('linear'); setPlace('cursor'); resize(); measure(); draw()
+log('spike 008 ready — draw and watch the running measurement follow the cursor')
+</script>
+</body>
+</html>
