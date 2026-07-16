@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spike 006 — Area Cutouts / Deductions</title>
+<style>
+  :root {
+    --bg: #1e1e1e; --panel: #252526; --border: #3c3c3c; --accent: #0078d4;
+    --text: #e8e8e8; --text2: #9d9d9d; --red: #d13438; --green: #107c10; --amber: #ca8a04;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 13px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif; }
+  #app { display: flex; height: 100vh; }
+  #stageWrap { flex: 1; position: relative; overflow: hidden; }
+  canvas { display: block; cursor: crosshair; }
+  #hint { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,.55);
+    padding: 7px 11px; border-radius: 6px; font-size: 12px; color: var(--text2); pointer-events: none; max-width: 60%; }
+  #hint b { color: var(--text); }
+  #side { width: 320px; flex-shrink: 0; background: var(--panel); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; }
+  .sec { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  .sec h2 { margin: 0 0 8px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--text2); font-weight: 600; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; margin: 3px 3px 3px 0;
+    background: #333; color: var(--text); border: 1px solid var(--border); border-radius: 5px; cursor: pointer; font-size: 12px; }
+  .btn:hover { background: #3d3d3d; }
+  .btn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.ghost { background: transparent; }
+  .readout { font-variant-numeric: tabular-nums; }
+  .row { display: flex; justify-content: space-between; padding: 3px 0; }
+  .row .k { color: var(--text2); }
+  .row .v { font-weight: 600; }
+  .net { font-size: 20px; }
+  .net .v { color: var(--green); }
+  .holeItem { display: flex; justify-content: space-between; padding: 2px 0; color: var(--text2); font-size: 12px; }
+  .warn { color: var(--amber); font-size: 12px; margin-top: 6px; }
+  #log { flex: 1; overflow-y: auto; padding: 8px 14px; font: 11px/1.4 ui-monospace, "Cascadia Code", monospace; color: var(--text2); }
+  #log div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #log .cat-area { color: #4ec9b0; } #log .cat-hole { color: #dcdcaa; } #log .cat-warn { color: var(--amber); } #log .cat-net { color: #9cdcfe; }
+  .foot { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+  kbd { background: #333; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: 11px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stageWrap">
+    <canvas id="c"></canvas>
+    <div id="hint"></div>
+  </div>
+  <div id="side">
+    <div class="sec">
+      <h2>Mode</h2>
+      <button class="btn" data-mode="outer" id="mOuter">▱ Draw Area</button>
+      <button class="btn" data-mode="holePoly" id="mHolePoly">▨ Cutout (poly)</button>
+      <button class="btn" data-mode="holeCircle" id="mHoleCircle">◯ Cutout (circle)</button>
+      <div style="margin-top:6px"><button class="btn ghost" id="clear">Clear all</button></div>
+      <div style="margin-top:4px;color:var(--text2);font-size:12px">Click to place points · <kbd>Enter</kbd> close ring · <kbd>Esc</kbd> cancel · <kbd>Backspace</kbd> undo point</div>
+    </div>
+    <div class="sec readout">
+      <h2>Live measurement</h2>
+      <div class="row"><span class="k">Gross area</span><span class="v" id="rGross">—</span></div>
+      <div id="rHoles"></div>
+      <div class="row net"><span class="k">NET area</span><span class="v" id="rNet">—</span></div>
+      <div id="rWarn"></div>
+    </div>
+    <div class="sec" style="padding-bottom:8px"><h2>Forensic log</h2></div>
+    <div id="log"></div>
+    <div class="foot">
+      <button class="btn" id="export">⤓ Export log</button>
+      <span id="stat" style="align-self:center;color:var(--text2);font-size:11px"></span>
+    </div>
+  </div>
+</div>
+<script>
+'use strict'
+// ── Area math (mirrors the shipped polygonArea; circle holes use exact πr²) ──
+function shoelaceAbs(pts) {
+  const n = pts.length; if (n < 3) return 0
+  let d = 0
+  for (let i = 0; i < n; i++) { const j = (i + 1) % n; d += pts[i].x * pts[j].y - pts[j].x * pts[i].y }
+  return Math.abs(d) / 2
+}
+// ── state ──
+const S = {
+  outer: null,            // {points:[], closed:true}
+  holes: [],              // [{type:'poly',points}] | [{type:'circle',cx,cy,r}]
+  mode: 'outer',
+  draft: [],              // in-progress ring points
+  circleDraft: null,      // {cx,cy} awaiting radius
+  cursor: null,
+  log: []
+}
+const PX_PER_M = 100      // demo scale: 100 px = 1 m  → area in m²
+const A = (px2) => px2 / (PX_PER_M * PX_PER_M) // px² → m²
+const cvs = document.getElementById('c'), ctx = cvs.getContext('2d')
+const hint = document.getElementById('hint')
+let W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 2)
+function resize() {
+  const r = cvs.parentElement.getBoundingClientRect(); W = r.width; H = r.height
+  cvs.width = W * DPR; cvs.height = H * DPR; cvs.style.width = W + 'px'; cvs.style.height = H + 'px'
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0); draw()
+}
+window.addEventListener('resize', resize)
+
+// ── forensic log ──
+let t0 = null
+function nowMs() { if (t0 === null) t0 = performance.now(); return +(performance.now() - t0).toFixed(1) }
+function log(cat, msg, data) {
+  S.log.push({ t: nowMs(), cat, msg, ...(data ? { data } : {}) })
+  const el = document.getElementById('log')
+  const d = document.createElement('div'); d.className = 'cat-' + cat
+  d.textContent = `+${String(S.log[S.log.length-1].t).padStart(7)}ms  ${cat.toUpperCase().padEnd(4)} ${msg}`
+  el.appendChild(d); el.scrollTop = el.scrollHeight
+  document.getElementById('stat').textContent = S.log.length + ' events'
+}
+
+// ── point in polygon (inside/outside validation for holes) ──
+function pip(pt, poly) {
+  let inside = false
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i].x, yi = poly[i].y, xj = poly[j].x, yj = poly[j].y
+    if ((yi > pt.y) !== (yj > pt.y) && pt.x < ((xj - xi) * (pt.y - yi)) / (yj - yi) + xi) inside = !inside
+  }
+  return inside
+}
+function holeArea(h) { return h.type === 'circle' ? Math.PI * h.r * h.r : shoelaceAbs(h.points) }
+function holeInsideOuter(h) {
+  if (!S.outer) return false
+  if (h.type === 'circle') return pip({ x: h.cx, y: h.cy }, S.outer.points) // center test (demo)
+  return h.points.every((p) => pip(p, S.outer.points))
+}
+
+// ── measurement panel ──
+function recompute() {
+  const gross = S.outer && S.outer.closed ? shoelaceAbs(S.outer.points) : 0
+  let holesSum = 0, warn = ''
+  const holeRows = S.holes.map((h, i) => {
+    const a = holeArea(h)
+    holesSum += a
+    const inside = holeInsideOuter(h)
+    if (!inside) warn = '⚠ a cutout lies partly outside the area — the real build must BLOCK or CLIP this.'
+    return `<div class="holeItem"><span>− cutout ${i + 1} (${h.type})${inside ? '' : ' ⚠'}</span><span>${A(a).toFixed(3)} m²</span></div>`
+  }).join('')
+  const net = gross - holesSum
+  document.getElementById('rGross').textContent = gross ? A(gross).toFixed(3) + ' m²' : '—'
+  document.getElementById('rHoles').innerHTML = holeRows
+  document.getElementById('rNet').textContent = gross ? A(net).toFixed(3) + ' m²' : '—'
+  document.getElementById('rWarn').innerHTML = warn ? `<div class="warn">${warn}</div>` : ''
+}
+
+// ── drawing ──
+function dot(p, r, fill) { ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 7); ctx.fillStyle = fill; ctx.fill() }
+function drawDottedBg() {
+  ctx.fillStyle = '#1e1e1e'; ctx.fillRect(0, 0, W, H)
+  ctx.fillStyle = '#2c2c2c'
+  for (let x = 0; x < W; x += 24) for (let y = 0; y < H; y += 24) { ctx.fillRect(x, y, 1.5, 1.5) }
+}
+function tracePoly(pts, close) { ctx.moveTo(pts[0].x, pts[0].y); for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y); if (close) ctx.closePath() }
+function draw() {
+  drawDottedBg()
+  // committed region with punched holes (even-odd)
+  if (S.outer && S.outer.closed) {
+    ctx.beginPath(); tracePoly(S.outer.points, true)
+    for (const h of S.holes) {
+      if (h.type === 'circle') { ctx.moveTo(h.cx + h.r, h.cy); ctx.arc(h.cx, h.cy, h.r, 0, 7) }
+      else tracePoly(h.points, true)
+    }
+    ctx.fillStyle = 'rgba(0,120,212,.18)'; ctx.fill('evenodd')
+    ctx.strokeStyle = 'rgba(0,120,212,.9)'; ctx.lineWidth = 2
+    ctx.beginPath(); tracePoly(S.outer.points, true); ctx.stroke()
+    ctx.strokeStyle = 'rgba(209,52,56,.95)'; ctx.setLineDash([5, 4])
+    for (const h of S.holes) {
+      ctx.beginPath()
+      if (h.type === 'circle') ctx.arc(h.cx, h.cy, h.r, 0, 7)
+      else tracePoly(h.points, true)
+      ctx.stroke()
+    }
+    ctx.setLineDash([])
+    for (const p of S.outer.points) dot(p, 3.5, '#0078d4')
+  }
+  // draft ring
+  if (S.draft.length) {
+    ctx.strokeStyle = S.mode === 'outer' ? '#4aa3ff' : '#ff7a7d'; ctx.lineWidth = 1.6; ctx.setLineDash([4, 3])
+    ctx.beginPath(); tracePoly(S.draft, false)
+    if (S.cursor) ctx.lineTo(S.cursor.x, S.cursor.y)
+    ctx.stroke(); ctx.setLineDash([])
+    for (const p of S.draft) dot(p, 3, S.mode === 'outer' ? '#4aa3ff' : '#ff7a7d')
+  }
+  // circle draft
+  if (S.circleDraft && S.cursor) {
+    const r = Math.hypot(S.cursor.x - S.circleDraft.cx, S.cursor.y - S.circleDraft.cy)
+    ctx.strokeStyle = '#ff7a7d'; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.arc(S.circleDraft.cx, S.circleDraft.cy, r, 0, 7); ctx.stroke(); ctx.setLineDash([])
+    dot(S.circleDraft, 3, '#ff7a7d')
+  }
+  updateHint()
+}
+function updateHint() {
+  let h = ''
+  if (S.mode === 'outer' && !(S.outer && S.outer.closed)) h = '<b>Draw Area:</b> click to place the outline · <b>Enter</b> to close'
+  else if (S.mode === 'holePoly') h = '<b>Cutout (poly):</b> click INSIDE the area to trace a hole · <b>Enter</b> to close'
+  else if (S.mode === 'holeCircle') h = S.circleDraft ? '<b>Cutout (circle):</b> click to set the radius' : '<b>Cutout (circle):</b> click the hole centre'
+  else h = '<b>Done.</b> Add a cutout, or Clear to restart.'
+  if (S.outer && S.outer.closed && S.holes.length === 0 && S.mode === 'outer') h = '<b>Area closed.</b> Now pick a Cutout mode →'
+  hint.innerHTML = h
+}
+
+// ── interaction ──
+function pos(e) { const r = cvs.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top } }
+cvs.addEventListener('mousemove', (e) => { S.cursor = pos(e); if (S.draft.length || S.circleDraft) draw() })
+cvs.addEventListener('click', (e) => {
+  const p = pos(e)
+  if (S.mode === 'outer') {
+    if (S.outer && S.outer.closed) return
+    S.draft.push(p); log('area', `vertex ${S.draft.length} @ ${p.x | 0},${p.y | 0}`)
+  } else if (S.mode === 'holePoly') {
+    if (!(S.outer && S.outer.closed)) { log('warn', 'draw the area first'); return }
+    S.draft.push(p); log('hole', `cutout vertex ${S.draft.length}`)
+  } else if (S.mode === 'holeCircle') {
+    if (!(S.outer && S.outer.closed)) { log('warn', 'draw the area first'); return }
+    if (!S.circleDraft) { S.circleDraft = { cx: p.x, cy: p.y }; log('hole', 'circle centre set') }
+    else {
+      const r = Math.hypot(p.x - S.circleDraft.cx, p.y - S.circleDraft.cy)
+      const hole = { type: 'circle', cx: S.circleDraft.cx, cy: S.circleDraft.cy, r }
+      S.holes.push(hole); S.circleDraft = null
+      log('hole', `circle cutout r=${r | 0}px → ${A(Math.PI * r * r).toFixed(3)}m²`)
+      logNet()
+    }
+  }
+  draw(); recompute()
+})
+function closeRing() {
+  if (S.mode === 'outer' && !S.outer) {
+    if (S.draft.length < 3) { log('warn', 'need ≥3 points to close the area'); return }
+    S.outer = { points: S.draft.slice(), closed: true }; S.draft = []
+    log('area', `area closed, ${S.outer.points.length} pts → ${A(shoelaceAbs(S.outer.points)).toFixed(3)}m²`)
+    logNet()
+  } else if (S.mode === 'holePoly') {
+    if (S.draft.length < 3) { log('warn', 'need ≥3 points to close the cutout'); return }
+    const hole = { type: 'poly', points: S.draft.slice() }; S.holes.push(hole); S.draft = []
+    const inside = holeInsideOuter(hole)
+    log(inside ? 'hole' : 'warn', `poly cutout closed → −${A(holeArea(hole)).toFixed(3)}m²${inside ? '' : '  (OUTSIDE area!)'}`)
+    logNet()
+  }
+  draw(); recompute()
+}
+function logNet() {
+  const gross = S.outer ? shoelaceAbs(S.outer.points) : 0
+  const net = gross - S.holes.reduce((s, h) => s + holeArea(h), 0)
+  if (gross) log('net', `NET = ${A(net).toFixed(3)}m²  (gross ${A(gross).toFixed(3)} − ${S.holes.length} cutout${S.holes.length===1?'':'s'})`)
+}
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); closeRing() }
+  else if (e.key === 'Escape') { S.draft = []; S.circleDraft = null; log('warn', 'draft cancelled'); draw(); recompute() }
+  else if (e.key === 'Backspace') { if (S.draft.length) { S.draft.pop(); log('area', 'undo vertex'); draw() } }
+})
+function setMode(m) {
+  S.mode = m; S.draft = []; S.circleDraft = null
+  for (const b of document.querySelectorAll('[data-mode]')) b.classList.toggle('on', b.dataset.mode === m)
+  log('area', 'mode → ' + m); draw(); updateHint()
+}
+for (const b of document.querySelectorAll('[data-mode]')) b.addEventListener('click', () => setMode(b.dataset.mode))
+document.getElementById('clear').addEventListener('click', () => {
+  S.outer = null; S.holes = []; S.draft = []; S.circleDraft = null; log('warn', 'cleared'); setMode('outer'); recompute()
+})
+document.getElementById('export').addEventListener('click', () => {
+  const summary = {
+    events: S.log.length,
+    gross_m2: S.outer ? A(shoelaceAbs(S.outer.points)) : 0,
+    holes: S.holes.map((h) => ({ type: h.type, area_m2: A(holeArea(h)), insideOuter: holeInsideOuter(h) })),
+    net_m2: S.outer ? A(shoelaceAbs(S.outer.points) - S.holes.reduce((s, h) => s + holeArea(h), 0)) : 0
+  }
+  const blob = new Blob([JSON.stringify({ summary, log: S.log }, null, 2)], { type: 'application/json' })
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'spike-006-cutouts-log.json'; a.click()
+  log('area', 'log exported')
+})
+setMode('outer'); resize(); recompute()
+log('area', 'spike 006 ready — draw an area, then punch cutouts')
+</script>
+</body>
+</html>
