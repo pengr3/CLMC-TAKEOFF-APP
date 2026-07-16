@@ -5,8 +5,7 @@ import { usePdfRenderer } from '../hooks/usePdfRenderer'
 import { useViewerStore } from '../stores/viewerStore'
 import { useScaleStore } from '../stores/scaleStore'
 import { useViewportControls } from '../hooks/useViewportControls'
-import { useKeyboardShortcuts, isTextInputActive } from '../hooks/useKeyboardShortcuts'
-import { usePdfDocument } from '../hooks/usePdfDocument'
+import { isTextInputActive } from '../hooks/useKeyboardShortcuts'
 import { useCalibrationMode } from '../hooks/useCalibrationMode'
 import type { StagePoint } from '../hooks/useCalibrationMode'
 import { useMarkupTool } from '../hooks/useMarkupTool'
@@ -321,7 +320,6 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
     stageRef,
     currentFitScale
   )
-  const { openPdfDialog } = usePdfDocument()
 
   // Calibration interaction (new mm-based hook)
   const {
@@ -1144,20 +1142,13 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
       : null
   }, [markupState.chainArmed, markupState.pendingName, markupState.pendingColor])
 
-  // Keyboard shortcuts
-  // Note: openProject, saveProject, saveProjectAs are wired in App.tsx (Plan 04-04 Task 3).
-  // CanvasViewport passes no-op stubs here to satisfy the updated interface; App.tsx
-  // owns the actual handlers via useKeyboardShortcuts at the top level.
-  useKeyboardShortcuts({
-    openPdf: openPdfDialog,
-    openProject: openPdfDialog,
-    saveProject: () => {},
-    saveProjectAs: () => {},
-    zoomIn,
-    zoomOut,
-    fitToWindow,
-    exportBoq: () => {}
-  })
+  // Keyboard shortcuts are owned SOLELY by App.tsx's top-level (always-mounted)
+  // useKeyboardShortcuts call. CanvasViewport must NOT register its own: a second
+  // call adds a duplicate window keydown listener that exists only while a PDF is
+  // open, so every shortcut double-fires (e.g. F3 toggled snap TWICE → net no-op —
+  // the "F3 broken only when a project is open" bug). App wires zoom through
+  // getCanvasControls(), which reads the _canvasControls registered just above,
+  // so no shortcut behavior is lost by removing the call here.
 
   // Phase 14 (14-03 D-04/D-05/D-07): resolve a snap candidate for a page-space
   // cursor point and publish the glyph state. Returns the snapped page-point to
