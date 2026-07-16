@@ -400,10 +400,12 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
   // setArcStickyState notifies its subscribers, the Shift+A path (which flips
   // markupState.arcMode with NO coincident store change) re-renders every
   // useSyncExternalStore(subscribeArcSticky, getArcSticky) consumer (ToolRail
-  // 18-07, ContextBar 18-08). No cleanup reset: on unmount the seam retains its
-  // last value (harmless — the toggle chrome is not visible without the canvas).
+  // 18-07, ContextBar 18-08). Cleanup resets to false on unmount: ToolRail and
+  // ContextBar stay mounted after the canvas unmounts (project close), so without
+  // the reset a stale lit Arc pill would linger with a now-null toggle handler.
   useEffect(() => {
     setArcStickyState(markupState.arcMode === 'sticky')
+    return () => setArcStickyState(false)
   }, [markupState.arcMode])
 
   useEffect(() => {

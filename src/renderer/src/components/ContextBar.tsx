@@ -348,7 +348,14 @@ function SelectedPanel(): React.JSX.Element {
       <button
         type="button"
         aria-label="Delete markup"
-        onClick={() => useMarkupStore.getState().deleteMarkup(selected.page, selected.id)}
+        onClick={() => {
+          useMarkupStore.getState().deleteMarkup(selected.page, selected.id)
+          // Clear the now-dangling selection so the bar leaves the 'selected' morph
+          // state (mirrors the keyboard Delete handler). Without this, selectedMarkupIds
+          // still points at the deleted id and the ContextBar stays stuck on an empty
+          // SELECTED pill.
+          useViewerStore.getState().clearSelection()
+        }}
         style={CBTN_DANGER_STYLE}
       >
         Delete

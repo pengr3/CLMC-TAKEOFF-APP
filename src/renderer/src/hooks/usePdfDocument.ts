@@ -57,13 +57,5 @@ export function usePdfDocument() {
     [loadPdf]
   )
 
-  const openPdfDialog = useCallback(async (): Promise<PDFDocumentProxy | null> => {
-    console.log('[PDF] openPdfDialog called')
-    const result = await window.api.openPdf()
-    console.log('[PDF] IPC result:', result ? `filePath=${result.filePath}, byteLength=${result.data?.byteLength}` : 'null (cancelled)')
-    if (!result) return null
-    return loadPdf(result.data, result.filePath)
-  }, [loadPdf])
-
-  return { loadPdf, loadPdfFromPath, loadPdfFromBytes, openPdfDialog }
+  return { loadPdf, loadPdfFromPath, loadPdfFromBytes }
 }
