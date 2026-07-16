@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spike 009 — Auto-Count Review / Accept UX</title>
+<style>
+  :root { --bg:#1e1e1e; --panel:#252526; --border:#3c3c3c; --accent:#0078d4; --text:#e8e8e8; --text2:#9d9d9d; --green:#4ec9b0; --red:#f14c4c; --amber:#e2b93b; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--text); font:13px/1.45 -apple-system,"Segoe UI",system-ui,sans-serif; }
+  #app { display:flex; height:100vh; }
+  #stageWrap { flex:1; position:relative; overflow:auto; display:flex; align-items:flex-start; justify-content:center; padding:16px; }
+  #plan { background:#fbfbf7; border-radius:4px; box-shadow:0 4px 20px rgba(0,0,0,.5); cursor:crosshair; }
+  #step { position:absolute; top:8px; left:16px; background:rgba(0,0,0,.6); color:var(--text); padding:6px 11px; border-radius:6px; font-size:12px; pointer-events:none; }
+  #step b { color:var(--green); }
+  #side { width:330px; flex-shrink:0; background:var(--panel); border-left:1px solid var(--border); display:flex; flex-direction:column; }
+  .sec { padding:12px 14px; border-bottom:1px solid var(--border); }
+  .sec h2 { margin:0 0 8px; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--text2); font-weight:600; }
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:7px 11px; margin:3px 3px 3px 0; background:#333; color:var(--text); border:1px solid var(--border); border-radius:5px; cursor:pointer; font-size:12px; }
+  .btn:hover:not(:disabled){ background:#3d3d3d; } .btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; } .btn:disabled { opacity:.4; cursor:default; }
+  .stat { display:flex; justify-content:space-between; padding:3px 0; font-variant-numeric:tabular-nums; }
+  .stat .v { font-weight:700; }
+  .big { font-size:30px; font-weight:800; color:var(--green); font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; }
+  .metrics { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; text-align:center; margin-top:6px; }
+  .metrics .m { background:#2d2d2d; border-radius:5px; padding:6px 2px; }
+  .metrics .m b { display:block; font-size:16px; } .metrics .m span { color:var(--text2); font-size:10px; text-transform:uppercase; letter-spacing:.05em; }
+  #tmpl { image-rendering:pixelated; border:1px solid var(--border); border-radius:3px; background:#fff; width:56px; height:56px; }
+  #log { flex:1; overflow-y:auto; padding:8px 14px; font:11px/1.4 ui-monospace,"Cascadia Code",monospace; color:var(--text2); }
+  .foot { padding:10px 14px; border-top:1px solid var(--border); }
+  .leg { display:flex; gap:12px; margin-top:6px; font-size:11px; color:var(--text2); }
+  .leg i { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:4px; vertical-align:middle; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stageWrap">
+    <canvas id="plan" width="840" height="560"></canvas>
+    <div id="step"></div>
+  </div>
+  <div id="side">
+    <div class="sec">
+      <h2>1 · Template</h2>
+      <div style="display:flex; gap:10px; align-items:center">
+        <canvas id="tmpl" width="28" height="28"></canvas>
+        <div style="flex:1; color:var(--text2); font-size:12px" id="tmplHint">Click a symbol on the plan to pick a template.</div>
+      </div>
+      <div style="margin-top:8px"><button class="btn primary" id="run" disabled>▶ Run detection</button></div>
+    </div>
+    <div class="sec">
+      <h2>2 · Sensitivity <span style="color:var(--text2)">(the review dial)</span></h2>
+      <div class="stat"><span>NCC threshold</span><span class="v" id="thrVal">0.75</span></div>
+      <input type="range" id="thr" min="50" max="95" value="75" disabled>
+      <div class="leg"><span><i style="background:#4ec9b0"></i>accepted</span><span><i style="background:#e2b93b"></i>pending</span><span><i style="background:#f14c4c"></i>rejected</span></div>
+      <div style="color:var(--text2); font-size:11px; margin-top:6px">Drag to trade recall for precision. Click any pin to reject/restore it.</div>
+    </div>
+    <div class="sec">
+      <h2>3 · Result</h2>
+      <div class="stat"><span>Accepted count</span><span class="big" id="count">0</span></div>
+      <div class="stat"><span>detected @ threshold</span><span class="v" id="nDet">0</span></div>
+      <div class="stat"><span>rejected by you</span><span class="v" id="nRej">0</span></div>
+      <div class="metrics">
+        <div class="m"><b id="mRec">—</b><span>recall</span></div>
+        <div class="m"><b id="mPre">—</b><span>precision</span></div>
+        <div class="m"><b id="mF1">—</b><span>F1</span></div>
+      </div>
+      <div style="color:var(--text2); font-size:11px; margin-top:6px">Ground truth known (synthetic plan) → metrics update live as you tune. The estimator never sees these; they measure whether the <i>review flow</i> lands on the truth.</div>
+      <div style="margin-top:8px">
+        <button class="btn" id="acceptAll" disabled>✓ Accept all</button>
+        <button class="btn" id="commit" disabled>Commit as count pins</button>
+      </div>
+    </div>
+    <div class="sec" style="padding-bottom:6px"><h2>Log</h2></div>
+    <div id="log"></div>
+    <div class="foot"><button class="btn" id="export">⤓ Export log</button> <button class="btn" id="regen">⟳ New plan</button></div>
+  </div>
+</div>
+<script>
+'use strict'
+const cvs=document.getElementById('plan'), ctx=cvs.getContext('2d',{willReadFrequently:true})
+const W=cvs.width, H=cvs.height
+const tmplCvs=document.getElementById('tmpl'), tctx=tmplCvs.getContext('2d')
+const TW=28, R_NMS=22, R_MATCH=16 // template size, non-max radius, ground-truth match radius
+let SEED=0x9d09
+function mulberry32(s){let a=s>>>0;return()=>{a|=0;a=(a+0x6d2b79f5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296}}
+let rng=mulberry32(SEED)
+
+// ── state ──
+const St={ truth:[], decoys:[], template:null, raw:[], detections:[], overrides:new Map(), thr:0.75, log:[] }
+let t0=null; const nowMs=()=>{if(t0===null)t0=performance.now();return +(performance.now()-t0).toFixed(1)}
+function log(m){St.log.push({t:nowMs(),m});const el=document.getElementById('log');const d=document.createElement('div');d.textContent=`+${String(St.log[St.log.length-1].t).padStart(7)}ms  ${m}`;el.appendChild(d);el.scrollTop=el.scrollHeight}
+
+// ── symbol drawing: TRUE = ring + plus (like a light/outlet glyph); DECOY = ring only or square ──
+function drawSymbol(g, x, y, kind){
+  g.save(); g.translate(x,y); g.strokeStyle='#1a1a1a'; g.lineWidth=2; g.fillStyle='#1a1a1a'
+  if(kind==='true'){ g.beginPath(); g.arc(0,0,9,0,7); g.stroke(); g.beginPath(); g.moveTo(-5,0); g.lineTo(5,0); g.moveTo(0,-5); g.lineTo(0,5); g.stroke() }
+  else if(kind==='ring'){ g.beginPath(); g.arc(0,0,9,0,7); g.stroke() }        // near-miss (no plus)
+  else { g.strokeRect(-8,-8,16,16) }                                            // square decoy
+  g.restore()
+}
+function buildPlan(){
+  ctx.fillStyle='#fbfbf7'; ctx.fillRect(0,0,W,H)
+  // faint construction clutter: random walls/lines
+  ctx.strokeStyle='rgba(60,60,60,.25)'; ctx.lineWidth=1
+  for(let i=0;i<26;i++){ ctx.beginPath(); const x=rng()*W,y=rng()*H; ctx.moveTo(x,y); ctx.lineTo(x+(rng()-.5)*260, y+(rng()-.5)*40); ctx.stroke() }
+  // scatter true symbols on a rough grid + jitter, avoiding overlap
+  St.truth=[]; St.decoys=[]
+  const place=(arr,kind,n)=>{ let tries=0; while(arr.length<n && tries<n*40){ tries++; const x=40+rng()*(W-80), y=44+rng()*(H-88)
+    const all=St.truth.concat(St.decoys); if(all.some(p=>Math.hypot(p.x-x,p.y-y)<34)) continue; arr.push({x,y}); drawSymbol(ctx,x,y,kind) } }
+  place(St.truth,'true',22)
+  place(St.decoys,'ring',7); place(St.decoys,'square',5)
+  // speckle noise
+  const img=ctx.getImageData(0,0,W,H), d=img.data
+  for(let i=0;i<d.length;i+=4){ if(rng()<0.02){ const v=rng()<.5?0:255; d[i]=d[i+1]=d[i+2]=v } }
+  ctx.putImageData(img,0,0)
+  St.template=null; St.raw=[]; St.detections=[]; St.overrides.clear()
+  document.getElementById('run').disabled=true; document.getElementById('thr').disabled=true
+  document.getElementById('acceptAll').disabled=true; document.getElementById('commit').disabled=true
+  tctx.clearRect(0,0,TW,TW); document.getElementById('tmplHint').textContent='Click a symbol on the plan to pick a template.'
+  redraw(); refresh()
+  log(`new plan: ${St.truth.length} true symbols + ${St.decoys.length} decoys`)
+}
+
+// grayscale of the whole plan (cached)
+let GRAY=null
+function grayscale(){ const img=ctx.getImageData(0,0,W,H).data; const g=new Float32Array(W*H)
+  for(let i=0,j=0;i<img.length;i+=4,j++) g[j]=0.299*img[i]+0.587*img[i+1]+0.114*img[i+2]; return g }
+
+// ── pick template around a click ──
+cvs.addEventListener('click',(e)=>{
+  const r=cvs.getBoundingClientRect(); const x=Math.round((e.clientX-r.left)*(W/r.width)), y=Math.round((e.clientY-r.top)*(H/r.height))
+  // if clicking an existing detection → toggle reject/restore
+  const hit=St.detections.find(dd=>Math.hypot(dd.x-x,dd.y-y)<14)
+  if(hit){ const k=hit.key; St.overrides.set(k, St.overrides.get(k)==='reject'?'accept':'reject'); log(`${St.overrides.get(k)==='reject'?'rejected':'restored'} pin @ ${hit.x|0},${hit.y|0}`); redraw(); refresh(); return }
+  // else set template centered on the click
+  GRAY=grayscale()
+  St.template=extractTemplate(x,y)
+  drawTemplatePreview(x,y)
+  document.getElementById('run').disabled=false
+  document.getElementById('tmplHint').textContent=`Template picked @ ${x},${y}. Now Run detection.`
+  log(`template picked @ ${x},${y}`); redraw()
+})
+function extractTemplate(cx,cy){ const half=TW>>1; const t=new Float32Array(TW*TW); let sum=0
+  for(let j=0;j<TW;j++)for(let i=0;i<TW;i++){ const xx=Math.min(W-1,Math.max(0,cx-half+i)), yy=Math.min(H-1,Math.max(0,cy-half+j)); const v=GRAY[yy*W+xx]; t[j*TW+i]=v; sum+=v }
+  const mean=sum/(TW*TW); let nn=0; for(let k=0;k<t.length;k++){ t[k]-=mean; nn+=t[k]*t[k] }
+  return { data:t, norm:Math.sqrt(nn)||1, cx, cy } }
+function drawTemplatePreview(cx,cy){ const half=TW>>1; const src=ctx.getImageData(Math.max(0,cx-half),Math.max(0,cy-half),TW,TW); tctx.putImageData(src,0,0) }
+
+// ── the REAL detector: single-scale NCC slide + NMS (spike 001's algorithm) ──
+function runDetection(){
+  if(!St.template) return
+  const T=St.template, half=TW>>1, step=2
+  const t=performance.now(); const cand=[]
+  for(let cy=half; cy<H-half; cy+=step){ for(let cx=half; cx<W-half; cx+=step){
+    // patch mean
+    let s=0; for(let j=0;j<TW;j++){ const row=(cy-half+j)*W+(cx-half); for(let i=0;i<TW;i++) s+=GRAY[row+i] }
+    const pmean=s/(TW*TW)
+    let dot=0, pn=0
+    for(let j=0;j<TW;j++){ const row=(cy-half+j)*W+(cx-half); const trow=j*TW
+      for(let i=0;i<TW;i++){ const pv=GRAY[row+i]-pmean; dot+=pv*T.data[trow+i]; pn+=pv*pv } }
+    const score=dot/((Math.sqrt(pn)||1)*T.norm)
+    if(score>=0.5) cand.push({x:cx,y:cy,score})
+  }}
+  // non-max suppression (greedy, by score desc)
+  cand.sort((a,b)=>b.score-a.score)
+  const kept=[]
+  for(const c of cand){ if(kept.some(k=>Math.hypot(k.x-c.x,k.y-c.y)<R_NMS)) continue; kept.push(c) }
+  St.raw=kept
+  const ms=(performance.now()-t).toFixed(0)
+  log(`NCC pass: ${cand.length} raw hits → ${kept.length} after NMS in ${ms}ms`)
+  document.getElementById('thr').disabled=false; document.getElementById('acceptAll').disabled=false; document.getElementById('commit').disabled=false
+  applyThreshold()
+}
+function applyThreshold(){
+  const thr=St.thr
+  St.detections=St.raw.filter(c=>c.score>=thr).map(c=>({...c, key:`${c.x},${c.y}`}))
+  redraw(); refresh()
+}
+
+// ── metrics vs ground truth (accepted set) ──
+function acceptedDetections(){ return St.detections.filter(d=>St.overrides.get(d.key)!=='reject') }
+function metrics(){
+  const acc=acceptedDetections(); const truth=St.truth.slice(); const usedT=new Set(); let tp=0
+  for(const d of acc){ let bi=-1,bd=1e9; truth.forEach((t,i)=>{ if(usedT.has(i))return; const dd=Math.hypot(t.x-d.x,t.y-d.y); if(dd<bd){bd=dd;bi=i} }); if(bi>=0 && bd<=R_MATCH){ tp++; usedT.add(bi) } }
+  const fp=acc.length-tp, fn=truth.length-tp
+  const rec=truth.length?tp/truth.length:0, pre=acc.length?tp/acc.length:0
+  const f1=(rec+pre)?2*rec*pre/(rec+pre):0
+  return {tp,fp,fn,rec,pre,f1,accepted:acc.length}
+}
+function refresh(){
+  const m=metrics()
+  document.getElementById('count').textContent=m.accepted
+  document.getElementById('nDet').textContent=St.detections.length
+  document.getElementById('nRej').textContent=St.detections.filter(d=>St.overrides.get(d.key)==='reject').length
+  const pct=v=>St.detections.length?(v*100).toFixed(0)+'%':'—'
+  document.getElementById('mRec').textContent=pct(m.rec)
+  document.getElementById('mPre').textContent=pct(m.pre)
+  document.getElementById('mF1').textContent=pct(m.f1)
+  document.getElementById('mRec').style.color=m.rec>=.9?'#4ec9b0':m.rec>=.7?'#e2b93b':'#f14c4c'
+  document.getElementById('mPre').style.color=m.pre>=.9?'#4ec9b0':m.pre>=.7?'#e2b93b':'#f14c4c'
+  updateStep()
+}
+function updateStep(){ const s=document.getElementById('step')
+  if(!St.template) s.innerHTML='<b>Step 1:</b> click a light/outlet symbol (ring + cross) to pick a template'
+  else if(!St.raw.length) s.innerHTML='<b>Step 2:</b> press Run detection'
+  else s.innerHTML='<b>Step 3:</b> tune sensitivity · click a pin to reject/restore · Commit when happy' }
+
+// ── render ──
+let planImg=null
+function redraw(){
+  // draw pins over the (cached) plan bitmap
+  if(!planImg){ redraw._t=0 }
+  // re-render plan from stored symbols to keep it crisp, then overlay pins
+  // (cheaper: snapshot the plan once; but re-draw is fine at this size)
+  // overlay only:
+  ctx.save()
+  // We keep the plan pixels; just draw pins on top each redraw would accumulate,
+  // so we snapshot the clean plan the first time and restore it here.
+  if(planSnapshot) ctx.putImageData(planSnapshot,0,0)
+  for(const d of St.detections){
+    const state=St.overrides.get(d.key)==='reject'?'rej':'acc'
+    const col=state==='rej'?'#f14c4c':'#12a37a'
+    ctx.beginPath(); ctx.arc(d.x,d.y,12,0,7); ctx.strokeStyle=col; ctx.lineWidth=2.5; ctx.stroke()
+    ctx.fillStyle=state==='rej'?'rgba(241,76,76,.15)':'rgba(18,163,122,.18)'; ctx.fill()
+    if(state==='rej'){ ctx.beginPath(); ctx.moveTo(d.x-6,d.y-6); ctx.lineTo(d.x+6,d.y+6); ctx.moveTo(d.x+6,d.y-6); ctx.lineTo(d.x-6,d.y+6); ctx.strokeStyle=col; ctx.lineWidth=2; ctx.stroke() }
+  }
+  ctx.restore()
+}
+let planSnapshot=null
+function snapshotPlan(){ planSnapshot=ctx.getImageData(0,0,W,H) }
+
+// ── controls ──
+document.getElementById('run').addEventListener('click',()=>{ snapshotPlan(); runDetection() })
+const thrEl=document.getElementById('thr')
+thrEl.addEventListener('input',()=>{ St.thr=(+thrEl.value)/100; document.getElementById('thrVal').textContent=St.thr.toFixed(2); applyThreshold() })
+thrEl.addEventListener('change',()=>{ const m=metrics(); log(`threshold ${St.thr.toFixed(2)} → ${St.detections.length} det, recall ${(m.rec*100)|0}% precision ${(m.pre*100)|0}%`) })
+document.getElementById('acceptAll').addEventListener('click',()=>{ for(const d of St.detections) St.overrides.delete(d.key); log('accepted all at threshold'); redraw(); refresh() })
+document.getElementById('commit').addEventListener('click',()=>{ const m=metrics(); log(`COMMIT → ${m.accepted} count pins (recall ${(m.rec*100)|0}% precision ${(m.pre*100)|0}% F1 ${(m.f1*100)|0}%)`) })
+document.getElementById('regen').addEventListener('click',()=>{ SEED=(SEED*1664525+1013904223)>>>0; rng=mulberry32(SEED); planSnapshot=null; buildPlan(); snapshotPlan() })
+document.getElementById('export').addEventListener('click',()=>{ const m=metrics()
+  const summary={ truth:St.truth.length, decoys:St.decoys.length, threshold:St.thr, detected:St.detections.length,
+    accepted:m.accepted, rejectedByUser:St.detections.filter(d=>St.overrides.get(d.key)==='reject').length,
+    recall:+m.rec.toFixed(3), precision:+m.pre.toFixed(3), f1:+m.f1.toFixed(3) }
+  const blob=new Blob([JSON.stringify({summary,log:St.log},null,2)],{type:'application/json'})
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='spike-009-autocount-log.json';a.click(); log('exported') })
+
+buildPlan(); snapshotPlan(); redraw(); refresh()
+log('spike 009 ready — pick a template symbol, run detection, then review')
+</script>
+</body>
+</html>
