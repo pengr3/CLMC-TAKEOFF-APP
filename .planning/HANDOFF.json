@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-07-17T00:40:09+0800",
+  "context": "spike",
+  "phase": null,
+  "phase_name": "Spike session — markup gaps (GAP-003 + spikes 006/008/009)",
+  "phase_dir": ".planning/spikes",
+  "status": "paused",
+  "completed_tasks": [
+    {"id": 1, "name": "GAP-003 markup gap re-audit (scoped to marking-up, post-Phase-18)", "status": "done", "commit": "4a9d9ac"},
+    {"id": 2, "name": "Spike 006 area-cutouts — math VALIDATED (oracle) + interactive demo built", "status": "done", "commit": "4a3f806"},
+    {"id": 3, "name": "Spike 008 live-readout — math+perf VALIDATED + interactive demo built", "status": "done", "commit": "b6112d1"},
+    {"id": 4, "name": "Spike 009 autocount-review-ux — pipeline+dial VALIDATED + demo built", "status": "done", "commit": "befe93f"},
+    {"id": 5, "name": "CONVENTIONS.md + MANIFEST + BACKLOG drift correction", "status": "done", "commit": "770a74a"}
+  ],
+  "remaining_tasks": [
+    {"id": 6, "name": "Human feel-test of 006 + 008 demos (open the index.html files)", "status": "not_started"},
+    {"id": 7, "name": "OPTIONAL/OFFERED: wire 3-point + 2-point circle-cutout input modes into the 006 demo (math already exists via solveCircle)", "status": "not_started"},
+    {"id": 8, "name": "Plan the build — /gsd-plan-phase (cutouts first, highest value) or /gsd-review-backlog for the build-work tail", "status": "not_started"}
+  ],
+  "blockers": [
+    {"description": "In-app Browser MCP unresponsive this session (3x 300s timeouts) — could not drive the interactive demos to feel-test them", "type": "external", "workaround": "User opens the standalone offline index.html files directly in a browser; all MATH/PERF was verified headlessly via Node oracles"}
+  ],
+  "human_actions_pending": [
+    {"action": "Open and feel-test .planning/spikes/006-area-cutouts/index.html and .planning/spikes/008-live-readout/index.html", "context": "Feel is the only unverified half; math/perf already proven by Node oracles", "blocking": false},
+    {"action": "Decide whether to have Claude add 3-point/2-point circle-cutout input to the 006 demo", "context": "Offered at pause; awaiting go/no-go", "blocking": false}
+  ],
+  "decisions": [
+    {"decision": "DROP spike 009 (auto-count) from the near-term set", "rationale": "User: too much review-wizard UI for v1. Algorithm itself is validated (spike 001) — revive later; only the 4-step wizard is the cost.", "phase": "spike-009"},
+    {"decision": "KEEP 006 (cutouts) and 008 (live-readout) — user judged both great additions", "rationale": "Both de-risked; cutouts is the signature feature with math already proven exact", "phase": "spike-006/008"},
+    {"decision": "006 circle-cutout precise-center method = 3-POINT circle (reuse shipped solveCircle, spike-003, ~1e-10); 2-POINT (diameter) also viable; store a perfect circle as a {cx,cy,r} primitive → area = pi*r^2 exact; report inside diameter = 2r", "rationale": "3-point derives the exact center from rim points you can see, so the 'exact center' problem dissolves. Caveat: snapping (spike 002) is markup-to-markup, NOT raster-edge — no auto edge-grab on the scan; place points by eye at zoom.", "phase": "spike-006"},
+    {"decision": "008 readout = passive live 'see-it' (AutoCAD Dynamic Input style); consider ALSO PlanSwift-style 'type-it-exact' per-segment entry (their 'Verify Points')", "rationale": "Web-verified: PlanSwift's documented mechanism is Verify Points (type/adjust exact length per click), not a confirmed always-on floating tooltip. The two ideas are complementary and cheap since 008 proved the readout is free to compute.", "phase": "spike-008"}
+  ],
+  "uncommitted_files": [],
+  "next_action": "Ask the user for the feel-test result on 006 + 008, and whether to prototype the 3-point/2-point circle-cutout input into the 006 demo. If they want to build, run /gsd-plan-phase for cutouts (MM-01, highest value, math proven).",
+  "context_notes": "All spike code is COMMITTED and the working tree is clean. Math/perf verdicts are solid (Node oracles, all passing); only the subjective FEEL of the demos is unverified because the in-app browser was down. The user is in a design-debate mindset, engaged and decisive — they park heavy items and probe precise-input methods. Lean into concrete geometry answers and offer small prototypes rather than big plans."
+}
