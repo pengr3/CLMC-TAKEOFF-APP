@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: phase_18_complete
 stopped_at: Phase 18 (toolbar-revamp) COMPLETE — tab-less toolbar live; F3 snap-toggle bug root-caused (duplicate keydown listener) + fixed (8f0cc54); verifier 6/6 SC PASS; code-review no-blockers + 1 MED/3 LOW fixed (a0dbfbe); typecheck + production build clean; 817 tests pass (7 pre-existing cross-machine localStorage env failures, non-blocking). User-approved on clean build.
-last_updated: "2026-07-16T05:00:00.000Z"
-last_activity: 2026-07-16
+last_updated: "2026-07-17T03:00:00.000Z"
+last_activity: 2026-07-17
 progress:
   total_phases: 22
   completed_phases: 22
@@ -232,6 +232,7 @@ None.
 | 260519-drg | Skip 4px drag-suppression guard when markup tool active — rapid clicks while hand moving now all register; guard remains for select mode (rubber-band) | 2026-05-19 | af83fc4 | debug/rapid-click-movement-threshold.md |
 | 260520-p2g | Phase 11 gap — Replace ScalePopup tab-switcher with pre-choice gate dialog (Draw line / Type ratio 1:N) | 2026-05-20 | 4ec8846 | [260520-p2g-phase11-prechoice-gate](./quick/260520-p2g-phase11-prechoice-gate/) |
 | 260520-rrf | Scrap ratio scale feature — revert to draw-line only; delete ScaleMethodDialog, remove pre-choice CalibMode, clean ScalePopup, strip scale-math ratio exports | 2026-05-20 | 4156dee | [260520-rrf-remove-ratio-feature](./quick/260520-rrf-remove-ratio-feature/) |
+| 260717-fps | spike-006 cutouts demo: add 3-point (rim) + 2-point (diameter) circle-cutout input sub-modes (alongside center-radius), verbatim solveCircle port, live preview, inside-⌀ readout — feel-test PENDING | 2026-07-17 | fccabdc | [260717-fps-spike-006-cutouts-demo-add-3-point-and-2](./quick/260717-fps-spike-006-cutouts-demo-add-3-point-and-2/) |
 
 ### Roadmap Evolution
 
@@ -247,6 +248,8 @@ None.
 - Phase 18 added (2026-07-14): Toolbar Revamp — Seamless One-Click Toolbar. Replaces the 7-tab ribbon with a tab-less, co-visible layout (persistent left tool rail + slim top action bar + morphing context sub-bar) per feel-tested spike 007 (Direction A, "everything one click away"). Extends v1.0 (user chose extend over new v1.1 milestone). Snap/Arc become clickable controls; Settings/Help stubs drop to a reserved ⋯ button; duplicate top/bottom page+scale chrome folds into one status line. Planned via /gsd-plan-phase: 9 plans / 4 waves, plan-checker PASS (1 HIGH resolved — Arc on-state made reactive via subscribeArcSticky + useSyncExternalStore so Shift+A updates the toggle; 2 doc warnings closed). Next: /gsd-execute-phase 18.
 
 ## Session Continuity
+
+**Session resumed:** 2026-07-17 — via /gsd-resume-work. Restored from HANDOFF.json (today 00:40) + `.planning/spikes/.continue-here.md`: a post-Phase-18 **markup-gaps spike session** (GAP-003, "what do we lack on marking up?") is PAUSED at task 5/8, working tree clean at `4637f7e`. Three spikes built + committed: **006 area-cutouts** (math VALIDATED — netArea = outer − Σholes via the shipped arc-aware engine, exact ≤1.35e-8), **008 live-readout** (math+perf VALIDATED — recompute per mousemove is free, ≤129µs@5000pts + MM-09 per-segment labels), **009 autocount-review-ux** (pipeline+dial VALIDATED but **user SHELVED** — too much wizard UI for v1). User decisions: **DROP 009, KEEP 006+008**; 006 circle-cutout input = **3-point method** (reuse shipped solveCircle, ~1e-10) with 2-point/{cx,cy,r} πr² storage; 008 = passive see-it-live + maybe PlanSwift "type-it-exact". **Blocker:** in-app Browser MCP was down last session → the demos' subjective FEEL is the only unverified half (all math/perf proven via Node oracles). **Remaining:** (6) human feel-test 006+008 index.html, (7) OPTIONAL wire 3-pt/2-pt circle input into the 006 demo, (8) plan the build — /gsd-plan-phase (cutouts MM-01, highest value) or /gsd-review-backlog. Milestone still feature-complete (22/22 phases); frontmatter stays phase_18_complete — spike is pre-planning exploration, no new phase started. HANDOFF.json retained until a next action is chosen.
 
 **Phase 18 COMPLETE:** 2026-07-16 — F3 snap-toggle bug resolved and Phase 18 closed. Root cause: a DUPLICATE window keydown listener — `useKeyboardShortcuts` was called in BOTH App.tsx (always mounted) and CanvasViewport.tsx (mounts only with a PDF open), so F3 toggled snap twice per press → net no-op (the "broken only with a project open" symptom). Decisive signal: on a CLEAN build, `e.defaultPrevented` alternated false/true on handler entry = same event through two listeners. Fix `8f0cc54` removed the redundant CanvasViewport call (App already wires every binding); user confirmed on a clean build ("Works now as advertised"). Then closed the phase: wrote 18-09-SUMMARY, corrected the debug record (the earlier HMR-store-dup "resolution" was wrong), ran gates — gsd-verifier **6/6 SC PASS** (18-VERIFICATION.md), gsd-code-reviewer **no blockers** (18-REVIEW.md) + fixed its 1 MED (ContextBar delete now clears selection) / 3 LOW (dead openPdfDialog, arc-sticky unmount reset, dead toolbarHeight) in `a0dbfbe`. Typecheck + production build clean; 817 tests pass (7 pre-existing cross-machine localStorage env failures — non-blocking follow-up queued). ROADMAP + STATE flipped complete: **22/22 phases, 122/122 plans, 100%.** Phase 18 was the last defined phase. **Next: `/gsd-audit-milestone` for v1.0** (still pending from the Phase-17 close), or plan v1.1. HANDOFF.json + phase-18 `.continue-here.md` consumed.
 
