@@ -57,11 +57,26 @@ node .planning/spikes/006-area-cutouts/experiment.cjs
 Draw an area (click, Enter to close) → pick a Cutout mode → punch holes → watch NET update live.
 Export button dumps a forensic JSON log (events + gross/holes/net summary).
 
+The circle cutout tool now exercises **THREE input methods**, chosen from a sub-mode selector that
+appears when the circle tool is active:
+- **3-point (rim)** — PRIMARY. Click three points on the bore rim; the exact centre + radius are
+  derived via the ported `solveCircle` (the "where is the exact centre?" problem dissolves). Three
+  (near-)collinear clicks are rejected — no circle is committed.
+- **2-point (diameter)** — click the two ends of a diameter; centre = midpoint, r = half the span.
+- **centre-radius** — the original method; first click = centre, second sets the radius.
+
+All three re-solve a live candidate circle under the cursor before commit, store the result as
+`{type:'circle',cx,cy,r}` (area = π·r²), and report the inside diameter (⌀ = 2·r) in the readout.
+
 ## What to Expect
 
 - Oracle: `[A straight] PASS`, `[B arc] PASS`, all six edge cases `ok`, plus the estimating-impact line.
 - Demo: the hole renders as a real punched void (even-odd fill); the right panel shows
   Gross − each cutout = **NET m²**; a cutout drawn outside the area turns amber with a warning.
+- Circle cutouts: pick **3-pt (rim)**, **2-pt (⌀)**, or **centre-radius** from the sub-mode row;
+  a dashed candidate circle previews live under the cursor, and the committed cutout's inside
+  diameter (⌀ … m) shows beside its area. The forensic log records each rim/centre placement and a
+  `…circle solved c=… r=… ⌀=…` line on commit.
 
 ## Observability
 
@@ -108,7 +123,20 @@ by 12.5%** in the demo case — the deduction is material to every real estimate
 unresponsive in this session, so the drawing feel (inner-ring start, punch-out render, live net,
 the BLOCK-vs-CLIP amber warning) needs a human open-and-try. Open `index.html` and confirm.
 
+**Circle input methods (feel) — PENDING.** The circle cutout tool now offers three input methods —
+**3-point (rim, derives the exact centre via `solveCircle`)**, **2-point (diameter)**, and
+**centre-radius** — each with a live re-solved candidate preview, an inside-diameter (⌀) readout,
+and forensic per-point + derived-geometry logging. The underlying math is already VALIDATED
+(`solveCircle` → ~1e-10 in spike-003/arc-math), so this is a pure *feel* question: which
+precise-centre method wins for a real bore. Built and self-contained, but **the feel is still
+PENDING a human open-and-try** — do NOT record it as VALIDATED. The overall verdict stays
+`VALIDATED (math) · PENDING human feel-test (demo)`.
+
 **Open build decisions surfaced (not blockers):** (a) cutout drawn partly outside the area →
 BLOCK on commit vs CLIP to the outer (demo flags amber, recommends BLOCK to mirror the existing
 self-intersection guard); (b) nested holes / hole-in-hole → out of scope for v1; (c) snapping a
-hole vertex to the outer edge should reuse the shipped grid-hash index (spike 002) for free.
+hole vertex to the outer edge should reuse the shipped grid-hash index (spike 002) for free;
+(d) **circle-rim snapping caveat (documented, not built):** the 3-point rim clicks are placed by
+eye at zoom — any snapping is **markup-to-markup** (reusing the shipped grid-hash index), **not
+raster-edge**. There is no auto edge-grab of a scanned bore rim; the estimator zooms in and clicks
+the rim by eye, exactly as with every other markup vertex.
