@@ -54,6 +54,11 @@
       <button class="btn" data-mode="outer" id="mOuter">▱ Draw Area</button>
       <button class="btn" data-mode="holePoly" id="mHolePoly">▨ Cutout (poly)</button>
       <button class="btn" data-mode="holeCircle" id="mHoleCircle">◯ Cutout (circle)</button>
+      <div id="cmodeRow" style="display:none;margin-top:6px">
+        <button class="btn on" data-cmode="3pt" id="cm3pt">3-pt (rim)</button>
+        <button class="btn" data-cmode="2pt" id="cm2pt">2-pt (⌀)</button>
+        <button class="btn" data-cmode="center" id="cmCenter">center-radius</button>
+      </div>
       <div style="margin-top:6px"><button class="btn ghost" id="clear">Clear all</button></div>
       <div style="margin-top:4px;color:var(--text2);font-size:12px">Click to place points · <kbd>Enter</kbd> close ring · <kbd>Esc</kbd> cancel · <kbd>Backspace</kbd> undo point</div>
     </div>
@@ -81,13 +86,32 @@ function shoelaceAbs(pts) {
   for (let i = 0; i < n; i++) { const j = (i + 1) % n; d += pts[i].x * pts[j].y - pts[j].x * pts[i].y }
   return Math.abs(d) / 2
 }
+// ── ported geometry (solveCircle) from arc-math.ts, copied VERBATIM via spike-008 (never imported) ──
+const EPS = 1e-9
+const dist = (a, b) => Math.hypot(b.x - a.x, b.y - a.y)
+function solveCircle(p1, mid, p2) {
+  const ax=p1.x,ay=p1.y,bx=mid.x,by=mid.y,cx=p2.x,cy=p2.y
+  const d = 2*(ax*(by-cy)+bx*(cy-ay)+cx*(ay-by))
+  const spread = Math.max(dist(p1,mid),dist(mid,p2),dist(p1,p2))||1
+  if (Math.abs(d) <= EPS*spread*spread) return { collinear:true }
+  const a2=ax*ax+ay*ay,b2=bx*bx+by*by,c2=cx*cx+cy*cy
+  const ux=(a2*(by-cy)+b2*(cy-ay)+c2*(ay-by))/d, uy=(a2*(cx-bx)+b2*(ax-cx)+c2*(bx-ax))/d
+  const r=Math.hypot(ux-ax,uy-ay)
+  const a1=Math.atan2(ay-uy,ax-ux), aMid=Math.atan2(by-uy,bx-ux), aEnd=Math.atan2(cy-uy,cx-ux)
+  const ccw=(f,t)=>{let x=t-f;while(x<0)x+=2*Math.PI;while(x>=2*Math.PI)x-=2*Math.PI;return x}
+  const goCcw = ccw(a1,aMid) <= ccw(a1,aEnd)
+  const sweepSigned = goCcw ? ccw(a1,aEnd) : -(2*Math.PI-ccw(a1,aEnd))
+  return { collinear:false, cx:ux, cy:uy, r, startAngle:a1, sweepSigned, sweep:Math.abs(sweepSigned) }
+}
 // ── state ──
 const S = {
   outer: null,            // {points:[], closed:true}
   holes: [],              // [{type:'poly',points}] | [{type:'circle',cx,cy,r}]
   mode: 'outer',
   draft: [],              // in-progress ring points
-  circleDraft: null,      // {cx,cy} awaiting radius
+  circlePts: [],          // in-progress circle input points (rim clicks / centre+radius)
+  circleMode: '3pt',      // '3pt' rim (PRIMARY) | '2pt' diameter | 'center' centre-radius
+  circleMsg: '',          // transient hint (e.g. collinear reject) surfaced by updateHint
   cursor: null,
   log: []
 }
@@ -130,6 +154,25 @@ function holeInsideOuter(h) {
   if (h.type === 'circle') return pip({ x: h.cx, y: h.cy }, S.outer.points) // center test (demo)
   return h.points.every((p) => pip(p, S.outer.points))
 }
+// ── circle candidate from the in-progress points (+ optional trailing cursor) → {cx,cy,r} | null ──
+function candidateCircle(useCursor) {
+  const pts = S.circlePts, cur = useCursor ? S.cursor : null
+  if (S.circleMode === '3pt') {
+    const p3 = pts[2] || cur
+    if (pts.length < 2 || !p3) return null
+    const c = solveCircle(pts[0], pts[1], p3)      // 3 rim clicks in order → exact centre + radius
+    if (c.collinear) return null                    // (near-)collinear rim → reject, no circle
+    return { cx: c.cx, cy: c.cy, r: c.r }
+  } else if (S.circleMode === '2pt') {
+    const a = pts[0], b = pts[1] || cur             // two ends of a diameter
+    if (!a || !b) return null
+    return { cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, r: dist(a, b) / 2 }
+  } else {                                          // 'center' — first click = centre, second sets radius
+    const a = pts[0], b = pts[1] || cur
+    if (!a || !b) return null
+    return { cx: a.x, cy: a.y, r: dist(a, b) }
+  }
+}
 
 // ── measurement panel ──
 function recompute() {
@@ -140,7 +183,8 @@ function recompute() {
     holesSum += a
     const inside = holeInsideOuter(h)
     if (!inside) warn = '⚠ a cutout lies partly outside the area — the real build must BLOCK or CLIP this.'
-    return `<div class="holeItem"><span>− cutout ${i + 1} (${h.type})${inside ? '' : ' ⚠'}</span><span>${A(a).toFixed(3)} m²</span></div>`
+    const dia = h.type === 'circle' ? `  ⌀ ${((2 * h.r) / PX_PER_M).toFixed(3)} m` : ''
+    return `<div class="holeItem"><span>− cutout ${i + 1} (${h.type})${dia}${inside ? '' : ' ⚠'}</span><span>${A(a).toFixed(3)} m²</span></div>`
   }).join('')
   const net = gross - holesSum
   document.getElementById('rGross').textContent = gross ? A(gross).toFixed(3) + ' m²' : '—'
@@ -187,19 +231,30 @@ function draw() {
     ctx.stroke(); ctx.setLineDash([])
     for (const p of S.draft) dot(p, 3, S.mode === 'outer' ? '#4aa3ff' : '#ff7a7d')
   }
-  // circle draft
-  if (S.circleDraft && S.cursor) {
-    const r = Math.hypot(S.cursor.x - S.circleDraft.cx, S.cursor.y - S.circleDraft.cy)
-    ctx.strokeStyle = '#ff7a7d'; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.arc(S.circleDraft.cx, S.circleDraft.cy, r, 0, 7); ctx.stroke(); ctx.setLineDash([])
-    dot(S.circleDraft, 3, '#ff7a7d')
+  // circle input preview (3-pt rim / 2-pt diameter / centre-radius) — re-solved every frame
+  if (S.circlePts.length) {
+    const cand = candidateCircle(true) // placed points + hovering cursor as the trailing point
+    if (cand) {
+      ctx.strokeStyle = '#ff7a7d'; ctx.setLineDash([4, 3])
+      ctx.beginPath(); ctx.arc(cand.cx, cand.cy, cand.r, 0, 7); ctx.stroke()
+      ctx.setLineDash([])
+    } // cand === null (e.g. 3-pt collinear cursor) → draw only the placed dots
+    for (const p of S.circlePts) dot(p, 3, '#ff7a7d')
   }
   updateHint()
+}
+function circleHint() {
+  const n = S.circlePts.length
+  const msg = S.circleMsg ? `  <span style="color:var(--amber)">⚠ ${S.circleMsg}</span>` : ''
+  if (S.circleMode === '3pt') return (n ? `<b>Cutout (3-pt rim):</b> ${n} of 3 rim points placed…` : '<b>Cutout (3-pt rim):</b> click THREE points on the rim') + msg
+  if (S.circleMode === '2pt') return (n ? '<b>Cutout (2-pt ⌀):</b> 1 of 2 diameter points placed…' : '<b>Cutout (2-pt ⌀):</b> click the two ends of a diameter') + msg
+  return (n ? '<b>Cutout (centre-radius):</b> centre set — click the radius' : '<b>Cutout (centre-radius):</b> click the centre, then the radius') + msg
 }
 function updateHint() {
   let h = ''
   if (S.mode === 'outer' && !(S.outer && S.outer.closed)) h = '<b>Draw Area:</b> click to place the outline · <b>Enter</b> to close'
   else if (S.mode === 'holePoly') h = '<b>Cutout (poly):</b> click INSIDE the area to trace a hole · <b>Enter</b> to close'
-  else if (S.mode === 'holeCircle') h = S.circleDraft ? '<b>Cutout (circle):</b> click to set the radius' : '<b>Cutout (circle):</b> click the hole centre'
+  else if (S.mode === 'holeCircle') h = circleHint()
   else h = '<b>Done.</b> Add a cutout, or Clear to restart.'
   if (S.outer && S.outer.closed && S.holes.length === 0 && S.mode === 'outer') h = '<b>Area closed.</b> Now pick a Cutout mode →'
   hint.innerHTML = h
@@ -207,7 +262,7 @@ function updateHint() {
 
 // ── interaction ──
 function pos(e) { const r = cvs.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top } }
-cvs.addEventListener('mousemove', (e) => { S.cursor = pos(e); if (S.draft.length || S.circleDraft) draw() })
+cvs.addEventListener('mousemove', (e) => { S.cursor = pos(e); if (S.draft.length || S.circlePts.length) draw() }) // 008 proved per-move re-solve is free — no throttle
 cvs.addEventListener('click', (e) => {
   const p = pos(e)
   if (S.mode === 'outer') {
@@ -218,13 +273,26 @@ cvs.addEventListener('click', (e) => {
     S.draft.push(p); log('hole', `cutout vertex ${S.draft.length}`)
   } else if (S.mode === 'holeCircle') {
     if (!(S.outer && S.outer.closed)) { log('warn', 'draw the area first'); return }
-    if (!S.circleDraft) { S.circleDraft = { cx: p.x, cy: p.y }; log('hole', 'circle centre set') }
-    else {
-      const r = Math.hypot(p.x - S.circleDraft.cx, p.y - S.circleDraft.cy)
-      const hole = { type: 'circle', cx: S.circleDraft.cx, cy: S.circleDraft.cy, r }
-      S.holes.push(hole); S.circleDraft = null
-      log('hole', `circle cutout r=${r | 0}px → ${A(Math.PI * r * r).toFixed(3)}m²`)
-      logNet()
+    S.circleMsg = ''
+    S.circlePts.push(p)
+    const n = S.circlePts.length
+    if (S.circleMode === 'center') log('hole', (n === 1 ? 'circle centre set' : 'radius point') + ` @ ${p.x | 0},${p.y | 0}`)
+    else log('hole', `${S.circleMode === '3pt' ? 'rim' : 'diameter'} pt ${n} @ ${p.x | 0},${p.y | 0}`)
+    const reqCount = (S.circleMode === '3pt') ? 3 : 2
+    if (n >= reqCount) {
+      const c = candidateCircle(false) // placed points only (no cursor)
+      if (!c) { // 3-pt collinear → reject, keep the first two rim points
+        S.circlePts.pop()
+        S.circleMsg = 'points nearly collinear — no circle'
+        log('warn', 'points nearly collinear — no circle')
+      } else {
+        S.holes.push({ type: 'circle', cx: c.cx, cy: c.cy, r: c.r })
+        S.circlePts = []
+        const label = S.circleMode === '3pt' ? '3-pt' : (S.circleMode === '2pt' ? '2-pt' : 'centre-radius')
+        const dM = (2 * c.r) / PX_PER_M
+        log('hole', `${label} circle solved c=(${c.cx | 0},${c.cy | 0}) r=${c.r | 0}px  ⌀=${dM.toFixed(3)}m → ${A(Math.PI * c.r * c.r).toFixed(3)}m²`)
+        logNet()
+      }
     }
   }
   draw(); recompute()
@@ -250,18 +318,28 @@ function logNet() {
   if (gross) log('net', `NET = ${A(net).toFixed(3)}m²  (gross ${A(gross).toFixed(3)} − ${S.holes.length} cutout${S.holes.length===1?'':'s'})`)
 }
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') { e.preventDefault(); closeRing() }
-  else if (e.key === 'Escape') { S.draft = []; S.circleDraft = null; log('warn', 'draft cancelled'); draw(); recompute() }
-  else if (e.key === 'Backspace') { if (S.draft.length) { S.draft.pop(); log('area', 'undo vertex'); draw() } }
+  if (e.key === 'Enter') { e.preventDefault(); closeRing() } // circles commit on reaching reqCount, not on Enter
+  else if (e.key === 'Escape') { S.draft = []; S.circlePts = []; S.circleMsg = ''; log('warn', 'draft cancelled'); draw(); recompute() }
+  else if (e.key === 'Backspace') {
+    if (S.circlePts.length) { S.circlePts.pop(); S.circleMsg = ''; log('hole', 'undo circle point'); draw() }
+    else if (S.draft.length) { S.draft.pop(); log('area', 'undo vertex'); draw() }
+  }
 })
 function setMode(m) {
-  S.mode = m; S.draft = []; S.circleDraft = null
+  S.mode = m; S.draft = []; S.circlePts = []; S.circleMsg = ''
   for (const b of document.querySelectorAll('[data-mode]')) b.classList.toggle('on', b.dataset.mode === m)
+  document.getElementById('cmodeRow').style.display = (m === 'holeCircle') ? 'block' : 'none' // sub-modes visible only for the circle tool
   log('area', 'mode → ' + m); draw(); updateHint()
 }
 for (const b of document.querySelectorAll('[data-mode]')) b.addEventListener('click', () => setMode(b.dataset.mode))
+function setCircleMode(m) {
+  S.circleMode = m; S.circlePts = []; S.circleMsg = ''
+  for (const b of document.querySelectorAll('[data-cmode]')) b.classList.toggle('on', b.dataset.cmode === m)
+  log('hole', 'circle input → ' + m); draw(); updateHint()
+}
+for (const b of document.querySelectorAll('[data-cmode]')) b.addEventListener('click', () => setCircleMode(b.dataset.cmode))
 document.getElementById('clear').addEventListener('click', () => {
-  S.outer = null; S.holes = []; S.draft = []; S.circleDraft = null; log('warn', 'cleared'); setMode('outer'); recompute()
+  S.outer = null; S.holes = []; S.draft = []; S.circlePts = []; S.circleMsg = ''; log('warn', 'cleared'); setMode('outer'); recompute()
 })
 document.getElementById('export').addEventListener('click', () => {
   const summary = {
