@@ -1,37 +1,33 @@
 {
   "version": "1.0",
-  "timestamp": "2026-07-17T00:40:09+0800",
+  "timestamp": "2026-07-17T14:51:59.715Z",
   "context": "spike",
   "phase": null,
-  "phase_name": "Spike session — markup gaps (GAP-003 + spikes 006/008/009)",
+  "phase_name": "Spike session — markup gaps (GAP-003): 006 cutouts + 008 live-readout demos IMPROVED",
   "phase_dir": ".planning/spikes",
   "status": "paused",
   "completed_tasks": [
-    {"id": 1, "name": "GAP-003 markup gap re-audit (scoped to marking-up, post-Phase-18)", "status": "done", "commit": "4a9d9ac"},
-    {"id": 2, "name": "Spike 006 area-cutouts — math VALIDATED (oracle) + interactive demo built", "status": "done", "commit": "4a3f806"},
-    {"id": 3, "name": "Spike 008 live-readout — math+perf VALIDATED + interactive demo built", "status": "done", "commit": "b6112d1"},
-    {"id": 4, "name": "Spike 009 autocount-review-ux — pipeline+dial VALIDATED + demo built", "status": "done", "commit": "befe93f"},
-    {"id": 5, "name": "CONVENTIONS.md + MANIFEST + BACKLOG drift correction", "status": "done", "commit": "770a74a"}
+    {"id": 1, "name": "Resume via /gsd-resume-work — reconciled STATE.md to record the post-Phase-18 markup-gaps spike session", "status": "done", "commit": "d6de9fb"},
+    {"id": 2, "name": "Quick task 260717-fps — spike-006 cutouts demo: add 3-pt (rim) + 2-pt (diameter) circle-cutout input sub-modes (alongside center-radius), verbatim solveCircle port, live preview, inside-⌀ readout", "status": "done", "commit": "fccabdc"},
+    {"id": 3, "name": "Quick task 260717-l5f — spike-008 live-readout demo: add type-it-exact (PlanSwift Verify Points) editable dynamic-input pill; passive readout preserved byte-for-byte; inverse-math round-trips <1e-9", "status": "done", "commit": "ff1784c"}
   ],
   "remaining_tasks": [
-    {"id": 6, "name": "Human feel-test of 006 + 008 demos (open the index.html files)", "status": "not_started"},
-    {"id": 7, "name": "OPTIONAL/OFFERED: wire 3-point + 2-point circle-cutout input modes into the 006 demo (math already exists via solveCircle)", "status": "not_started"},
-    {"id": 8, "name": "Plan the build — /gsd-plan-phase (cutouts first, highest value) or /gsd-review-backlog for the build-work tail", "status": "not_started"}
+    {"id": 4, "name": "Human feel-test the 006 + 008 demos — open the offline index.html files (in-app Browser MCP down ALL session, so this is the only unverified half)", "status": "not_started"},
+    {"id": 5, "name": "Plan the build — /gsd-plan-phase for area cutouts (MM-01, highest value, math proven exact) OR /gsd-review-backlog for the wider build-work tail", "status": "not_started"}
   ],
   "blockers": [
-    {"description": "In-app Browser MCP unresponsive this session (3x 300s timeouts) — could not drive the interactive demos to feel-test them", "type": "external", "workaround": "User opens the standalone offline index.html files directly in a browser; all MATH/PERF was verified headlessly via Node oracles"}
+    {"description": "In-app Browser MCP unresponsive ALL session (2x 300s timeouts, same failure as the prior pause). Could not drive/feel-test either demo.", "type": "external", "workaround": "User opens the standalone offline index.html files directly in a browser; all MATH/PERF/LOGIC verified headlessly via Node oracles + a 12/12 object-identity harness."}
   ],
   "human_actions_pending": [
-    {"action": "Open and feel-test .planning/spikes/006-area-cutouts/index.html and .planning/spikes/008-live-readout/index.html", "context": "Feel is the only unverified half; math/perf already proven by Node oracles", "blocking": false},
-    {"action": "Decide whether to have Claude add 3-point/2-point circle-cutout input to the 006 demo", "context": "Offered at pause; awaiting go/no-go", "blocking": false}
+    {"action": "Open + feel-test .planning/spikes/006-area-cutouts/index.html (three circle-input sub-modes) and .planning/spikes/008-live-readout/index.html (type-it-exact pill)", "context": "Feel is the only unverified half; math/perf/logic already proven headlessly", "blocking": false},
+    {"action": "Decide next step: plan the cutouts build (/gsd-plan-phase) or review the backlog (/gsd-review-backlog)", "context": "Both prototype improvements are now built; the build is the natural next move once feel is confirmed", "blocking": false}
   ],
   "decisions": [
-    {"decision": "DROP spike 009 (auto-count) from the near-term set", "rationale": "User: too much review-wizard UI for v1. Algorithm itself is validated (spike 001) — revive later; only the 4-step wizard is the cost.", "phase": "spike-009"},
-    {"decision": "KEEP 006 (cutouts) and 008 (live-readout) — user judged both great additions", "rationale": "Both de-risked; cutouts is the signature feature with math already proven exact", "phase": "spike-006/008"},
-    {"decision": "006 circle-cutout precise-center method = 3-POINT circle (reuse shipped solveCircle, spike-003, ~1e-10); 2-POINT (diameter) also viable; store a perfect circle as a {cx,cy,r} primitive → area = pi*r^2 exact; report inside diameter = 2r", "rationale": "3-point derives the exact center from rim points you can see, so the 'exact center' problem dissolves. Caveat: snapping (spike 002) is markup-to-markup, NOT raster-edge — no auto edge-grab on the scan; place points by eye at zoom.", "phase": "spike-006"},
-    {"decision": "008 readout = passive live 'see-it' (AutoCAD Dynamic Input style); consider ALSO PlanSwift-style 'type-it-exact' per-segment entry (their 'Verify Points')", "rationale": "Web-verified: PlanSwift's documented mechanism is Verify Points (type/adjust exact length per click), not a confirmed always-on floating tooltip. The two ideas are complementary and cheap since 008 proved the readout is free to compute.", "phase": "spike-008"}
+    {"decision": "Ran BOTH prototype improvements through /gsd-quick with NON-worktree sequential execution (not the default worktree isolation)", "rationale": "Single self-contained spike-demo edits on Windows; this project has a documented history of worktree friction. Safer, zero benefit to isolation here. The workflow explicitly supports this fallback.", "phase": "spike"},
+    {"decision": "006 keeps all THREE circle-input methods as selectable sub-modes (3-pt rim PRIMARY, 2-pt diameter, center-radius) rather than replacing center-radius", "rationale": "CONVENTIONS 'make the fork a toggle, not a decision' — let the human feel-test which precise-center method wins. 3-pt derives exact center via the shipped solveCircle so the 'exact center' worry dissolves.", "phase": "spike-006"},
+    {"decision": "008 type-it-exact uses widget style (i) — an editable dynamic-input pill at the cursor (canvas-rendered, no HTML overlay); Enter-with-buffer PLACES / Enter-empty FINISHES; passive path preserved byte-for-byte via inflightPoint() returning S.cursor verbatim when off/idle", "rationale": "User-chosen widget style; the Enter reconciliation avoids the finish-vs-place conflict (AutoCAD-style: Enter on empty line = finish). Passive-path invariant proven by object identity so the OFF experience is unchanged.", "phase": "spike-008"}
   ],
   "uncommitted_files": [],
-  "next_action": "Ask the user for the feel-test result on 006 + 008, and whether to prototype the 3-point/2-point circle-cutout input into the 006 demo. If they want to build, run /gsd-plan-phase for cutouts (MM-01, highest value, math proven).",
-  "context_notes": "All spike code is COMMITTED and the working tree is clean. Math/perf verdicts are solid (Node oracles, all passing); only the subjective FEEL of the demos is unverified because the in-app browser was down. The user is in a design-debate mindset, engaged and decisive — they park heavy items and probe precise-input methods. Lean into concrete geometry answers and offer small prototypes rather than big plans."
+  "next_action": "Ask the user for the feel-test result on the 006 + 008 demos (they must open the offline index.html files — the in-app Browser is down). If they want to build, run /gsd-plan-phase for area cutouts (MM-01): AreaMarkup gains holes?:Array<{points;arcs?}> additive (no formatVersion bump, same strategy as arcs?), Konva even-odd render, a BLOCK-vs-CLIP outside-hole validation policy, and a {cx,cy,r} circle-hole subtype (piR^2) with 3-pt/2-pt input. Snapping caveat: markup-to-markup only, NOT raster-edge — no auto edge-grab of a scanned bore rim.",
+  "context_notes": "Post-Phase-18 exploration; milestone still feature-complete (22/22 phases). This session took the two KEPT spikes from the prior pause (006 cutouts, 008 live-readout — 009 auto-count was shelved) and built the input-method improvements the user had locked at that pause. Both are committed, tree clean, 8 commits ahead of origin (push requested at pause). The user is decisive and design-focused — parks heavy work, pushes on precise CAD-style input and competitor parity (PlanSwift). Everything provable is proven; the only gap is the subjective feel-test, deferred purely because the in-app browser is dead. gsd-sdk WORKS here in the primary repo (init.quick/init.resume succeeded) — the prior checkpoint's 'gsd-sdk ABSENT' note was a worktree-context artifact."
 }
