@@ -3,7 +3,7 @@ spike: 008
 name: live-readout
 type: standard
 validates: "Given a linear/area/perimeter draw in progress, when the cursor moves, then a running (arc-aware) length/area reads out at the cursor without lag or clutter"
-verdict: "VALIDATED (math + perf) · PENDING human feel-test (placement)"
+verdict: "VALIDATED (math + perf) · PENDING human feel-test (placement + type-it-exact entry)"
 related: [003, 006]
 tags: [markup, live-readout, mm-08, mm-09, feel, drawing-loop]
 ---
@@ -50,11 +50,28 @@ Pick Linear / Area / Perimeter → click to draw → the running measurement fol
 (and/or the HUD). Toggle placement, per-segment labels, live angle, and "curve the in-flight
 edge" (arc-aware total). The right panel live-benchmarks readout compute per mousemove.
 
+**Two complementary point-entry modes** (the "Point entry" toggle, default *Click*):
+
+- **Click (by eye)** — the passive **see-it-live** readout above: click where you want the point,
+  the measurement tracks the cursor. Byte-for-byte the original demo.
+- **Type-it-exact (Verify Points)** — a PlanSwift-style editable **dynamic-input pill at the
+  cursor** (AutoCAD style). After ≥1 vertex is placed, type an exact **Length** and/or **Angle**
+  measured from the previous vertex; <kbd>Tab</kbd> switches Length↔Angle; <kbd>Enter</kbd> or a
+  click **places** the vertex at the resolved point; <kbd>Esc</kbd> reverts to cursor-follow (a
+  second <kbd>Esc</kbd> clears the drawing); <kbd>Backspace</kbd> edits the buffer then, when
+  empty, undoes the last vertex. **Resolution rule:** lock just the length, just the angle, or
+  both — the *unlocked* field keeps following the mouse (the leg rubber-bands at the typed radius
+  while the direction tracks the cursor, or vice-versa).
+
 ## What to Expect
 
 - Verifier: 6/6 math checks `ok`; perf table showing µs/readout at N=10…5000, all `<< 16ms`.
-- Demo: a green pill by the cursor showing e.g. `12.480 m` + `∠ 45.0°`, updating smoothly;
-  toggling to HUD moves it to the fixed top-left; per-segment `m` labels on each leg.
+- Demo (Click mode): a green pill by the cursor showing e.g. `12.480 m` + `∠ 45.0°`, updating
+  smoothly; toggling to HUD moves it to the fixed top-left; per-segment `m` labels on each leg.
+- Demo (Type-it-exact mode): the cursor pill becomes a two-field `L … m / ∠ … °` widget — live
+  values when idle, your typed digits with the active field boxed + a caret while typing; typing
+  `12.48` locks the leg to 12.48 m while the direction follows the mouse, then <kbd>Tab</kbd> +
+  `45` + <kbd>Enter</kbd> drops the vertex at exactly (12.48 m, 45°) from the previous point.
 
 ## Observability
 
@@ -94,10 +111,18 @@ So the "does live recompute lag?" worry is **dead** — even a pathological 5k-v
 the frame 99%+ idle. The real build can recompute unconditionally on every `updatePreview`; no
 throttling, no memoization needed.
 
-**Feel — PENDING.** The placement decision (cursor-follow vs HUD vs both), label clutter on long
-polylines, and smoothness are for a human to judge in `index.html` (in-app Browser was
-unresponsive this session). My prior: **cursor-follow for the primary metric + a thin HUD echo**
-— but this is exactly the call the user should feel, per the spike's purpose.
+**Feel — PENDING.** Two things are now for a human to judge in `index.html`, and the in-app
+Browser MCP has been blocked again this session so neither is settled:
+1. **Passive see-it-live placement** — cursor-follow vs HUD vs both, label clutter on long
+   polylines, and smoothness. My prior: **cursor-follow for the primary metric + a thin HUD echo**.
+2. **Type-it-exact (Verify Points) feel** — whether the editable dynamic-input pill (type an exact
+   Length and/or Angle from the previous vertex; Tab between fields; Enter/Click places; Esc
+   reverts) reads naturally against the passive readout, and whether the boxed-active-field + caret
+   affordance is legible at the cursor. The **math is proven** (the inverse solve round-trips the
+   displayed L/angle back to the source point < 1e-9, and per-move re-solve is negligible over the
+   already-free readout) — but the *feel* of both entry modes is exactly the call the user should
+   make by opening the demo, per the spike's purpose. Verdict stays **VALIDATED (math + perf) ·
+   PENDING human feel-test** — feel is NOT claimed validated.
 
 **Build signal:** MM-08 is pure win, no perf gate. Fold MM-09 (per-segment labels) in at the same
 time — the render is already proven here. Wire it into `updatePreview` (compute) + a Konva label
