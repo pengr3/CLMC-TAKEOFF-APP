@@ -163,17 +163,18 @@ function inflightMid(from, to, sag) {
 // ── the running measurement (timed) ──
 function measure() {
   const pts = S.points
-  const live = S.cursor ? pts.concat([S.cursor]) : pts
+  const cur = inflightPoint()  // effective in-flight point (S.cursor verbatim in click mode / nothing-typed)
+  const live = cur ? pts.concat([cur]) : pts
   const t = performance.now()
   let out = { big:'—', sub:'', segAngle:null }
   if (pts.length === 0) { out.sub = 'click to place the first point'; S.lastMeasure=out; return out }
   if (S.tool === 'linear') {
     let len = polylineLength(pts)
     // in-flight edge
-    if (S.cursor && pts.length >= 1) {
+    if (cur && pts.length >= 1) {
       const from = pts[pts.length-1]
-      if (S.opt.arc && S.opt.sag > 0) len += arcLength(from, inflightMid(from, S.cursor, S.opt.sag), S.cursor)
-      else len += dist(from, S.cursor)
+      if (S.opt.arc && S.opt.sag > 0) len += arcLength(from, inflightMid(from, cur, S.opt.sag), cur)
+      else len += dist(from, cur)
     }
     out.big = Lm(len).toFixed(3) + ' m'
     out.sub = `${pts.length} pt${pts.length>1?'s':''} placed${S.opt.arc?'  ·  arc-aware':''}`
@@ -183,12 +184,12 @@ function measure() {
     if (S.tool === 'area') { out.big = Am(area).toFixed(3) + ' m²'; out.sub = `perimeter ${Lm(perim).toFixed(2)} m · ${pts.length} pts` }
     else { out.big = Lm(perim).toFixed(3) + ' m'; out.sub = `encloses ${Am(area).toFixed(2)} m² · ${pts.length} pts` }
   }
-  if (S.opt.angle && S.cursor && pts.length >= 1) {
+  if (S.opt.angle && cur && pts.length >= 1) {
     const from = pts[pts.length-1]
-    let deg = Math.atan2(-(S.cursor.y-from.y), S.cursor.x-from.x) * 180/Math.PI
+    let deg = Math.atan2(-(cur.y-from.y), cur.x-from.x) * 180/Math.PI
     if (deg < 0) deg += 360
     out.segAngle = deg
-    out.sub += `  ∠ ${deg.toFixed(1)}°  ·  leg ${Lm(dist(from,S.cursor)).toFixed(3)} m`
+    out.sub += `  ∠ ${deg.toFixed(1)}°  ·  leg ${Lm(dist(from,cur)).toFixed(3)} m`
   }
   const dt = (performance.now() - t) * 1000 // µs
   S.perf.samples.push(dt); if (S.perf.samples.length > 3000) S.perf.samples.shift()
@@ -213,38 +214,69 @@ function pill(x,y,lines){ ctx.font='600 13px "Segoe UI",system-ui'; const w=Math
   let px=x+14, py=y+14; if(px+w>W)px=x-14-w; if(py+h>H)py=y-14-h
   ctx.fillStyle='rgba(0,0,0,.72)'; ctx.strokeStyle='rgba(78,201,176,.5)'; ctx.lineWidth=1; ctx.beginPath(); ctx.roundRect(px,py,w,h,6); ctx.fill(); ctx.stroke()
   lines.forEach((l,i)=>{ ctx.fillStyle=i===0?'#4ec9b0':'#cfcfcf'; ctx.font=(i===0?'700 14px':'12px')+' "Segoe UI",system-ui'; ctx.fillText(l, px+8, py+16+i*17) }) }
+// editable dynamic-input pill (AutoCAD-style) — two labelled fields, active one boxed + caret. r = resolveTyped() result
+function entryPill(x, y, r){
+  const rows = [
+    { key:'len', label:'L', val:(S.typed.len!=='' ? S.typed.len : r.liveLenM.toFixed(3)), unit:'m' },
+    { key:'ang', label:'∠', val:(S.typed.ang!=='' ? S.typed.ang : r.liveAng.toFixed(1)), unit:'°' }
+  ]
+  const rowH=22, padX=10, padY=8, labelW=14, gap=6, unitW=22
+  ctx.font='600 13px "Segoe UI",system-ui'
+  let maxValW=0
+  for (const row of rows){ const t=row.val+(S.typed.field===row.key?'|':''); maxValW=Math.max(maxValW, ctx.measureText(t).width) }
+  const valBoxW=Math.max(maxValW+12, 52)
+  const w=padX+labelW+gap+valBoxW+gap+unitW+padX, h=padY*2+rows.length*rowH
+  let px=x+16, py=y+16; if(px+w>W)px=x-16-w; if(py+h>H)py=y-16-h  // same on-screen auto-flip as pill()
+  ctx.fillStyle='rgba(0,0,0,.82)'; ctx.strokeStyle='rgba(78,201,176,.6)'; ctx.lineWidth=1
+  ctx.beginPath(); ctx.roundRect(px,py,w,h,7); ctx.fill(); ctx.stroke()
+  ctx.textBaseline='middle'; ctx.textAlign='left'
+  rows.forEach((row,i)=>{
+    const rowY=py+padY+i*rowH, midY=rowY+rowH/2, active=(S.typed.field===row.key)
+    ctx.font='600 12px "Segoe UI",system-ui'; ctx.fillStyle=active?'#4ec9b0':'#9d9d9d'; ctx.fillText(row.label, px+padX, midY)
+    const boxX=px+padX+labelW+gap, boxY=rowY+2, boxH=rowH-4
+    if (active){ ctx.strokeStyle='#0078d4'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.roundRect(boxX,boxY,valBoxW,boxH,4); ctx.stroke() }
+    ctx.font='600 13px "Segoe UI",system-ui'; ctx.fillStyle='#e8e8e8'; ctx.fillText(row.val+(active?'|':''), boxX+6, midY)
+    ctx.font='11px "Segoe UI",system-ui'; ctx.fillStyle='#9d9d9d'; ctx.fillText(row.unit, boxX+valBoxW+gap, midY)
+  })
+  ctx.textBaseline='alphabetic'; ctx.textAlign='left'
+}
 function segLabel(a,b,txt){ const mx=(a.x+b.x)/2,my=(a.y+b.y)/2; ctx.font='11px "Segoe UI"'; const w=ctx.measureText(txt).width+8;
   ctx.fillStyle='rgba(0,0,0,.7)'; ctx.beginPath(); ctx.roundRect(mx-w/2,my-9,w,16,4); ctx.fill(); ctx.fillStyle='#dcdcaa'; ctx.textAlign='center'; ctx.fillText(txt,mx,my+3); ctx.textAlign='left' }
 function draw() {
   bg()
-  const pts = S.points, closed = S.tool !== 'linear'
+  const pts = S.points, closed = S.tool !== 'linear', cur = inflightPoint()  // effective in-flight point
   // committed path
   if (pts.length) {
     ctx.strokeStyle='#4aa3ff'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y)
     for (let i=1;i<pts.length;i++) ctx.lineTo(pts[i].x,pts[i].y)
-    // in-flight edge to cursor
-    if (S.cursor) {
+    // in-flight edge to the effective (typed-or-raw) point
+    if (cur) {
       if (S.tool==='linear' && S.opt.arc && S.opt.sag>0 && pts.length>=1) {
-        const from=pts[pts.length-1], mid=inflightMid(from,S.cursor,S.opt.sag), c=solveCircle(from,mid,S.cursor)
-        if(!c.collinear){ const n=24; for(let i=0;i<=n;i++){const a=c.startAngle+c.sweepSigned*i/n; ctx.lineTo(c.cx+c.r*Math.cos(a),c.cy+c.r*Math.sin(a))} } else ctx.lineTo(S.cursor.x,S.cursor.y)
-      } else ctx.lineTo(S.cursor.x, S.cursor.y)
+        const from=pts[pts.length-1], mid=inflightMid(from,cur,S.opt.sag), c=solveCircle(from,mid,cur)
+        if(!c.collinear){ const n=24; for(let i=0;i<=n;i++){const a=c.startAngle+c.sweepSigned*i/n; ctx.lineTo(c.cx+c.r*Math.cos(a),c.cy+c.r*Math.sin(a))} } else ctx.lineTo(cur.x,cur.y)
+      } else ctx.lineTo(cur.x, cur.y)
     }
-    if (closed && (pts.length + (S.cursor?1:0)) > 2) {
+    if (closed && (pts.length + (cur?1:0)) > 2) {
       ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle='rgba(74,163,255,.5)'
-      const last = S.cursor || pts[pts.length-1]; ctx.lineTo(last.x,last.y); ctx.lineTo(pts[0].x,pts[0].y); ctx.stroke(); ctx.restore()
+      const last = cur || pts[pts.length-1]; ctx.lineTo(last.x,last.y); ctx.lineTo(pts[0].x,pts[0].y); ctx.stroke(); ctx.restore()
     }
     ctx.stroke()
-    if (closed && pts.length>2) { ctx.fillStyle='rgba(0,120,212,.12)'; ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y); for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y); if(S.cursor)ctx.lineTo(S.cursor.x,S.cursor.y); ctx.closePath(); ctx.fill() }
+    if (closed && pts.length>2) { ctx.fillStyle='rgba(0,120,212,.12)'; ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y); for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y); if(cur)ctx.lineTo(cur.x,cur.y); ctx.closePath(); ctx.fill() }
     for (const p of pts) dot(p,3.5,'#0078d4')
     // per-segment labels (MM-09)
     if (S.opt.seg) { for (let i=1;i<pts.length;i++) segLabel(pts[i-1],pts[i], Lm(dist(pts[i-1],pts[i])).toFixed(2)+'m')
-      if (S.cursor && S.tool==='linear') segLabel(pts[pts.length-1],S.cursor, Lm(dist(pts[pts.length-1],S.cursor)).toFixed(2)+'m') }
+      if (cur && S.tool==='linear') segLabel(pts[pts.length-1],cur, Lm(dist(pts[pts.length-1],cur)).toFixed(2)+'m') }
   }
   const m = S.lastMeasure || measure()
-  // cursor-follow readout
+  // cursor-follow readout — passive pill (click) OR editable type-it-exact pill (type)
   if (S.cursor && (S.place==='cursor'||S.place==='both') && pts.length) {
-    const lines=[m.big]; if(m.segAngle!=null) lines.push('∠ '+m.segAngle.toFixed(1)+'°'); pill(S.cursor.x,S.cursor.y,lines)
-    dot(S.cursor,3,'#4ec9b0')
+    if (S.entry==='type' && S.points.length>=1) {
+      const r = resolveTyped(S.cursor)
+      if (r) { entryPill(S.cursor.x, S.cursor.y, r); dot(cur, 4, '#4ec9b0') }  // ghost target at the resolved next vertex
+    } else {
+      const lines=[m.big]; if(m.segAngle!=null) lines.push('∠ '+m.segAngle.toFixed(1)+'°'); pill(S.cursor.x,S.cursor.y,lines)
+      dot(S.cursor,3,'#4ec9b0')
+    }
   }
   // HUD
   document.getElementById('hudBig').textContent = m.big
@@ -253,7 +285,9 @@ function draw() {
   hintEl()
 }
 function hintEl(){ const h=document.getElementById('hint'); const t=S.tool==='linear'?'polyline':'shape';
-  h.innerHTML = `<b>${S.tool[0].toUpperCase()+S.tool.slice(1)}:</b> click to add points to the ${t} · <kbd>Enter</kbd> finish · <kbd>Backspace</kbd> undo · <kbd>Esc</kbd> clear` }
+  let s = `<b>${S.tool[0].toUpperCase()+S.tool.slice(1)}:</b> click to add points to the ${t} · <kbd>Enter</kbd> finish · <kbd>Backspace</kbd> undo · <kbd>Esc</kbd> clear`
+  if (S.entry==='type') s += `<br><b>Type-it-exact:</b> type length · <kbd>Tab</kbd> angle · <kbd>Enter</kbd> place · <kbd>Esc</kbd> revert`
+  h.innerHTML = s }
 
 // ── interaction ──
 const posOf=(e)=>{ const r=cvs.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top } }
