@@ -52,6 +52,11 @@
       <button class="btn" data-place="both" id="pBoth">Both</button>
     </div>
     <div class="sec">
+      <h2>Point entry</h2>
+      <button class="btn on" data-entry="click" id="eClick">Click (by eye)</button>
+      <button class="btn" data-entry="type" id="eType">Type-it-exact (Verify Points)</button>
+    </div>
+    <div class="sec">
       <h2>Options</h2>
       <label class="chk"><input type="checkbox" id="oSeg" checked> Per-segment length labels <span style="color:var(--text2)">(MM-09)</span></label>
       <label class="chk"><input type="checkbox" id="oAngle" checked> Show live angle of current leg</label>
@@ -104,9 +109,40 @@ function polygonArea(pts) { const n=pts.length; if(n<3) return 0; let d=0; for(l
 // ── state ──
 const S = { tool:'linear', place:'cursor', points:[], cursor:null,
   opt:{ seg:true, angle:true, arc:false, sag:40 },
+  entry:'click', typed:{ field:'len', len:'', ang:'' },
   perf:{ mm:0, samples:[], lastMoveT:null, intervals:[] }, log:[] }
 const PX_PER_M = 100
 const Lm = (px)=>px/PX_PER_M, Am=(px2)=>px2/(PX_PER_M*PX_PER_M)
+
+// ── type-it-exact (Verify Points): state + inverse-math + effective in-flight point ──
+function resetTyped(){ S.typed = { field:'len', len:'', ang:'' } }
+// Resolve the typed/live (Length m, Angle deg) from the LAST placed vertex to a point.
+// Returns null when there's no anchor vertex yet (first vertex is always click-placed).
+function resolveTyped(cursor){
+  cursor = cursor || S.cursor
+  if (S.points.length < 1 || !cursor) return null
+  const from = S.points[S.points.length-1]
+  const liveLenM = Lm(dist(from, cursor))
+  let liveAng = Math.atan2(-(cursor.y-from.y), cursor.x-from.x) * 180/Math.PI  // SAME convention as measure()
+  if (liveAng < 0) liveAng += 360
+  const pl = parseFloat(S.typed.len), pa = parseFloat(S.typed.ang)
+  const typedL = (S.typed.len !== '' && isFinite(pl) && pl >= 0)  // length must be finite & >= 0, else UNSET
+  const typedA = (S.typed.ang !== '' && isFinite(pa))            // angle may be negative; NaN -> UNSET
+  const L = typedL ? pl : liveLenM                               // typed-if-present-and-valid else live
+  const A = typedA ? pa : liveAng
+  const Lpx = L * PX_PER_M, rad = A * Math.PI/180
+  // -sin mirrors the -(cursor.y-from.y) used to READ the live angle → typing the displayed angle reproduces the direction
+  const point = { x: from.x + Lpx*Math.cos(rad), y: from.y - Lpx*Math.sin(rad) }
+  return { point, L, A, liveLenM, liveAng, typedL, typedA }
+}
+// Effective in-flight cursor: the resolved (typed) point in type-mode with a live buffer, else S.cursor verbatim.
+function inflightPoint(){
+  if (S.entry==='type' && S.points.length>=1 && S.cursor && (S.typed.len!=='' || S.typed.ang!=='')) {
+    const r = resolveTyped(S.cursor)
+    return (r && r.point) ? r.point : S.cursor
+  }
+  return S.cursor
+}
 const cvs=document.getElementById('c'), ctx=cvs.getContext('2d')
 let W=0,H=0,DPR=Math.min(window.devicePixelRatio||1,2)
 function resize(){ const r=cvs.parentElement.getBoundingClientRect(); W=r.width;H=r.height; cvs.width=W*DPR;cvs.height=H*DPR;cvs.style.width=W+'px';cvs.style.height=H+'px'; ctx.setTransform(DPR,0,0,DPR,0,0); draw() }
@@ -114,6 +150,9 @@ window.addEventListener('resize', resize)
 
 let t0=null; const nowMs=()=>{ if(t0===null)t0=performance.now(); return +(performance.now()-t0).toFixed(1) }
 function log(msg){ S.log.push({t:nowMs(),msg}); const el=document.getElementById('log'); const d=document.createElement('div'); d.textContent=`+${String(S.log[S.log.length-1].t).padStart(7)}ms  ${msg}`; el.appendChild(d); el.scrollTop=el.scrollHeight }
+// forensic log for a type-it-exact placement — distinct from the raw cursor-vertex log
+function logType(r){ const lTag=r.typedL?'typed':'live', aTag=r.typedA?'typed':'live'
+  log(`TYPE place L=${r.L.toFixed(3)}m ∠${r.A.toFixed(1)}° [${lTag}/${aTag}] → (${r.point.x|0},${r.point.y|0})`) }
 
 // in-flight edge as an arc (perpendicular sagitta) — proves arc-aware total
 function inflightMid(from, to, sag) {
@@ -224,21 +263,57 @@ cvs.addEventListener('mousemove', (e)=>{
   S.perf.lastMoveT = now; S.perf.mm++
   S.cursor = posOf(e); measure(); draw(); if ((S.perf.mm & 7)===0) refreshPerf()
 })
-cvs.addEventListener('click', (e)=>{ S.points.push(posOf(e)); log(`${S.tool} vertex ${S.points.length}`); measure(); draw(); refreshPerf() })
+cvs.addEventListener('click', (e)=>{
+  const raw = posOf(e)
+  if (S.entry==='type' && S.points.length>=1) {
+    const r = resolveTyped(raw)
+    if (r) { S.points.push(r.point); logType(r) }
+    else { S.points.push(raw); log(`${S.tool} vertex ${S.points.length}`) }
+  } else { S.points.push(raw); log(`${S.tool} vertex ${S.points.length}`) }
+  resetTyped(); measure(); draw(); refreshPerf()
+})
 window.addEventListener('keydown', (e)=>{
+  const typing = (S.entry==='type' && S.points.length>=1)  // only hijack keys while type-it-exact is armed
+  if (typing) {
+    const f = S.typed.field
+    if (/^[0-9.]$/.test(e.key) || (e.key==='-' && f==='ang')) { S.typed[f] += e.key; measure(); draw(); return }
+    if (e.key==='Tab') { e.preventDefault(); S.typed.field = (f==='len') ? 'ang' : 'len'; draw(); return }
+    if (e.key==='Backspace') {
+      if (S.typed[f] !== '') { S.typed[f] = S.typed[f].slice(0,-1); measure(); draw(); return }
+      // active buffer empty → fall back to undo-last-vertex (which also resets the typed buffers)
+      if (S.points.length) { S.points.pop(); resetTyped(); log('undo vertex'); measure(); draw(); refreshPerf() }
+      return
+    }
+    if (e.key==='Enter') {
+      e.preventDefault()
+      if (S.typed.len !== '' || S.typed.ang !== '') {                 // typed value → PLACE a vertex at the resolved point
+        const r = resolveTyped(S.cursor)
+        if (r) { S.points.push(r.point); logType(r); resetTyped(); measure(); draw(); refreshPerf() }
+      } else if (S.points.length) { const m=measure(); log(`FINISH ${S.tool} → ${m.big}`) }  // empty buffers → FINISH
+      return
+    }
+    if (e.key==='Escape') {
+      if (S.typed.len !== '' || S.typed.ang !== '') { resetTyped(); log('typed buffers cleared'); measure(); draw(); return }
+      S.points=[]; resetTyped(); log('cleared'); measure(); draw(); refreshPerf(); return
+    }
+    return  // any other key while typing: ignore (don't hijack, don't fall through)
+  }
+  // NOT typing (click mode, or type mode with no anchor vertex) → EXISTING behaviour verbatim
   if (e.key==='Enter'){ e.preventDefault(); if(S.points.length){ const m=measure(); log(`FINISH ${S.tool} → ${m.big}`); } }
   else if (e.key==='Backspace'){ if(S.points.length){ S.points.pop(); log('undo vertex'); measure(); draw(); refreshPerf() } }
   else if (e.key==='Escape'){ S.points=[]; log('cleared'); measure(); draw(); refreshPerf() }
 })
-function setTool(t){ S.tool=t; S.points=[]; for(const b of document.querySelectorAll('[data-tool]'))b.classList.toggle('on',b.dataset.tool===t); log('tool → '+t); measure(); draw() }
+function setTool(t){ S.tool=t; S.points=[]; resetTyped(); for(const b of document.querySelectorAll('[data-tool]'))b.classList.toggle('on',b.dataset.tool===t); log('tool → '+t); measure(); draw() }
 for(const b of document.querySelectorAll('[data-tool]')) b.addEventListener('click',()=>setTool(b.dataset.tool))
 function setPlace(p){ S.place=p; for(const b of document.querySelectorAll('[data-place]'))b.classList.toggle('on',b.dataset.place===p); log('readout placement → '+p); draw() }
 for(const b of document.querySelectorAll('[data-place]')) b.addEventListener('click',()=>setPlace(b.dataset.place))
+function setEntry(en){ S.entry=en; for(const b of document.querySelectorAll('[data-entry]'))b.classList.toggle('on',b.dataset.entry===en); resetTyped(); log('entry mode → '+en); measure(); draw() }
+for(const b of document.querySelectorAll('[data-entry]')) b.addEventListener('click',()=>setEntry(b.dataset.entry))
 document.getElementById('oSeg').addEventListener('change',e=>{S.opt.seg=e.target.checked;draw()})
 document.getElementById('oAngle').addEventListener('change',e=>{S.opt.angle=e.target.checked;measure();draw()})
 document.getElementById('oArc').addEventListener('change',e=>{S.opt.arc=e.target.checked;document.getElementById('arcRow').style.display=e.target.checked?'block':'none';measure();draw()})
 document.getElementById('arcSag').addEventListener('input',e=>{S.opt.sag=+e.target.value;document.getElementById('arcVal').textContent=e.target.value+' px';measure();draw()})
-document.getElementById('clear').addEventListener('click',()=>{S.points=[];S.cursor=null;log('cleared');measure();draw();refreshPerf()})
+document.getElementById('clear').addEventListener('click',()=>{S.points=[];S.cursor=null;resetTyped();log('cleared');measure();draw();refreshPerf()})
 document.getElementById('export').addEventListener('click',()=>{
   const s=S.perf.samples
   const summary={ tool:S.tool, placement:S.place, mousemoves:S.perf.mm, points:S.points.length,
@@ -247,7 +322,7 @@ document.getElementById('export').addEventListener('click',()=>{
   const blob=new Blob([JSON.stringify({summary,log:S.log},null,2)],{type:'application/json'})
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='spike-008-readout-log.json';a.click(); log('exported')
 })
-setTool('linear'); setPlace('cursor'); resize(); measure(); draw()
+setTool('linear'); setPlace('cursor'); setEntry('click'); resize(); measure(); draw()
 log('spike 008 ready — draw and watch the running measurement follow the cursor')
 </script>
 </body>
