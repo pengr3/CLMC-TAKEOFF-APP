@@ -37,8 +37,19 @@ const seam = vi.hoisted(() => ({
 vi.mock('@renderer/components/CanvasViewport', () => ({
   getCanvasControls: () => null,
   getCalibrationControls: () => ({ activate: vi.fn(), cancel: vi.fn(), activateVerify: vi.fn() }),
-  getChainArmedItem: () => seam.chainArmed,
   setChainArmedFromTotals: vi.fn()
+}))
+
+// Reactive chain-armed read seam (tool-switch-placement-stuck). Mocked wholesale so
+// the chip read resolves without pulling in CanvasViewport / react-konva.
+// subscribeChainArmed is a no-op subscription (returns an unsubscribe) for the
+// useSyncExternalStore consumer; getChainArmedItem returns the hoisted seam value.
+vi.mock('@renderer/lib/markup-chain-ref', () => ({
+  getChainArmedItem: () => seam.chainArmed,
+  setChainArmedItem: (v: { name: string; color: string } | null) => {
+    seam.chainArmed = v
+  },
+  subscribeChainArmed: () => () => {}
 }))
 
 // Reactive Arc read seam (added in 18-04). Mocked wholesale so the on-state read

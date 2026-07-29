@@ -50,7 +50,8 @@ import {
 } from '../lib/markup-math'
 import { findSelfIntersectionArcAware } from '../lib/self-intersection'
 import { BlockedCommitMessage } from './BlockedCommitMessage'
-import { isMarkupTool } from '../types/viewer'
+import { isMarkupTool, resolveToolSync } from '../types/viewer'
+import { setChainArmedItem } from '../lib/markup-chain-ref'
 import type { ScaleUnit } from '../types/scale'
 import type { Markup, CountMarkup, LinearMarkup as LinearMarkupType, AreaMarkup as AreaMarkupType, PerimeterMarkup as PerimeterMarkupType, WallMarkup as WallMarkupType } from '../types/markup'
 import { isMultiPointMarkup } from '../types/markup'
@@ -152,13 +153,6 @@ export function getCalibrationControls() {
   return _calibrationControls
 }
 
-// Module-level ref for chain-armed item (consumed by Toolbar via getChainArmedItem)
-let _chainArmedItem: { name: string; color: string } | null = null
-
-export function getChainArmedItem(): { name: string; color: string } | null {
-  return _chainArmedItem
-}
-
 // Module-level ref for activatePreset (consumed by setChainArmedFromTotals)
 type ActivatePresetFn = (
   tool: 'count' | 'linear' | 'area' | 'perimeter' | 'wall',
@@ -176,10 +170,13 @@ export function setChainArmedFromTotals(
   } | null
 ): void {
   if (payload === null) {
-    _chainArmedItem = null
+    setChainArmedItem(null)
     return
   }
-  _chainArmedItem = { name: payload.name, color: payload.color }
+  // Eager publish so the ContextBar chip lights up the instant the totals row arms
+  // the tool, before the activatePreset state change flows through the effect below
+  // (which then no-ops on the identical value).
+  setChainArmedItem({ name: payload.name, color: payload.color })
   _activatePresetRef?.(payload.toolType, {
     name: payload.name,
     categoryName: payload.categoryName,
@@ -656,13 +653,20 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
   }, [setRubberBand, setDragPreview, setBulgePreview])
 
   // Sync viewerStore.activeTool with the markup tool state machine.
-  // Guard: skip activateMarkup when mode is already non-idle — activatePreset may have
-  // already transitioned the machine to 'placing'/'drawing' with chainArmed:true.
-  // Calling activateMarkup in that case would erase the preset state.
+  // resolveToolSync (types/viewer.ts) owns the decision. The discriminator is
+  // `toolType !== activeTool`, NOT the machine mode: a MANUAL tool switch made
+  // mid-placement (e.g. Count 'placing' → Linear) must re-activate so the new
+  // tool governs the next click. Preset flows (activatePreset) converge
+  // toolType===activeTool in the same batched render, so they resolve to 'none'
+  // and are never clobbered. See resolved/tool-switch-placement-stuck.md.
   useEffect(() => {
-    if (isMarkupTool(activeTool) && markupState.toolType !== activeTool && markupState.mode === 'idle') {
+    const action = resolveToolSync(activeTool, markupState.toolType, markupState.mode)
+    // isMarkupTool re-narrows ActiveTool → MarkupToolType for activateMarkup.
+    // resolveToolSync only returns 'activate' when activeTool is a markup tool,
+    // so this guard never rejects a real 'activate'; it exists for the type.
+    if (action === 'activate' && isMarkupTool(activeTool)) {
       activateMarkup(activeTool)
-    } else if (!isMarkupTool(activeTool) && markupState.mode !== 'idle') {
+    } else if (action === 'cancel') {
       cancelMarkup()
     }
   }, [activeTool, markupState.toolType, markupState.mode, activateMarkup, cancelMarkup])
@@ -1137,11 +1141,16 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
     }
   }, [activatePreset])
 
-  // Populate _chainArmedItem so Toolbar can render the chain badge chip without prop drilling
+  // Publish the chain-armed item into the reactive seam (markup-chain-ref) so the
+  // ContextBar chip updates the instant the chain state changes — including when a
+  // manual tool switch clears it (tool-switch-placement-stuck). setChainArmedItem
+  // notifies subscribers only on a real change, so this fires no spurious renders.
   useEffect(() => {
-    _chainArmedItem = (markupState.chainArmed && markupState.pendingName)
-      ? { name: markupState.pendingName, color: markupState.pendingColor }
-      : null
+    setChainArmedItem(
+      markupState.chainArmed && markupState.pendingName
+        ? { name: markupState.pendingName, color: markupState.pendingColor }
+        : null
+    )
   }, [markupState.chainArmed, markupState.pendingName, markupState.pendingColor])
 
   // Keyboard shortcuts are owned SOLELY by App.tsx's top-level (always-mounted)

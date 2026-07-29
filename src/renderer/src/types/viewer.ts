@@ -128,6 +128,44 @@ export function isMarkupTool(tool: ActiveTool): tool is MarkupToolType {
   return (MARKUP_TOOLS as readonly string[]).includes(tool)
 }
 
+/** The useMarkupTool state-machine mode (mirrors MarkupDrawState.mode). */
+export type MarkupDrawMode = 'idle' | 'naming' | 'drawing' | 'confirming' | 'placing'
+
+/**
+ * Single source of truth for the CanvasViewport tool-sync effect: given the
+ * store's activeTool and the useMarkupTool machine's current toolType/mode,
+ * decide whether the machine must (re)activate the tool, cancel, or do nothing.
+ *
+ *  - 'activate' → activeTool is a markup tool the machine is NOT currently
+ *    running (toolType !== activeTool). This covers first activation from
+ *    'select' AND — critically — a MANUAL tool switch made while a previous tool
+ *    is mid-placement/mid-draw (e.g. Count in 'placing' → Linear). Without
+ *    re-activating, recordClick keeps running the PREVIOUS tool's branch (which
+ *    reads the machine's internal toolType/mode, not activeTool), so clicks
+ *    place the wrong markup type even though the rail/context-bar show the new
+ *    tool. See .planning/debug/resolved/tool-switch-placement-stuck.md.
+ *  - 'cancel' → activeTool left markup mode (select/scale/…) while a draw or
+ *    placement was still in progress.
+ *  - 'none' → nothing to do.
+ *
+ * Preset flows (chain-arm-from-totals, post-commit re-open) call activatePreset,
+ * which sets toolType === activeTool in the same batched render as the
+ * setActiveTool store update. That makes `toolType === activeTool`, so this
+ * returns 'none' and the armed preset is never clobbered. The prior effect gated
+ * 'activate' on `mode === 'idle'`, which ALSO suppressed the legitimate manual
+ * switch — that redundant gate was the root cause of the stuck-tool bug.
+ */
+export function resolveToolSync(
+  activeTool: ActiveTool,
+  toolType: MarkupToolType | null,
+  mode: MarkupDrawMode
+): 'activate' | 'cancel' | 'none' {
+  if (isMarkupTool(activeTool)) {
+    return toolType !== activeTool ? 'activate' : 'none'
+  }
+  return mode !== 'idle' ? 'cancel' : 'none'
+}
+
 export interface CalibrationPoint {
   x: number
   y: number

@@ -26,8 +26,13 @@ import { act } from 'react'
 vi.mock('@renderer/components/CanvasViewport', () => ({
   getCanvasControls: () => null,
   getCalibrationControls: () => ({ activate: vi.fn(), cancel: vi.fn(), activateVerify: vi.fn() }),
-  getChainArmedItem: () => null,
   setChainArmedFromTotals: vi.fn()
+}))
+
+vi.mock('@renderer/lib/markup-chain-ref', () => ({
+  getChainArmedItem: () => null,
+  setChainArmedItem: () => {},
+  subscribeChainArmed: () => () => {}
 }))
 
 vi.mock('@renderer/lib/markup-arc-ref', () => ({

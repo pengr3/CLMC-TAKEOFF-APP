@@ -3,7 +3,7 @@ import { useViewerStore } from '../stores/viewerStore'
 import { useMarkupStore } from '../stores/markupStore'
 import { isMarkupTool } from '../types/viewer'
 import type { Markup } from '../types/markup'
-import { getChainArmedItem } from './CanvasViewport'
+import { getChainArmedItem, subscribeChainArmed } from '../lib/markup-chain-ref'
 import { getArcSticky, subscribeArcSticky, getArcStickyToggleHandler } from '../lib/markup-arc-ref'
 import { MARKUP_PALETTE } from '../lib/markup-palette'
 import { InlineRenameInput } from './InlineRenameInput'
@@ -403,9 +403,14 @@ export function ContextBar(): React.JSX.Element {
     />
   )
 
-  // Chain-armed read (Pitfall 6): read during render; re-renders are driven by
-  // activeTool store changes, matching the ToolRail / RibbonToolbar pattern.
-  const armed = placing ? getChainArmedItem() : null
+  // Chain-armed read — REACTIVE via useSyncExternalStore (markup-chain-ref seam),
+  // mirroring the Arc on-state above. A bare getChainArmedItem() read at render was
+  // stale: chain state can clear with no coincident activeTool/selection change
+  // (e.g. switching a chain-armed Count → Linear), leaving the prior group's chip
+  // stuck on the new tool (tool-switch-placement-stuck). The seam re-renders this
+  // bar the instant the armed item changes.
+  const armedItem = React.useSyncExternalStore(subscribeChainArmed, getChainArmedItem)
+  const armed = placing ? armedItem : null
 
   return (
     <div data-testid="context-bar" style={BAR_STYLE}>
