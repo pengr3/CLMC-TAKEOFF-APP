@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
   FileUp,
   Save,
@@ -42,6 +42,12 @@ import { MIN_ZOOM, MAX_ZOOM, COLORS } from '../lib/constants'
  * internally (it's designed for hydration). Show All / Hide All handlers MUST
  * call markDirty() explicitly after — otherwise Save silently drops the
  * visibility change.
+ *
+ * Show All / Hide All are STATE INDICATORS as well as actions
+ * (quick-260820-plx): each lights up only when the app is fully in that state
+ * — Show All when nothing is hidden, Hide All when every markup key is hidden.
+ * In a partial state (some items hidden from the Totals row lightbulbs) BOTH
+ * stay dark, which is itself the "partially hidden" signal.
  *
  * IMPORTANT (R-1 / SC-5): the Phase-16 tab-leave reset useEffect
  * (RibbonToolbar.tsx:170-174) is intentionally GONE. With the tabs removed
@@ -142,6 +148,12 @@ export function TopActionBar({
   const hasMarkups = useMarkupStore((s) =>
     Object.values(s.pageMarkups).some((arr) => arr.length > 0)
   )
+  // Reactive reads for the Show All / Hide All highlight (quick-260820-plx).
+  // Both selectors return store-owned references — never build a fresh
+  // array/object inside a selector: Zustand 5 runs on useSyncExternalStore and
+  // a new reference per call loops. (hasMarkups above is safe: it's a boolean.)
+  const hiddenItemNames = useProjectStore((s) => s.hiddenItemNames)
+  const pageMarkups = useMarkupStore((s) => s.pageMarkups)
 
   // UI panel state (Totals toggle)
   const { totals, setTotalsOpen } = useUiPanels()
@@ -150,6 +162,26 @@ export function TopActionBar({
   const saveDisabled = totalPages === 0 || isSaving
   const replaceDisabled = totalPages === 0 || isSaving
   const exportDisabled = totalPages === 0 || isSaving || isExporting || !hasMarkups
+
+  // --- Show All / Hide All active-state derivation (quick-260820-plx) ---
+  // Key shape `${name}|${categoryId}` is the VISIBILITY key (Pitfall 1) and
+  // MIRRORS handleHideAll's key build below — the two must stay in step.
+  const allItemKeys = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          Object.values(pageMarkups)
+            .flat()
+            .map((m) => `${m.name}|${m.categoryId}`)
+        )
+      ),
+    [pageMarkups]
+  )
+  const hiddenSet = useMemo(() => new Set(hiddenItemNames), [hiddenItemNames])
+  const showAllActive = hiddenItemNames.length === 0
+  // The length guard is load-bearing: [].every() is vacuously true, which would
+  // light Hide All on an empty project.
+  const hideAllActive = allItemKeys.length > 0 && allItemKeys.every((k) => hiddenSet.has(k))
 
   const currentZoom = totalPages > 0 ? getViewport(currentPage).zoom : 1
 
@@ -442,6 +474,7 @@ export function TopActionBar({
         <BarButton
           icon={Eye}
           onClick={handleShowAll}
+          active={showAllActive}
           disabled={totalPages === 0}
           title="Make every markup visible (clears hidden-items)"
           ariaLabel="Show All markups"
@@ -449,6 +482,7 @@ export function TopActionBar({
         <BarButton
           icon={EyeOff}
           onClick={handleHideAll}
+          active={hideAllActive}
           disabled={totalPages === 0 || !hasMarkups}
           title="Hide every markup on every page"
           ariaLabel="Hide All markups"
