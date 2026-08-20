@@ -2206,63 +2206,10 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
 
         {/* Layer 1b: Committed markups — LISTENING for hover + right-click (plan 03.1-05) */}
         <Layer listening={true}>
-          {/* Committed count markups */}
-          {pageMarkups.filter((m) => m.type === 'count').map((m) => {
-            const category = getCategory(m.categoryId)
-            if (!category) return null
-            return (
-              <CountPinMarkup
-                key={m.id}
-                markup={m as CountMarkup}
-                category={category}
-                currentZoom={currentZoom}
-                onHoverEnter={handleHoverEnter}
-                onHoverLeave={handleHoverLeave}
-                onContextMenu={handleContextMenu}
-                onClick={handleMarkupClick}
-                onMarkupMouseDown={(id) => { markupBodyDownRef.current = id }}
-                overridePoint={
-                  dragPreview?.type === 'body' && dragPreview.deltas[m.id]
-                    ? {
-                        x: (m as CountMarkup).point.x + dragPreview.deltas[m.id].x,
-                        y: (m as CountMarkup).point.y + dragPreview.deltas[m.id].y
-                      }
-                    : undefined
-                }
-              />
-            )
-          })}
-
-          {/* Committed linear markups */}
-          {pageMarkups.filter((m) => m.type === 'linear').map((m) => {
-            const category = getCategory(m.categoryId)
-            if (!category) return null
-            return (
-              <LinearMarkup
-                key={m.id}
-                markup={m as LinearMarkupType}
-                category={category}
-                currentZoom={currentZoom}
-                pageScale={pageScale}
-                onHoverEnter={handleHoverEnter}
-                onHoverLeave={handleHoverLeave}
-                onContextMenu={handleContextMenu}
-                onClick={handleMarkupClick}
-                onMarkupMouseDown={(id) => { markupBodyDownRef.current = id }}
-                overridePoints={
-                  dragPreview?.type === 'body' && dragPreview.deltas[m.id]
-                    ? (m as LinearMarkupType).points.map(p => ({
-                        x: p.x + dragPreview.deltas[m.id].x,
-                        y: p.y + dragPreview.deltas[m.id].y
-                      }))
-                    : dragPreview?.type === 'vertex' && dragPreview.markupId === m.id
-                      ? dragPreview.points
-                      : undefined
-                }
-              />
-            )
-          })}
-
+          {/* Block order below is BOTTOM-TO-TOP paint order and MUST match MARKUP_TYPE_RANK
+              in src/renderer/src/types/markup.ts — Konva paints AND hit-tests siblings in
+              child order, so this also sets click priority. Locked by
+              src/tests/markup-canvas-z-order.test.ts. */}
           {/* Committed area markups */}
           {pageMarkups.filter((m) => m.type === 'area').map((m) => {
             const category = getCategory(m.categoryId)
@@ -2282,6 +2229,36 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
                 overridePoints={
                   dragPreview?.type === 'body' && dragPreview.deltas[m.id]
                     ? (m as AreaMarkupType).points.map(p => ({
+                        x: p.x + dragPreview.deltas[m.id].x,
+                        y: p.y + dragPreview.deltas[m.id].y
+                      }))
+                    : dragPreview?.type === 'vertex' && dragPreview.markupId === m.id
+                      ? dragPreview.points
+                      : undefined
+                }
+              />
+            )
+          })}
+
+          {/* Committed wall markups */}
+          {pageMarkups.filter((m) => m.type === 'wall').map((m) => {
+            const category = getCategory(m.categoryId)
+            if (!category) return null
+            return (
+              <WallMarkup
+                key={m.id}
+                markup={m as WallMarkupType}
+                category={category}
+                currentZoom={currentZoom}
+                pageScale={pageScale}
+                onHoverEnter={handleHoverEnter}
+                onHoverLeave={handleHoverLeave}
+                onContextMenu={handleContextMenu}
+                onClick={handleMarkupClick}
+                onMarkupMouseDown={(id) => { markupBodyDownRef.current = id }}
+                overridePoints={
+                  dragPreview?.type === 'body' && dragPreview.deltas[m.id]
+                    ? (m as WallMarkupType).points.map(p => ({
                         x: p.x + dragPreview.deltas[m.id].x,
                         y: p.y + dragPreview.deltas[m.id].y
                       }))
@@ -2323,14 +2300,14 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
             )
           })}
 
-          {/* Committed wall markups */}
-          {pageMarkups.filter((m) => m.type === 'wall').map((m) => {
+          {/* Committed linear markups */}
+          {pageMarkups.filter((m) => m.type === 'linear').map((m) => {
             const category = getCategory(m.categoryId)
             if (!category) return null
             return (
-              <WallMarkup
+              <LinearMarkup
                 key={m.id}
-                markup={m as WallMarkupType}
+                markup={m as LinearMarkupType}
                 category={category}
                 currentZoom={currentZoom}
                 pageScale={pageScale}
@@ -2341,13 +2318,40 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
                 onMarkupMouseDown={(id) => { markupBodyDownRef.current = id }}
                 overridePoints={
                   dragPreview?.type === 'body' && dragPreview.deltas[m.id]
-                    ? (m as WallMarkupType).points.map(p => ({
+                    ? (m as LinearMarkupType).points.map(p => ({
                         x: p.x + dragPreview.deltas[m.id].x,
                         y: p.y + dragPreview.deltas[m.id].y
                       }))
                     : dragPreview?.type === 'vertex' && dragPreview.markupId === m.id
                       ? dragPreview.points
                       : undefined
+                }
+              />
+            )
+          })}
+
+          {/* Committed count markups */}
+          {pageMarkups.filter((m) => m.type === 'count').map((m) => {
+            const category = getCategory(m.categoryId)
+            if (!category) return null
+            return (
+              <CountPinMarkup
+                key={m.id}
+                markup={m as CountMarkup}
+                category={category}
+                currentZoom={currentZoom}
+                onHoverEnter={handleHoverEnter}
+                onHoverLeave={handleHoverLeave}
+                onContextMenu={handleContextMenu}
+                onClick={handleMarkupClick}
+                onMarkupMouseDown={(id) => { markupBodyDownRef.current = id }}
+                overridePoint={
+                  dragPreview?.type === 'body' && dragPreview.deltas[m.id]
+                    ? {
+                        x: (m as CountMarkup).point.x + dragPreview.deltas[m.id].x,
+                        y: (m as CountMarkup).point.y + dragPreview.deltas[m.id].y
+                      }
+                    : undefined
                 }
               />
             )

@@ -261,6 +261,39 @@ export const LABEL_FONT_FLOOR = 10
 export const LABEL_FONT_BASE = 14
 
 /**
+ * Canvas stacking rank per markup type. Low rank = painted first = bottom of the stack.
+ *
+ * Konva paints AND hit-tests sibling nodes in child order, so this single ordering
+ * governs both visual depth and click priority — it is load-bearing behaviour, not
+ * cosmetics.
+ *
+ * `area` is lowest because AreaMarkup is the only filled markup type, and a closed +
+ * filled Konva Line hit-tests its ENTIRE interior. Anything ranked above an area stays
+ * clickable when it overlaps one. `count` is highest so pins placed inside an area
+ * remain selectable.
+ *
+ * INVARIANT: the order of the five markup render blocks inside the
+ * `<Layer listening={true}>` (Layer 1b) in
+ * src/renderer/src/components/CanvasViewport.tsx MUST match this rank ascending.
+ * src/tests/markup-canvas-z-order.test.ts enforces it.
+ *
+ * The explicit `Record<MarkupType, number>` annotation (rather than `as const`) is what
+ * makes TypeScript fail compilation if a sixth markup type is added to the union without
+ * a rank here.
+ *
+ * An upcoming per-markup z-order phase will use this as the default sort key in a
+ * (z, typeRank, createdAt) sort; that phase replaces the five blocks with one sorted
+ * render pass, at which point the invariant above is superseded by the sort.
+ */
+export const MARKUP_TYPE_RANK: Record<MarkupType, number> = {
+  area: 0,
+  wall: 1,
+  perimeter: 2,
+  linear: 3,
+  count: 4
+}
+
+/**
  * Phase 13 (D-12): true for multi-point markups (linear / area / perimeter / wall),
  * false for count pins. Used by the post-commit re-open trigger to discriminate
  * eligibility without scattered string-literal comparisons.
