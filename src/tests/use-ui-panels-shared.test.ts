@@ -106,11 +106,12 @@ async function mountTwoConsumers(): Promise<TwoConsumers> {
     await new Promise<void>((res) => setTimeout(res, 0))
   })
 
-  const read =
-    (holder: { value: UseUiPanelsApi | null }, which: string) => (): UseUiPanelsApi => {
+  function read(holder: { value: UseUiPanelsApi | null }, which: string): () => UseUiPanelsApi {
+    return () => {
       if (!holder.value) throw new Error(`useUiPanels harness — no value captured for ${which}`)
       return holder.value
     }
+  }
 
   return {
     a: read(holderA, 'A'),
