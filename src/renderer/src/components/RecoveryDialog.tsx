@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import type { RecoveryCandidate } from '../../../../shared/reliability'
+import type { RecoveryCandidate } from '../../../shared/reliability'
 import { COLORS } from '../lib/constants'
 
 export function RecoveryDialog({ candidates, busy, error, onKeep, onRecover }: {
