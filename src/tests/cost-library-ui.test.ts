@@ -152,6 +152,9 @@ describe('cost library workflow UI', () => {
     await click(button('Import CSV / Excel'))
     expect(buttons().some((b) => b.textContent === 'Replace Library')).toBe(false)
     expect(api.commit).not.toHaveBeenCalled()
+    expect(document.body.textContent).toContain(
+      'Library import cancelled. Your current library is unchanged.'
+    )
   })
   it('blocks mismatch and applies selected compatible rates only on Apply Rates', async () => {
     await mount(true)
@@ -212,6 +215,25 @@ describe('cost library workflow UI', () => {
     await click(button('Download Excel Template'))
     expect(api.downloadTemplate).toHaveBeenCalledOnce()
     expect(document.body.textContent).toContain('Template saved')
+  })
+  it('shows cancelled downloads explicitly instead of silently clearing the message', async () => {
+    api.downloadTemplate.mockResolvedValue({ ok: true, value: false })
+    await mount()
+    await click(button('Download Excel Template'))
+    expect(document.body.textContent).toContain('Template download cancelled. No file was saved.')
+    expect(button('Download Excel Template').disabled).toBe(false)
+  })
+  it('keeps the dialog usable after a rejected desktop download request', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    api.downloadTemplate.mockRejectedValue(new Error('IPC missing'))
+    await mount()
+    await click(button('Download Excel Template'))
+    expect(document.body.textContent).toContain('Could not save the template')
+    expect(button('Download Excel Template').disabled).toBe(false)
+    expect(console.error).toHaveBeenCalledWith(
+      '[cost-library] Template download request failed',
+      expect.any(Error)
+    )
   })
   it('cancels a staged candidate when the dialog unmounts', async () => {
     await mount()

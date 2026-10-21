@@ -72,16 +72,24 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
     setIssues([])
     setSelectedCode(null)
     try {
+      console.info('[cost-library] Library import requested')
       const result = await window.api.costLibrary.preview()
+      console.info('[cost-library] Library import result', {
+        ok: result.ok,
+        cancelled: result.ok && result.value === null
+      })
       if (!alive.current) return
       if (result.ok) {
         setPreview(result.value)
         tokenRef.current = result.value?.token ?? null
+        if (!result.value)
+          setMessage('Library import cancelled. Your current library is unchanged.')
       } else {
         setMessage(result.reason)
         setIssues(result.issues ?? [])
       }
-    } catch {
+    } catch (error) {
+      console.error('[cost-library] Library import request failed', error)
       if (alive.current) setMessage('Could not import the file. Your current library was kept.')
     } finally {
       if (alive.current) setBusy(false)
@@ -119,16 +127,19 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
     setBusy(true)
     setMessage('')
     try {
+      console.info('[cost-library] Template download requested')
       const result = await window.api.costLibrary.downloadTemplate()
+      console.info('[cost-library] Template download result', result)
       if (alive.current)
         setMessage(
           result.ok
             ? result.value
               ? 'Template saved. Fill it in Excel, then import it on each PC.'
-              : ''
+              : 'Template download cancelled. No file was saved.'
             : result.reason
         )
-    } catch {
+    } catch (error) {
+      console.error('[cost-library] Template download request failed', error)
       if (alive.current) setMessage('Could not save the template. Try another folder.')
     } finally {
       if (alive.current) setBusy(false)

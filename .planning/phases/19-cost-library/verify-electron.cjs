@@ -58,11 +58,17 @@ async function waitFor(code, name) {
 }
 async function click(selector) {
   assert(await run(`!!document.querySelector(${JSON.stringify(selector)})?.getClientRects().length`), `Missing/hidden control: ${selector}`)
-  await run(`document.querySelector(${JSON.stringify(selector)}).click()`)
+  const point = await run(`(() => { const r = document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; })()`)
+  win.webContents.sendInputEvent({ type: 'mouseMove', ...point })
+  win.webContents.sendInputEvent({ type: 'mouseDown', button: 'left', clickCount: 1, ...point })
+  win.webContents.sendInputEvent({ type: 'mouseUp', button: 'left', clickCount: 1, ...point })
+  await new Promise((resolve) => setTimeout(resolve, 80))
 }
 async function clickText(text) {
   assert(await run(`Array.from(document.querySelectorAll('button')).some(b => b.textContent === ${JSON.stringify(text)} && !b.disabled)`), `Missing/enabled button: ${text}`)
-  await run(`Array.from(document.querySelectorAll('button')).find(b => b.textContent === ${JSON.stringify(text)} && !b.disabled).click()`)
+  await run(`Array.from(document.querySelectorAll('button')).find(b => b.textContent === ${JSON.stringify(text)} && !b.disabled).setAttribute('data-smoke-target', 'true')`)
+  await click('[data-smoke-target="true"]')
+  await run(`document.querySelector('[data-smoke-target="true"]')?.removeAttribute('data-smoke-target')`)
 }
 async function openWindow() {
   win = new BrowserWindow({ show: false, width: 1360, height: 900, webPreferences: { preload: path.join(root, 'out/preload/index.js'), sandbox: false, contextIsolation: true, nodeIntegration: false, backgroundThrottling: false, offscreen: true } })

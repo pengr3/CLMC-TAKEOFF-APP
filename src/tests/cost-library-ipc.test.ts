@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
+import { join } from 'path'
 const mock = vi.hoisted(() => ({
   handlers: new Map<string, (...args: any[]) => any>(),
   open: vi.fn(),
@@ -12,7 +13,9 @@ const mock = vi.hoisted(() => ({
   template: vi.fn()
 }))
 vi.mock('electron', () => ({
-  app: { getPath: () => 'user-data' },
+  app: {
+    getPath: (name: string) => (name === 'downloads' ? 'C:/Users/Test/Downloads' : 'user-data')
+  },
   ipcMain: {
     handle: (name: string, handler: (...args: any[]) => any) => mock.handlers.set(name, handler)
   },
@@ -37,6 +40,8 @@ const items = [
   { code: 'A', description: 'Paint', category: 'Finishes', unit: 'm²', material: 10, labor: 5 }
 ]
 beforeEach(() => {
+  vi.spyOn(console, 'info').mockImplementation(() => {})
+  vi.spyOn(console, 'error').mockImplementation(() => {})
   vi.clearAllMocks()
   mock.handlers.clear()
   mock.open.mockResolvedValue({ canceled: false, filePaths: ['C:/master.csv'] })
@@ -49,6 +54,7 @@ beforeEach(() => {
   mock.write.mockResolvedValue(undefined)
   registerCostLibraryHandlers()
 })
+afterEach(() => vi.restoreAllMocks())
 describe('main-process library import protocol', () => {
   it('does not persist a preview; commits only the main-held candidate', async () => {
     const preview = await call('preview')
@@ -88,6 +94,18 @@ describe('main-process library import protocol', () => {
     expect(await call('preview')).toEqual({ ok: true, value: null })
     expect(mock.replace).not.toHaveBeenCalled()
   })
+  it('starts imports in Downloads and reports an empty selection separately from cancellation', async () => {
+    mock.open.mockResolvedValueOnce({ canceled: false, filePaths: [] })
+    expect(await call('preview')).toMatchObject({
+      ok: false,
+      reason: expect.stringContaining('did not return a file')
+    })
+    expect(mock.open).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ defaultPath: 'C:/Users/Test/Downloads' })
+    )
+    expect(mock.read).not.toHaveBeenCalled()
+  })
   it('bounds input before reading and returns file-access errors', async () => {
     mock.stat.mockResolvedValueOnce({ size: 101 })
     expect((await call('preview')).ok).toBe(false)
@@ -101,5 +119,28 @@ describe('main-process library import protocol', () => {
     mock.save.mockResolvedValueOnce({ canceled: false, filePath: 'C:/template' })
     expect(await call('template')).toEqual({ ok: true, value: true })
     expect(mock.write).toHaveBeenCalledWith('C:/template.xlsx', Buffer.from('xlsx'))
+    expect(mock.save).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        defaultPath: join('C:/Users/Test/Downloads', 'CLMC Cost Library Template.xlsx')
+      })
+    )
+  })
+  it('reports an empty destination as an error rather than silent cancellation', async () => {
+    mock.save.mockResolvedValueOnce({ canceled: false, filePath: '' })
+    expect(await call('template')).toMatchObject({
+      ok: false,
+      reason: expect.stringContaining('did not return a destination')
+    })
+    expect(mock.write).not.toHaveBeenCalled()
+  })
+  it('reports and logs native dialog errors', async () => {
+    mock.save.mockRejectedValueOnce(new Error('native save failed'))
+    expect((await call('template')).ok).toBe(false)
+    expect(console.error).toHaveBeenCalledWith(
+      '[cost-library] Template download failed',
+      expect.any(Error)
+    )
+    expect(mock.write).not.toHaveBeenCalled()
   })
 })

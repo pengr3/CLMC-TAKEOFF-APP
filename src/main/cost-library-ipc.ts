@@ -1,6 +1,6 @@
 import { app, ipcMain, dialog, BrowserWindow } from 'electron'
 import { readFile, stat, writeFile } from 'fs/promises'
-import { basename } from 'path'
+import { basename, join } from 'path'
 import { randomUUID } from 'crypto'
 import {
   buildCostLibraryTemplate,
@@ -22,12 +22,24 @@ export function registerCostLibraryHandlers(): void {
     const window = BrowserWindow.fromWebContents(event.sender)
     if (!window) return { ok: false, reason: 'The application window is unavailable.' }
     try {
+      console.info('[cost-library] Opening library import dialog')
       const pick = await dialog.showOpenDialog(window, {
         title: 'Import Cost Library',
+        defaultPath: app.getPath('downloads'),
         properties: ['openFile'],
         filters: [{ name: 'Cost Library', extensions: ['xlsx', 'csv'] }]
       })
-      if (pick.canceled || !pick.filePaths[0]) return { ok: true, value: null }
+      console.info('[cost-library] Library import dialog returned', {
+        canceled: pick.canceled,
+        hasSelection: !!pick.filePaths[0]
+      })
+      if (pick.canceled) return { ok: true, value: null }
+      if (!pick.filePaths[0]) {
+        return {
+          ok: false,
+          reason: 'The import dialog did not return a file. Please try importing again.'
+        }
+      }
       const path = pick.filePaths[0]
       if ((await stat(path)).size > MAX_LIBRARY_FILE_BYTES)
         return { ok: false, reason: 'Choose a cost library smaller than 10 MB.' }
@@ -51,7 +63,8 @@ export function registerCostLibraryHandlers(): void {
         })
       }
       return { ok: true, value: candidate }
-    } catch {
+    } catch (error) {
+      console.error('[cost-library] Library import failed', error)
       return {
         ok: false,
         reason: 'Could not open this cost library. Check file access and try again.'
@@ -78,17 +91,34 @@ export function registerCostLibraryHandlers(): void {
   ipcMain.handle('costLibrary:template', async (event) => {
     const window = BrowserWindow.fromWebContents(event.sender)
     if (!window) return { ok: false, reason: 'The application window is unavailable.' }
+    const startedAt = Date.now()
     try {
+      // Use a known Windows folder instead of inheriting a stale shell dialog location.
+      const defaultPath = join(app.getPath('downloads'), 'CLMC Cost Library Template.xlsx')
+      console.info('[cost-library] Opening template save dialog')
       const pick = await dialog.showSaveDialog(window, {
         title: 'Save Cost Library Template',
-        defaultPath: 'CLMC Cost Library Template.xlsx',
+        defaultPath,
         filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }]
       })
-      if (pick.canceled || !pick.filePath) return { ok: true, value: false }
+      console.info('[cost-library] Template save dialog returned', {
+        canceled: pick.canceled,
+        hasDestination: !!pick.filePath,
+        elapsedMs: Date.now() - startedAt
+      })
+      if (pick.canceled) return { ok: true, value: false }
+      if (!pick.filePath) {
+        return {
+          ok: false,
+          reason:
+            'The save dialog did not return a destination. Please try downloading the template again.'
+        }
+      }
       const path = /\.xlsx$/i.test(pick.filePath) ? pick.filePath : `${pick.filePath}.xlsx`
       await writeFile(path, await buildCostLibraryTemplate())
       return { ok: true, value: true }
-    } catch {
+    } catch (error) {
+      console.error('[cost-library] Template download failed', error)
       return {
         ok: false,
         reason: 'Could not save the template. Check folder access and try again.'
