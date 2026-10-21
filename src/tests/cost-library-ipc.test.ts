@@ -52,7 +52,7 @@ beforeEach(() => {
   mock.save.mockResolvedValue({ canceled: true })
   mock.template.mockResolvedValue(Buffer.from('xlsx'))
   mock.write.mockResolvedValue(undefined)
-  registerCostLibraryHandlers()
+  registerCostLibraryHandlers(() => {})
 })
 afterEach(() => vi.restoreAllMocks())
 describe('main-process library import protocol', () => {

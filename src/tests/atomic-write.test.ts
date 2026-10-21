@@ -69,7 +69,7 @@ beforeEach(async () => {
   backup = await assembleClmcZip(json(1), Buffer.from(pdf))
   await real.writeFile(path, original)
   await real.writeFile(path + '.bak', backup)
-  registerIpcHandlers()
+  registerIpcHandlers(() => {})
 })
 afterEach(async () => {
   await real.rm(directory, { recursive: true, force: true })

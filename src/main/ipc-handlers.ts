@@ -11,6 +11,7 @@ import {
   sha256Buffer
 } from './project-io'
 import { buildBoqXlsx, buildBoqCsv, type BoqStructure } from './boq-writers'
+import { trustedIpcHandle, type TrustedSender } from './app-identity'
 
 /**
  * Discriminated union returned by file:readProject.
@@ -130,9 +131,10 @@ async function atomicWriteFile(finalPath: string, data: Buffer): Promise<void> {
   throw lastErr instanceof Error ? lastErr : new Error(String(lastErr))
 }
 
-export function registerIpcHandlers(): void {
+export function registerIpcHandlers(assertTrusted: TrustedSender): void {
+  const handle = trustedIpcHandle(ipcMain, assertTrusted)
   // -------- PDF picker (unchanged) --------
-  ipcMain.handle('dialog:openPdf', async (event) => {
+  handle('dialog:openPdf', async (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)!
     const result = await dialog.showOpenDialog(win, {
       title: 'Open PDF Floor Plan',
@@ -146,7 +148,7 @@ export function registerIpcHandlers(): void {
   })
 
   // -------- Open project (extension-sniffing) — unchanged --------
-  ipcMain.handle('dialog:openProject', async (event) => {
+  handle('dialog:openProject', async (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)!
     const result = await dialog.showOpenDialog(win, {
       title: 'Open',
@@ -167,7 +169,7 @@ export function registerIpcHandlers(): void {
   })
 
   // -------- Save dialog (unchanged) --------
-  ipcMain.handle('dialog:saveProject', async (event, defaultPath?: string) => {
+  handle('dialog:saveProject', async (event, defaultPath?: string) => {
     const win = BrowserWindow.fromWebContents(event.sender)!
     const result = await dialog.showSaveDialog(win, {
       title: 'Save Project',
@@ -179,7 +181,7 @@ export function registerIpcHandlers(): void {
   })
 
   // -------- v2: Read project (auto-detect format; pre-hash embedded PDF) --------
-  ipcMain.handle(
+  handle(
     'file:readProject',
     async (_event, filePath: string): Promise<ReadProjectResult> => {
       try {
@@ -212,7 +214,7 @@ export function registerIpcHandlers(): void {
   )
 
   // -------- v2: Atomic write (.tmp + rename + cleanup) --------
-  ipcMain.handle(
+  handle(
     'file:writeProject',
     async (
       _event,
@@ -237,7 +239,7 @@ export function registerIpcHandlers(): void {
   // Eliminates SubtleCrypto in renderer (review feedback). Main is single-threaded so
   // this blocks IPC for ~60–170 ms on a 50 MB PDF — same order of magnitude as
   // the SubtleCrypto async path it replaces, with simpler code and no async timing risk.
-  ipcMain.handle(
+  handle(
     'file:hashBuffer',
     async (_event, bytes: Uint8Array): Promise<string> => {
       return sha256Buffer(u8ToBuf(bytes))
@@ -246,7 +248,7 @@ export function registerIpcHandlers(): void {
 
   // -------- PDF bytes for re-render after open / Replace Plan PDF --------
   // Still needed for v1 silent migration (loads PDF from v1.pdf.absolutePath).
-  ipcMain.handle('file:readPdfBytes', async (_event, pdfPath: string): Promise<ArrayBuffer> => {
+  handle('file:readPdfBytes', async (_event, pdfPath: string): Promise<ArrayBuffer> => {
     const data = await readFile(pdfPath)
     return new Uint8Array(data).buffer
   })
@@ -254,7 +256,7 @@ export function registerIpcHandlers(): void {
   // -------- Phase 5: BOQ Export — D-16 / D-24 --------
   // Save dialog with .xlsx and .csv filters; detects format from chosen extension
   // (Pitfall 7: showSaveDialog does NOT return filterIndex).
-  ipcMain.handle(
+  handle(
     'dialog:saveExport',
     async (
       event,
@@ -281,7 +283,7 @@ export function registerIpcHandlers(): void {
   )
 
   // Atomic XLSX write: build buffer via ExcelJS, write to .tmp + rename.
-  ipcMain.handle(
+  handle(
     'file:writeBoqXlsx',
     async (
       _event,
@@ -300,7 +302,7 @@ export function registerIpcHandlers(): void {
   )
 
   // Atomic CSV write: build text via csv-stringify, wrap in UTF-8 Buffer, atomic write.
-  ipcMain.handle(
+  handle(
     'file:writeBoqCsv',
     async (
       _event,

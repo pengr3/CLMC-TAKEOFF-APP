@@ -44,7 +44,7 @@ describe('Phase 5 IPC handlers — D-21 / D-24 / EXPRT-01 / EXPRT-02', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     for (const k of Object.keys(handlers)) delete handlers[k]
-    registerIpcHandlers()
+    registerIpcHandlers(() => {})
   })
 
   it('dialog:saveExport returns { filePath, format: "xlsx" } when user chooses .xlsx and enforces extension', async () => {

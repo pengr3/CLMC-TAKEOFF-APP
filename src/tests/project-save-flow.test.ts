@@ -55,7 +55,7 @@ beforeEach(async () => {
       getPage: async () => ({ getViewport: () => ({ width: 600, height: 800 }) })
     }
   })
-  registerIpcHandlers()
+  registerIpcHandlers(() => {})
   Object.defineProperty(window, 'api', {
     configurable: true,
     value: {

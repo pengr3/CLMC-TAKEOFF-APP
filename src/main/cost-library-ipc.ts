@@ -9,14 +9,16 @@ import {
   parseCostLibrary
 } from './cost-library'
 import type { CostLibrarySnapshot } from '../shared/cost-library'
+import { trustedIpcHandle, type TrustedSender } from './app-identity'
 
-export function registerCostLibraryHandlers(): void {
+export function registerCostLibraryHandlers(assertTrusted: TrustedSender): void {
+  const handle = trustedIpcHandle(ipcMain, assertTrusted)
   const repository = new CostLibraryRepository(app.getPath('userData'))
   const candidates = new Map<number, { token: string; library: CostLibrarySnapshot }>()
   const observedOwners = new Set<number>()
   let saving = false
-  ipcMain.handle('costLibrary:load', () => repository.load())
-  ipcMain.handle('costLibrary:preview', async (event) => {
+  handle('costLibrary:load', () => repository.load())
+  handle('costLibrary:preview', async (event) => {
     const owner = event.sender.id
     candidates.delete(owner)
     const window = BrowserWindow.fromWebContents(event.sender)
@@ -71,10 +73,10 @@ export function registerCostLibraryHandlers(): void {
       }
     }
   })
-  ipcMain.handle('costLibrary:cancel', (event, token: string) => {
+  handle('costLibrary:cancel', (event, token: string) => {
     if (candidates.get(event.sender.id)?.token === token) candidates.delete(event.sender.id)
   })
-  ipcMain.handle('costLibrary:commit', async (event, token: string) => {
+  handle('costLibrary:commit', async (event, token: string) => {
     const candidate = candidates.get(event.sender.id)
     if (!candidate || candidate.token !== token)
       return { ok: false, reason: 'This preview has expired. Import the spreadsheet again.' }
@@ -88,7 +90,7 @@ export function registerCostLibraryHandlers(): void {
       saving = false
     }
   })
-  ipcMain.handle('costLibrary:template', async (event) => {
+  handle('costLibrary:template', async (event) => {
     const window = BrowserWindow.fromWebContents(event.sender)
     if (!window) return { ok: false, reason: 'The application window is unavailable.' }
     const startedAt = Date.now()

@@ -6,13 +6,18 @@ import icon from '../../resources/icon.png?asset'
 import { registerIpcHandlers } from './ipc-handlers'
 import { registerCostLibraryHandlers } from './cost-library-ipc'
 import { readReleaseInfo } from './release-info'
+import { APP_ID, pinUserData, trustedWindowSender } from './app-identity'
+
+pinUserData(app)
 
 let canClose = false
 let mainWindowRef: BrowserWindow | null = null
 const rendererFile = join(__dirname, '../renderer/index.html')
-const trustedRendererUrl = is.dev && process.env['ELECTRON_RENDERER_URL']
-  ? new URL(process.env['ELECTRON_RENDERER_URL']).href
-  : pathToFileURL(rendererFile).href
+const trustedRendererUrl =
+  is.dev && process.env['ELECTRON_RENDERER_URL']
+    ? new URL(process.env['ELECTRON_RENDERER_URL']).href
+    : pathToFileURL(rendererFile).href
+const assertTrusted = trustedWindowSender(() => mainWindowRef, trustedRendererUrl)
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -78,7 +83,6 @@ function createWindow(): void {
   mainWindow.on('ready-to-show', showOnce)
   mainWindow.webContents.on('did-finish-load', showOnce)
 
-
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
@@ -98,20 +102,16 @@ function createWindow(): void {
 app.commandLine.appendSwitch('disable-pinch')
 
 app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.clmc.takeoff')
+  electronApp.setAppUserModelId(APP_ID)
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  registerIpcHandlers()
-  registerCostLibraryHandlers()
+  registerIpcHandlers(assertTrusted)
+  registerCostLibraryHandlers(assertTrusted)
   ipcMain.handle('app:getReleaseInfo', async (event) => {
-    const contents = mainWindowRef?.webContents
-    if (!contents || event.sender !== contents || !event.senderFrame ||
-      event.senderFrame !== contents.mainFrame || event.senderFrame.url !== trustedRendererUrl) {
-      throw new Error('Untrusted release-info sender')
-    }
+    assertTrusted(event)
     return readReleaseInfo(app.getVersion(), join(app.getAppPath(), 'resources/release-notes.json'))
   })
 

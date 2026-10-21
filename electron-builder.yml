@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: clmc-takeoff
+appId: com.clmc.takeoff
+productName: CLMC Takeoff
 directories:
   buildResources: build
 files:
@@ -13,7 +13,13 @@ asarUnpack:
   - resources/**
 win:
   executableName: clmc-takeoff
+  target: nsis
 nsis:
+  perMachine: false
+  oneClick: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
@@ -38,6 +44,3 @@ linux:
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
