@@ -8,24 +8,24 @@ updated: 2026-10-21
 
 ## Current Test
 
-number: 7
-name: Invalid imports leave the accepted library intact
+number: 8
+name: CSV import follows the same template
 expected: |
-  Test 6 passed—**6 of 11 tests passed**.
+  Test 7 passed—**7 of 11 tests passed**.
 
-  Keep your valid revision unchanged. Make separate test copies and attempt to import each case:
+  1. In Excel, open your **valid revision** and select the **Cost Library** worksheet.
+  2. Save a copy as **CSV UTF-8 (Comma delimited)**, named **Phase19-Test-Library.csv**. Export only that worksheet; Excel's single-sheet warning is expected.
+  3. In the app, choose **Cost Library → Import CSV / Excel** and select the CSV.
+  4. Check that the preview shows both items correctly, then choose **Replace Library**.
 
-  | Case | Change in the Cost Library worksheet |
-  |---|---|
-  | Negative rate | Set **E2** (Material Unit Rate) to **-1**. If Excel blocks it, use a CSV copy for this case. |
-  | Duplicate code | Set **A3** to **E001**, duplicating the first item's code. |
-  | Wrong heading | Rename **A1** from **Item Code** to **Code**. |
+  **Expected:** The current library shows the CSV filename and **2 items**, retaining:
 
-  **Expected for each:** An understandable validation error appears; the invalid file cannot replace the library. Data errors identify their row/column, and a wrong heading identifies the required template headings.
+  | Code | Description | Category | Unit | Material | Labor |
+  |---|---|---|---|---:|---:|
+  | E001 | Test Outlet | Electrical | ea / pcs | 200 | 80 |
+  | F001 | Test Wall Painting | Finishes | m² | 50 | 20 |
 
-  After these attempts, check the accepted library still has **E001: material 200, labor 80** and **F001: material 50, labor 20**. Your project rates should also remain unchanged.
-
-  Finally, import the untouched valid revision again: its normal preview should appear. Choose **Cancel Import**.
+  Your existing Estimate remains unchanged: Test Outlet still has material **200**, labor **80**, markup **30%**, quantity **2 ea** and total **₱728**.
 awaiting: user response
 
 ## Test Setup
@@ -74,7 +74,8 @@ reported: "pass"
 
 ### 7. Invalid imports leave the accepted library intact
 expected: Use separate copies of the test spreadsheet to try a negative rate, duplicate item code and altered required heading. Each invalid import shows an actionable error (row/column for data errors), cannot replace the library, and leaves the previously accepted E001/F001 entries available. Correcting the file permits a normal import. Do not edit the only copy of your master.
-result: [pending]
+result: pass
+reported: "pass"
 
 ### 8. CSV import follows the same template
 expected: Export just the valid Cost Library worksheet as UTF-8 comma-separated CSV. Import/preview/confirm shows the same codes, descriptions, categories, units and numeric rates. CSV import requires the same six headings and does not change existing project prices.
@@ -95,9 +96,9 @@ result: [pending]
 ## Summary
 
 total: 11
-passed: 6
+passed: 7
 issues: 0
-pending: 5
+pending: 4
 skipped: 0
 blocked: 0
 

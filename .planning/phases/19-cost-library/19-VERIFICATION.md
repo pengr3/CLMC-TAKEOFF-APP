@@ -5,7 +5,7 @@ status: human_needed
 automated_status: passed
 score: 6/6 requirements verified
 verification_mode: inline source review, automated tests, production Electron smoke and screenshot inspection
-human_result: Phase 19 manual UAT has 6 passed, 0 unresolved issues, 5 pending. Tests 1-6 confirmed through override preservation and explicit reapplication. Next is invalid-import rejection and library preservation (Test 7). Two-PC deployment pilot remains Phase 21.
+human_result: Phase 19 manual UAT has 7 passed, 0 unresolved issues, 4 pending. Tests 1-7 confirmed through invalid-import rejection and library preservation. Next is valid CSV import with unchanged project prices (Test 8). Two-PC deployment pilot remains Phase 21.
 ---
 
 # Phase 19 verification

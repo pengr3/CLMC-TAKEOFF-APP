@@ -4,7 +4,7 @@ milestone: v1.0
 current_phase: 19
 current_phase_name: Cost Library
 status: phase_19_manual_uat
-stopped_at: Phase 19 manual UAT tests 1-6 passed; test 7 of 11 awaiting invalid-import rejection and library preservation results
+stopped_at: Phase 19 manual UAT tests 1-7 passed; test 8 of 11 awaiting valid CSV import and project-price preservation results
 last_updated: "2026-10-21T06:57:10.185Z"
 last_activity: 2026-10-21
 state_head: 1e92018edf830df4b926016f7ead885de8713f9b
@@ -29,14 +29,14 @@ milestone_name: milestone
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 19 — manual UAT test 7/11 (19-UAT.md). Tests 1-6 passed, including manual override preservation on library replacement and explicit reapplication without changing quantity/markup. Current accepted E001 is material 200/labor 80. Next reject negative rates, duplicate codes and altered headings while preserving the accepted library/project. Prior automated baseline and 66 focused regressions pass. Phase 20 has not started.
+**Current Focus:** Phase 19 — manual UAT test 8/11 (19-UAT.md). Tests 1-7 passed, including invalid-import rejection without replacing accepted library/project rates. Current accepted E001 is material 200/labor 80. Next import the valid revision's Cost Library worksheet as UTF-8 comma-separated CSV and verify data/units/project prices. Prior automated baseline and 66 focused regressions pass. Phase 20 has not started.
 
 ---
 
 ## Current Position
 
 Phase: 19 — Cost Library (implementation complete; manual UAT pending)
-Plan: 19-01 implemented; UAT has 6 passed, 0 unresolved issues, 5 pending. Test 7 awaits user response.
+Plan: 19-01 implemented; UAT has 7 passed, 0 unresolved issues, 4 pending. Test 8 awaits user response.
 
 ## Performance Metrics
 
