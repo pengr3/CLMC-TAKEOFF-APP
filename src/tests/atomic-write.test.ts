@@ -1,157 +1,112 @@
 /** @vitest-environment node */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-
-// Mock fs/promises BEFORE importing the IPC handler module
-vi.mock('fs/promises', () => ({
-  writeFile: vi.fn().mockResolvedValue(undefined),
-  rename: vi.fn().mockResolvedValue(undefined),
-  unlink: vi.fn().mockResolvedValue(undefined),
-  readFile: vi.fn().mockResolvedValue(Buffer.from('stub')),
-  access: vi.fn().mockResolvedValue(undefined)
-}))
-
-// Mock electron — registerIpcHandlers calls ipcMain.handle
-const handlers: Record<string, (...args: unknown[]) => Promise<unknown>> = {}
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: (channel: string, fn: (...args: unknown[]) => Promise<unknown>) => {
-      handlers[channel] = fn
-    }
-  },
-  dialog: { showOpenDialog: vi.fn(), showSaveDialog: vi.fn() },
-  BrowserWindow: { fromWebContents: vi.fn().mockReturnValue({}) }
-}))
-
-// Mock project-io's assembleClmcZip so we test only the wrapper
-vi.mock('../main/project-io', async () => {
-  const real = await vi.importActual('../main/project-io')
-  return {
-    ...real,
-    assembleClmcZip: vi.fn().mockResolvedValue(Buffer.from([0x50, 0x4b, 0x03, 0x04])) // ZIP magic stub
-  }
+import { beforeEach, afterEach, expect, it, vi } from 'vitest'
+import { join } from 'path'
+import { tmpdir } from 'os'
+vi.mock('fs/promises', async (original) => {
+  const real = await original<typeof import('fs/promises')>()
+  return { ...real, open: vi.fn(real.open), readFile: vi.fn(real.readFile), rename: vi.fn(real.rename), unlink: vi.fn(real.unlink) }
 })
-
-import * as fsP from 'fs/promises'
+const { handlers } = vi.hoisted(() => ({ handlers: {} as Record<string, (...args: any[]) => Promise<any>> }))
+vi.mock('electron', () => ({ ipcMain: { handle: (key: string, fn: any) => { handlers[key] = fn } }, dialog: {}, BrowserWindow: {} }))
+import * as fs from 'fs/promises'
 import { registerIpcHandlers } from '../main/ipc-handlers'
+import { assembleClmcZip, extractClmcZip, sha256Buffer } from '../main/project-io'
+const real = await vi.importActual<typeof import('fs/promises')>('fs/promises')
+const pdf = new Uint8Array([37, 80, 68, 70, 45, 49])
+const json = (revision: number) => JSON.stringify({ formatVersion: 2, revision, createdAt: '2026-01-01', updatedAt: '2026-01-01',
+  pdf: { originalFilename: 'plan.pdf', totalPages: 1, sha256: sha256Buffer(pdf) }, categories: {}, categoryOrder: [],
+  globalUnit: 'mm', currentPage: 1, pages: [{ pageIndex: 1, dimensions: { width: 600, height: 800 }, scale: null,
+    viewport: { zoom: 1, panX: 0, panY: 0 }, markups: [] }] })
+let directory: string, path: string, original: Buffer, backup: Buffer
+beforeEach(async () => {
+  vi.mocked(fs.open).mockImplementation(real.open)
+  vi.mocked(fs.readFile).mockImplementation(real.readFile)
+  vi.mocked(fs.rename).mockImplementation(real.rename)
+  vi.mocked(fs.unlink).mockImplementation(real.unlink)
+  directory = await real.mkdtemp(join(tmpdir(), 'clmc-protected-')); path = join(directory, 'project.clmc')
+  original = await assembleClmcZip(json(2), Buffer.from(pdf)); backup = await assembleClmcZip(json(1), Buffer.from(pdf))
+  await real.writeFile(path, original); await real.writeFile(path + '.bak', backup)
+  registerIpcHandlers()
+})
+afterEach(async () => { await real.rm(directory, { recursive: true, force: true }) })
+const fail = (code: string) => Object.assign(new Error(code), { code })
 
-describe('file:writeProject — atomic write (MEDIUM review concern)', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    registerIpcHandlers()
+it.each(['write', 'sync', 'close', 'validate', 'backup-write', 'backup-rename', 'replace'])(
+  'preserves recoverable originals through injected %s failure', async (point) => {
+    if (['write', 'sync', 'close', 'backup-write'].includes(point)) {
+      vi.mocked(fs.open).mockImplementation(async (...args) => {
+        const handle = await real.open(...args)
+        const isBackup = String(args[0]).endsWith('.bak.tmp')
+        if ((point === 'backup-write') !== isBackup) return handle
+        if (point === 'write' || point === 'backup-write') handle.writeFile = vi.fn().mockRejectedValue(fail('ENOSPC'))
+        if (point === 'sync') handle.sync = vi.fn().mockRejectedValue(fail('EIO'))
+        if (point === 'close') { const close = handle.close.bind(handle); handle.close = async () => { await close(); throw fail('EIO') } }
+        return handle
+      })
+    }
+    if (point === 'validate') vi.mocked(fs.readFile).mockImplementation(async (...args) =>
+      String(args[0]).endsWith('.tmp') ? Buffer.from('damaged') : real.readFile(...args))
+    if (point === 'backup-rename' || point === 'replace') vi.mocked(fs.rename).mockImplementation(async (from, to) => {
+      if (String(to) === (point === 'replace' ? path : path + '.bak')) throw fail('EPERM')
+      return real.rename(from, to)
+    })
+    const result = await handlers['file:writeProject']({}, path, json(3), pdf)
+    expect(result.ok).toBe(false)
+    expect(result.stage).toBe(point.startsWith('backup') ? 'backup' : point === 'replace' ? 'replace' : point === 'validate' ? 'validate' : 'write')
+    expect(await real.readFile(path)).toEqual(original)
+    const keptBackup = await real.readFile(path + '.bak')
+    expect([original, backup].some(bytes => bytes.equals(keptBackup))).toBe(true)
+    expect(JSON.parse((await extractClmcZip(keptBackup)).projectJson).pdf.sha256).toBe(sha256Buffer(pdf))
+    expect((await real.readdir(directory)).sort()).toEqual(['project.clmc', 'project.clmc.bak'])
   })
 
-  it('writes to a .tmp path first, then renames to the final path', async () => {
-    const finalPath = 'C:/projects/myplan.clmc'
-    const tmpPath = `${finalPath}.tmp`
-    const fakeJson = '{"formatVersion":2}'
-    const fakePdf = new Uint8Array([0x25, 0x50, 0x44, 0x46])
-
-    await handlers['file:writeProject']({}, finalPath, fakeJson, fakePdf)
-
-    // writeFile must be called with the .tmp path, NOT the final path directly
-    expect(fsP.writeFile).toHaveBeenCalledWith(tmpPath, expect.any(Buffer))
-    expect(fsP.writeFile).not.toHaveBeenCalledWith(finalPath, expect.any(Buffer))
-
-    // rename must be called from .tmp → final
-    expect(fsP.rename).toHaveBeenCalledWith(tmpPath, finalPath)
-
-    // Order: writeFile first, rename second
-    const writeOrder = (fsP.writeFile as unknown as { mock: { invocationCallOrder: number[] } }).mock.invocationCallOrder[0]
-    const renameOrder = (fsP.rename as unknown as { mock: { invocationCallOrder: number[] } }).mock.invocationCallOrder[0]
-    expect(writeOrder).toBeLessThan(renameOrder)
-  })
-
-  it('recovers from EPERM on rename by unlinking destination then retrying (OneDrive lock workaround)', async () => {
-    const finalPath = 'C:/projects/locked.clmc'
-    const tmpPath = `${finalPath}.tmp`
-    // First rename rejects with EPERM (OneDrive holds the dest); second succeeds.
-    const epermErr = Object.assign(new Error('EPERM: operation not permitted, rename'), { code: 'EPERM' })
-    ;(fsP.rename as ReturnType<typeof vi.fn>)
-      .mockRejectedValueOnce(epermErr)
-      .mockResolvedValueOnce(undefined)
-
-    await expect(
-      handlers['file:writeProject']({}, finalPath, '{}', new Uint8Array())
-    ).resolves.toEqual({ ok: true })
-
-    // Recovery sequence: unlink(finalPath) then rename(tmpPath, finalPath)
-    expect(fsP.unlink).toHaveBeenCalledWith(finalPath)
-    expect((fsP.rename as ReturnType<typeof vi.fn>).mock.calls.length).toBe(2)
-    expect((fsP.rename as ReturnType<typeof vi.fn>).mock.calls[1]).toEqual([tmpPath, finalPath])
-  })
-
-  it('cleans up .tmp file via unlink when rename fails persistently (locked destination)', async () => {
-    const finalPath = 'C:/projects/myplan.clmc'
-    const tmpPath = `${finalPath}.tmp`
-    // atomicWriteFile retries rename with backoff (up to 3 attempts) on EPERM,
-    // unlinking the destination between attempts. When EVERY attempt fails the
-    // destination is genuinely held open — the .tmp must still be cleaned up.
-    const renameErr = Object.assign(new Error('EPERM: rename failed'), { code: 'EPERM' })
-    ;(fsP.rename as ReturnType<typeof vi.fn>).mockRejectedValue(renameErr)
-
-    await expect(
-      handlers['file:writeProject']({}, finalPath, '{}', new Uint8Array())
-    ).rejects.toThrow()
-
-    expect(fsP.unlink).toHaveBeenCalledWith(tmpPath)
-  })
+it('advertises only an integrity-validated adjacent backup after a damaged original', async () => {
+  await real.writeFile(path, 'broken original')
+  const result = await handlers['file:readProject']({}, path)
+  expect(result).toMatchObject({ kind: 'unknown', backupPath: path + '.bak' })
+  const bad = await assembleClmcZip(json(1), Buffer.from('wrong PDF'))
+  await real.writeFile(path + '.bak', bad)
+  expect((await handlers['file:readProject']({}, path)).backupPath).toBeUndefined()
 })
 
-describe('atomicWriteFile — locked-destination resilience + friendly message (GAP-2)', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    for (const k of Object.keys(handlers)) delete handlers[k]
-    registerIpcHandlers()
+it('does not replace a good backup with a corrupt original', async () => {
+  await real.writeFile(path, 'corrupt')
+  expect(await handlers['file:writeProject']({}, path, json(3), pdf)).toEqual({ ok: true })
+  expect(await real.readFile(path + '.bak')).toEqual(backup)
+})
+
+it('reports a failed first save without inventing a backup', async () => {
+  await real.unlink(path); await real.unlink(path + '.bak')
+  vi.mocked(fs.open).mockRejectedValue(fail('EACCES'))
+  expect(await handlers['file:writeProject']({}, path, json(3), pdf)).toMatchObject({ ok: false, stage: 'write', firstSave: true })
+  expect(await real.readdir(directory)).toEqual([])
+})
+
+it('ignores incomplete crash temps after restart and preserves them as unowned data', async () => {
+  await real.writeFile(path, 'bad original'); await real.writeFile(path + '.crashed.tmp', 'partial')
+  expect(await handlers['file:readProject']({}, path)).toMatchObject({ kind: 'unknown', backupPath: path + '.bak' })
+  expect(await handlers['file:writeProject']({}, path, json(3), pdf)).toEqual({ ok: true })
+  expect(await real.readFile(path + '.crashed.tmp', 'utf8')).toBe('partial')
+})
+
+it('allows independent destinations to progress while another writer is blocked', async () => {
+  let release!: () => void, entered!: () => void
+  const started = new Promise<void>(resolve => { entered = resolve })
+  vi.mocked(fs.open).mockImplementation(async (...args) => {
+    if (String(args[0]).startsWith(path + '.')) { entered(); await new Promise<void>(resolve => { release = resolve }) }
+    return real.open(...args)
   })
+  const first = handlers['file:writeProject']({}, path, json(3), pdf)
+  await started
+  // Only the first open is paused; the backup stage must be allowed later.
+  vi.mocked(fs.open).mockImplementation(real.open)
+  const otherPath = join(directory, 'independent.clmc')
+  expect(await handlers['file:writeProject']({}, otherPath, json(4), pdf)).toEqual({ ok: true })
+  release(); expect(await first).toEqual({ ok: true })
+})
 
-  it('absorbs a TRANSIENT lock — first rename throws EPERM, retry succeeds → resolves', async () => {
-    const finalPath = 'C:/projects/report.clmc'
-    const tmpPath = `${finalPath}.tmp`
-    const epermErr = Object.assign(new Error('EPERM: operation not permitted, rename'), { code: 'EPERM' })
-    // First rename fails (a brief OneDrive/AV lock), the retry succeeds.
-    ;(fsP.rename as ReturnType<typeof vi.fn>)
-      .mockRejectedValueOnce(epermErr)
-      .mockResolvedValueOnce(undefined)
-
-    await expect(
-      handlers['file:writeProject']({}, finalPath, '{}', new Uint8Array())
-    ).resolves.toEqual({ ok: true })
-
-    // Two rename attempts: the failed initial + the successful retry.
-    expect((fsP.rename as ReturnType<typeof vi.fn>).mock.calls.length).toBe(2)
-    expect((fsP.rename as ReturnType<typeof vi.fn>).mock.calls[1]).toEqual([tmpPath, finalPath])
-  })
-
-  it('PERSISTENT lock — rename + unlink both throw EPERM through all retries → friendly message + .tmp cleaned', async () => {
-    const finalPath = 'C:/exports/BOQ.xlsx'
-    const tmpPath = `${finalPath}.tmp`
-    const epermErr = Object.assign(
-      new Error("EPERM: operation not permitted, rename 'BOQ.xlsx.tmp' -> 'BOQ.xlsx'"),
-      { code: 'EPERM' }
-    )
-    // The destination is held open by Excel: BOTH rename and the release-unlink
-    // of the destination fail with EPERM on every attempt; only the .tmp cleanup
-    // (a file we own) succeeds.
-    ;(fsP.rename as ReturnType<typeof vi.fn>).mockRejectedValue(epermErr)
-    ;(fsP.unlink as ReturnType<typeof vi.fn>).mockImplementation(async (p: string) => {
-      if (p === finalPath) throw epermErr // cannot release the locked destination
-      return undefined // .tmp cleanup succeeds
-    })
-
-    // file:writeProject does not catch — atomicWriteFile throws the friendly Error.
-    const err = await handlers['file:writeProject']({}, finalPath, '{}', new Uint8Array())
-      .then(() => null)
-      .catch((e: unknown) => e as Error)
-
-    expect(err).toBeInstanceOf(Error)
-    const msg = (err as Error).message
-    // Friendly, actionable message — names the file + points at the open program.
-    expect(msg).toContain('BOQ.xlsx')
-    expect(msg).toMatch(/open in another program/i)
-    expect(msg).toMatch(/Excel/i)
-    // Must NOT lead with the raw rename EPERM text.
-    expect(msg).not.toMatch(/^EPERM/)
-    // The .tmp scratch file is still cleaned up.
-    expect(fsP.unlink).toHaveBeenCalledWith(tmpPath)
-  })
+it('refuses malformed project metadata even when the embedded PDF hash matches', async () => {
+  const malformed = JSON.stringify({ formatVersion: 2, pdf: { sha256: sha256Buffer(pdf) } })
+  expect(await handlers['file:writeProject']({}, path, malformed, pdf)).toMatchObject({ ok: false, stage: 'validate' })
+  expect(await real.readFile(path)).toEqual(original)
 })

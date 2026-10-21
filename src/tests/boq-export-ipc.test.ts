@@ -105,5 +105,6 @@ describe('Phase 5 IPC handlers — D-21 / D-24 / EXPRT-01 / EXPRT-02', () => {
     expect(r.reason).toContain('EBUSY')
     expect(r.reason).not.toMatch(/^EBUSY/)
     expect(fsP.unlink).toHaveBeenCalledWith(`${finalPath}.tmp`)
+    expect(fsP.unlink).not.toHaveBeenCalledWith(finalPath)
   })
 })
