@@ -8,29 +8,23 @@ updated: 2026-10-21
 
 ## Current Test
 
-number: 9
-name: Saved project retains applied prices independently
+number: 11
+name: Final check — pan the plan
 expected: |
-  Test 8 passed—**8 of 11 tests passed**.
+  **10 of 11 tests passed:** your first eight, plus save/reopen and Excel/CSV export checked on your PC.
 
-  1. Save your test project using **Save As**, named **Phase19-Pricing-Test.clmc**.
-  2. Create a new folder and copy **only that .clmc file** into it—leave the PDF and costing spreadsheets in their original locations.
-  3. Fully close and relaunch the app, keeping Excel closed.
-  4. Use the app's **Open** button to open the copied `.clmc` file. No library reimport should be needed.
+  Keyboard focus, Escape/Close, F3 isolation, search, zoom, manual rates and count undo also passed. The original two pins and ₱728 total are restored and saved.
 
-  **Expected:** The PDF and both Test Outlet count pins reopen in their saved positions. In **Estimate**, Test Outlet retains:
+  One action remains because PC control cannot hold Space during a drag or drag with the middle mouse button: in **Plan**, hold **Space** and drag the drawing left/right, then release.
 
-  - Quantity **2 ea**, material **₱200**, labor **₱80**, markup **30%**.
-  - Cost **₱560**, total **₱728**.
-
-  There should be no request to locate the costing spreadsheet or reapply its rates. Cross-PC installation and portability checks remain part of Phase 20.
+  **Expected:** The PDF and count pins move together. Reply **pass**, or describe what happens.
 awaiting: user response
 
 ## Test Setup
 
 Use a test project and a copy of the template. Keep your original project and any existing master cost spreadsheet. Importing replaces this PC's current library only after explicit confirmation. Existing estimates should keep their saved rates.
 
-This session records human observations only. Automated tests/build/Electron smoke remain passing evidence in 19-VERIFICATION.md; none of these manual checks are auto-passed. The real two-PC deployment pilot remains Phase 21 and is separate from this Phase 19 acceptance walkthrough.
+Tests 1-8 record the user's observations. At the user's explicit request to drive their PC, Tests 9-10 and the completed parts of Test 11 were exercised through Windows Computer Use in the actual desktop app and Excel; these are labeled agent desktop checks, not user-reported passes or headless smoke. See 19-DESKTOP-UAT.md. Automated tests/build/Electron smoke remain separate evidence in 19-VERIFICATION.md. The real two-PC deployment pilot remains Phase 21.
 
 ## Tests
 
@@ -82,22 +76,32 @@ reported: "pass"
 
 ### 9. Saved project retains applied prices independently
 expected: Save As a test .clmc after applying rates; close/reopen it and verify material/labor/markup and totals match. Open that project with its master spreadsheet moved or unavailable, or from a folder containing only the .clmc: saved prices still load. No spreadsheet relink is required and markups remain editable. Cross-PC installed-app portability is additionally tested in Phase 20.
-result: [pending]
+result: pass
+source: agent desktop check authorized by user
+observed: "Native Save As saved a separate test project. Copied only its .clmc into a new folder, closed Excel and Electron completely, relaunched npm run dev, and used native Open on the copy without reimport/relink. PDF and qty 2 ea loaded; material 200, labor 80, markup 30, cost 560, total 728, margin 168. Resumed the saved count group and verified editing/undo. After restoring/saving, archive comparison confirmed both original markup objects/coordinates and rates unchanged and the embedded PDF byte-identical."
+evidence: 19-DESKTOP-UAT.md
 
 ### 10. Export includes the visible applied prices
 expected: Export the test estimate to .xlsx and .csv. Open both and compare item quantities, material/labor rates, selling markup and totals with the current Estimate sheet. Values match, numeric Excel cells remain usable for calculations, and the existing export remains available. Internal costs/margins are still included; client-only export was not added.
-result: [pending]
+result: pass
+source: agent desktop check authorized by user
+observed: "Used native Export BOQ Save dialogs for XLSX and CSV, then opened both in real Excel. Each contains Test Outlet, 2 ea, material 200, labor 80, cost 560, markup 30, unit price 364, total 728, margin 168. Excel selection D9:J9 reports Count 7 and Sum 2130, confirming numeric cells; CSV loaded using Excel's UTF-8 text-import wizard with Comma selected."
+evidence: 19-DESKTOP-UAT.md
 
 ### 11. Keyboard, dismissal and normal estimating workflow
 expected: Search/type in the library dialog and navigate controls with Tab/Shift+Tab. Keyboard actions stay inside the dialog; F3 does not change underlying plan snapping while the dialog is active. Escape or Close dismisses it and returns focus to the trigger. Reopen it, then return to Plan: normal markups, undo, zoom/pan and manual Estimate rate edits still behave normally.
 result: [pending]
+source: agent desktop check authorized by user; final pan gesture awaiting user
+observed: "Dialog Tab and Shift+Tab wrap between Close and the compatible Select button; F3 leaves underlying Snap ON; typing E001 filters the library; Escape restores focus to the row book button and Space reopens it; Close dismisses it. Manual rate 201 produces cost 562/total 730.60, restored to 200 and cost 560/total 728. Plan zoom 18→19 works. Resuming Test Outlet, adding a third pin and Ctrl+Z returns quantity 3→2; Escape exits placement. Restored project saved; markup/rates/PDF preservation checked against the original test copy."
+remaining: "Only actual panning gesture is unverified. Computer Use exposes no held-key drag or middle-button drag. This is a tool limitation, not an observed app failure; do not auto-pass this criterion."
+evidence: 19-DESKTOP-UAT.md
 
 ## Summary
 
 total: 11
-passed: 8
+passed: 10
 issues: 0
-pending: 3
+pending: 1
 skipped: 0
 blocked: 0
 

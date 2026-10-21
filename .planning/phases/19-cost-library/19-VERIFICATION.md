@@ -5,12 +5,14 @@ status: human_needed
 automated_status: passed
 score: 6/6 requirements verified
 verification_mode: inline source review, automated tests, production Electron smoke and screenshot inspection
-human_result: Phase 19 manual UAT has 8 passed, 0 unresolved issues, 3 pending. Tests 1-8 confirmed through valid CSV import with unchanged project prices. Next is saved-project reopen and price persistence (Test 9). Two-PC deployment pilot remains Phase 21.
+human_result: Phase 19 UAT has 10 passed, 0 unresolved issues, 1 pending. Tests 1-8 are user-confirmed; Tests 9-10 passed through user-authorized Windows desktop control in Electron and Excel. Test 11 keyboard/focus/F3/search/zoom/manual edits/count undo passed; only a pan gesture needs the user because Computer Use cannot perform held-key or middle-button dragging. Evidence is in 19-DESKTOP-UAT.md. Two-PC deployment pilot remains Phase 21.
 ---
 
 # Phase 19 verification
 
 **Acceptance status:** Implementation and automated verification passed. User requested a Phase 19 manual walkthrough before advancement; 19-UAT.md tracks it. Human acceptance is pending and Phase 20 has not started. The automated PASS below is not a manual-UAT approval.
+
+**Actual desktop follow-up (2026-10-21):** User delegated remaining checks on their PC. Native Save/Open/Export dialogs and Excel were exercised without stubs. Saved project copy reopened after full shutdown with no spreadsheet relink, matching prices and embedded PDF; restored markup objects/coordinates and rates compare equal to the first Save As. Both exports opened in Excel and numeric XLSX cells aggregate normally. Keyboard/dialog and reversible count/rate checks passed. Test 11 remains pending solely for the pan gesture. See [19-DESKTOP-UAT.md](19-DESKTOP-UAT.md).
 
 | Requirement | Implementation and evidence | Result |
 | --- | --- | --- |
