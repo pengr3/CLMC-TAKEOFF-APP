@@ -116,7 +116,7 @@
     {
       "number": "19",
       "name": "Cost Library",
-      "status": "complete"
+      "status": "pending"
     },
     {
       "number": "20",
@@ -130,9 +130,9 @@
     }
   ],
   "next": {
-    "command": "/gsd:plan-phase 20",
-    "label": "Plan Phase 20: Production Readiness",
-    "reason": "Phase 19 complete; installer, portability, recovery and installed-app checks remain"
+    "command": "/gsd:verify-work 19",
+    "label": "Continue Phase 19 manual UAT",
+    "reason": "Implementation and automated checks pass; manual test 1 of 11 awaits user response before Phase 20"
   },
-  "updated_at": "2026-10-21T06:57:40.6235927Z"
+  "updated_at": "2026-10-21T07:17:38.2660839Z"
 }

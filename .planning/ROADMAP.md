@@ -40,7 +40,7 @@
 
 Source of scope and original goals: [Internal rollout agreement](RELEASE-HANDOVER.md). Approximately 12 Windows PCs, offline operation, user-maintained costing spreadsheets, versioned manual upgrades and internal turnover.
 
-- [x] **Phase 19: Cost Library** — fixed Excel/CSV template, individual per-PC imports and explicit rate application. (completed 2026-10-21)
+- [ ] **Phase 19: Cost Library** — implementation and automated verification complete; manual UAT in progress before advancement.
 - [ ] **Phase 20: Production Readiness** — installer/upgrades, portable .clmc, recovery and installed-app validation.
 - [ ] **Phase 21: User Guide and Internal Handover** — offline guide, maintainer handover and two-PC pilot before remaining-ten-PC distribution.
 
@@ -720,6 +720,8 @@ Plans:
 - [x] 18-09-PLAN.md — App shell rewire + delete RibbonToolbar/RibbonButton/Toolbar/CanvasHeaderBar + 18-MANUAL-NOTES.md (+ human-verify checkpoint; F3 double-listener fix)
 
 ### Phase 19: Cost Library
+
+**Acceptance status:** Implementation and automated checks complete (938 tests/build/Electron smoke PASS). Manual UAT in progress in [19-UAT.md](phases/19-cost-library/19-UAT.md); obtain the user's results before advancing to Phase 20.
 
 **Goal:** Estimators download an app-standard template, fill it with their own ready-to-use material/labor unit rates, import revisions individually on each PC, and explicitly apply compatible rates in Estimate without retyping or silently repricing existing projects.
 **Requirements**: COST-01, COST-02, COST-03, COST-04, COST-05, COST-06
