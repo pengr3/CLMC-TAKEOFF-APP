@@ -8,18 +8,24 @@ updated: 2026-10-21
 
 ## Current Test
 
-number: 6
-name: Manual override and revised library do not silently reprice
+number: 7
+name: Invalid imports leave the accepted library intact
 expected: |
-  Test 5 passed—**5 of 11 tests passed**.
+  Test 6 passed—**6 of 11 tests passed**.
 
-  1. In **Estimate**, manually change **Test Outlet → Material** to **125**. Press Enter or click outside the cell to commit it.
-  2. In Excel, make a copy of your test library. Change **E001 → Material Unit Rate** to **200**, leaving its labor rate at **80**. Save as **Phase19-Test-Library-Revision.xlsx**.
-  3. Import that revision and choose **Replace Library**.
-  4. Close the library panel and check Test Outlet: its material rate must still be **125**, with labor **80** and markup **30%**.
-  5. Open that row's **book icon**, select **E001**, and choose **Apply Rates**.
+  Keep your valid revision unchanged. Make separate test copies and attempt to import each case:
 
-  **Expected:** Importing alone preserves your manual rate. Explicitly applying changes material to **200**, while labor stays **80**, markup stays **30%**, and quantity stays **2 ea**. The resulting **Cost** is **₱560** and **Total** is **₱728**.
+  | Case | Change in the Cost Library worksheet |
+  |---|---|
+  | Negative rate | Set **E2** (Material Unit Rate) to **-1**. If Excel blocks it, use a CSV copy for this case. |
+  | Duplicate code | Set **A3** to **E001**, duplicating the first item's code. |
+  | Wrong heading | Rename **A1** from **Item Code** to **Code**. |
+
+  **Expected for each:** An understandable validation error appears; the invalid file cannot replace the library. Data errors identify their row/column, and a wrong heading identifies the required template headings.
+
+  After these attempts, check the accepted library still has **E001: material 200, labor 80** and **F001: material 50, labor 20**. Your project rates should also remain unchanged.
+
+  Finally, import the untouched valid revision again: its normal preview should appear. Choose **Cancel Import**.
 awaiting: user response
 
 ## Test Setup
@@ -63,7 +69,8 @@ reported: "pass"
 
 ### 6. Manual override and revised library do not silently reprice
 expected: Manually change Test Outlet's material rate to 125 and commit the edit. Change E001 in a copy of the master spreadsheet to material 200/labor 80, then import and confirm replacement. The existing Estimate still has material 125 and retains its markup. Only explicitly selecting E001 and applying again changes the row to material 200/labor 80; quantity and markup stay unchanged.
-result: [pending]
+result: pass
+reported: "pass"
 
 ### 7. Invalid imports leave the accepted library intact
 expected: Use separate copies of the test spreadsheet to try a negative rate, duplicate item code and altered required heading. Each invalid import shows an actionable error (row/column for data errors), cannot replace the library, and leaves the previously accepted E001/F001 entries available. Correcting the file permits a normal import. Do not edit the only copy of your master.
@@ -88,9 +95,9 @@ result: [pending]
 ## Summary
 
 total: 11
-passed: 5
+passed: 6
 issues: 0
-pending: 6
+pending: 5
 skipped: 0
 blocked: 0
 
