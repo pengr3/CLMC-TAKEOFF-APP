@@ -17,7 +17,7 @@ expected: |
   Item Code | Description | Category | Unit | Material Unit Rate | Labor Unit Rate.
   An Instructions worksheet should also be present, with no sample prices in the blank library.
   The app should start normally and the template should save and open without errors.
-awaiting: user response
+awaiting: user retest after full desktop restart; native Save prompt still unverified
 
 ## Test Setup
 
@@ -29,7 +29,12 @@ This session records human observations only. Automated tests/build/Electron smo
 
 ### 1. Fresh start and download the Excel template
 expected: Save current work, fully close and relaunch the app (restart npm run dev if using development mode). In Estimate, open Cost Library without a PDF and download the Excel template. Excel opens a blank Cost Library worksheet with the six fixed headings and an Instructions worksheet; no startup/download/open error occurs.
-result: [pending]
+result: issue
+reported: "i started and tried to download template but nothing happened. no prompt where to save or whatever. the screen just jitters then nothing. Console also logged nothing"
+clarification: "Panel stays open, no message"
+related_report: "Import CSV / Excel also opens no file-selection dialog."
+severity: major
+retest_note: "Use the latest rebuilt desktop process. Download/Import now start in Downloads, show explicit cancellation or failure feedback, and log tagged cost-library diagnostics. User must confirm actual Save dialog presentation; automated tests simulate native selections."
 
 ### 2. Fill the template, preview an import, then cancel
 expected: In the Cost Library worksheet add E001 | Test Outlet | Electrical | pcs | 100 | 80 and F001 | Test Wall Painting | Finishes | m² | 50 | 20. Save a test .xlsx. Import it: preview shows the correct two items/rates; nothing is replaced until confirmation. Cancel Import returns to the previous library or empty state unchanged.
@@ -75,11 +80,19 @@ result: [pending]
 
 total: 11
 passed: 0
-issues: 0
-pending: 11
+issues: 1
+pending: 10
 skipped: 0
 blocked: 0
 
 ## Gaps
 
-None reported yet. Awaiting the user's first result; no manual acceptance claimed.
+- truth: "Download Excel Template opens a native Save dialog and saves the workbook."
+  status: failed
+  reason: "User reported no Save prompt, brief jitter, no console output; panel stays open with no message."
+  severity: major
+  test: 1
+  root_cause: "Investigating; automated smoke simulated native dialog selection."
+  artifacts: [src/renderer/src/components/CostLibraryDialog.tsx, src/main/cost-library-ipc.ts]
+  missing: []
+  debug_session: .planning/debug/cost-template-save-dialog.md

@@ -4,7 +4,7 @@ milestone: v1.0
 current_phase: 19
 current_phase_name: Cost Library
 status: phase_19_manual_uat
-stopped_at: Phase 19 implementation verified; manual UAT test 1 of 11 awaiting user response before Phase 20
+stopped_at: Phase 19 UAT test 1 reported a major download/import dialog issue; mitigation and diagnostics added, awaiting full-restart retest before advancement
 last_updated: "2026-10-21T06:57:10.185Z"
 last_activity: 2026-10-21
 state_head: 1e92018edf830df4b926016f7ead885de8713f9b
@@ -29,14 +29,14 @@ milestone_name: milestone
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 19 — manual UAT, test 1/11 awaiting user response (19-UAT.md). Implementation complete (2da29cb); 938 tests/build/Electron smoke pass. User requested a hands-on walkthrough before advancement. Phase 20 has not started. Original rollout agreement in RELEASE-HANDOVER.md retains all later release obligations.
+**Current Focus:** Phase 19 — manual UAT test 1/11 has a major native-dialog issue (19-UAT.md; debug/cost-template-save-dialog.md). User sees no Save or Import prompt; panel stays open, no message. Added Downloads defaults, explicit cancellation/invalid-result feedback and tagged diagnostics; awaiting full desktop restart/retest. Prior automated baseline passes; 66 focused regressions pass. Native presentation remains unverified. Phase 20 has not started.
 
 ---
 
 ## Current Position
 
 Phase: 19 — Cost Library (implementation complete; manual UAT pending)
-Plan: 19-01 implemented and verified; 19-UAT.md test 1 of 11 awaiting user response
+Plan: 19-01 implemented; UAT has 0 passed, 1 issue, 10 pending. Test 1 awaits mitigation retest.
 
 ## Performance Metrics
 
