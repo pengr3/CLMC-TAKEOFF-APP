@@ -755,11 +755,35 @@ Plans:
 4. Define and implement minimal backup/recovery behavior, including interrupted/failed saves and recoverable unsaved work; document compatibility and safe rollback limits.
 5. Installed app works offline through PDF→calibration→markup→Estimate→export; representative large/multi-page PDFs and Windows scaling preserve accurate coordinates. Resolve client-versus-internal export audience before any export scope expansion.
 
-**Plans:** 0 plans
+**Plans:** 9 plans
 
 Plans:
+**Wave 1**
 
-- [ ] TBD (run $gsd-plan-phase 20 to break down)
+- [ ] 20-01-PLAN.md — Protected coherent saves, last-good backup and save outcomes (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 20-02-PLAN.md — Persistent rate basis and invariant internal estimates/exports (wave 2)
+- [ ] 20-04-PLAN.md — Installed version, offline About/release notes and More menu (wave 2)
+- [ ] 20-08-PLAN.md — Bounded PDF raster cache and DPI/viewport accuracy (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 20-05-PLAN.md — Stable data/installer identity, package gate and supported sandboxed runtime (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 20-03-PLAN.md — Bounded local PDF recovery and restart decisions (wave 4)
+- [ ] 20-06-PLAN.md — Bounded decompression, killable import and resilient library UI (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 20-07-PLAN.md — Portable migration, explicit legacy review and safe upgraded copies (wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 20-09-PLAN.md — Inspected Windows candidate and actual installed evidence gate (wave 6)
 
 ### Phase 21: User Guide and Internal Handover
 

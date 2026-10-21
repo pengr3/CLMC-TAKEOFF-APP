@@ -11,9 +11,16 @@ Captured 2026-10-21 from the completed user discussion. See ../../RELEASE-HANDOV
 - Test installed app offline, representative large/multi-page PDFs, measurement accuracy, Windows scaling, save/reopen, rate application and exports on a non-development PC.
 - Specifically validate changing measurement display units after pricing: current name|type project rates lack a persistent unit basis. No silent incorrect cost/quantity interpretation is acceptable at release.
 
-## Open decision
+## Planning decisions approved 2026-10-21
 
-Client quotation export excluding internal cost/margin was proposed but never approved. Resolve audience before expanding export behavior; do not assume consent. Internal export already exists.
+<decisions>
+
+- **D-01 — Export audience:** Keep existing internal exports. Defer client quotations; no client-export expansion in Phase 20.
+- **D-02 — Minimal recovery:** Safely replace saved files, retain one last-good backup, and periodically save local recovery copies of unsaved work with a recovery prompt after restart. Recovery must retain the embedded PDF as well as project state.
+- **D-03 — UI contract:** Generate the Phase 20 UI design contract, then continue planning.
+- **D-04 — Autonomous continuation:** After the UI contract, proceed directly to planning. The user approves a sound reviewed plan for autonomous execution, followed by verification and a manual test run; the user explicitly authorizes driving the PC for that manual run. Routine technical choices may be resolved autonomously. Actual non-development-PC evidence and Phase 21 pilot acceptance remain distinct from local-PC tests.
+
+</decisions>
 
 ## Handover
 
