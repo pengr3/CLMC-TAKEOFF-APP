@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { TOTALS_RAIL_WIDTH } from '../lib/constants'
 
 /**
  * useUiPanels — localStorage-backed UI panel state for Phase 6 chrome
@@ -15,8 +16,8 @@ import { useSyncExternalStore } from 'react'
  *
  * Drag-resize note (Splitter coordination, Phase 6 Wave 1 — 06-02):
  * - This hook commits widths immediately to localStorage on every state
- *   change. The Splitter MUST hold the in-flight pointermove width in
- *   local component state and only call setTotalsWidth on pointerup —
+ *   change. App previews width through a DOM ref and previews open/closed
+ *   changes in local state. Only call setTotalsWidth on pointerup —
  *   otherwise we'd write 60-120 times per second during a drag.
  *   See 06-RESEARCH §5 for the locked pattern.
  *
@@ -59,6 +60,11 @@ function readStorage(): UiState {
       typeof parsed?.totals?.width === 'number' &&
       Array.isArray(parsed?.collapsedCategories)
     ) {
+      // Recover widths saved by the old splitter, which could persist an open
+      // panel at rail width. Keep a usable expanded width for the next reopen.
+      if (parsed.totals.width <= TOTALS_RAIL_WIDTH) {
+        return { ...parsed, totals: { open: false, width: DEFAULTS.totals.width } }
+      }
       return parsed as UiState
     }
     return DEFAULTS
@@ -145,13 +151,20 @@ export function __resetUiPanelsForTests(): void {
 }
 
 // Module-scope setters are permanently stable references, so useCallback is no
-// longer needed. Updater bodies are lifted verbatim from the previous hook.
+// longer needed.
 function setTotalsOpen(open: boolean): void {
   apply((s) => ({ ...s, totals: { ...s.totals, open } }))
 }
 
 function setTotalsWidth(width: number): void {
-  apply((s) => ({ ...s, totals: { ...s.totals, width } }))
+  // A splitter release commits visibility and width together, with one storage
+  // write. Collapsing remembers the last expanded width for button/chevron reopen.
+  apply((s) => {
+    const totals =
+      width <= TOTALS_RAIL_WIDTH ? { ...s.totals, open: false } : { open: true, width }
+    if (totals.open === s.totals.open && totals.width === s.totals.width) return s
+    return { ...s, totals }
+  })
 }
 
 function toggleCategoryCollapsed(name: string): void {

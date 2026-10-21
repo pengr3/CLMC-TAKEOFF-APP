@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { flushSync } from 'react-dom'
 import { TitleBar } from './components/TitleBar'
 import { TopActionBar } from './components/TopActionBar'
 import { ContextBar } from './components/ContextBar'
@@ -27,7 +28,7 @@ import { useMarkupHighlight } from './hooks/useMarkupHighlight'
 import { getCanvasControls, setChainArmedFromTotals } from './components/CanvasViewport'
 import { labelToName, rowTypeToMarkupType } from './components/TotalsRow'
 import { MARKUP_PALETTE } from './lib/markup-palette'
-import { COLORS } from './lib/constants'
+import { COLORS, TOTALS_RAIL_WIDTH } from './lib/constants'
 import type { ProjectFileV2 } from './lib/project-schema'
 import type { BoqStructure, BoqItemRow } from './lib/boq-types'
 import type { WallMarkup } from './types/markup'
@@ -58,22 +59,25 @@ function App(): React.JSX.Element {
   // Phase 6: Transient highlight state (hover ring + click pulse).
   const { hoverMatches, setHoverMatches, pulse, triggerPulse, clearPulse } = useMarkupHighlight()
 
-  // Phase 18 splitter-drag perf: drive the live Totals width IMPERATIVELY via a
-  // DOM ref during the drag — NO React setState on pointermove. The prior fix
-  // (32e62be) memoized CanvasViewport, but a per-move `setTotalsDragWidth`
-  // setState still re-rendered App + the heavy (non-memo) TotalsPanel every
-  // frame, dropping frames and smearing ("trail"). Now onDragWidth writes
-  // `el.style.width` directly on the panel node and freezes its width
-  // transition; the committed width is applied once on pointerup via
-  // setTotalsWidth (single re-render + single localStorage write). The
-  // committed width still flows through the normal `width` prop below.
+  // Resize width imperatively so ordinary pointermoves do not re-render App.
+  // Only crossing the rail boundary swaps the rail/content via a transient
+  // preview. Persist visibility and width together ONCE on pointerup.
   const totalsPanelRef = useRef<HTMLDivElement>(null)
+  const [totalsDragOpen, setTotalsDragOpen] = useState<boolean | null>(null)
+  const totalsDragOpenRef = useRef<boolean | null>(null)
   // Stashes the panel's pre-drag `transition` so we can restore it on commit.
   // (React won't re-apply an unchanged inline-style prop, so a value we mutate
   // imperatively must be restored imperatively — not left to reconciliation.)
   const dragBaseTransitionRef = useRef<string | null>(null)
 
   const handleTotalsDragWidth = useCallback((w: number): void => {
+    const open = w > TOTALS_RAIL_WIDTH
+    if ((totalsDragOpenRef.current ?? totals.open) !== open) {
+      totalsDragOpenRef.current = open
+      // Mount the correct panel contents before writing its live DOM width.
+      // This runs only on an open/closed boundary crossing, not every move.
+      flushSync(() => setTotalsDragOpen(open))
+    }
     const el = totalsPanelRef.current
     if (!el) return
     if (dragBaseTransitionRef.current === null) {
@@ -83,7 +87,7 @@ function App(): React.JSX.Element {
       el.style.transition = 'none'
     }
     el.style.width = `${w}px`
-  }, [])
+  }, [totals.open])
 
   const handleTotalsCommitWidth = useCallback(
     (finalWidth: number): void => {
@@ -93,12 +97,11 @@ function App(): React.JSX.Element {
         el.style.transition = dragBaseTransitionRef.current
         dragBaseTransitionRef.current = null
       }
-      // Single commit: writes localStorage once and re-renders TotalsPanel with
-      // the committed `width` prop. That prop value === the width the imperative
-      // drag already left on the DOM, so React reconciles style.width with no
-      // visual jump. The min-width auto-collapse threshold applies to this
-      // committed value (via the persisted totals.width), exactly as before.
+      // setTotalsWidth also commits open/closed state and preserves the last
+      // expanded width when released at the rail minimum.
       setTotalsWidth(finalWidth)
+      totalsDragOpenRef.current = null
+      setTotalsDragOpen(null)
     },
     [setTotalsWidth]
   )
@@ -542,9 +545,9 @@ function App(): React.JSX.Element {
           <>
             <Splitter
               side="right"
-              panelWidth={totals.width}
+              panelWidth={totals.open ? totals.width : TOTALS_RAIL_WIDTH}
               containerWidth={containerWidth}
-              minWidth={28}
+              minWidth={TOTALS_RAIL_WIDTH}
               onDragWidth={handleTotalsDragWidth}
               onCommit={handleTotalsCommitWidth}
               ariaLabel="Resize Totals panel"
@@ -553,7 +556,7 @@ function App(): React.JSX.Element {
             {/* Right: Totals panel — collapsible BOQ summary */}
             <TotalsPanel
               ref={totalsPanelRef}
-              open={totals.open}
+              open={totalsDragOpen ?? totals.open}
               width={totals.width}
               onSetOpen={setTotalsOpen}
               onSetWidth={setTotalsWidth}

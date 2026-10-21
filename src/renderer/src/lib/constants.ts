@@ -4,6 +4,8 @@ export const MIN_ZOOM = ZOOM_STEPS[0] // 0.25
 export const MAX_ZOOM = ZOOM_STEPS[ZOOM_STEPS.length - 1] // 8
 export const DEFAULT_ZOOM = 1
 
+export const TOTALS_RAIL_WIDTH = 28
+
 export const MAX_CANVAS_DIM = 16384
 export const PDF_BASE_SCALE = 2.0
 

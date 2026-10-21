@@ -1,7 +1,7 @@
 import { forwardRef, useState } from 'react'
 import type React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { COLORS } from '../lib/constants'
+import { COLORS, TOTALS_RAIL_WIDTH } from '../lib/constants'
 import { useBoqLive } from '../hooks/useBoqLive'
 import { useViewerStore } from '../stores/viewerStore'
 import { useMarkupStore } from '../stores/markupStore'
@@ -68,7 +68,6 @@ export interface TotalsPanelProps {
   onArmTool?: (item: BoqItemRow, categoryName: string) => void
 }
 
-const RAIL_WIDTH = 28
 const SPLITTER_ANIM_MS = 150
 
 // Stable empty array reference — per-render fallback for the page-markups
@@ -137,7 +136,7 @@ export const TotalsPanel = forwardRef<HTMLDivElement, TotalsPanelProps>(function
         ref={ref}
         data-testid="totals-panel-rail"
         style={{
-          width: RAIL_WIDTH,
+          width: TOTALS_RAIL_WIDTH,
           flexShrink: 0,
           background: COLORS.dominant,
           borderLeft: `1px solid ${COLORS.border}`,
