@@ -8,18 +8,18 @@ updated: 2026-10-21
 
 ## Current Test
 
-number: 5
-name: Search and block incompatible units
+number: 6
+name: Manual override and revised library do not silently reprice
 expected: |
-  Test 4 passed—**4 of 11 tests passed**.
+  Test 5 passed—**5 of 11 tests passed**.
 
-  1. In **Estimate**, click the **book icon** beside **Test Outlet**.
-  2. Search for **E001**, then clear the search and try **Test Outlet**, then **Electrical**. Each search should find E001.
-  3. Clear the search to show both items. Check **F001 — Test Wall Painting**, whose unit is **m²**.
-  4. Its selection button should be disabled and indicate **Needs ea**, because Test Outlet is a count item.
-  5. Select **E001**. The picker should stay open with **Apply Rates** available. Choose **Close** to exit without applying.
+  1. In **Estimate**, manually change **Test Outlet → Material** to **125**. Press Enter or click outside the cell to commit it.
+  2. In Excel, make a copy of your test library. Change **E001 → Material Unit Rate** to **200**, leaving its labor rate at **80**. Save as **Phase19-Test-Library-Revision.xlsx**.
+  3. Import that revision and choose **Replace Library**.
+  4. Close the library panel and check Test Outlet: its material rate must still be **125**, with labor **80** and markup **30%**.
+  5. Open that row's **book icon**, select **E001**, and choose **Apply Rates**.
 
-  **Expected:** Search works by code, description and category; incompatible units cannot be selected; choosing an item still requires an explicit **Apply Rates** action. Your Estimate remains unchanged after closing.
+  **Expected:** Importing alone preserves your manual rate. Explicitly applying changes material to **200**, while labor stays **80**, markup stays **30%**, and quantity stays **2 ea**. The resulting **Cost** is **₱560** and **Total** is **₱728**.
 awaiting: user response
 
 ## Test Setup
@@ -58,7 +58,8 @@ reported: "pass"
 
 ### 5. Search and block incompatible units
 expected: Open the Test Outlet row's library picker. Search by E001, Test Outlet and Electrical to find its entry. F001's m² rate cannot be selected/applied to this ea count row; its button explains the required unit. A compatible entry remains selectable. Selecting alone does not apply prices; Apply Rates is explicit.
-result: [pending]
+result: pass
+reported: "pass"
 
 ### 6. Manual override and revised library do not silently reprice
 expected: Manually change Test Outlet's material rate to 125 and commit the edit. Change E001 in a copy of the master spreadsheet to material 200/labor 80, then import and confirm replacement. The existing Estimate still has material 125 and retains its markup. Only explicitly selecting E001 and applying again changes the row to material 200/labor 80; quantity and markup stay unchanged.
@@ -87,9 +88,9 @@ result: [pending]
 ## Summary
 
 total: 11
-passed: 4
+passed: 5
 issues: 0
-pending: 7
+pending: 6
 skipped: 0
 blocked: 0
 

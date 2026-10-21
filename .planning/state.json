@@ -132,7 +132,7 @@
   "next": {
     "command": "/gsd:verify-work 19",
     "label": "Continue Phase 19 manual UAT",
-    "reason": "Phase 19 manual UAT: 4 passed, 7 pending; Test 5 search, incompatible-unit blocking and explicit application awaits response"
+    "reason": "Phase 19 manual UAT: 5 passed, 6 pending; Test 6 manual override, revised library and explicit reapply awaits response"
   },
-  "updated_at": "2026-10-21T08:55:21.0515135Z"
+  "updated_at": "2026-10-21T08:56:30.4236991Z"
 }
