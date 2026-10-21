@@ -168,7 +168,8 @@ describe('cost library workflow UI', () => {
     expect(useProjectStore.getState().rates['Outlet|count']).toEqual({
       material: 100,
       labor: 80,
-      markup: 30
+      markup: 30,
+      basis: 'ea', review: 'reviewed'
     })
     expect(close).toHaveBeenCalledOnce()
   })

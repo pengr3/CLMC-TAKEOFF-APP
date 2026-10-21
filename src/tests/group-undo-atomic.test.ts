@@ -233,7 +233,7 @@ describe('group-undo-atomic — copyGroup reverts markups + rate with ONE Ctrl+Z
 
     useMarkupStore.getState().copyGroup('A', 'Finishes')
     // Sanity: the copy landed in BOTH stores (new markups + a blank rate).
-    expect(useProjectStore.getState().rates['A (2)|count']).toEqual(rate(0, 0))
+    expect(useProjectStore.getState().rates['A (2)|count']).toEqual({ ...rate(0, 0), basis: 'ea', review: 'reviewed' })
     expect(
       Object.values(useMarkupStore.getState().pageMarkups)
         .flat()
@@ -278,7 +278,7 @@ describe('group-undo-atomic — duplicateGroup reverts markups + rate with ONE C
       .flat()
       .filter((m) => m.name === 'A').length
     expect(sourceCountAfter).toBe(sourceCountBefore)
-    expect(useProjectStore.getState().rates['A (2)|count']).toEqual(rate(0, 0))
+    expect(useProjectStore.getState().rates['A (2)|count']).toEqual({ ...rate(0, 0), basis: 'ea', review: 'reviewed' })
 
     useMarkupStore.getState().undo()
 

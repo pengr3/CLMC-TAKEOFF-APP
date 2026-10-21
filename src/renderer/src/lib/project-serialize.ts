@@ -12,7 +12,7 @@ import type { PageScale } from '../types/scale'
 import type { ViewportState } from '../types/viewer'
 import type { PriceEntry } from './boq-types'
 import { DEFAULT_MARKUP_PCT } from './estimate-defaults'
-import { inferredRateBasis } from './rate-units'
+import { inferredRateBasis, validateRateEntries } from './rate-units'
 
 export interface SnapshotParams {
   pdfOriginalFilename: string  // display name only (D-04); v1 path-based fields removed in Phase 4.1
@@ -87,6 +87,8 @@ export function snapshotProject(params: SnapshotParams, captured?: ProjectFileV2
  * Excludes transient state (D-09): undoStack, redoStack, calibMode, activeTool.
  */
 export function hydrateStores(data: ProjectFileV2): void {
+  // Validate before resetting any live stores, including recovery/direct hydration.
+  validateRateEntries(data.rates)
   suspendDirtyTracking()
   try {
     useProjectStore.getState().reset()

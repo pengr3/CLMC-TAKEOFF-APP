@@ -111,7 +111,7 @@ describe('markupStore — copyGroup (Civil → Finishes)', () => {
     useMarkupStore.getState().copyGroup('Slab', 'Finishes')
 
     const { rates } = useProjectStore.getState()
-    expect(rates['Slab (2)|area']).toEqual(BLANK)
+    expect(rates['Slab (2)|area']).toEqual({ ...BLANK, basis: 'm²', review: 'reviewed' })
     expect(rates['Slab|area']).toEqual(rate(20, 8)) // source rate NOT copied/merged
   })
 
@@ -199,7 +199,7 @@ describe('markupStore — duplicateGroup (in place, same category)', () => {
   it('seeds a fresh BLANK rate at "Slab (2)|count" and appends to the source category order', () => {
     useMarkupStore.getState().duplicateGroup('Slab')
 
-    expect(useProjectStore.getState().rates['Slab (2)|count']).toEqual(BLANK)
+    expect(useProjectStore.getState().rates['Slab (2)|count']).toEqual({ ...BLANK, basis: 'ea', review: 'reviewed' })
     expect(useProjectStore.getState().rates['Slab|count']).toEqual(rate(3, 1))
     expect(useMarkupStore.getState().categoryItemOrder[CIVIL]).toEqual([
       'Slab|count',

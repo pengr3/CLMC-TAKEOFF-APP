@@ -12,7 +12,7 @@ import type { PriceEntry } from '@renderer/lib/boq-types'
 // already exists — addBlankRate would clobber the orphan and undo would delete it.
 
 const CIVIL = 'cat-civil'
-const BLANK: PriceEntry = { material: 0, labor: 0, markup: 30 }
+const BLANK: PriceEntry = { material: 0, labor: 0, markup: 30, basis: 'm²', review: 'reviewed' }
 
 function cat(id: string, name: string, paletteIndex: number): Category {
   return { id, name, color: '#123456', paletteIndex }

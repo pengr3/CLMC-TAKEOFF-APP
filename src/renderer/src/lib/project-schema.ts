@@ -2,6 +2,7 @@ import type { Markup } from '../types/markup'
 import type { ScaleUnit, PageScale } from '../types/scale'
 import type { ViewportState } from '../types/viewer'
 import type { PriceEntry } from './boq-types'
+import { validateRateEntries } from './rate-units'
 
 // ----- v1 (legacy plain-JSON .clmc) -----
 // Kept for migration source. New code should use ProjectFileV2.
@@ -90,11 +91,11 @@ export interface ProjectFileV2 {
    * Additive in Phase 15, WIDENED in Phase 16 — absent in pre-Phase-15 files;
    * defaults to {} on load. Per-(name|type) PriceEntry `{ material, labor, markup }`
    * (markup a PERCENT), keyed by the string `${name}|${type}` (category-
-   * INDEPENDENT). A Phase-15 `.clmc` carries the legacy scalar `Record<string,
-   * number>` form; the hydrate coercion maps it to PriceEntry back-compat. NO
-   * formatVersion bump — validateV2 adds no branch, the field rides the trailing
-   * `return raw as ProjectFileV2` cast exactly like hiddenItemNames. Malformed
-   * values are sanitized at hydrate, not here.
+   * INDEPENDENT). Phase 20 adds explicit rate basis/review metadata. A Phase-15
+   * `.clmc` carries legacy scalar numbers; basis-less objects are also supported
+   * through legacy hydrate coercion and remain unresolved. Explicit bases,
+   * dimensions, review states and numbers are validated before store mutation.
+   * Plan 20-07 supplies the upgraded reader floor and original-preserving UX.
    */
   rates?: Record<string, PriceEntry>
   /**
@@ -146,6 +147,8 @@ export function validateV2(raw: unknown): ProjectFileV2 {
   if (!Array.isArray(r.categoryOrder)) throw new Error('Invalid categoryOrder')
   if (typeof r.currentPage !== 'number') throw new Error('Invalid currentPage')
   if (!Array.isArray(r.pages)) throw new Error('Invalid pages')
+
+  validateRateEntries(r.rates)
 
   return raw as ProjectFileV2
 }

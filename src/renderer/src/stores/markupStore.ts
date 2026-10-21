@@ -7,6 +7,9 @@ import { setReopenSnapshot } from '../lib/markup-reopen-ref'
 import { collisionExists, autoUniqueName, snapshotGroup } from '../lib/group-ops'
 import type { PriceEntry } from '../lib/boq-types'
 import { DEFAULT_MARKUP_PCT } from '../lib/estimate-defaults'
+import { visibleRateBasis } from '../lib/rate-units'
+import { useScaleStore } from './scaleStore'
+import type { ScaleUnit } from '../types/scale'
 // Phase 17-02: markupStore orchestrates the projectStore side of the cross-store
 // commands (rename re-keys rates/hidden; copy/dup add/remove a blank rate). This is a
 // NEW markupStore→projectStore module reference, while projectStore already imports
@@ -296,8 +299,8 @@ interface SnapshotPayload {
  * ("{base} (n)"), deep-clones every source markup into `targetCategoryId` with fresh ids +
  * fresh per-page count sequences (snapshotGroup — Pitfall 6), and derives a fresh BLANK rate
  * `{ material:0, labor:0, markup: DEFAULT_MARKUP_PCT }` at a DISTINCT `${newName}|${type}`
- * key per type present, plus the matching order-append key. Pure — callers inject
- * `allMarkups` (no store reads), so it is Node-testable and never double-reads state.
+ * key per type present, with captured visible basis and the matching order-append key.
+ * Pure — callers inject markups/unit (no store reads), so redo retains exact metadata.
  */
 function buildSnapshotPayload(
   name: string,
@@ -305,7 +308,8 @@ function buildSnapshotPayload(
   allMarkups: Markup[],
   /** Existing projectStore rate keys — excluded from the auto-name so copy/duplicate never
    *  reuses a name that already carries an orphaned rate (see autoUniqueName). */
-  existingRateKeys: Iterable<string> = []
+  existingRateKeys: Iterable<string> = [],
+  rateUnit: ScaleUnit = 'm'
 ): SnapshotPayload {
   const sourceMarkups = allMarkups.filter((m) => m.name === name)
   const sourceTypes = new Set(sourceMarkups.map((m) => m.type))
@@ -316,7 +320,8 @@ function buildSnapshotPayload(
   const orderAppends: Array<{ catKey: string; itemKey: string }> = []
   for (const t of sourceTypes) {
     const itemKey = `${newName}|${t}`
-    rateKeys.push({ key: itemKey, entry: { material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT } })
+    rateKeys.push({ key: itemKey, entry: { material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT,
+      basis: visibleRateBasis(t, rateUnit), review: 'reviewed' } })
     orderAppends.push({ catKey, itemKey })
   }
   return { newMarkups, rateKeys, orderAppends }
@@ -799,8 +804,8 @@ const createMarkupStore = () =>
         const ps = useProjectStore.getState()
         // Pass the current rate keys so the auto-name skips any that already carry an orphaned
         // rate (addBlankRate would otherwise clobber it and undo would delete it — data loss).
-        const payload = buildSnapshotPayload(name, targetCat.id, allMarkups, Object.keys(ps.rates))
-        for (const rk of payload.rateKeys) ps.addBlankRate(rk.key)
+        const payload = buildSnapshotPayload(name, targetCat.id, allMarkups, Object.keys(ps.rates), useScaleStore.getState().globalUnit)
+        for (const rk of payload.rateKeys) ps.setPrice(rk.key, rk.entry)
         set((s) => snapshotForwardReducer(s, 'copy-group', payload))
       },
 
@@ -815,9 +820,10 @@ const createMarkupStore = () =>
           name,
           source[0].categoryId,
           allMarkups,
-          Object.keys(ps.rates)
+          Object.keys(ps.rates),
+          useScaleStore.getState().globalUnit
         )
-        for (const rk of payload.rateKeys) ps.addBlankRate(rk.key)
+        for (const rk of payload.rateKeys) ps.setPrice(rk.key, rk.entry)
         set((s) => snapshotForwardReducer(s, 'duplicate-group', payload))
       },
 

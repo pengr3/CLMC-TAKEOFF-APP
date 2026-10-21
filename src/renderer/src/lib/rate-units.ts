@@ -7,7 +7,8 @@ export type RateBasis = 'ea' | ScaleUnit | `${ScaleUnit}²`
 export type RateReview = 'reviewed' | 'legacy-unresolved'
 
 export function inferredRateBasis(key: string, unit: unknown): RateBasis {
-  const savedUnit = typeof unit === 'string' && Object.hasOwn(MM_PER_UNIT, unit) ? unit as ScaleUnit : 'm'
+  const savedUnit =
+    typeof unit === 'string' && Object.hasOwn(MM_PER_UNIT, unit) ? (unit as ScaleUnit) : 'm'
   return visibleRateBasis(rateTypeFromKey(key) ?? 'linear', savedUnit)
 }
 
@@ -19,13 +20,18 @@ export function visibleRateBasis(type: BoqRowType, unit: ScaleUnit): RateBasis {
 
 export function rateTypeFromKey(key: string): BoqRowType | null {
   const type = key.slice(key.lastIndexOf('|') + 1)
-  return ['count', 'linear', 'perimeter', 'area', 'wall'].includes(type) ? type as BoqRowType : null
+  return ['count', 'linear', 'perimeter', 'area', 'wall'].includes(type)
+    ? (type as BoqRowType)
+    : null
 }
 
 export function isRateBasis(value: unknown): value is RateBasis {
-  return typeof value === 'string' && (value === 'ea' ||
-    Object.hasOwn(MM_PER_UNIT, value) ||
-    (value.endsWith('²') && Object.hasOwn(MM_PER_UNIT, value.slice(0, -1))))
+  return (
+    typeof value === 'string' &&
+    (value === 'ea' ||
+      Object.hasOwn(MM_PER_UNIT, value) ||
+      (value.endsWith('²') && Object.hasOwn(MM_PER_UNIT, value.slice(0, -1))))
+  )
 }
 
 function dimension(basis: RateBasis): number {
@@ -34,6 +40,32 @@ function dimension(basis: RateBasis): number {
 
 export function basisMatchesType(basis: RateBasis, type: BoqRowType): boolean {
   return dimension(basis) === (type === 'count' ? 0 : type === 'area' || type === 'wall' ? 2 : 1)
+}
+
+/** Old basis-less rates retain hydrate's legacy coercion. Explicit metadata is strict. */
+export function validateRateEntries(rates: unknown): void {
+  if (!rates || typeof rates !== 'object') return
+  for (const [key, value] of Object.entries(rates)) {
+    if (['__proto__', 'constructor', 'prototype'].includes(key)) continue
+    if (!value || typeof value !== 'object') continue
+    const entry = value as Record<string, unknown>
+    if (!Object.hasOwn(entry, 'basis') && !Object.hasOwn(entry, 'review')) continue
+    const type = rateTypeFromKey(key)
+    if (!isRateBasis(entry.basis) || !type || !basisMatchesType(entry.basis, type))
+      throw new Error(`Invalid rate basis for ${key}`)
+    if (
+      entry.review !== undefined &&
+      entry.review !== 'reviewed' &&
+      entry.review !== 'legacy-unresolved'
+    )
+      throw new Error(`Invalid rate review status for ${key}`)
+    if (
+      ![entry.material, entry.labor, entry.markup].every(
+        (v) => typeof v === 'number' && Number.isFinite(v) && v >= 0
+      )
+    )
+      throw new Error(`Invalid rate values for ${key}`)
+  }
 }
 
 function canonicalSize(basis: RateBasis): number {
@@ -51,7 +83,11 @@ export function convertUnitRate(rate: number, from: RateBasis, to: RateBasis): n
 }
 
 /** Both rates move together; markup and unresolved review status retain their meaning. */
-export function priceInBasis(entry: PriceEntry | undefined, to: RateBasis, legacyBasis = to): PriceEntry {
+export function priceInBasis(
+  entry: PriceEntry | undefined,
+  to: RateBasis,
+  legacyBasis = to
+): PriceEntry {
   const from = entry?.basis ?? legacyBasis
   return {
     ...entry,

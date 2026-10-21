@@ -163,7 +163,7 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
   // cleared field reverts to the default markup; a typed value → clamp ≥ 0.
   const commitMarkup = (text: string): void => {
     const parsed = parseFloat(text)
-    if (Number.isNaN(parsed)) {
+    if (!Number.isFinite(parsed)) {
       useProjectStore.getState().setPrice(priceKey, { markup: DEFAULT_MARKUP_PCT })
       return
     }
