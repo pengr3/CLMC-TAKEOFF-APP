@@ -8,22 +8,18 @@ updated: 2026-10-21
 
 ## Current Test
 
-number: 2
-name: Fill the template, preview an import, then cancel
+number: 3
+name: Confirm replacement and retain the library after restart
 expected: |
-  Test 1 passed. In Excel, fill the **Cost Library** worksheet with these two rows, keeping its headings unchanged:
+  Test 2 passed—**2 of 11 tests passed**.
 
-  | Item Code | Description | Category | Unit | Material Unit Rate | Labor Unit Rate |
-  |---|---|---|---|---:|---:|
-  | E001 | Test Outlet | Electrical | pcs | 100 | 80 |
-  | F001 | Test Wall Painting | Finishes | m² | 50 | 20 |
+  1. Import **Phase19-Test-Library.xlsx** again through **Estimate → Cost Library → Import CSV / Excel**.
+  2. Choose **Replace Library**.
+  3. Confirm the current library shows the filename, import time and **2 items**.
+  4. Fully close and relaunch the app. If using development mode, restart **npm run dev**. Keep the Excel file closed.
+  5. Open **Estimate → Cost Library** again.
 
-  1. Save a copy as **Phase19-Test-Library.xlsx**.
-  2. In the app, open **Estimate → Cost Library → Import CSV / Excel** and select that file.
-  3. Check that the preview shows both items and their correct rates. The unit **pcs** may appear as **ea**; both mean “each.”
-  4. Choose **Cancel Import**.
-
-  **Expected:** The file picker opens, the preview is correct, and cancelling leaves your previous library—or its empty state—unchanged.
+  **Expected:** Both items remain available without reimporting: **E001** has material **100**, labor **80**; **F001** has material **50**, labor **20**.
 awaiting: user response
 
 ## Test Setup
@@ -43,11 +39,12 @@ related_report: "Import CSV / Excel also opens no file-selection dialog."
 severity: major
 retest_note: "Use the latest rebuilt desktop process. Download/Import now start in Downloads, show explicit cancellation or failure feedback, and log tagged cost-library diagnostics. User must confirm actual Save dialog presentation; automated tests simulate native selections."
 retest_result: "okay now i can download and definitely can see the excel worksheet. Now let's go to next manual test"
-resolution: "User confirms template download and Excel worksheet open successfully. Related native Import presentation will be retested in Test 2; not yet claimed as passed."
+resolution: "User confirms template download and Excel worksheet open successfully; native Import picker, preview and cancellation subsequently confirmed in Test 2."
 
 ### 2. Fill the template, preview an import, then cancel
 expected: In the Cost Library worksheet add E001 | Test Outlet | Electrical | pcs | 100 | 80 and F001 | Test Wall Painting | Finishes | m² | 50 | 20. Save a test .xlsx. Import it: preview shows the correct two items/rates; nothing is replaced until confirmation. Cancel Import returns to the previous library or empty state unchanged.
-result: [pending]
+result: pass
+reported: "pass"
 
 ### 3. Confirm replacement and retain the library after restart
 expected: Import the test .xlsx again and choose Replace Library. The current library shows its filename, import time and two items. Close/relaunch the app and reopen Cost Library: the same items and rates remain available without reopening the master spreadsheet.
@@ -88,9 +85,9 @@ result: [pending]
 ## Summary
 
 total: 11
-passed: 1
+passed: 2
 issues: 0
-pending: 10
+pending: 9
 skipped: 0
 blocked: 0
 
@@ -102,7 +99,7 @@ blocked: 0
   severity: major
   test: 1
   root_cause: "Silent cancellation feedback was confirmed in code; added explicit feedback/diagnostics and Downloads defaults. Exact original native-dialog cause was not isolated. User confirms download works on retest."
-  resolution: "Download and Excel worksheet confirmed by user; Import presentation remains the next pending test."
+  resolution: "Download/Excel worksheet confirmed in Test 1; native Import picker, preview and cancellation confirmed by user in Test 2."
   artifacts: [src/renderer/src/components/CostLibraryDialog.tsx, src/main/cost-library-ipc.ts]
   missing: []
   debug_session: .planning/debug/cost-template-save-dialog.md

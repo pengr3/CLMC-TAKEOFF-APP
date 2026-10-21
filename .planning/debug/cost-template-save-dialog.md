@@ -1,5 +1,5 @@
 ---
-status: awaiting-import-retest
+status: resolved
 trigger: "i started and tried to download template but nothing happened. no prompt where to save or whatever. the screen just jitters then nothing. Console also logged nothing"
 created: 2026-10-21
 updated: 2026-10-21
@@ -16,7 +16,7 @@ First human UAT, never confirmed working manually. Automated smoke simulated nat
 
 ## Current Focus
 
-next_action: UAT Test 2 verifies actual native Import file picker, correct preview and cancellation; user confirmed Download/Excel worksheet now work
+next_action: none for the reported dialog issue; continue Phase 19 UAT Test 3 for confirmed library replacement and restart persistence
 hypotheses:
 - Native save immediately returns canceled; renderer intentionally clears feedback on cancellation. This matches a remaining panel and no message, but has not been established.
 - Real pointer click is lost when focus/disabled-state changes (prior tests used HTMLElement.click, not actual pointer events).
@@ -33,6 +33,8 @@ hypotheses:
 - Verified the user's running process is this repository's electron-vite dev → electron.exe application; no alternate checkout/build inferred.
 
 ## Fix / verification
+
+User confirmed UAT Test 2 with "pass" on 2026-10-21: actual Import file picker, two-item preview and cancellation now work. Both reported native-dialog symptoms are resolved by human retest. Continue the remaining library UAT; this does not establish replacement/restart persistence, which is Test 3. Exact original native cause remains unisolated.
 
 User retest (2026-10-21): "okay now i can download and definitely can see the excel worksheet. Now let's go to next manual test". UAT Test 1 passed; original download gap resolved. Do not infer that Import is also fixed: Test 2 now covers its native picker, preview and cancellation. The original native cause remains unisolated; record successful mitigation rather than invent a diagnosis.
 
