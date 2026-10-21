@@ -3,7 +3,7 @@ phase: quick-260820-jru
 plan: 01
 subsystem: canvas-rendering
 tags: [konva, z-order, hit-testing, markup, regression-lock]
-status: paused-at-checkpoint
+status: complete
 requires:
   - CanvasViewport Layer 1b (plan 03.1-05)
   - MarkupType union (types/markup.ts)
@@ -32,7 +32,7 @@ decisions:
   - "The reorder was performed by a scripted, verbatim block move rather than hand-editing, so the added-vs-removed line diff could prove ZERO removals (pure movement, no hidden prop/fill/listening edit)"
 metrics:
   duration: 13min (14:20 -> 14:33, checkpoint reached)
-  tasks_completed: 2 of 3 (task 3 is a blocking human-verify checkpoint)
+  tasks_completed: 3 of 3 (human verification completed 2026-10-21)
   files_changed: 3
   completed: 2026-08-20
 ---
@@ -220,21 +220,21 @@ or lockfile change.
 
 ---
 
-## CHECKPOINT — Task 3 awaiting human verification
+## Task 3 — Human verification completed 2026-10-21
 
-**Task 3 is `checkpoint:human-verify` with `gate="blocking"`. It was NOT self-approved and
-NOT executed.** `auto_advance` is false. The executor cannot see the running app, and the
-bug being fixed was originally reproduced by the user interactively — so only the user can
-confirm the fix.
+**All six interactive checks passed, confirmed individually by the user.** Pin selection,
+area selection away from pins, visible drawing depth, the pin's context menu, pin hover
+feedback, and dragging the pin without moving the surrounding area were all verified in
+the running app. Results are recorded in `260820-jru-UAT.md`.
 
-The `npm run dev` Electron dev server running against this tree has hot-reloaded both
-changes, so no restart should be needed.
+The latest automated run during the walkthrough passed 877 tests in 121 files, and
+TypeScript checks passed.
 
-### The one thing that must be confirmed
+### Primary regression — confirmed
 
 **Click a count pin that sits inside an area markup. The PIN must be selected, not the area.**
 
-### Full verification steps
+### Full verification steps — completed
 
 1. Open a project (or load a PDF and calibrate a page).
 2. Draw an **area** markup — a reasonably large polygon.
@@ -254,7 +254,7 @@ changes, so no restart should be needed.
 9. Drag the count pin inside the area by its body.
    **Expected:** the PIN moves. The area does not.
 
-**Resume signal:** type `approved`, or describe which markup still wins the click.
+**Checkpoint resolved:** user confirmed every check with "yes" during the walkthrough.
 
 ---
 

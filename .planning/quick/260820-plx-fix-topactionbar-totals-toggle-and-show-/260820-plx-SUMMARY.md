@@ -3,7 +3,7 @@ phase: quick-260820-plx
 plan: 01
 subsystem: renderer-ui-chrome
 tags: [top-action-bar, ui-panels, visibility, shared-store, useSyncExternalStore]
-status: awaiting-human-verify
+status: complete-with-deferred-category-collapse
 requires:
   - src/renderer/src/stores/projectStore.ts (hiddenItemNames, setHiddenItemNames, markDirty)
   - src/renderer/src/stores/markupStore.ts (pageMarkups)
@@ -34,7 +34,7 @@ decisions:
   - "Hide All highlight is guarded by allItemKeys.length > 0 because [].every() is vacuously true"
 metrics:
   duration: ~12min
-  tasks_completed: 2 of 3 (task 3 is a blocking human-verify checkpoint)
+  tasks_completed: 3 of 3 (human walkthrough completed 2026-10-21; category-collapse check skipped as unnecessary by user)
   completed: 2026-08-20
 ---
 
@@ -47,9 +47,12 @@ the Estimate sheet), and wired Show All / Hide All to light up reactively from l
 
 ## Status
 
-**Tasks 1 and 2 COMPLETE and committed. Task 3 is a BLOCKING human-verify checkpoint and has
-NOT been performed or self-approved.** The quick task is not closed until the user runs the
-9-step checklist in the plan's `<how-to-verify>` block and replies with the resume signal.
+**Human walkthrough completed 2026-10-21: 10 checks passed, 1 skipped.** The user confirmed
+toolbar/chevron toggling, open/width persistence across full restarts, visibility highlighting,
+and smooth resizing. Two newly reported slider issues were fixed and user-verified; the latest
+full suite passed 877 tests in 121 files, with typecheck clean. Category collapse was reported
+nonfunctional but the user considers it unnecessary; that check is skipped and its issue
+deferred, not passed. See `260820-plx-UAT.md` and `.planning/debug/totals-slider-open-state.md`.
 
 ## What Changed
 
@@ -171,13 +174,10 @@ None. No new network endpoints, auth paths, file access patterns, or schema chan
 `clmc.ui` payload and the `.clmc` schema are both unchanged; `allItemKeys` is compared for a
 boolean highlight only and is never rendered as HTML or used in a query or path.
 
-## Outstanding — BLOCKING
+## Outstanding — Deferred
 
-**Task 3 (`checkpoint:human-verify`, `gate="blocking"`) is NOT done.** Both defects are UI-feel
-defects — a dead button and missing state indication — that no unit test can fully close out.
-The 9-step checklist from the plan must be run against `npm run dev` with a PDF open and at least
-three markups spread across two names. Resume signal: "approved", or a description of what was
-seen instead.
+Category collapse remains unverified and reportedly nonfunctional. The user chose to skip it
+as unnecessary during the walkthrough. No category-collapse removal or repair was implemented.
 
 ## Self-Check: PASSED
 

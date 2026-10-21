@@ -24,10 +24,13 @@ edge of the window.
   setting. Collapse the panel with its chevron and the top-bar button goes dark
   in the same instant; reopen it from the top bar and the panel slides back.
 - The panel's open/closed state and its width are remembered between sessions.
+- Drag the divider left from the collapsed rail to reveal Totals immediately.
+- Drag it fully right to show the same narrow rail as the button or chevron.
+  Reopening restores the last expanded width.
 
-Collapsing a category is also a shared setting: a category you collapse in the
-Totals panel is collapsed in the **Estimate** sheet too, and the reverse. That
-shared list is remembered between sessions as well.
+Category collapse is a known deferred issue: during the 2026-10-21 walkthrough,
+the user reported headings did not collapse and chose to skip this feature as
+unnecessary. Its shared-state behavior has not been accepted in human testing.
 
 ### Show All
 
