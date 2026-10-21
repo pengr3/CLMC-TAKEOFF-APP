@@ -4,15 +4,15 @@ milestone: v1.0
 current_phase: 20
 current_phase_name: Production Readiness
 status: ready_to_plan
-stopped_at: Phase 19 complete, ready to plan Phase 20
-last_updated: "2026-10-21T15:09:55.237Z"
+stopped_at: Completed 20-01-PLAN.md; continue with 20-02
+last_updated: "2026-10-21T15:33:26.913Z"
 last_activity: 2026-10-21
-state_head: 36331b0d0f55e94b6d9fd4e15a0d8c9ea8dded0f
+state_head: ab12359be21bb8addf50a9c455dbab17bd16bb73
 progress:
   total_phases: 25
-  completed_phases: 23
+  completed_phases: 5
   total_plans: 130
-  completed_plans: 123
+  completed_plans: 122
 milestone_name: milestone
 ---
 
@@ -28,14 +28,14 @@ milestone_name: milestone
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 19 Cost Library accepted: all 11 UAT tests passed, zero unresolved UAT issues. Tests 1-8 and final pan gesture are user-confirmed; Tests 9-10 and other Test 11 checks were delegated desktop checks. Canonical verification and UAT completion predicate pass. Test coverage audited; security has zero high/critical blockers and one medium XLSX resource-budget advisory carried to Phase 20; UI review 18/24, no blockers. Next: plan Phase 20 Production Readiness using its existing CONTEXT.md and RELEASE-HANDOVER.md. Phase 20 implementation and Phase 21 pilot remain unstarted.
+**Current Focus:** Phase 20 — Production Readiness
 
 ---
 
 ## Current Position
 
-Phase: 20 (Production Readiness) — READY TO EXECUTE
-Plan: Not started
+Phase: 20 (Production Readiness) — EXECUTING
+Plan: 2 of 9
 
 Next action: `/gsd:plan-phase 20` — installer/manual upgrades for approximately 12 PCs, portable .clmc verification, recovery and installed-app checks. No deployment has occurred.
 
@@ -89,6 +89,11 @@ Next action: `/gsd:plan-phase 20` — installer/manual upgrades for approximatel
 | Phase 15 P15-02 | 11min | 3 tasks | 8 files |
 | Phase 15 P15-03 | 14min | 3 tasks | 6 files |
 | Phase 15 P15-04 | 8min | 3 tasks | 4 files |
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 20 P01 | 21min | 3 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -261,6 +266,8 @@ None.
 
 ## Session Continuity
 
+**Resume file:** None
+
 **Current UAT handoff (2026-10-21):** User asked for manual Phase 19 verification before progressing. Automated PASS remains valid, but prior completion/next-phase routing was premature for human acceptance. Started 19-UAT.md (11 human checkpoints, 0 passed, test 1 awaiting response). Phase 20 not started; do not advance until results are captured and gaps resolved. Earlier completion notes below describe implementation and are superseded for human acceptance by this entry.
 
 **2026-10-21 authoritative handoff:** User approved the three-phase rollout and beginning implementation. Roadmap/scope finalized (bef08b6), Phase 19 implemented (2da29cb), summary/verification committed (1e92018). COST-01..06 pass; 61 new tests, 938 full-suite tests, TypeScript/production build and eight built Electron workflows pass with no renderer errors. Phase 20 ready to plan; Phase 21 user guide/maintainer handover/two-PC pilot pending. All original goals retained in RELEASE-HANDOVER.md. Review unit changes after pricing during Phase 20. Client-only export is an open scope decision, not implemented. Existing untracked AGENTS.md preserved. GSD completion/sync undercounted historical phases due duplicate Phase-10 directories/older metadata; counters reconciled to the pre-session baseline plus Phase 19, without changing historical phase artifacts. Older continuity entries below are historical.
@@ -285,9 +292,9 @@ None.
 
 **Session resumed:** 2026-07-13 — restored via /gsd-resume-work, then ran `/code-review 17 --fix` (xhigh): 7 verified findings → 5 atomic fix commits — `3bcf50c` guard `__proto__` in the rates hydrate loop, `0ea71f1` grip click no longer arms the row tool, `ec82baf` pipe-safe BOQ bucket-key split, `24c0db4` orphan-rate-safe copy/duplicate auto-name, `945d198` group move/copy/duplicate order+visibility+undo. Suite 803 green, typecheck clean; each fix carries a regression test. Deferred (non-blocking): labelToName suffix-strip, editMarkup/deleteGroup key upkeep, MD-03 cross-type visibility, 5 DRY cleanups. Phase 17 STILL awaiting human UAT (4 items in 17-HUMAN-UAT.md).
 
-**Last session:** 2026-10-21T09:58:51.156Z
+**Last session:** 2026-10-21T15:33:21.423Z
 
-**Stopped at:** Phase 19 complete, ready to plan Phase 20
+**Stopped at:** Completed 20-01-PLAN.md; continue with 20-02
 
 **Historical next action (Phase 17):** **Phase 17 (Markup Rename and Reorder) EXECUTED + VERIFIED + review-fixed — awaiting human UAT.** All 7 plans built sequentially on master (feat commits `b7c651c`..`c20e383`). gsd-verifier confirmed 10/10 SPEC acceptance criteria + 11/11 decisions (D-01..D-11) against real source; suite 793 green, typecheck + build clean; the shared-order goal claim verified end-to-end (one aggregator sort → totals panel + Estimate sheet + xlsx/csv). gsd-code-reviewer found 1 High / 3 Med / 3 Low → FIXED HG-01 (blank-category guard `10daec6`), MD-01 (category-scoped inline-rename `93db214`), LW-01 (`__proto__` hydrate hardening `b0c319f`), LW-02 (drag unmount cleanup `6efe392`); DEFERRED MD-02 (move un-hides a hidden group — verifier ruled acceptable per SPEC), MD-03 (same-category cross-type visibility coupling), LW-03 (group-name case-sensitivity) — recorded in `17-REVIEW.md`. **4 human-UAT items pending** in `17-HUMAN-UAT.md`: grip-drag feel, collision-message readability, export cross-surface order parity, totals single-click-stays-instant. Once UAT-approved, mark Phase 17 complete (`phase.complete`). — Prior context (planning): **Phase 17 (Markup Rename and Reorder) PLANNED — ready to execute.** Full research-first plan-phase pipeline: 17-RESEARCH.md (HIGH confidence — corrected CONTEXT shorthand: the BOQ aggregator is renderer-side at boq-aggregator.ts:264 not src/main; the visibility key is the composite name|categoryId; categoryItemOrder lives in markupStore so reorder+move are single-store commands), 17-VALIDATION.md (Vitest; 12 Wave-0 test files), 17-PATTERNS.md (19 files → line-cited analogs), then 7 PLAN.md in 4 waves. Plan-checker: 0 blockers, 3 warnings resolved (D-02 double-click `e.detail===2` regression test added to 17-06; markupStore↔projectStore circular-import note + lazy fallback added to 17-02; RESEARCH Open Questions marked RESOLVED). Coverage: SPEC Req 1–5 ✓, decisions D-01..D-11 ✓. Waves — W1: 17-01 categoryItemOrder spine + aggregator sort swap (all 3 surfaces) + additive .clmc (no formatVersion bump). W2: 17-02 rename + cross-store one-Ctrl+Z atomic undo + group-ops, 17-03 GroupCategoryDialog + useRowReorder. W3: 17-04 move/copy/duplicate commands, 17-05 shared context menu + InlineRenameInput + collision message. W4: 17-06 totals-panel wiring, 17-07 estimate-sheet wiring. Commits: research 8855d9c, validation 494e157, patterns 505d946, plans 0b1d6ff (+ warning-fix commit). Delivers the Phase-16-deferred rename+reorder (user: "sooner or later"), extended in discuss to move/copy/duplicate; rename blocks on name collision (no merge, per user's rejection of silent merge). Next: /clear then /gsd-execute-phase 17.
 
@@ -300,3 +307,8 @@ None.
 ---
 *State initialized: 2026-03-25*
 *Last updated: 2026-05-22 — Phase 13 complete (post-commit step-level undo; 5 CR/WR fixes applied; VERIFICATION 13/13 PASS; milestone 100% complete)*
+
+## Decisions
+
+- [Phase 20]: Capture PDF bytes and metadata synchronously; acknowledge explicit saves only for matching document session and revision.
+- [Phase 20]: Save retry reuses the failed destination; canceled Save As retains the persistent failure.

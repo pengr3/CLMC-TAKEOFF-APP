@@ -755,12 +755,12 @@ Plans:
 4. Define and implement minimal backup/recovery behavior, including interrupted/failed saves and recoverable unsaved work; document compatibility and safe rollback limits.
 5. Installed app works offline through PDF→calibration→markup→Estimate→export; representative large/multi-page PDFs and Windows scaling preserve accurate coordinates. Resolve client-versus-internal export audience before any export scope expansion.
 
-**Plans:** 9 plans
+**Plans:** 1/9 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 20-01-PLAN.md — Protected coherent saves, last-good backup and save outcomes (wave 1)
+- [x] 20-01-PLAN.md — Protected coherent saves, last-good backup and save outcomes (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

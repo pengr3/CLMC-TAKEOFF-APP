@@ -76,7 +76,7 @@
     {
       "number": "11",
       "name": "Scale Ratio Input",
-      "status": "complete"
+      "status": "pending"
     },
     {
       "number": "12",
@@ -87,52 +87,12 @@
       "number": "13",
       "name": "Post-Commit Step-Level Undo",
       "status": "complete"
-    },
-    {
-      "number": "14",
-      "name": "Markup Geometry Precision — Snapping + Curved-Edge Measurement",
-      "status": "complete"
-    },
-    {
-      "number": "15",
-      "name": "BOQ Pricing & Perimeter Simplification",
-      "status": "complete"
-    },
-    {
-      "number": "16",
-      "name": "Estimating Workspace",
-      "status": "complete"
-    },
-    {
-      "number": "17",
-      "name": "Markup Rename and Reorder",
-      "status": "complete"
-    },
-    {
-      "number": "18",
-      "name": "Toolbar Revamp — Seamless One-Click Toolbar",
-      "status": "complete"
-    },
-    {
-      "number": "19",
-      "name": "Cost Library",
-      "status": "complete"
-    },
-    {
-      "number": "20",
-      "name": "Production Readiness",
-      "status": "pending"
-    },
-    {
-      "number": "21",
-      "name": "User Guide and Internal Handover",
-      "status": "pending"
     }
   ],
   "next": {
-    "command": "/gsd:plan-phase 20",
-    "label": "Plan Phase 20 Production Readiness",
-    "reason": "Phase 19 accepted: 11/11 UAT, canonical verification passed, zero blocking security/UI findings. Phase 20 context captured; installer/upgrades, portability, recovery and installed-app validation remain."
+    "command": "/gsd:progress",
+    "label": "Show progress",
+    "reason": "Unsure of state — showing progress"
   },
-  "updated_at": "2026-10-21T09:59:55.497Z"
+  "updated_at": "2026-10-21T15:33:01.210Z"
 }
