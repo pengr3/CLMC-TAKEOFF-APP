@@ -19,6 +19,7 @@ Captured 2026-10-21 from the completed user discussion. See ../../RELEASE-HANDOV
 - **D-02 — Minimal recovery:** Safely replace saved files, retain one last-good backup, and periodically save local recovery copies of unsaved work with a recovery prompt after restart. Recovery must retain the embedded PDF as well as project state.
 - **D-03 — UI contract:** Generate the Phase 20 UI design contract, then continue planning.
 - **D-04 — Autonomous continuation:** After the UI contract, proceed directly to planning. The user approves a sound reviewed plan for autonomous execution, followed by verification and a manual test run; the user explicitly authorizes driving the PC for that manual run. Routine technical choices may be resolved autonomously. Actual non-development-PC evidence and Phase 21 pilot acceptance remain distinct from local-PC tests.
+- **D-05 — Runtime (2026-10-22):** User explicitly approved exact Electron 44.9.3 after comparison with 45.0.0, support dates, and explanation of the age-only package flag. Pin 44.9.3; retain full regression, sandbox/worker smoke and installed-upgrade gates. The prior proposed 45.0.0 is superseded.
 
 </decisions>
 
