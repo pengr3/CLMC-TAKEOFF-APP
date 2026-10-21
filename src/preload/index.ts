@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer, webFrame } from 'electron'
 import type { CostLibraryApi } from '../shared/cost-library'
+import type { ReleaseInfo } from '../shared/release-info'
 
 webFrame.setVisualZoomLevelLimits(1, 1)
 
@@ -56,6 +57,7 @@ interface BoqStructure {
 }
 
 const api = {
+  getReleaseInfo: (): Promise<ReleaseInfo> => ipcRenderer.invoke('app:getReleaseInfo'),
   costLibrary: {
     load: () => ipcRenderer.invoke('costLibrary:load'),
     preview: () => ipcRenderer.invoke('costLibrary:preview'),

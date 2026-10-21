@@ -1,5 +1,6 @@
 import { useViewerStore } from '../stores/viewerStore'
 import { useProjectStore } from '../stores/projectStore'
+import { useReleaseInfo } from '../hooks/useReleaseInfo'
 
 function basename(p: string | null): string | null {
   if (!p) return null
@@ -7,6 +8,7 @@ function basename(p: string | null): string | null {
 }
 
 export function TitleBar(): React.JSX.Element {
+  const { info, loading } = useReleaseInfo()
   const fileName = useViewerStore((s) => s.fileName)
   const currentFilePath = useProjectStore((s) => s.currentFilePath)
   const isDirty = useProjectStore((s) => s.isDirty)
@@ -32,14 +34,20 @@ export function TitleBar(): React.JSX.Element {
         display: 'flex',
         alignItems: 'center',
         paddingLeft: 16,
+        paddingRight: 160,
+        gap: 8,
+        minWidth: 0,
         // @ts-expect-error -- app-region is a non-standard CSS property for Electron
         appRegion: 'drag',
         WebkitAppRegion: 'drag',
         flexShrink: 0
       }}
     >
-      <span title={title} style={{ fontSize: 13, fontWeight: 600, color: '#cccccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {title}
+      <span data-testid="project-title" title={title} style={{ minWidth: 0, fontSize: 13, fontWeight: 600, color: '#cccccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {isSaving ? 'Saving… ' : ''}{displayName}{displayName ? dirtyMark + '— ' : ''}
+      </span>
+      <span data-testid="app-version" style={{ flexShrink: 0, whiteSpace: 'nowrap', fontSize: 13, fontWeight: 600, color: '#cccccc' }}>
+        CLMC Takeoff{info?.version ? ` ${info.version}` : loading ? '' : ' — Version unavailable'}
       </span>
     </div>
   )

@@ -1,4 +1,5 @@
 import type { CostLibraryApi } from '../shared/cost-library'
+import type { ReleaseInfo } from '../shared/release-info'
 
 type ReadProjectResult =
   | { kind: 'v2-zip'; projectJson: string; pdfBytes: Uint8Array; computedSha256: string; backupPath?: string }
@@ -47,6 +48,7 @@ interface BoqStructure {
 }
 
 interface ElectronAPI {
+  getReleaseInfo: () => Promise<ReleaseInfo>
   costLibrary: CostLibraryApi
   openPdf: () => Promise<{ filePath: string; data: ArrayBuffer } | null>
   openProject: () => Promise<{ filePath: string; extension: string; fileName: string } | null>

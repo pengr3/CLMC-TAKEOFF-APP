@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import { TitleBar } from '@renderer/components/TitleBar'
 import { useProjectStore } from '@renderer/stores/projectStore'
+import { pathToFileURL } from 'node:url'
 
 const transport = vi.hoisted(() => {
   const frame = { url: 'file:///app/out/renderer/index.html' }
@@ -12,8 +13,8 @@ const transport = vi.hoisted(() => {
   return { handlers: new Map<string, (...args: any[]) => any>(), api: {} as any, frame, contents }
 })
 vi.mock('electron', () => ({
-  app: { commandLine: { appendSwitch: vi.fn() }, whenReady: () => Promise.resolve(), on: vi.fn(), getVersion: () => '1.0.0' },
-  BrowserWindow: class { webContents = transport.contents; on = vi.fn(); loadFile = vi.fn(); loadURL = vi.fn() },
+  app: { commandLine: { appendSwitch: vi.fn() }, whenReady: () => Promise.resolve(), on: vi.fn(), getVersion: () => '1.0.0', getAppPath: () => process.cwd() },
+  BrowserWindow: class { webContents = transport.contents; on = vi.fn(); loadFile = (path: string) => { transport.frame.url = pathToFileURL(path).href }; loadURL = vi.fn() },
   ipcMain: { handle: (channel: string, handler: (...args: any[]) => any) => transport.handlers.set(channel, handler), on: vi.fn() },
   ipcRenderer: { invoke: (channel: string) => transport.handlers.get(channel)?.({ sender: transport.contents, senderFrame: transport.frame }), on: vi.fn() },
   contextBridge: { exposeInMainWorld: (_name: string, api: unknown) => { transport.api = api } },
@@ -31,10 +32,12 @@ describe('trusted installed version', () => {
   it('passes the main version through the named bridge into the visible fixed app segment', async () => {
     expect(transport.api.getReleaseInfo).toBeTypeOf('function')
     window.api = transport.api
+    await transport.api.getReleaseInfo()
     useProjectStore.setState({ currentFilePath: 'C:/' + 'long-project-'.repeat(70) + '.clmc', isDirty: true, isSaving: true })
     const container = document.createElement('div')
     const root = createRoot(container)
     await act(async () => { root.render(React.createElement(TitleBar)) })
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 50)) })
     expect(container.textContent).toContain('CLMC Takeoff 1.0.0')
     expect(container.textContent).toContain('Saving…')
     expect(container.textContent).toContain('*')

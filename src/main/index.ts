@@ -1,12 +1,18 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
+import { pathToFileURL } from 'node:url'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { registerIpcHandlers } from './ipc-handlers'
 import { registerCostLibraryHandlers } from './cost-library-ipc'
+import { readReleaseInfo } from './release-info'
 
 let canClose = false
 let mainWindowRef: BrowserWindow | null = null
+const rendererFile = join(__dirname, '../renderer/index.html')
+const trustedRendererUrl = is.dev && process.env['ELECTRON_RENDERER_URL']
+  ? new URL(process.env['ELECTRON_RENDERER_URL']).href
+  : pathToFileURL(rendererFile).href
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -82,7 +88,7 @@ function createWindow(): void {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow.loadFile(rendererFile)
   }
 }
 
@@ -100,6 +106,14 @@ app.whenReady().then(() => {
 
   registerIpcHandlers()
   registerCostLibraryHandlers()
+  ipcMain.handle('app:getReleaseInfo', async (event) => {
+    const contents = mainWindowRef?.webContents
+    if (!contents || event.sender !== contents || !event.senderFrame ||
+      event.senderFrame !== contents.mainFrame || event.senderFrame.url !== trustedRendererUrl) {
+      throw new Error('Untrusted release-info sender')
+    }
+    return readReleaseInfo(app.getVersion(), join(app.getAppPath(), 'resources/release-notes.json'))
+  })
 
   // Confirm-close listener: renderer calls this after save/discard decision resolves.
   // Sets canClose=true then re-triggers the OS close — next close event is allowed through.
