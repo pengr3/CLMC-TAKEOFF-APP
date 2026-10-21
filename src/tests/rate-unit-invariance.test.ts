@@ -9,6 +9,8 @@ import { useProjectStore } from '@renderer/stores/projectStore'
 import { useScaleStore } from '@renderer/stores/scaleStore'
 import { buildBoqCsv, buildBoqXlsx } from '../main/boq-writers'
 import type { AggregateOptions } from '@renderer/lib/boq-types'
+import { snapshotProject, hydrateStores } from '@renderer/lib/project-serialize'
+import { useMarkupStore } from '@renderer/stores/markupStore'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
@@ -23,6 +25,65 @@ export const measuredFixture: AggregateOptions = {
 beforeEach(() => {
   useProjectStore.getState().reset()
   useScaleStore.setState({ globalUnit: 'm' })
+})
+
+const oracleUnits = { mm: 0.001, cm: 0.01, m: 1, in: 0.0254, ft: 0.3048 } as const
+it.each(['count', 'linear', 'perimeter', 'area', 'wall'] as const)('preserves %s money for every supported source/display unit, rate magnitude and reopen', async type => {
+  const base = { id: type, name: 'Grid A|B', type, page: 1, categoryId: '', color: '#123456', createdAt: 1 }
+  const points = type === 'area' || type === 'perimeter'
+    ? [{ x: 0, y: 0 }, { x: 10000, y: 0 }, { x: 10000, y: 2000 }, { x: 0, y: 2000 }]
+    : [{ x: 0, y: 0 }, { x: 10000, y: 0 }]
+  const markup = type === 'count' ? { ...base, point: { x: 0, y: 0 }, sequence: 1 } : { ...base, points, wallHeight: 2000 }
+  const baseQty = type === 'count' ? 1 : type === 'linear' ? 10 : type === 'perimeter' ? 24 : 20
+  const power = type === 'area' || type === 'wall' ? 2 : type === 'count' ? 0 : 1
+  const near = (actual: number, expected: number): void => expect(Math.abs(actual - expected)).toBeLessThanOrEqual(Math.max(1e-9, Math.abs(expected) * 1e-12))
+  for (const sourceUnit of Object.keys(oracleUnits) as Array<keyof typeof oracleUnits>) {
+    const sourceSize = type === 'wall' ? 1 : oracleUnits[sourceUnit] ** power
+    const basis = type === 'count' ? 'ea' : type === 'wall' ? 'm²' : sourceUnit + (power === 2 ? '²' : '')
+    for (const rate of [0, 0.000001, 100000000]) {
+      for (const unit of Object.keys(oracleUnits) as Array<keyof typeof oracleUnits>) {
+        useMarkupStore.getState().reset()
+        useMarkupStore.setState({ pageMarkups: { 1: [markup] } })
+        useScaleStore.setState({ globalUnit: unit, pageScales: { 1: { pixelsPerMm: 1, displayUnit: unit } } })
+        useProjectStore.setState({ rates: { [`Grid A|B|${type}`]: { material: rate * sourceSize, labor: rate * sourceSize / 2, markup: 0, basis, review: 'reviewed' } } })
+        const saved = JSON.parse(JSON.stringify(snapshotProject({ pdfOriginalFilename: 'plan.pdf', pdfSha256: 'abc', pdfTotalPages: 1, perPageDimensions: {} })))
+        hydrateStores(saved)
+        const boq = aggregateBoq({ totalPages: 1 })
+        const row = boq.categories[0].items[0]
+        near(row.cost, baseQty * rate * 1.5)
+        near(row.price, row.cost)
+        expect(row.margin).toBe(0)
+        const targetSize = type === 'wall' ? 1 : oracleUnits[unit] ** power
+        near(row.quantity, baseQty / targetSize)
+        near(row.material, rate * targetSize)
+        near(row.labor, rate * targetSize / 2)
+        if (sourceUnit === 'm' && rate === 100000000) {
+          const fields = buildBoqCsv(boq).split('\r\n').find(line => line.startsWith('Grid A|B,'))!.split(',')
+          expect(fields[2]).toBe(row.uom)
+          near(Number(fields[5]), row.cost)
+          const wb = new ExcelJS.Workbook()
+          await wb.xlsx.load(await buildBoqXlsx(boq))
+          let checked = false
+          wb.getWorksheet('BOQ')!.eachRow(r => {
+            if (r.getCell(1).value !== 'Grid A|B') return
+            checked = true
+            expect(r.getCell(3).value).toBe(row.uom)
+            near(r.getCell(4).value as number, row.material)
+            near(r.getCell(6).value as number, row.cost)
+          })
+          expect(checked).toBe(true)
+        }
+      }
+    }
+  }
+})
+
+it('retains zero quantity, zero rates, and explicit zero markup', () => {
+  const input = structuredClone(measuredFixture)
+  input.markups![1][0].points = [{ x: 0, y: 0 }, { x: 0, y: 0 }]
+  input.rates!['Wire|linear'] = { material: 0, labor: 0, markup: 0, basis: 'm', review: 'reviewed' }
+  const row = aggregateBoq({ ...input, globalUnit: 'ft' }).categories[0].items[0]
+  expect([row.quantity, row.material, row.labor, row.markup, row.cost, row.price, row.margin]).toEqual([0, 0, 0, 0, 0, 0, 0])
 })
 
 it('keeps measured money and real XLSX/CSV rate units invariant through m-ft-m', async () => {
