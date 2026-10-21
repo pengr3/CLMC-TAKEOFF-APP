@@ -1,0 +1,87 @@
+/** @vitest-environment jsdom */
+import { beforeEach, expect, it } from 'vitest'
+import React, { act } from 'react'
+import { createRoot } from 'react-dom/client'
+import ExcelJS from 'exceljs'
+import { aggregateBoq } from '@renderer/lib/boq-aggregator'
+import { EstimateRow } from '@renderer/components/EstimateRow'
+import { useProjectStore } from '@renderer/stores/projectStore'
+import { useScaleStore } from '@renderer/stores/scaleStore'
+import { buildBoqCsv, buildBoqXlsx } from '../main/boq-writers'
+import type { AggregateOptions } from '@renderer/lib/boq-types'
+
+globalThis.IS_REACT_ACT_ENVIRONMENT = true
+
+export const measuredFixture: AggregateOptions = {
+  markups: { 1: [{ id: 'line', type: 'linear', page: 1, name: 'Wire', categoryId: '',
+    color: '#123456', createdAt: 1, points: [{ x: 0, y: 0 }, { x: 10000, y: 0 }] }] },
+  pageScales: { 1: { pixelsPerMm: 1, displayUnit: 'm' } }, totalPages: 1,
+  categoriesById: {}, categoryOrder: [], categoryItemOrder: {}, getColorForName: () => null,
+  rates: { 'Wire|linear': { material: 10, labor: 5, markup: 20, basis: 'm', review: 'reviewed' } }
+}
+
+beforeEach(() => {
+  useProjectStore.getState().reset()
+  useScaleStore.setState({ globalUnit: 'm' })
+})
+
+it('keeps measured money and real XLSX/CSV rate units invariant through m-ft-m', async () => {
+  for (const globalUnit of ['m', 'ft', 'm'] as const) {
+    const boq = aggregateBoq({ ...measuredFixture, globalUnit })
+    const row = boq.categories[0].items[0]
+    const factor = globalUnit === 'ft' ? 0.3048 : 1
+    expect(row.cost).toBeCloseTo(150, 10)
+    expect(row.price).toBeCloseTo(180, 10)
+    expect(row.margin).toBeCloseTo(30, 10)
+    expect(row.material).toBeCloseTo(10 * factor, 10)
+    expect(row.labor).toBeCloseTo(5 * factor, 10)
+    expect(row.quantity).toBeCloseTo(10 / factor, 10)
+    const csv = buildBoqCsv(boq).split('\r\n').find(line => line.startsWith('Wire,'))!.split(',')
+    expect(csv[2]).toBe(globalUnit)
+    expect(Number(csv[3])).toBeCloseTo(row.material, 2)
+    expect(Number(csv[5])).toBe(150)
+    expect(Number(csv[8])).toBe(180)
+    expect(Number(csv[9])).toBe(30)
+    const wb = new ExcelJS.Workbook()
+    await wb.xlsx.load(await buildBoqXlsx(boq))
+    let found = false
+    wb.getWorksheet('BOQ')!.eachRow(r => {
+      if (r.getCell(1).value !== 'Wire') return
+      found = true
+      expect(r.getCell(3).value).toBe(globalUnit)
+      expect(r.getCell(4).value).toBeCloseTo(row.material, 10)
+      expect(r.getCell(5).value).toBeCloseTo(row.labor, 10)
+      expect(r.getCell(6).value).toBeCloseTo(150, 10)
+      expect(r.getCell(9).value).toBeCloseTo(180, 10)
+    })
+    expect(found).toBe(true)
+  }
+})
+
+it('edits the visible ft rate and converts the untouched labor with it', () => {
+  useProjectStore.setState({ rates: measuredFixture.rates! })
+  const container = document.createElement('div')
+  document.body.append(container)
+  const root = createRoot(container)
+  const render = (unit: 'm' | 'ft'): void => act(() => {
+    const item = aggregateBoq({ ...measuredFixture, rates: useProjectStore.getState().rates, globalUnit: unit }).categories[0].items[0]
+    root.render(React.createElement(EstimateRow, { item }))
+  })
+  try {
+    render('m')
+    render('ft')
+    const material = container.querySelector<HTMLInputElement>('[data-testid="estimate-row-material-input"]')!
+    const labor = container.querySelector<HTMLInputElement>('[data-testid="estimate-row-labor-input"]')!
+    expect(Number(material.value)).toBeCloseTo(3.048, 10)
+    expect(Number(labor.value)).toBeCloseTo(1.524, 10)
+    act(() => { material.value = '6.096'; material.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })) })
+    const entry = useProjectStore.getState().rates['Wire|linear']
+    expect(entry.basis).toBe('ft')
+    expect(entry.material).toBe(6.096)
+    expect(entry.labor).toBeCloseTo(1.524, 10)
+    const result = aggregateBoq({ ...measuredFixture, rates: useProjectStore.getState().rates, globalUnit: 'm' }).categories[0].items[0]
+    expect(result.material).toBeCloseTo(20, 10)
+    expect(result.labor).toBeCloseTo(5, 10)
+    expect(result.cost).toBeCloseTo(250, 10)
+  } finally { act(() => root.unmount()); container.remove() }
+})
