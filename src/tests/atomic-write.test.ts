@@ -110,3 +110,41 @@ it('refuses malformed project metadata even when the embedded PDF hash matches',
   expect(await handlers['file:writeProject']({}, path, malformed, pdf)).toMatchObject({ ok: false, stage: 'validate' })
   expect(await real.readFile(path)).toEqual(original)
 })
+
+it.each(['missing', 'corrupt'] as const)('preserves %s originals across write, validation and replacement faults', async (state) => {
+  for (const point of ['write', 'sync', 'close', 'validate', 'replace']) {
+    vi.mocked(fs.open).mockImplementation(real.open)
+    vi.mocked(fs.readFile).mockImplementation(real.readFile)
+    vi.mocked(fs.rename).mockImplementation(real.rename)
+    if (state === 'missing') { await real.unlink(path).catch(() => {}); await real.unlink(path + '.bak').catch(() => {}) }
+    else { await real.writeFile(path, 'corrupt'); await real.writeFile(path + '.bak', backup) }
+    if (['write', 'sync', 'close'].includes(point)) vi.mocked(fs.open).mockImplementation(async (...args) => {
+      const handle = await real.open(...args)
+      if (point === 'write') handle.writeFile = vi.fn().mockRejectedValue(fail('ENOSPC'))
+      if (point === 'sync') handle.sync = vi.fn().mockRejectedValue(fail('EIO'))
+      if (point === 'close') { const close = handle.close.bind(handle); handle.close = async () => { await close(); throw fail('EIO') } }
+      return handle
+    })
+    if (point === 'validate') vi.mocked(fs.readFile).mockImplementation(async (...args) =>
+      String(args[0]).endsWith('.tmp') ? Buffer.from('damaged') : real.readFile(...args))
+    if (point === 'replace') vi.mocked(fs.rename).mockRejectedValue(fail('EACCES'))
+    expect(await handlers['file:writeProject']({}, path, json(3), pdf)).toMatchObject({ ok: false, firstSave: state === 'missing' })
+    if (state === 'missing') expect(await real.readdir(directory)).toEqual([])
+    else { expect(await real.readFile(path, 'utf8')).toBe('corrupt'); expect(await real.readFile(path + '.bak')).toEqual(backup) }
+  }
+})
+
+it('rejects corrupt staged backups and leaves the existing original and backup untouched', async () => {
+  vi.mocked(fs.readFile).mockImplementation(async (...args) =>
+    String(args[0]).endsWith('.bak.tmp') ? Buffer.from('damaged backup') : real.readFile(...args))
+  expect(await handlers['file:writeProject']({}, path, json(3), pdf)).toMatchObject({ ok: false, stage: 'backup' })
+  expect(await real.readFile(path)).toEqual(original)
+  expect(await real.readFile(path + '.bak')).toEqual(backup)
+})
+
+it('offers a valid backup for a missing original and never offers an incomplete temp', async () => {
+  await real.unlink(path)
+  expect(await handlers['file:readProject']({}, path)).toMatchObject({ kind: 'unknown', backupPath: path + '.bak' })
+  await real.unlink(path + '.bak'); await real.writeFile(path + '.crashed.tmp', original)
+  expect((await handlers['file:readProject']({}, path)).backupPath).toBeUndefined()
+})

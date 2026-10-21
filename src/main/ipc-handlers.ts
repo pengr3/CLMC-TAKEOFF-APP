@@ -1,14 +1,13 @@
 import { ipcMain, dialog, BrowserWindow } from 'electron'
-import { readFile, writeFile, rename, unlink, open } from 'fs/promises'
-import { extname, basename, resolve } from 'path'
-import { randomUUID } from 'crypto'
+import { readFile, writeFile, rename, unlink } from 'fs/promises'
+import { extname, basename } from 'path'
+import { writeProtectedProject, ProjectSaveError, validatedBackupPath, parseProjectMetadata, type WriteProjectResult } from './project-storage'
 import {
   enforceClmcExtension,
   enforceXlsxExtension,
   enforceCsvExtension,
   detectClmcFormat,
   extractClmcZip,
-  assembleClmcZip,
   sha256Buffer
 } from './project-io'
 import { buildBoqXlsx, buildBoqCsv, type BoqStructure } from './boq-writers'
@@ -25,9 +24,9 @@ import { buildBoqXlsx, buildBoqCsv, type BoqStructure } from './boq-writers'
  * - `unknown`: empty/truncated/corrupt input. Renderer surfaces as OpenErrorModal.
  */
 export type ReadProjectResult =
-  | { kind: 'v2-zip'; projectJson: string; pdfBytes: Uint8Array; computedSha256: string }
+  | { kind: 'v2-zip'; projectJson: string; pdfBytes: Uint8Array; computedSha256: string; backupPath?: string }
   | { kind: 'v1-json'; text: string }
-  | { kind: 'unknown'; reason: string }
+  | { kind: 'unknown'; reason: string; backupPath?: string }
 
 /** Buffer ↔ Uint8Array zero-copy view helpers (see RESEARCH §4). */
 function bufToU8(buf: Buffer): Uint8Array {
@@ -37,67 +36,6 @@ function u8ToBuf(u8: Uint8Array): Buffer {
   return Buffer.from(u8.buffer, u8.byteOffset, u8.byteLength)
 }
 
-export type ProjectSaveStage = 'write' | 'validate' | 'backup' | 'replace'
-export type WriteProjectResult = { ok: true } | { ok: false; stage: ProjectSaveStage; message: string; firstSave: boolean }
-class ProjectSaveError extends Error {
-  constructor(public stage: ProjectSaveStage, cause: unknown, public firstSave: boolean) {
-    super(cause instanceof Error ? cause.message : String(cause))
-  }
-}
-const projectWrites = new Map<string, Promise<void>>()
-async function validatedArchive(bytes: Buffer): Promise<void> {
-  const { projectJson, pdfBytes } = await extractClmcZip(bytes)
-  const data = JSON.parse(projectJson)
-  if (data?.formatVersion !== 2 || data?.pdf?.sha256 !== sha256Buffer(pdfBytes)) throw new Error('Project archive integrity validation failed.')
-}
-async function durableTemp(path: string, bytes: Buffer): Promise<void> {
-  const handle = await open(path, 'wx')
-  try { await handle.writeFile(bytes); await handle.sync() } finally { await handle.close() }
-}
-async function renameWithRetry(source: string, destination: string): Promise<void> {
-  for (let attempt = 0; ; attempt++) {
-    try { await rename(source, destination); return } catch (error) {
-      if (!isLockedDestError(error) || attempt >= RENAME_RETRY_DELAYS_MS.length) throw error
-      await delay(RENAME_RETRY_DELAYS_MS[attempt])
-    }
-  }
-}
-/** A complete serialized transaction. A lock never authorizes deleting the destination. */
-export function writeProtectedProject(destination: string, json: string, pdf: Uint8Array): Promise<void> {
-  const finalPath = resolve(destination), key = process.platform === 'win32' ? finalPath.toLowerCase() : finalPath
-  const bytes = Buffer.from(pdf), previous = projectWrites.get(key) ?? Promise.resolve()
-  const transaction = previous.catch(() => {}).then(async () => {
-    const token = randomUUID(), temp = `${finalPath}.${token}.tmp`, backupTemp = `${finalPath}.${token}.bak.tmp`
-    let stage: ProjectSaveStage = 'write', firstSave = false
-    try {
-      let original: Buffer | undefined
-      try { original = await readFile(finalPath) } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
-        firstSave = true
-      }
-      await durableTemp(temp, await assembleClmcZip(json, bytes))
-      stage = 'validate'
-      await validatedArchive(await readFile(temp))
-      if (original) {
-        let valid = false
-        try { await validatedArchive(original); valid = true } catch { /* preserve existing good backup */ }
-        if (valid) {
-          stage = 'backup'
-          await durableTemp(backupTemp, original)
-          await validatedArchive(await readFile(backupTemp))
-          await renameWithRetry(backupTemp, `${finalPath}.bak`)
-        }
-      }
-      stage = 'replace'
-      await renameWithRetry(temp, finalPath)
-    } catch (error) { throw new ProjectSaveError(stage, error, firstSave) } finally {
-      await Promise.all([temp, backupTemp].map(path => unlink(path).catch(() => {})))
-    }
-  })
-  projectWrites.set(key, transaction)
-  void transaction.finally(() => { if (projectWrites.get(key) === transaction) projectWrites.delete(key) }).catch(() => {})
-  return transaction
-}
 
 /**
  * Atomic write: write to ${path}.tmp first, then rename to ${path}.
@@ -112,14 +50,11 @@ export function writeProtectedProject(destination: string, json: string, pdf: Ui
  * the destination is held by sync software (OneDrive, Dropbox), antivirus,
  * or another process briefly. On those error codes we retry the rename with a
  * short backoff (transient locks from a sync/AV scan usually clear within a few
- * hundred ms), and — between retries — unlink the destination then retry. The
- * retry path is non-atomic (the original file is briefly absent), but the
- * alternative is a hard failure for every OneDrive user — unacceptable on
- * Windows.
+ * hundred ms). Retry replacement without deleting the original.
  *
  * PERSISTENT lock (Phase 16 UAT GAP-2): when the destination is held OPEN by
- * another program (classically an .xlsx open in Excel), BOTH the rename and the
- * unlink fail with EPERM through every retry — you cannot overwrite a file
+ * another program (classically an .xlsx open in Excel), rename may
+ * fail with EPERM through every retry — you cannot overwrite a file
  * another process holds open; that is an OS constraint, not something a retry
  * can defeat. In that case we throw a FRIENDLY, actionable error that names the
  * file and tells the user to close it, instead of leaking the raw
@@ -158,7 +93,10 @@ function delay(ms: number): Promise<void> {
 
 async function atomicWriteFile(finalPath: string, data: Buffer): Promise<void> {
   const tmpPath = `${finalPath}.tmp`
-  await writeFile(tmpPath, data)
+  try { await writeFile(tmpPath, data) } catch (error) {
+    try { await unlink(tmpPath) } catch { /* owned scratch only */ }
+    throw error
+  }
 
   // Attempt 0 is immediate; each subsequent attempt waits a short backoff first.
   // Up to 3 total rename attempts (1 immediate + RENAME_RETRY_DELAYS_MS.length).
@@ -178,22 +116,7 @@ async function atomicWriteFile(finalPath: string, data: Buffer): Promise<void> {
         try { await unlink(tmpPath) } catch { /* ignore */ }
         throw err
       }
-      // Locked destination: try to release it before the next rename attempt.
-      // ENOENT means it never existed — benign. Any OTHER unlink failure means
-      // the file is genuinely held open (Excel etc.); keep looping so the backoff
-      // still gives a transient holder a chance to release, but remember we could
-      // not unlink.
-      try {
-        await unlink(finalPath)
-      } catch (unlinkErr) {
-        const code = (unlinkErr as NodeJS.ErrnoException | undefined)?.code
-        if (code !== 'ENOENT') {
-          // Cannot remove the lock right now — fall through to the next attempt
-          // (or exit the loop after the last attempt) and report the friendly
-          // locked-file message below.
-          lastCode = lastCode ?? code
-        }
-      }
+      // Retry replacement only; the existing export must survive every failure.
     }
   }
 
@@ -266,21 +189,24 @@ export function registerIpcHandlers(): void {
           const { projectJson, pdfBytes } = await extractClmcZip(raw)
           // Main pre-hashes — renderer never SubtleCrypto's. Review feedback.
           const computedSha256 = sha256Buffer(pdfBytes)
+          const metadata = parseProjectMetadata(projectJson)
           return {
             kind: 'v2-zip',
             projectJson,
             pdfBytes: bufToU8(pdfBytes),
-            computedSha256
+            computedSha256,
+            ...(computedSha256 !== metadata.pdf.sha256 ? { backupPath: await validatedBackupPath(filePath) } : {})
           }
         }
         if (fmt === 'v1-json') {
           const text = raw.toString('utf-8')
+          JSON.parse(text) // Reject damaged non-ZIP input before advertising an open result.
           return { kind: 'v1-json', text }
         }
-        return { kind: 'unknown', reason: 'Empty or truncated .clmc file (less than 4 bytes)' }
+        return { kind: 'unknown', reason: 'Empty or truncated .clmc file (less than 4 bytes)', backupPath: await validatedBackupPath(filePath) }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err)
-        return { kind: 'unknown', reason: message }
+        return { kind: 'unknown', reason: message, backupPath: await validatedBackupPath(filePath) }
       }
     }
   )

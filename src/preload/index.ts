@@ -7,9 +7,9 @@ const closeRequestListeners = new WeakMap<() => void, (...args: unknown[]) => vo
 
 // Wire type for file:readProject return — must match ipc-handlers.ts ReadProjectResult.
 type ReadProjectResult =
-  | { kind: 'v2-zip'; projectJson: string; pdfBytes: Uint8Array; computedSha256: string }
+  | { kind: 'v2-zip'; projectJson: string; pdfBytes: Uint8Array; computedSha256: string; backupPath?: string }
   | { kind: 'v1-json'; text: string }
-  | { kind: 'unknown'; reason: string }
+  | { kind: 'unknown'; reason: string; backupPath?: string }
 
 // Wire types for Phase 5 BOQ Export — must match boq-writers.ts BoqStructure.
 // Per Q4 (no shared types dir), inline-duplicate. Cross-process structural lock

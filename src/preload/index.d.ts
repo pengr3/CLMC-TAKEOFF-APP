@@ -1,9 +1,9 @@
 import type { CostLibraryApi } from '../shared/cost-library'
 
 type ReadProjectResult =
-  | { kind: 'v2-zip'; projectJson: string; pdfBytes: Uint8Array; computedSha256: string }
+  | { kind: 'v2-zip'; projectJson: string; pdfBytes: Uint8Array; computedSha256: string; backupPath?: string }
   | { kind: 'v1-json'; text: string }
-  | { kind: 'unknown'; reason: string }
+  | { kind: 'unknown'; reason: string; backupPath?: string }
 
 type BoqRowType = 'count' | 'linear' | 'area' | 'perimeter' | 'wall'
 interface BoqMetadata {

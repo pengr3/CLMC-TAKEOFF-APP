@@ -109,7 +109,9 @@ it('never acknowledges a completed save into a different document session', asyn
 
 it('serializes same destination writes into complete archives with the preceding backup', async () => {
   const path = join(directory, 'queued.clmc'), pdf = new Uint8Array([37,80,68,70])
-  const json = (revision: number) => JSON.stringify({ formatVersion: 2, pdf: { sha256: sha256Buffer(pdf) }, revision })
+  const json = (revision: number) => JSON.stringify({ formatVersion: 2, revision, createdAt: '2026-01-01', updatedAt: '2026-01-01',
+    pdf: { originalFilename: 'plan.pdf', totalPages: 1, sha256: sha256Buffer(pdf) }, categories: {}, categoryOrder: [],
+    globalUnit: 'mm', currentPage: 1, pages: [] })
   await Promise.all([handlers['file:writeProject']({}, path, json(1), pdf), handlers['file:writeProject']({}, path, json(2), pdf)])
   expect(JSON.parse((await extractClmcZip(await readFile(path))).projectJson).revision).toBe(2)
   expect(JSON.parse((await extractClmcZip(await readFile(path + '.bak'))).projectJson).revision).toBe(1)
