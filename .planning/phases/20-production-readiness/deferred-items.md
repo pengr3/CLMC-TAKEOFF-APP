@@ -5,3 +5,9 @@
 - The touched existing files have extensive inherited Prettier/CRLF warnings. New and fully rewritten files were formatted; unrelated existing formatting was retained. Scoped ESLint is therefore not a clean baseline.
 
 These do not invalidate the passing save behavior tests or typecheck, but the lint command remains nonzero until the existing hook issues are addressed in their own task.
+
+## Plan 20-05
+
+- `src/tests/app-version.test.ts` has six pre-existing explicit-any/missing-return-type ESLint errors (lines 21, 36 and 42). Task 03 only added the session permission mock required by the hardened host. The new host/identity files and smoke harness pass scoped ESLint; this unrelated baseline debt remains.
+- Full regression retains existing React act/environment warnings; production build retains the existing PDF setup static/dynamic-import warning. Neither is counted as a failing check or claimed fixed.
+- Dependency audit findings and API/platform/input dispositions are recorded in `20-DEPENDENCY-REVIEW.md`; future publishing, streaming XLSX, dev-server exposure or platform changes must reopen those dispositions. Critical build-time tar was patched to 7.5.21, not deferred.
