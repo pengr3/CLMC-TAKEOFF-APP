@@ -40,6 +40,8 @@ Executed inline under GSD skills because no subagents were requested. Windows sa
 
 ## Remaining release work
 
-Phase 20 installer/upgrades, supported-runtime review, cross-PC portability, recovery and installed-app measurement/scaling/large-PDF validation remain unexecuted. Include a review of unit changes after pricing because the existing project rate model stores rates per displayed unit rather than a persistent unit basis. Phase 21 offline guide, technical ownership transfer and real two-PC user pilot remain unexecuted; no human acceptance or deployment is claimed.
+Phase 19 acceptance follow-up (2026-10-21): all 11 UAT tests pass; user confirmed Tests 1-8 and final panning, and explicitly delegated remaining actual desktop checks. See 19-UAT.md and 19-DESKTOP-UAT.md. Coverage audit found no gaps; security review has no high/critical blocker and one medium XLSX resource-budget advisory; UI review has no blocker.
+
+Phase 20 installer/upgrades, supported-runtime review, cross-PC portability, recovery and installed-app measurement/scaling/large-PDF validation remain unexecuted. Include a review of unit changes after pricing because the existing project rate model stores rates per displayed unit rather than a persistent unit basis. Phase 21 offline guide, technical ownership transfer and real two-PC user pilot remain unexecuted; no production acceptance or deployment is claimed.
 
 Original rollout vision and all four user requests remain in ../../RELEASE-HANDOVER.md and Phases 20-21.

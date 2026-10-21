@@ -18,3 +18,12 @@ Client quotation export excluding internal cost/margin was proposed but never ap
 ## Handover
 
 Actual two-PC pilot, user acceptance and remaining-ten-PC distribution belong to Phase 21. Do not claim them from local automated verification.
+
+## Phase 19 completion carry-forward (2026-10-21)
+
+Phase 19 UAT is accepted (11/11); plan Phase 20 without repeating its completed walkthrough. Preserve the original three-phase rollout agreement.
+
+- Security T19-06: 10 MB compressed-file and 10,000-row limits exist, but XLSX decompression/time is not independently bounded before ExcelJS load. Medium advisory, below Phase 19's high blocking threshold; investigate and bound resource use in the runtime/dependency resilience work before production rollout. See ../19-cost-library/19-SECURITY.md.
+- Existing Electron host sandbox/navigation/external-link handling belongs in the supported-runtime review; no whole-app security certification was claimed by Phase 19.
+- UI review passed with minor polish recommendations (status colors, small book-button target, numeric alignment); Windows scaling/long-content checks remain required installed-app validation. See ../19-cost-library/19-UI-REVIEW.md.
+- Phase 21 guide should show Excel's UTF-8 comma-delimited Text Import Wizard route for exported CSV; the formatted XLSX opens directly.

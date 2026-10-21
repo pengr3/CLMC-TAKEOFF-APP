@@ -17,7 +17,7 @@ User authorization: “drive this on my behalf use my PC now”, followed by “
 - Selected XLSX D9:J9: Excel status bar reported Count 7, Sum 2,130.00, Average 304.29. The seven numeric values are 200, 80, 560, 30, 364, 728, 168; the existing export displays numeric 30 with its literal percent format. No workbook values were edited.
 - CSV opened through Excel's Text Import Wizard. UTF-8 and Comma delimiter produced the same ten columns and numeric row values. Record this opening route in the Phase 21 guide. XLSX remains the formatted option.
 
-## Test 11 — PARTIAL, pan gesture pending
+## Test 11 — PASS after final user confirmation
 
 Actual checks passed:
 
@@ -29,6 +29,8 @@ Actual checks passed:
 - Resumed Test Outlet from Totals, placed one temporary count pin (2→3), then Ctrl+Z restored 2. Escape exited placement. Saved the restored test project and verified original geometry/rates/PDF against the first Save As.
 
 Only the actual pan gesture remains unverified. The available Computer Use API supports left-button drag and key chords but exposes neither a held Space key across a drag nor a middle-button drag. Plain scrolling does not pan this app (its wheel handler intentionally requires Ctrl for zoom). This is a tool capability limit, not a reproduced application failure. Do not mark the entire test passed or advance Phase 19 until the user verifies Space+drag or middle-button pan.
+
+**Follow-up:** The user replied “pass” to the final Space+drag checkpoint. The paragraph above records the earlier tool limitation; panning is now user-confirmed and Test 11 is complete.
 
 ## Preserved state and limits
 

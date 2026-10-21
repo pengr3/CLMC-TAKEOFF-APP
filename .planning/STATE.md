@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.0
-current_phase: 19
-current_phase_name: Cost Library
-status: phase_19_manual_uat
-stopped_at: Phase 19 UAT 10 passed; Test 11 desktop checks passed except pan gesture awaiting user
-last_updated: "2026-10-21T09:51:18.515Z"
+current_phase: 20
+current_phase_name: Production Readiness
+status: ready_to_plan
+stopped_at: Phase 19 complete, ready to plan Phase 20
+last_updated: "2026-10-21T09:58:51.156Z"
 last_activity: 2026-10-21
-state_head: 1e92018edf830df4b926016f7ead885de8713f9b
+state_head: d0667795c1bfd1dcd5ca14c8390d944e015f259f
 progress:
   total_phases: 25
-  completed_phases: 22
+  completed_phases: 23
   total_plans: 123
   completed_plans: 123
-  percent: 88
+  percent: 92
 milestone_name: milestone
 ---
 
@@ -29,20 +29,22 @@ milestone_name: milestone
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 19 — UAT 10/11 passed: Tests 1-8 by the user, Tests 9-10 through authorized Windows desktop control. Actual native Save As, full Electron/Excel shutdown, restart/Open of a .clmc-only copy, and XLSX/CSV opening in Excel passed. Test 11 keyboard/focus/F3/search/zoom/manual-rate/count-undo checks passed; only Space+drag or middle-button panning awaits the user because the control API cannot perform that gesture. Restored/saved test project retains 2 ea, material 200/labor 80/markup 30%, cost 560/total 728; original markup geometry, rates and PDF verified unchanged. Evidence: 19-DESKTOP-UAT.md. Prior automated baseline and 66 focused regressions pass. Phase 20 has not started.
+**Current Focus:** Phase 19 Cost Library accepted: all 11 UAT tests passed, zero unresolved UAT issues. Tests 1-8 and final pan gesture are user-confirmed; Tests 9-10 and other Test 11 checks were delegated desktop checks. Canonical verification and UAT completion predicate pass. Test coverage audited; security has zero high/critical blockers and one medium XLSX resource-budget advisory carried to Phase 20; UI review 18/24, no blockers. Next: plan Phase 20 Production Readiness using its existing CONTEXT.md and RELEASE-HANDOVER.md. Phase 20 implementation and Phase 21 pilot remain unstarted.
 
 ---
 
 ## Current Position
 
-Phase: 19 — Cost Library (implementation complete; manual UAT pending)
-Plan: 19-01 implemented; UAT has 10 passed, 0 unresolved issues, 1 pending. Test 11 awaits only the user's pan-gesture result.
+Phase: 20 — Production Readiness
+Plan: Not started
+
+Next action: `/gsd:plan-phase 20` — installer/manual upgrades for approximately 12 PCs, portable .clmc verification, recovery and installed-app checks. No deployment has occurred.
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
-| Phases accepted | 22 / 25; Phase 19 implementation complete, manual acceptance pending |
+| Phases accepted | 23 / 25; Phase 19 implementation and UAT accepted |
 | Plans complete | 123 (122 previous + Phase 19 plan) |
 | v1 requirements delivered | 25 / 25 |
 | Internal rollout requirements delivered | 6 / 14 |
@@ -284,11 +286,11 @@ None.
 
 **Session resumed:** 2026-07-13 — restored via /gsd-resume-work, then ran `/code-review 17 --fix` (xhigh): 7 verified findings → 5 atomic fix commits — `3bcf50c` guard `__proto__` in the rates hydrate loop, `0ea71f1` grip click no longer arms the row tool, `ec82baf` pipe-safe BOQ bucket-key split, `24c0db4` orphan-rate-safe copy/duplicate auto-name, `945d198` group move/copy/duplicate order+visibility+undo. Suite 803 green, typecheck clean; each fix carries a regression test. Deferred (non-blocking): labelToName suffix-strip, editMarkup/deleteGroup key upkeep, MD-03 cross-type visibility, 5 DRY cleanups. Phase 17 STILL awaiting human UAT (4 items in 17-HUMAN-UAT.md).
 
-**Last session:** 2026-07-09T08:53:22.850Z
+**Last session:** 2026-10-21T09:58:51.156Z
 
-**Stopped at:** Phase 19 UAT 10/11 passed; final pan gesture pending before Phase 20
+**Stopped at:** Phase 19 complete, ready to plan Phase 20
 
-**Next action:** **Phase 17 (Markup Rename and Reorder) EXECUTED + VERIFIED + review-fixed — awaiting human UAT.** All 7 plans built sequentially on master (feat commits `b7c651c`..`c20e383`). gsd-verifier confirmed 10/10 SPEC acceptance criteria + 11/11 decisions (D-01..D-11) against real source; suite 793 green, typecheck + build clean; the shared-order goal claim verified end-to-end (one aggregator sort → totals panel + Estimate sheet + xlsx/csv). gsd-code-reviewer found 1 High / 3 Med / 3 Low → FIXED HG-01 (blank-category guard `10daec6`), MD-01 (category-scoped inline-rename `93db214`), LW-01 (`__proto__` hydrate hardening `b0c319f`), LW-02 (drag unmount cleanup `6efe392`); DEFERRED MD-02 (move un-hides a hidden group — verifier ruled acceptable per SPEC), MD-03 (same-category cross-type visibility coupling), LW-03 (group-name case-sensitivity) — recorded in `17-REVIEW.md`. **4 human-UAT items pending** in `17-HUMAN-UAT.md`: grip-drag feel, collision-message readability, export cross-surface order parity, totals single-click-stays-instant. Once UAT-approved, mark Phase 17 complete (`phase.complete`). — Prior context (planning): **Phase 17 (Markup Rename and Reorder) PLANNED — ready to execute.** Full research-first plan-phase pipeline: 17-RESEARCH.md (HIGH confidence — corrected CONTEXT shorthand: the BOQ aggregator is renderer-side at boq-aggregator.ts:264 not src/main; the visibility key is the composite name|categoryId; categoryItemOrder lives in markupStore so reorder+move are single-store commands), 17-VALIDATION.md (Vitest; 12 Wave-0 test files), 17-PATTERNS.md (19 files → line-cited analogs), then 7 PLAN.md in 4 waves. Plan-checker: 0 blockers, 3 warnings resolved (D-02 double-click `e.detail===2` regression test added to 17-06; markupStore↔projectStore circular-import note + lazy fallback added to 17-02; RESEARCH Open Questions marked RESOLVED). Coverage: SPEC Req 1–5 ✓, decisions D-01..D-11 ✓. Waves — W1: 17-01 categoryItemOrder spine + aggregator sort swap (all 3 surfaces) + additive .clmc (no formatVersion bump). W2: 17-02 rename + cross-store one-Ctrl+Z atomic undo + group-ops, 17-03 GroupCategoryDialog + useRowReorder. W3: 17-04 move/copy/duplicate commands, 17-05 shared context menu + InlineRenameInput + collision message. W4: 17-06 totals-panel wiring, 17-07 estimate-sheet wiring. Commits: research 8855d9c, validation 494e157, patterns 505d946, plans 0b1d6ff (+ warning-fix commit). Delivers the Phase-16-deferred rename+reorder (user: "sooner or later"), extended in discuss to move/copy/duplicate; rename blocks on name collision (no merge, per user's rejection of silent merge). Next: /clear then /gsd-execute-phase 17.
+**Historical next action (Phase 17):** **Phase 17 (Markup Rename and Reorder) EXECUTED + VERIFIED + review-fixed — awaiting human UAT.** All 7 plans built sequentially on master (feat commits `b7c651c`..`c20e383`). gsd-verifier confirmed 10/10 SPEC acceptance criteria + 11/11 decisions (D-01..D-11) against real source; suite 793 green, typecheck + build clean; the shared-order goal claim verified end-to-end (one aggregator sort → totals panel + Estimate sheet + xlsx/csv). gsd-code-reviewer found 1 High / 3 Med / 3 Low → FIXED HG-01 (blank-category guard `10daec6`), MD-01 (category-scoped inline-rename `93db214`), LW-01 (`__proto__` hydrate hardening `b0c319f`), LW-02 (drag unmount cleanup `6efe392`); DEFERRED MD-02 (move un-hides a hidden group — verifier ruled acceptable per SPEC), MD-03 (same-category cross-type visibility coupling), LW-03 (group-name case-sensitivity) — recorded in `17-REVIEW.md`. **4 human-UAT items pending** in `17-HUMAN-UAT.md`: grip-drag feel, collision-message readability, export cross-surface order parity, totals single-click-stays-instant. Once UAT-approved, mark Phase 17 complete (`phase.complete`). — Prior context (planning): **Phase 17 (Markup Rename and Reorder) PLANNED — ready to execute.** Full research-first plan-phase pipeline: 17-RESEARCH.md (HIGH confidence — corrected CONTEXT shorthand: the BOQ aggregator is renderer-side at boq-aggregator.ts:264 not src/main; the visibility key is the composite name|categoryId; categoryItemOrder lives in markupStore so reorder+move are single-store commands), 17-VALIDATION.md (Vitest; 12 Wave-0 test files), 17-PATTERNS.md (19 files → line-cited analogs), then 7 PLAN.md in 4 waves. Plan-checker: 0 blockers, 3 warnings resolved (D-02 double-click `e.detail===2` regression test added to 17-06; markupStore↔projectStore circular-import note + lazy fallback added to 17-02; RESEARCH Open Questions marked RESOLVED). Coverage: SPEC Req 1–5 ✓, decisions D-01..D-11 ✓. Waves — W1: 17-01 categoryItemOrder spine + aggregator sort swap (all 3 surfaces) + additive .clmc (no formatVersion bump). W2: 17-02 rename + cross-store one-Ctrl+Z atomic undo + group-ops, 17-03 GroupCategoryDialog + useRowReorder. W3: 17-04 move/copy/duplicate commands, 17-05 shared context menu + InlineRenameInput + collision message. W4: 17-06 totals-panel wiring, 17-07 estimate-sheet wiring. Commits: research 8855d9c, validation 494e157, patterns 505d946, plans 0b1d6ff (+ warning-fix commit). Delivers the Phase-16-deferred rename+reorder (user: "sooner or later"), extended in discuss to move/copy/duplicate; rename blocks on name collision (no merge, per user's rejection of silent merge). Next: /clear then /gsd-execute-phase 17.
 
 ---
 

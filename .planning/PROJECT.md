@@ -12,6 +12,7 @@ Speed up quantity takeoff — let the estimator focus on reading the plan, not d
 
 ### Validated
 
+- [x] User-maintained Excel/CSV costing template, per-PC offline library import/preview/replace and explicit compatible material/labor rate application without silent repricing — Phase 19; 11/11 UAT accepted 2026-10-21.
 - [x] Load a multi-page PDF floor plan and flip between pages — Validated in Phase 1: PDF Viewer & Canvas Foundation
 - [x] Zoom in/out with all markups staying pinned to the plan — Validated in Phase 1 (known issue: native Chromium zoom interference on Ctrl+scroll)
 - [x] Unit cost / pricing — per-(name,type) rates with live cost, category cost subtotals, grand-total cost, and ₱ Rate/Cost columns in xlsx/csv export — Validated in Phase 15: BOQ Pricing & Perimeter Simplification. **Expanded and superseded in Phase 16: Estimating Workspace** — pricing moved OFF the measurement surfaces into a dedicated Estimate sheet (a `Plan | Estimate` toggle in the Estimating ribbon tab); the single rate widened to **internal cost (Material + Labor)** plus a **default-30% Markup → client Price + Margin**; the right totals panel reverted to **quantity-only**; and the export widened to the **9-column** layout (Item · Quantity · UoM · Material · Labor · Cost · Markup · Price · Margin) with per-category Cost/Price/Margin subtotals and grand totals. (Phase 16 supersedes Phase 15's inline totals-panel pricing.)
@@ -64,10 +65,11 @@ Speed up quantity takeoff — let the estimator focus on reading the plan, not d
 | Export standard layout (not custom template) | Avoids template management complexity for v1 | — Pending |
 | Pricing moved into scope (reverses v1 "Out of Scope") | GAP-002: pricing is the measuring→estimating lever — quantities alone don't produce a bid | Delivered in Phase 15 (₱ rates + cost columns; Item Library + currency picker deferred) |
 | Estimating workspace (internal cost + client price/margin) | Pricing separated from measurement per industry practice (PlanSwift/STACK); single rate → material+labor+markup | Delivered in Phase 16 (dedicated Estimate sheet + 9-column export; price-book / item library / equipment / overhead deferred per D-09) |
+| User-owned ready-to-use unit rates, fixed template, individual PC imports | Approximately 12 offline PCs; team owns accuracy and master revisions; avoids centralized data/sync responsibility | Delivered and UAT accepted in Phase 19; imported changes never silently reprice projects |
 
 ## Current State
 
-2026-10-21: Phases 1-18 complete; Phase 19 implementation complete with manual UAT now in progress at the user's request (19-UAT.md, test 1/11). Phase 19 delivered user-maintained template/import, offline per-PC library and explicit compatible rate application; 938 tests, build and production Electron smoke pass. Internal rollout remains three phases: 19 Cost Library, 20 Production Readiness, 21 User Guide and Internal Handover. See [RELEASE-HANDOVER.md](RELEASE-HANDOVER.md) for the agreed scope. Next: obtain Phase 19 manual results and resolve issues before Phase 20. No installer rollout or internal pilot is claimed. The historical summary below is retained for provenance, not the current release status.
+2026-10-21: Phases 1-19 complete; Phase 19 Cost Library accepted after 11/11 UAT tests (user observations plus explicitly delegated desktop checks), zero unresolved UAT issues. Standard template/import, offline per-PC library and explicit compatible rate application are delivered. Automated baseline: 938 tests/build/Electron smoke pass, with 66 focused regressions after native-dialog feedback fixes. Security/coverage/UI completion reviews recorded; medium XLSX decompression-budget advisory goes to Phase 20. Internal rollout remains three phases: 19 Cost Library, 20 Production Readiness, 21 User Guide and Internal Handover. See [RELEASE-HANDOVER.md](RELEASE-HANDOVER.md). Next: plan Phase 20 from its captured context. No installer rollout or internal pilot is claimed. The historical summary below is retained for provenance, not current release status.
 
 Phase 14 complete (2026-06-29) — Markup Geometry Precision (final phase of this milestone). Cursor snapping to existing endpoints/vertices and nearest-point-on-segment (grid-hash spatial index, screen-constant tolerance, □/△ glyphs, F3 toggle / Alt suspend) now applies during placement and editing; any linear/perimeter/area/wall edge can be a true circular arc via a 3-click gesture with live preview, bulge-handle reshaping, and endpoint re-solve, all undoable; arc length and circular-segment area are measured exactly (outward + inward), self-intersecting boundaries are blocked on commit, and arc geometry round-trips through save/reload and BOQ export. Human UAT approved. All phases complete — the milestone is feature-complete.
 
@@ -75,7 +77,7 @@ Phase 14 complete (2026-06-29) — Markup Geometry Precision (final phase of thi
 
 This document evolves at phase transitions and milestone boundaries.
 
-Last updated: 2026-06-29
+Last updated: 2026-10-21 after Phase 19 acceptance
 
 **After each phase transition** (via `/gsd:transition`):
 1. Requirements invalidated? → Move to Out of Scope with reason
@@ -91,4 +93,4 @@ Last updated: 2026-06-29
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-25 after initialization*
+*Last updated: 2026-10-21 after Phase 19 acceptance*

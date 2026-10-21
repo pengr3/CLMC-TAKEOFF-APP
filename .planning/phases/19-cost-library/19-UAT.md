@@ -1,5 +1,5 @@
 ---
-status: testing
+status: complete
 phase: 19-cost-library
 source: [19-01-SUMMARY.md]
 started: 2026-10-21
@@ -8,17 +8,7 @@ updated: 2026-10-21
 
 ## Current Test
 
-number: 11
-name: Final check — pan the plan
-expected: |
-  **10 of 11 tests passed:** your first eight, plus save/reopen and Excel/CSV export checked on your PC.
-
-  Keyboard focus, Escape/Close, F3 isolation, search, zoom, manual rates and count undo also passed. The original two pins and ₱728 total are restored and saved.
-
-  One action remains because PC control cannot hold Space during a drag or drag with the middle mouse button: in **Plan**, hold **Space** and drag the drawing left/right, then release.
-
-  **Expected:** The PDF and count pins move together. Reply **pass**, or describe what happens.
-awaiting: user response
+[testing complete]
 
 ## Test Setup
 
@@ -90,18 +80,19 @@ evidence: 19-DESKTOP-UAT.md
 
 ### 11. Keyboard, dismissal and normal estimating workflow
 expected: Search/type in the library dialog and navigate controls with Tab/Shift+Tab. Keyboard actions stay inside the dialog; F3 does not change underlying plan snapping while the dialog is active. Escape or Close dismisses it and returns focus to the trigger. Reopen it, then return to Plan: normal markups, undo, zoom/pan and manual Estimate rate edits still behave normally.
-result: [pending]
-source: agent desktop check authorized by user; final pan gesture awaiting user
+result: pass
+source: agent desktop checks authorized by user; final pan gesture confirmed by user
+reported: "pass"
 observed: "Dialog Tab and Shift+Tab wrap between Close and the compatible Select button; F3 leaves underlying Snap ON; typing E001 filters the library; Escape restores focus to the row book button and Space reopens it; Close dismisses it. Manual rate 201 produces cost 562/total 730.60, restored to 200 and cost 560/total 728. Plan zoom 18→19 works. Resuming Test Outlet, adding a third pin and Ctrl+Z returns quantity 3→2; Escape exits placement. Restored project saved; markup/rates/PDF preservation checked against the original test copy."
-remaining: "Only actual panning gesture is unverified. Computer Use exposes no held-key drag or middle-button drag. This is a tool limitation, not an observed app failure; do not auto-pass this criterion."
+resolution: "User confirms the final Space+drag pan check passes; PDF and pins move together. All Test 11 criteria are resolved."
 evidence: 19-DESKTOP-UAT.md
 
 ## Summary
 
 total: 11
-passed: 10
+passed: 11
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 

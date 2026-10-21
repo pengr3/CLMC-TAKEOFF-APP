@@ -40,7 +40,7 @@
 
 Source of scope and original goals: [Internal rollout agreement](RELEASE-HANDOVER.md). Approximately 12 Windows PCs, offline operation, user-maintained costing spreadsheets, versioned manual upgrades and internal turnover.
 
-- [ ] **Phase 19: Cost Library** — implementation and automated verification complete; manual UAT in progress before advancement.
+- [x] **Phase 19: Cost Library** — implementation, automated verification and 11/11 UAT tests accepted. (completed 2026-10-21)
 - [ ] **Phase 20: Production Readiness** — installer/upgrades, portable .clmc, recovery and installed-app validation.
 - [ ] **Phase 21: User Guide and Internal Handover** — offline guide, maintainer handover and two-PC pilot before remaining-ten-PC distribution.
 
@@ -721,7 +721,7 @@ Plans:
 
 ### Phase 19: Cost Library
 
-**Acceptance status:** Implementation and automated checks complete (938 tests/build/Electron smoke PASS). Manual UAT in progress in [19-UAT.md](phases/19-cost-library/19-UAT.md); obtain the user's results before advancing to Phase 20.
+**Acceptance status:** Complete (2026-10-21): 1/1 plan, automated verification and 11/11 UAT tests PASS, zero unresolved UAT issues. User confirmed Tests 1-8 and final panning; remaining checks were delegated desktop operation. Coverage/security/UI completion reviews are recorded in the phase directory. Phase 20 is ready to plan; no installation rollout is claimed.
 
 **Goal:** Estimators download an app-standard template, fill it with their own ready-to-use material/labor unit rates, import revisions individually on each PC, and explicitly apply compatible rates in Estimate without retyping or silently repricing existing projects.
 **Requirements**: COST-01, COST-02, COST-03, COST-04, COST-05, COST-06
