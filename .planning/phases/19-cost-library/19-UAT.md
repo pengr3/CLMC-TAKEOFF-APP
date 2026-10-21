@@ -8,16 +8,23 @@ updated: 2026-10-21
 
 ## Current Test
 
-number: 1
-name: Fresh start and download the Excel template
+number: 2
+name: Fill the template, preview an import, then cancel
 expected: |
-  Save any current work, fully close the app, and relaunch it. If running the development app, stop and restart npm run dev so the new desktop handlers are loaded.
-  Switch to Estimate, then choose Cost Library → Download Excel Template. You can do this without opening a PDF.
-  Save the template and open it in Excel. It should contain a blank Cost Library worksheet with these six columns, in order:
-  Item Code | Description | Category | Unit | Material Unit Rate | Labor Unit Rate.
-  An Instructions worksheet should also be present, with no sample prices in the blank library.
-  The app should start normally and the template should save and open without errors.
-awaiting: user retest after full desktop restart; native Save prompt still unverified
+  Test 1 passed. In Excel, fill the **Cost Library** worksheet with these two rows, keeping its headings unchanged:
+
+  | Item Code | Description | Category | Unit | Material Unit Rate | Labor Unit Rate |
+  |---|---|---|---|---:|---:|
+  | E001 | Test Outlet | Electrical | pcs | 100 | 80 |
+  | F001 | Test Wall Painting | Finishes | m² | 50 | 20 |
+
+  1. Save a copy as **Phase19-Test-Library.xlsx**.
+  2. In the app, open **Estimate → Cost Library → Import CSV / Excel** and select that file.
+  3. Check that the preview shows both items and their correct rates. The unit **pcs** may appear as **ea**; both mean “each.”
+  4. Choose **Cancel Import**.
+
+  **Expected:** The file picker opens, the preview is correct, and cancelling leaves your previous library—or its empty state—unchanged.
+awaiting: user response
 
 ## Test Setup
 
@@ -29,12 +36,14 @@ This session records human observations only. Automated tests/build/Electron smo
 
 ### 1. Fresh start and download the Excel template
 expected: Save current work, fully close and relaunch the app (restart npm run dev if using development mode). In Estimate, open Cost Library without a PDF and download the Excel template. Excel opens a blank Cost Library worksheet with the six fixed headings and an Instructions worksheet; no startup/download/open error occurs.
-result: issue
+result: pass
 reported: "i started and tried to download template but nothing happened. no prompt where to save or whatever. the screen just jitters then nothing. Console also logged nothing"
 clarification: "Panel stays open, no message"
 related_report: "Import CSV / Excel also opens no file-selection dialog."
 severity: major
 retest_note: "Use the latest rebuilt desktop process. Download/Import now start in Downloads, show explicit cancellation or failure feedback, and log tagged cost-library diagnostics. User must confirm actual Save dialog presentation; automated tests simulate native selections."
+retest_result: "okay now i can download and definitely can see the excel worksheet. Now let's go to next manual test"
+resolution: "User confirms template download and Excel worksheet open successfully. Related native Import presentation will be retested in Test 2; not yet claimed as passed."
 
 ### 2. Fill the template, preview an import, then cancel
 expected: In the Cost Library worksheet add E001 | Test Outlet | Electrical | pcs | 100 | 80 and F001 | Test Wall Painting | Finishes | m² | 50 | 20. Save a test .xlsx. Import it: preview shows the correct two items/rates; nothing is replaced until confirmation. Cancel Import returns to the previous library or empty state unchanged.
@@ -79,8 +88,8 @@ result: [pending]
 ## Summary
 
 total: 11
-passed: 0
-issues: 1
+passed: 1
+issues: 0
 pending: 10
 skipped: 0
 blocked: 0
@@ -88,11 +97,12 @@ blocked: 0
 ## Gaps
 
 - truth: "Download Excel Template opens a native Save dialog and saves the workbook."
-  status: failed
+  status: resolved
   reason: "User reported no Save prompt, brief jitter, no console output; panel stays open with no message."
   severity: major
   test: 1
-  root_cause: "Investigating; automated smoke simulated native dialog selection."
+  root_cause: "Silent cancellation feedback was confirmed in code; added explicit feedback/diagnostics and Downloads defaults. Exact original native-dialog cause was not isolated. User confirms download works on retest."
+  resolution: "Download and Excel worksheet confirmed by user; Import presentation remains the next pending test."
   artifacts: [src/renderer/src/components/CostLibraryDialog.tsx, src/main/cost-library-ipc.ts]
   missing: []
   debug_session: .planning/debug/cost-template-save-dialog.md

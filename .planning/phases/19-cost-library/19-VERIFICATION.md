@@ -5,7 +5,7 @@ status: human_needed
 automated_status: passed
 score: 6/6 requirements verified
 verification_mode: inline source review, automated tests, production Electron smoke and screenshot inspection
-human_result: Phase 19 manual UAT has 0 passed, 1 major dialog issue, 10 pending. Mitigation/diagnostics added; native Save/Import presentation awaits user retest. Two-PC deployment pilot remains Phase 21.
+human_result: Phase 19 manual UAT has 1 passed, 0 unresolved issues, 10 pending. User confirms template download/Excel worksheet; native Import picker and preview/cancel are next in Test 2. Two-PC deployment pilot remains Phase 21.
 ---
 
 # Phase 19 verification

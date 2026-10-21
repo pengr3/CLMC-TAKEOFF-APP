@@ -1,5 +1,5 @@
 ---
-status: awaiting-user-retest
+status: awaiting-import-retest
 trigger: "i started and tried to download template but nothing happened. no prompt where to save or whatever. the screen just jitters then nothing. Console also logged nothing"
 created: 2026-10-21
 updated: 2026-10-21
@@ -16,7 +16,7 @@ First human UAT, never confirmed working manually. Automated smoke simulated nat
 
 ## Current Focus
 
-next_action: user fully restarts desktop process and retries Download; inspect explicit cancellation/error status and tagged renderer IPC result to distinguish native cancellation from handler failure
+next_action: UAT Test 2 verifies actual native Import file picker, correct preview and cancellation; user confirmed Download/Excel worksheet now work
 hypotheses:
 - Native save immediately returns canceled; renderer intentionally clears feedback on cancellation. This matches a remaining panel and no message, but has not been established.
 - Real pointer click is lost when focus/disabled-state changes (prior tests used HTMLElement.click, not actual pointer events).
@@ -33,6 +33,8 @@ hypotheses:
 - Verified the user's running process is this repository's electron-vite dev → electron.exe application; no alternate checkout/build inferred.
 
 ## Fix / verification
+
+User retest (2026-10-21): "okay now i can download and definitely can see the excel worksheet. Now let's go to next manual test". UAT Test 1 passed; original download gap resolved. Do not infer that Import is also fixed: Test 2 now covers its native picker, preview and cancellation. The original native cause remains unisolated; record successful mitigation rather than invent a diagnosis.
 
 Confirmed feedback defect: legitimate-cancellation results and missing destination/selection were previously silently mapped to blank UI. Download and Import now show explicit cancellation feedback, distinguish missing results as errors, and emit tagged renderer/main request/result/error diagnostics without logging library contents. Both native dialogs now use Downloads as an explicit initial location to avoid relying on inherited shell location.
 
