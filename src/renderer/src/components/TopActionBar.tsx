@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useEffect, useRef, useState, useId } from 'react'
+import { createPortal } from 'react-dom'
 import {
   FileUp,
   Save,
@@ -31,7 +32,7 @@ import { MIN_ZOOM, MAX_ZOOM, COLORS } from '../lib/constants'
  * 7-tab RibbonToolbar onto ONE always-visible 46px strip:
  *   - Left:   Open · Save · Save As · Replace PDF · Export
  *   - Center: Page ◀ N/M ▶ · Zoom −/%/+ · Fit
- *   - Right:  Plan|Estimate · Totals · Show All · Hide All · ⋯ (inert)
+ *   - Right:  Plan|Estimate · Totals · Show All · Hide All · More
  *
  * Behavior parity (D-08): handler bodies and disabled derivations are lifted
  * VERBATIM from RibbonToolbar.tsx — only the layout/geometry changes (72×80
@@ -59,6 +60,9 @@ export interface TopActionBarProps {
   onOpenClick: () => void | Promise<void>
   onReplaceClick: () => void | Promise<void>
   onExportClick: () => void | Promise<void>
+  onAboutClick?: () => void
+  recoveryAvailable?: boolean
+  onRecoverClick?: () => void
 }
 
 /**
@@ -132,8 +136,35 @@ function BarButton({
 export function TopActionBar({
   onOpenClick,
   onReplaceClick,
-  onExportClick
+  onExportClick,
+  onAboutClick,
+  recoveryAvailable = false,
+  onRecoverClick
 }: TopActionBarProps): React.JSX.Element {
+  const [moreOpen, setMoreOpen] = useState(false)
+  const moreButton = useRef<HTMLButtonElement>(null)
+  const menu = useRef<HTMLDivElement>(null)
+  const menuId = useId()
+  const closeMore = (): void => { setMoreOpen(false); moreButton.current?.focus() }
+  useEffect(() => {
+    if (!moreOpen) return
+    const position = (): void => {
+      if (menu.current) menu.current.style.top = `${Math.min(moreButton.current?.getBoundingClientRect().bottom ?? 78, window.innerHeight - 112)}px`
+    }
+    position()
+    menu.current?.querySelector<HTMLButtonElement>('button')?.focus()
+    const outside = (event: PointerEvent): void => {
+      if (!menu.current?.contains(event.target as Node) && !moreButton.current?.contains(event.target as Node)) setMoreOpen(false)
+    }
+    document.addEventListener('pointerdown', outside)
+    window.addEventListener('resize', position)
+    return () => {
+      document.removeEventListener('pointerdown', outside)
+      window.removeEventListener('resize', position)
+    }
+  }, [moreOpen])
+  const menuItems = [{ label: 'About CLMC Takeoff', run: onAboutClick },
+    ...(recoveryAvailable && onRecoverClick ? [{ label: 'Recover Unsaved Work', run: onRecoverClick }] : [])]
   // --- Store selectors (copied verbatim from RibbonToolbar.tsx:134-154) ---
   const { totalPages, currentPage, nextPage, prevPage } = useViewerStore()
   const getViewport = useViewerStore((s) => s.getViewport)
@@ -330,6 +361,7 @@ export function TopActionBar({
         background: COLORS.secondary,
         borderBottom: `1px solid ${COLORS.border}`,
         userSelect: 'none',
+        overflowX: 'auto',
         flexShrink: 0
       }}
     >
@@ -452,7 +484,7 @@ export function TopActionBar({
       <div style={{ flex: 1 }} />
 
       {/* Right group — Plan|Estimate · Totals · Show All · Hide All · ⋯ */}
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         <div
           role="radiogroup"
           aria-label="Workspace view"
@@ -488,11 +520,22 @@ export function TopActionBar({
           title="Hide every markup on every page"
           ariaLabel="Hide All markups"
         />
-        {/* Inert overflow home (D-07/Q3) — reserved, no menu wired yet. */}
         <button
+          ref={moreButton}
+          type="button"
           data-testid="overflow-menu-button"
-          aria-label="More (coming soon)"
-          title="More (coming soon)"
+          aria-label="More"
+          title="More"
+          aria-haspopup="menu"
+          aria-expanded={moreOpen}
+          aria-controls={moreOpen ? menuId : undefined}
+          onClick={() => setMoreOpen(!moreOpen)}
+          onKeyDown={(event) => {
+            event.stopPropagation()
+            if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(event.key)) { event.preventDefault(); setMoreOpen(true) }
+            if (event.key === 'Escape') { event.preventDefault(); closeMore() }
+          }}
+          onKeyUp={(event) => event.stopPropagation()}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -504,12 +547,28 @@ export function TopActionBar({
             border: 'none',
             borderRadius: 4,
             color: COLORS.textSecondary,
-            cursor: 'default',
+            cursor: 'pointer',
             flexShrink: 0
           }}
         >
           <MoreHorizontal size={18} color="currentColor" />
         </button>
+        {moreOpen && createPortal(
+          <div ref={menu} id={menuId} role="menu" aria-label="More" onKeyUp={(event) => event.stopPropagation()}
+            onKeyDown={(event) => {
+              event.stopPropagation()
+              const items = Array.from(menu.current?.querySelectorAll<HTMLButtonElement>('button') ?? [])
+              const index = items.indexOf(document.activeElement as HTMLButtonElement)
+              if (event.key === 'Escape' || event.key === 'Tab') { closeMore(); if (event.key === 'Escape') event.preventDefault() }
+              if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                event.preventDefault(); items[(index + (event.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length]?.focus()
+              }
+              if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); items[index]?.click() }
+            }}
+            style={{ position: 'fixed', top: 78, right: 8, zIndex: 130, padding: 8, borderRadius: 4, background: COLORS.secondary, border: `1px solid ${COLORS.border}` }}>
+            {menuItems.map((item) => <button key={item.label} role="menuitem" type="button" onClick={() => { closeMore(); item.run?.() }}
+              style={{ display: 'block', minHeight: 28, padding: '4px 8px', width: '100%', textAlign: 'left', fontSize: 13, fontWeight: 600, color: COLORS.textPrimary, background: 'transparent', border: 'none' }}>{item.label}</button>)}
+          </div>, document.body)}
       </div>
     </div>
   )

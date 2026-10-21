@@ -9,18 +9,58 @@ import { pathToFileURL } from 'node:url'
 
 const transport = vi.hoisted(() => {
   const frame = { url: 'file:///app/out/renderer/index.html' }
-  const contents = { mainFrame: frame, on: vi.fn(), send: vi.fn(), setVisualZoomLevelLimits: vi.fn(), setZoomLevel: vi.fn(), setWindowOpenHandler: vi.fn() }
+  const contents = {
+    mainFrame: frame,
+    on: vi.fn(),
+    send: vi.fn(),
+    setVisualZoomLevelLimits: vi.fn(),
+    setZoomLevel: vi.fn(),
+    setWindowOpenHandler: vi.fn()
+  }
   return { handlers: new Map<string, (...args: any[]) => any>(), api: {} as any, frame, contents }
 })
 vi.mock('electron', () => ({
-  app: { commandLine: { appendSwitch: vi.fn() }, whenReady: () => Promise.resolve(), on: vi.fn(), getVersion: () => '1.0.0', getAppPath: () => process.cwd() },
-  BrowserWindow: class { webContents = transport.contents; on = vi.fn(); loadFile = (path: string) => { transport.frame.url = pathToFileURL(path).href }; loadURL = vi.fn() },
-  ipcMain: { handle: (channel: string, handler: (...args: any[]) => any) => transport.handlers.set(channel, handler), on: vi.fn() },
-  ipcRenderer: { invoke: (channel: string) => transport.handlers.get(channel)?.({ sender: transport.contents, senderFrame: transport.frame }), on: vi.fn() },
-  contextBridge: { exposeInMainWorld: (_name: string, api: unknown) => { transport.api = api } },
-  webFrame: { setVisualZoomLevelLimits: vi.fn() }, shell: {}
+  app: {
+    commandLine: { appendSwitch: vi.fn() },
+    whenReady: () => Promise.resolve(),
+    on: vi.fn(),
+    getVersion: () => '1.0.0',
+    getAppPath: () => process.cwd()
+  },
+  BrowserWindow: class {
+    webContents = transport.contents
+    on = vi.fn()
+    loadFile = (path: string) => {
+      transport.frame.url = pathToFileURL(path).href
+    }
+    loadURL = vi.fn()
+  },
+  ipcMain: {
+    handle: (channel: string, handler: (...args: any[]) => any) =>
+      transport.handlers.set(channel, handler),
+    on: vi.fn()
+  },
+  ipcRenderer: {
+    invoke: (channel: string) =>
+      transport.handlers.get(channel)?.({
+        sender: transport.contents,
+        senderFrame: transport.frame
+      }),
+    on: vi.fn()
+  },
+  contextBridge: {
+    exposeInMainWorld: (_name: string, api: unknown) => {
+      transport.api = api
+    }
+  },
+  webFrame: { setVisualZoomLevelLimits: vi.fn() },
+  shell: {}
 }))
-vi.mock('@electron-toolkit/utils', () => ({ electronApp: { setAppUserModelId: vi.fn() }, optimizer: {}, is: { dev: false } }))
+vi.mock('@electron-toolkit/utils', () => ({
+  electronApp: { setAppUserModelId: vi.fn() },
+  optimizer: {},
+  is: { dev: false }
+}))
 vi.mock('../main/ipc-handlers', () => ({ registerIpcHandlers: vi.fn() }))
 vi.mock('../main/cost-library-ipc', () => ({ registerCostLibraryHandlers: vi.fn() }))
 beforeAll(async () => {
@@ -33,17 +73,27 @@ describe('trusted installed version', () => {
     expect(transport.api.getReleaseInfo).toBeTypeOf('function')
     window.api = transport.api
     await transport.api.getReleaseInfo()
-    useProjectStore.setState({ currentFilePath: 'C:/' + 'long-project-'.repeat(70) + '.clmc', isDirty: true, isSaving: true })
+    useProjectStore.setState({
+      currentFilePath: 'C:/' + 'long-project-'.repeat(70) + '.clmc',
+      isDirty: true,
+      isSaving: true
+    })
     const container = document.createElement('div')
     const root = createRoot(container)
-    await act(async () => { root.render(React.createElement(TitleBar)) })
-    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 50)) })
+    await act(async () => {
+      root.render(React.createElement(TitleBar))
+    })
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50))
+    })
     expect(container.textContent).toContain('CLMC Takeoff 1.0.0')
     expect(container.textContent).toContain('Saving…')
     expect(container.textContent).toContain('*')
     const app = container.querySelector('[data-testid="app-version"]') as HTMLElement
     expect(app.style.flexShrink).toBe('0')
-    expect(container.querySelector('[data-testid="project-title"]')?.getAttribute('title')).toContain('long-project-')
+    expect(
+      container.querySelector('[data-testid="project-title"]')?.getAttribute('title')
+    ).toContain('long-project-')
     act(() => root.unmount())
   })
   it('rejects foreign windows, subframes and navigated frames', async () => {
@@ -53,23 +103,32 @@ describe('trusted installed version', () => {
       { sender: {}, senderFrame: transport.frame },
       { sender: transport.contents, senderFrame: { url: transport.frame.url } },
       { sender: transport.contents, senderFrame: null }
-    ]) await expect(handler!(event)).rejects.toThrow('Untrusted')
+    ])
+      await expect(handler!(event)).rejects.toThrow('Untrusted')
     const url = transport.frame.url
     transport.frame.url = 'https://untrusted.example/'
-    await expect(handler!({ sender: transport.contents, senderFrame: transport.frame })).rejects.toThrow('Untrusted')
+    await expect(
+      handler!({ sender: transport.contents, senderFrame: transport.frame })
+    ).rejects.toThrow('Untrusted')
     transport.frame.url = url
   })
   it('never invents a version while pending or after transport failure', async () => {
     window.api = { ...transport.api, getReleaseInfo: () => new Promise(() => {}) }
     const container = document.createElement('div')
     let root = createRoot(container)
-    await act(async () => { root.render(React.createElement(TitleBar)) })
+    await act(async () => {
+      root.render(React.createElement(TitleBar))
+    })
     expect(container.querySelector('[data-testid="app-version"]')?.textContent).toBe('CLMC Takeoff')
     act(() => root.unmount())
     window.api.getReleaseInfo = vi.fn().mockRejectedValue(new Error('offline transport failure'))
     root = createRoot(container)
-    await act(async () => { root.render(React.createElement(TitleBar)) })
-    expect(container.querySelector('[data-testid="app-version"]')?.textContent).toBe('CLMC Takeoff — Version unavailable')
+    await act(async () => {
+      root.render(React.createElement(TitleBar))
+    })
+    expect(container.querySelector('[data-testid="app-version"]')?.textContent).toBe(
+      'CLMC Takeoff — Version unavailable'
+    )
     act(() => root.unmount())
   })
 })

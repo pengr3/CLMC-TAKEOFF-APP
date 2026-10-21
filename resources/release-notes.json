@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0",
+  "changes": [
+    "Take off counts, lengths, areas, perimeters and walls from PDF floor plans, with embedded plans in saved projects.",
+    "Protected project saves retain one last-good adjacent backup after a successful replacement save.",
+    "Project prices retain their rate units when display units change. Older prices need their rate units reviewed before release use."
+  ],
+  "compatibility": "Saving will use this version’s project format. Older versions may not preserve rate units correctly. Keep a separate pre-upgrade copy if you need to return to an older version."
+}

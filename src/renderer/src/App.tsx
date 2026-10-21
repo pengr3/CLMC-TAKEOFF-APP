@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { flushSync } from 'react-dom'
 import { TitleBar } from './components/TitleBar'
+import { AboutDialog } from './components/AboutDialog'
 import { TopActionBar } from './components/TopActionBar'
 import { ContextBar } from './components/ContextBar'
 import { ToolRail } from './components/ToolRail'
@@ -136,6 +137,7 @@ function App(): React.JSX.Element {
   const [openError, setOpenError] = useState<string | null>(null)
   const [saveToast, setSaveToast] = useState<string | null>(null)
   const [closeModal, setCloseModal] = useState<'close-window' | 'open-other' | null>(null)
+  const [aboutOpen, setAboutOpen] = useState(false)
   const [pendingOpen, setPendingOpen] = useState<{ filePath: string; extension: string } | null>(null)
   useEffect(() => useProjectStore.subscribe((state, previous) => {
     if (state.lastSaveOutcome && state.lastSaveOutcome !== previous.lastSaveOutcome) {
@@ -221,6 +223,7 @@ function App(): React.JSX.Element {
   )
 
   useCloseGuard(() => {
+    setAboutOpen(false)
     if (!useProjectStore.getState().isDirty) {
       window.api.confirmClose()
       return
@@ -393,6 +396,9 @@ function App(): React.JSX.Element {
         onOpenClick={handleOpenClick}
         onReplaceClick={handleReplaceClick}
         onExportClick={handleExportClick}
+        onAboutClick={() => {
+          if (!document.querySelector('[role="dialog"]') && !isSaving) setAboutOpen(true)
+        }}
       />
       <ContextBar />
       <main
@@ -674,6 +680,10 @@ function App(): React.JSX.Element {
           }}
           onCancel={() => setReplaceDimMiss(null)}
         />
+      )}
+
+      {aboutOpen && !saveFailure && !closeModal && !openError && !exportError && !uncalibratedWarning && !archiveCorrupted && !replacePageAbort && !replaceDimMiss && (
+        <AboutDialog projectPath={currentFilePath} onClose={() => setAboutOpen(false)} />
       )}
 
       {saveFailure && (
