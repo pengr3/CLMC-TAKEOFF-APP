@@ -14,6 +14,7 @@ import { useScaleStore } from '../stores/scaleStore'
 import { useViewerStore } from '../stores/viewerStore'
 import { useProjectStore } from '../stores/projectStore'
 import { DEFAULT_MARKUP_PCT } from './estimate-defaults'
+import { priceInBasis, visibleRateBasis } from './rate-units'
 
 const UNCATEGORIZED_LABEL = '(Uncategorized)'
 const UNCAT_BUCKET_KEY = '__uncat__'
@@ -265,8 +266,9 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
       // quantity; cost = materialCost + laborCost (internal); price = cost × (1 +
       // markup/100) (client); margin = price − cost (D-03/D-04/D-05).
       const entry = rates[`${name}|${type}`]
-      const material = entry?.material ?? 0
-      const labor = entry?.labor ?? 0
+      const converted = priceInBasis(entry, visibleRateBasis(type, globalUnit))
+      const material = converted.material
+      const labor = converted.labor
       const markup = entry?.markup ?? defaultMarkup ?? DEFAULT_MARKUP_PCT
       const materialCost = material * acc.quantity
       const laborCost = labor * acc.quantity

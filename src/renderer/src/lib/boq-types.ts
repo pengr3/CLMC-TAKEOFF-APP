@@ -1,5 +1,6 @@
 import type { ScaleUnit } from '../types/scale'
 import type { Markup } from '../types/markup'
+import type { RateBasis, RateReview } from './rate-units'
 
 /**
  * Per-(name|type) pricing entry (Phase 16). Stored in projectStore.rates and
@@ -10,6 +11,10 @@ import type { Markup } from '../types/markup'
  * `{ material: n, labor: 0, markup: 30 }` at hydrate; D-06).
  */
 export interface PriceEntry {
+  /** Optional only for legacy inputs; new prices carry an explicit denominator. */
+  basis?: RateBasis
+  /** Legacy inference is provisional until explicitly acknowledged. */
+  review?: RateReview
   /** ₱ per unit — material rate. */
   material: number
   /** ₱ per unit — labor rate. */

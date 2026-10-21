@@ -9,6 +9,7 @@ import { InlineRenameInput } from './InlineRenameInput'
 import { CostLibraryButton } from './CostLibraryDialog'
 import type { BoqItemRow } from '../lib/boq-types'
 import { useProjectStore } from '../stores/projectStore'
+import { isRateBasis, priceInBasis } from '../lib/rate-units'
 
 /**
  * EstimateRow — one row of the full-width Estimate grid (Phase 16, D-07).
@@ -132,8 +133,10 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
   // Current stored entry for this (name, type). Absent → undefined; material/labor
   // seed blank, markup seeds to the 30% default (Pitfall 5). Top-level selector.
   const entry = useProjectStore((s) => s.rates[priceKey])
-  const material = entry?.material
-  const labor = entry?.labor
+  const basis = isRateBasis(item.uom) ? item.uom : 'ea'
+  const displayed = priceInBasis(entry, basis)
+  const material = displayed.material
+  const labor = displayed.labor
   const markup = entry?.markup
 
   // One ref per editable cell — the fields are uncontrolled (native listeners below).
@@ -146,13 +149,15 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
   // material/labor: parseFloat, NaN/negative → 0 (mirrors TotalsRow.commitRate).
   const commitMaterial = (text: string): void => {
     const parsed = parseFloat(text)
-    const safe = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed
-    useProjectStore.getState().setPrice(priceKey, { material: safe })
+    const safe = !Number.isFinite(parsed) || parsed < 0 ? 0 : parsed
+    const current = useProjectStore.getState().rates[priceKey]
+    useProjectStore.getState().setPrice(priceKey, { ...priceInBasis(current, basis), material: safe })
   }
   const commitLabor = (text: string): void => {
     const parsed = parseFloat(text)
-    const safe = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed
-    useProjectStore.getState().setPrice(priceKey, { labor: safe })
+    const safe = !Number.isFinite(parsed) || parsed < 0 ? 0 : parsed
+    const current = useProjectStore.getState().rates[priceKey]
+    useProjectStore.getState().setPrice(priceKey, { ...priceInBasis(current, basis), labor: safe })
   }
   // markup (Pitfall 5): blank/NaN → use the project default (30, NOT 0) so a
   // cleared field reverts to the default markup; a typed value → clamp ≥ 0.
@@ -228,7 +233,7 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
     }
     // commitMaterial closes over priceKey; re-bind when it changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [priceKey])
+  }, [priceKey, basis])
   useEffect(() => {
     const el = laborRef.current
     if (!el) return
@@ -249,7 +254,7 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
       el.removeEventListener('mousedown', onStop)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [priceKey])
+  }, [priceKey, basis])
   useEffect(() => {
     const el = markupRef.current
     if (!el) return
