@@ -81,7 +81,7 @@ const api = {
     filePath: string,
     json: string,
     pdfBytes: Uint8Array
-  ): Promise<{ ok: true }> =>
+  ): Promise<{ ok: true } | { ok: false; stage: 'write' | 'validate' | 'backup' | 'replace'; message: string; firstSave: boolean }> =>
     ipcRenderer.invoke('file:writeProject', filePath, json, pdfBytes),
 
   // SHA256 a buffer in main; used by save flow to populate project.json.pdf.sha256

@@ -1,6 +1,7 @@
 import { ipcMain, dialog, BrowserWindow } from 'electron'
-import { readFile, writeFile, rename, unlink } from 'fs/promises'
-import { extname, basename } from 'path'
+import { readFile, writeFile, rename, unlink, open } from 'fs/promises'
+import { extname, basename, resolve } from 'path'
+import { randomUUID } from 'crypto'
 import {
   enforceClmcExtension,
   enforceXlsxExtension,
@@ -34,6 +35,68 @@ function bufToU8(buf: Buffer): Uint8Array {
 }
 function u8ToBuf(u8: Uint8Array): Buffer {
   return Buffer.from(u8.buffer, u8.byteOffset, u8.byteLength)
+}
+
+export type ProjectSaveStage = 'write' | 'validate' | 'backup' | 'replace'
+export type WriteProjectResult = { ok: true } | { ok: false; stage: ProjectSaveStage; message: string; firstSave: boolean }
+class ProjectSaveError extends Error {
+  constructor(public stage: ProjectSaveStage, cause: unknown, public firstSave: boolean) {
+    super(cause instanceof Error ? cause.message : String(cause))
+  }
+}
+const projectWrites = new Map<string, Promise<void>>()
+async function validatedArchive(bytes: Buffer): Promise<void> {
+  const { projectJson, pdfBytes } = await extractClmcZip(bytes)
+  const data = JSON.parse(projectJson)
+  if (data?.formatVersion !== 2 || data?.pdf?.sha256 !== sha256Buffer(pdfBytes)) throw new Error('Project archive integrity validation failed.')
+}
+async function durableTemp(path: string, bytes: Buffer): Promise<void> {
+  const handle = await open(path, 'wx')
+  try { await handle.writeFile(bytes); await handle.sync() } finally { await handle.close() }
+}
+async function renameWithRetry(source: string, destination: string): Promise<void> {
+  for (let attempt = 0; ; attempt++) {
+    try { await rename(source, destination); return } catch (error) {
+      if (!isLockedDestError(error) || attempt >= RENAME_RETRY_DELAYS_MS.length) throw error
+      await delay(RENAME_RETRY_DELAYS_MS[attempt])
+    }
+  }
+}
+/** A complete serialized transaction. A lock never authorizes deleting the destination. */
+export function writeProtectedProject(destination: string, json: string, pdf: Uint8Array): Promise<void> {
+  const finalPath = resolve(destination), key = process.platform === 'win32' ? finalPath.toLowerCase() : finalPath
+  const bytes = Buffer.from(pdf), previous = projectWrites.get(key) ?? Promise.resolve()
+  const transaction = previous.catch(() => {}).then(async () => {
+    const token = randomUUID(), temp = `${finalPath}.${token}.tmp`, backupTemp = `${finalPath}.${token}.bak.tmp`
+    let stage: ProjectSaveStage = 'write', firstSave = false
+    try {
+      let original: Buffer | undefined
+      try { original = await readFile(finalPath) } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+        firstSave = true
+      }
+      await durableTemp(temp, await assembleClmcZip(json, bytes))
+      stage = 'validate'
+      await validatedArchive(await readFile(temp))
+      if (original) {
+        let valid = false
+        try { await validatedArchive(original); valid = true } catch { /* preserve existing good backup */ }
+        if (valid) {
+          stage = 'backup'
+          await durableTemp(backupTemp, original)
+          await validatedArchive(await readFile(backupTemp))
+          await renameWithRetry(backupTemp, `${finalPath}.bak`)
+        }
+      }
+      stage = 'replace'
+      await renameWithRetry(temp, finalPath)
+    } catch (error) { throw new ProjectSaveError(stage, error, firstSave) } finally {
+      await Promise.all([temp, backupTemp].map(path => unlink(path).catch(() => {})))
+    }
+  })
+  projectWrites.set(key, transaction)
+  void transaction.finally(() => { if (projectWrites.get(key) === transaction) projectWrites.delete(key) }).catch(() => {})
+  return transaction
 }
 
 /**
@@ -230,11 +293,17 @@ export function registerIpcHandlers(): void {
       filePath: string,
       jsonText: string,
       pdfBytes: Uint8Array
-    ): Promise<{ ok: true }> => {
-      const pdfBuf = u8ToBuf(pdfBytes)
-      const zipBuf = await assembleClmcZip(jsonText, pdfBuf)
-      await atomicWriteFile(filePath, zipBuf)
-      return { ok: true }
+    ): Promise<WriteProjectResult> => {
+      try {
+        if (typeof filePath !== 'string' || !filePath.trim() || filePath.includes('\0') || extname(filePath).toLowerCase() !== '.clmc' ||
+            typeof jsonText !== 'string' || !(pdfBytes instanceof Uint8Array) || pdfBytes.byteLength === 0) throw new Error('Invalid project save input.')
+        await writeProtectedProject(filePath, jsonText, pdfBytes)
+        return { ok: true }
+      } catch (error) {
+        return { ok: false, stage: error instanceof ProjectSaveError ? error.stage : 'write',
+          firstSave: error instanceof ProjectSaveError ? error.firstSave : false,
+          message: error instanceof Error ? error.message : String(error) }
+      }
     }
   )
 

@@ -6,6 +6,10 @@ import { DEFAULT_MARKUP_PCT } from '../lib/estimate-defaults'
 import type { PriceEntry } from '../lib/boq-types'
 
 interface ProjectStoreState {
+  documentSessionId: string
+  editRevision: number
+  savedRevision: number
+  acknowledgeSavedRevision: (path: string, session: string, revision: number) => boolean
   currentFilePath: string | null
   isDirty: boolean
   isSaving: boolean
@@ -122,6 +126,15 @@ export function isHydrating(): boolean {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createProjectStore = () =>
   create<ProjectStoreState>((set, get) => ({
+    documentSessionId: crypto.randomUUID(),
+    editRevision: 0,
+    savedRevision: 0,
+    acknowledgeSavedRevision: (path, session, revision) => {
+      if (get().documentSessionId !== session) return false
+      const clean = get().editRevision === revision
+      set({ currentFilePath: path, savedRevision: revision, isDirty: !clean, lastSavedAt: Date.now() })
+      return clean
+    },
     currentFilePath: null,
     isDirty: false,
     isSaving: false,
@@ -133,7 +146,7 @@ const createProjectStore = () =>
     defaultMarkupPct: DEFAULT_MARKUP_PCT,
 
     setSaved: (filePath) =>
-      set({ currentFilePath: filePath, isDirty: false, lastSavedAt: Date.now() }),
+      set({ currentFilePath: filePath, isDirty: false, savedRevision: get().editRevision, lastSavedAt: Date.now() }),
 
     setSaving: (v) => set({ isSaving: v }),
 
@@ -143,12 +156,14 @@ const createProjectStore = () =>
 
     markDirty: () => {
       if (_hydrating) return
-      if (get().isDirty) return
-      set({ isDirty: true })
+      set({ isDirty: true, editRevision: get().editRevision + 1 })
     },
 
     reset: () =>
       set({
+        documentSessionId: crypto.randomUUID(),
+        editRevision: 0,
+        savedRevision: 0,
         currentFilePath: null,
         isDirty: false,
         isSaving: false,

@@ -60,10 +60,30 @@ function basenameAny(p: string): string {
   return idx >= 0 ? p.slice(idx + 1) : p
 }
 
+/** Capture before the first await: recovery and explicit saves share this coherent input. */
+export function captureProjectSnapshot() {
+  const { fileName, totalPages, pdfBytes, pdfDocument } = useViewerStore.getState()
+  const project = useProjectStore.getState()
+  if (!fileName || !totalPages || !pdfBytes || !pdfDocument) throw new Error('No PDF is open to save.')
+  const metadata = JSON.parse(JSON.stringify(snapshotProject({
+    pdfOriginalFilename: fileName, pdfSha256: '', pdfTotalPages: totalPages, perPageDimensions: {}
+  }))) as ProjectFileV2
+  return { metadata, pdfBytes: pdfBytes.slice(), pdfDocument: pdfDocument as PDFDocumentProxy,
+    documentSessionId: project.documentSessionId, revision: project.editRevision, sourcePath: project.currentFilePath }
+}
+
+export async function finalizeProjectSnapshot(captured: ReturnType<typeof captureProjectSnapshot>, createdAt?: string) {
+  const pdfSha256 = await window.api.hashBuffer(captured.pdfBytes)
+  const dimensions = await perPageDimensions(captured.pdfDocument)
+  return snapshotProject({ pdfOriginalFilename: captured.metadata.pdf.originalFilename, pdfSha256,
+    pdfTotalPages: captured.metadata.pdf.totalPages, perPageDimensions: dimensions, createdAt }, captured.metadata)
+}
+
 export function useProject() {
   const { loadPdfFromPath, loadPdfFromBytes } = usePdfDocument()
 
   const newProject = useCallback((): void => {
+    if (useProjectStore.getState().isSaving) return
     useMarkupStore.getState().reset()
     useScaleStore.getState().reset()
     useViewerStore.getState().resetViewer()
@@ -85,6 +105,8 @@ export function useProject() {
   }, [])
 
   async function saveProjectAsImpl(): Promise<'ok' | 'canceled' | 'error'> {
+    useProjectStore.getState().setSaving(true)
+    try {
     const { fileName: pdfName, totalPages } = useViewerStore.getState()
     if (totalPages === 0) return 'error'
     const dotIdx = (pdfName ?? '').lastIndexOf('.')
@@ -92,7 +114,10 @@ export function useProject() {
     const defaultPath = `${baseNoExt}.clmc`
     const chosen = await window.api.saveProjectDialog(defaultPath)
     if (!chosen) return 'canceled'
-    return writeSnapshotToPath(chosen, true)
+    return await writeSnapshotToPath(chosen, true)
+    } finally {
+      useProjectStore.getState().setSaving(false)
+    }
   }
 
   async function writeSnapshotToPath(
@@ -102,16 +127,7 @@ export function useProject() {
     const setSaving = useProjectStore.getState().setSaving
     setSaving(true)
     try {
-      const { fileName, totalPages, pdfBytes, pdfDocument } = useViewerStore.getState()
-      const pdfDoc = pdfDocument as PDFDocumentProxy | null
-      if (!pdfDoc || !pdfBytes || totalPages === 0 || !fileName) {
-        console.error('[useProject] save: missing PDF state (pdfDoc/pdfBytes/totalPages/fileName)')
-        return 'error'
-      }
-
-      // Hash via main process (review feedback: no SubtleCrypto in renderer).
-      const pdfSha256 = await window.api.hashBuffer(pdfBytes)
-      const perPageDims = await perPageDimensions(pdfDoc)
+      const captured = captureProjectSnapshot()
 
       // Preserve createdAt for non-first saves.
       let createdAt: string | undefined
@@ -127,16 +143,10 @@ export function useProject() {
         }
       }
 
-      const snap = snapshotProject({
-        pdfOriginalFilename: fileName,
-        pdfSha256,
-        pdfTotalPages: totalPages,
-        perPageDimensions: perPageDims,
-        createdAt
-      })
-
-      await window.api.writeProject(clmcPath, JSON.stringify(snap), pdfBytes)
-      useProjectStore.getState().setSaved(clmcPath)
+      const snap = await finalizeProjectSnapshot(captured, createdAt)
+      const result = await window.api.writeProject(clmcPath, JSON.stringify(snap), captured.pdfBytes)
+      if (!result.ok) throw new Error(result.message)
+      useProjectStore.getState().acknowledgeSavedRevision(clmcPath, captured.documentSessionId, captured.revision)
       return 'ok'
     } catch (err) {
       console.error('[useProject] save failed:', err)
@@ -150,6 +160,7 @@ export function useProject() {
 
   const openClmcFromPath = useCallback(
     async (clmcPath: string): Promise<ProjectOpenResult> => {
+      if (useProjectStore.getState().isSaving) return { kind: 'canceled' }
       try {
         const result = await window.api.readProject(clmcPath)
         if (result.kind === 'unknown') {
@@ -278,6 +289,7 @@ export function useProject() {
 
   const replacePlanPdf = useCallback(
     async (newBytes: Uint8Array, pickedPath: string): Promise<ReplacePlanPdfResult> => {
+      if (useProjectStore.getState().isSaving) return { kind: 'canceled' }
       try {
         const { totalPages: expectedPages, pdfDocument: currentDoc } = useViewerStore.getState()
         const currentDocProxy = currentDoc as PDFDocumentProxy | null
@@ -343,6 +355,7 @@ export function useProject() {
 
   const applyReplacePlanPdf = useCallback(
     async (newBytes: Uint8Array, pickedPath: string): Promise<void> => {
+      if (useProjectStore.getState().isSaving) return
       const filename = basenameAny(pickedPath)
       await loadPdfFromBytes(newBytes, filename)
       // loadPdfFromBytes already updated viewerStore.pdfBytes, pdfDocument, fileName, totalPages.
@@ -354,6 +367,7 @@ export function useProject() {
   // ===== TOP-LEVEL OPEN ENTRY =====
 
   const openProjectDialog = useCallback(async (): Promise<ProjectOpenResult | null> => {
+    if (useProjectStore.getState().isSaving) return { kind: 'canceled' }
     const picked = await window.api.openProject()
     if (!picked) return { kind: 'canceled' }
     return openByExtension(picked.filePath, picked.extension)
@@ -361,6 +375,7 @@ export function useProject() {
 
   const openByExtension = useCallback(
     async (filePath: string, extension: string): Promise<ProjectOpenResult> => {
+      if (useProjectStore.getState().isSaving) return { kind: 'canceled' }
       const route = routeOpenByExtension(extension)
       if (route === 'pdf') {
         try {

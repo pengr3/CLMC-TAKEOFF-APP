@@ -53,7 +53,7 @@ interface ElectronAPI {
   saveProjectDialog: (defaultPath?: string) => Promise<string | null>
 
   readProject: (filePath: string) => Promise<ReadProjectResult>
-  writeProject: (filePath: string, json: string, pdfBytes: Uint8Array) => Promise<{ ok: true }>
+  writeProject: (filePath: string, json: string, pdfBytes: Uint8Array) => Promise<{ ok: true } | { ok: false; stage: 'write' | 'validate' | 'backup' | 'replace'; message: string; firstSave: boolean }>
   hashBuffer: (bytes: Uint8Array) => Promise<string>
 
   saveExportDialog: (defaultPath: string, format: 'xlsx' | 'csv') => Promise<{ filePath: string; format: 'xlsx' | 'csv' } | null>

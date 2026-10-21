@@ -27,7 +27,15 @@ export interface SnapshotParams {
  * Excludes transient state (D-09): undoStack, redoStack, calibMode, activeTool,
  * pdfDocument.
  */
-export function snapshotProject(params: SnapshotParams): ProjectFileV2 {
+export function snapshotProject(params: SnapshotParams, captured?: ProjectFileV2): ProjectFileV2 {
+  if (captured) {
+    return {
+      ...captured,
+      createdAt: params.createdAt ?? captured.createdAt,
+      pdf: { originalFilename: params.pdfOriginalFilename, sha256: params.pdfSha256, totalPages: params.pdfTotalPages },
+      pages: captured.pages.map(page => ({ ...page, dimensions: params.perPageDimensions[page.pageIndex] ?? page.dimensions }))
+    }
+  }
   const markup = useMarkupStore.getState()
   const scale = useScaleStore.getState()
   const viewer = useViewerStore.getState()
@@ -80,6 +88,7 @@ export function snapshotProject(params: SnapshotParams): ProjectFileV2 {
 export function hydrateStores(data: ProjectFileV2): void {
   suspendDirtyTracking()
   try {
+    useProjectStore.getState().reset()
     // Rebuild per-page maps from the dense pages array
     const pageMarkups: Record<number, Markup[]> = {}
     const pageScales: Record<number, PageScale> = {}
