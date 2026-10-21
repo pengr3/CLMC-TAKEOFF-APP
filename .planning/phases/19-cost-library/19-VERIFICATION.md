@@ -5,7 +5,7 @@ status: human_needed
 automated_status: passed
 score: 6/6 requirements verified
 verification_mode: inline source review, automated tests, production Electron smoke and screenshot inspection
-human_result: Phase 19 manual UAT has 3 passed, 0 unresolved issues, 8 pending. User confirms download/worksheet, import preview/cancel, and replacement/restart persistence. Next is rate application with markup/totals (Test 4). Two-PC deployment pilot remains Phase 21.
+human_result: Phase 19 manual UAT has 4 passed, 0 unresolved issues, 7 pending. Tests 1-4 confirmed through rate application, preserved markup and correct totals. Next is search and incompatible-unit blocking (Test 5). Two-PC deployment pilot remains Phase 21.
 ---
 
 # Phase 19 verification

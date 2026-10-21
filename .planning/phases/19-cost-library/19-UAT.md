@@ -8,29 +8,18 @@ updated: 2026-10-21
 
 ## Current Test
 
-number: 4
-name: Apply count rates and preserve selling markup
+number: 5
+name: Search and block incompatible units
 expected: |
-  Test 3 passed—**3 of 11 tests passed**.
+  Test 4 passed—**4 of 11 tests passed**.
 
-  1. Open a PDF in a **test project**. Place **two count pins** in the same group named **Test Outlet**.
-  2. Switch to **Estimate**. Confirm its quantity is **2 ea** and set that row's **Markup** to **30%**.
-  3. Click the small **book icon** beside Test Outlet.
-  4. Select library item **E001**, then choose **Apply Rates**.
+  1. In **Estimate**, click the **book icon** beside **Test Outlet**.
+  2. Search for **E001**, then clear the search and try **Test Outlet**, then **Electrical**. Each search should find E001.
+  3. Clear the search to show both items. Check **F001 — Test Wall Painting**, whose unit is **m²**.
+  4. Its selection button should be disabled and indicate **Needs ea**, because Test Outlet is a count item.
+  5. Select **E001**. The picker should stay open with **Apply Rates** available. Choose **Close** to exit without applying.
 
-  **Expected:** The row updates to:
-
-  | Field | Value |
-  |---|---:|
-  | Material rate | ₱100 |
-  | Labor rate | ₱80 |
-  | Cost | ₱360 |
-  | Markup | 30% |
-  | Unit price | ₱234 |
-  | Total | ₱468 |
-  | Margin | ₱108 |
-
-  The name **Test Outlet** and both count pins stay unchanged.
+  **Expected:** Search works by code, description and category; incompatible units cannot be selected; choosing an item still requires an explicit **Apply Rates** action. Your Estimate remains unchanged after closing.
 awaiting: user response
 
 ## Test Setup
@@ -64,7 +53,8 @@ reported: "pass"
 
 ### 4. Apply count rates and preserve selling markup
 expected: In a test PDF/project, place two count pins named Test Outlet. In Estimate set that row's markup to 30%, then choose its book button, select E001 and Apply Rates. Material becomes 100, labor 80 and markup remains 30%. Quantity 2 ea gives Cost 360, UNIT PRICE 234, TOTAL 468 and Margin 108. Item name/geometry are unchanged.
-result: [pending]
+result: pass
+reported: "pass"
 
 ### 5. Search and block incompatible units
 expected: Open the Test Outlet row's library picker. Search by E001, Test Outlet and Electrical to find its entry. F001's m² rate cannot be selected/applied to this ea count row; its button explains the required unit. A compatible entry remains selectable. Selecting alone does not apply prices; Apply Rates is explicit.
@@ -97,9 +87,9 @@ result: [pending]
 ## Summary
 
 total: 11
-passed: 3
+passed: 4
 issues: 0
-pending: 8
+pending: 7
 skipped: 0
 blocked: 0
 

@@ -4,7 +4,7 @@ milestone: v1.0
 current_phase: 19
 current_phase_name: Cost Library
 status: phase_19_manual_uat
-stopped_at: Phase 19 manual UAT tests 1-3 passed; test 4 of 11 awaiting rate application and markup/totals results
+stopped_at: Phase 19 manual UAT tests 1-4 passed; test 5 of 11 awaiting search and incompatible-unit selection results
 last_updated: "2026-10-21T06:57:10.185Z"
 last_activity: 2026-10-21
 state_head: 1e92018edf830df4b926016f7ead885de8713f9b
@@ -29,14 +29,14 @@ milestone_name: milestone
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 19 — manual UAT test 4/11 (19-UAT.md). User confirmed download/worksheet, import preview/cancel, and accepted library replacement/restart persistence (Tests 1-3). Next apply E001 to two Test Outlet count pins and verify preserved markup and calculated totals. Prior automated baseline and 66 focused regressions pass. Phase 20 has not started.
+**Current Focus:** Phase 19 — manual UAT test 5/11 (19-UAT.md). Tests 1-4 passed, including applying library rates to two count pins with preserved markup and correct totals. Next verify search by code/description/category, incompatible m² versus ea selection, and explicit application. Prior automated baseline and 66 focused regressions pass. Phase 20 has not started.
 
 ---
 
 ## Current Position
 
 Phase: 19 — Cost Library (implementation complete; manual UAT pending)
-Plan: 19-01 implemented; UAT has 3 passed, 0 unresolved issues, 8 pending. Test 4 awaits user response.
+Plan: 19-01 implemented; UAT has 4 passed, 0 unresolved issues, 7 pending. Test 5 awaits user response.
 
 ## Performance Metrics
 
