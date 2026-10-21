@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { registerIpcHandlers } from './ipc-handlers'
+import { registerCostLibraryHandlers } from './cost-library-ipc'
 
 let canClose = false
 let mainWindowRef: BrowserWindow | null = null
@@ -98,6 +99,7 @@ app.whenReady().then(() => {
   })
 
   registerIpcHandlers()
+  registerCostLibraryHandlers()
 
   // Confirm-close listener: renderer calls this after save/discard decision resolves.
   // Sets canClose=true then re-triggers the OS close — next close event is allowed through.

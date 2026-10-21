@@ -6,6 +6,7 @@ import { CURRENCY_SYMBOL } from '../lib/currency'
 import { DEFAULT_MARKUP_PCT } from '../lib/estimate-defaults'
 import { labelToName } from './TotalsRow'
 import { InlineRenameInput } from './InlineRenameInput'
+import { CostLibraryButton } from './CostLibraryDialog'
 import type { BoqItemRow } from '../lib/boq-types'
 import { useProjectStore } from '../stores/projectStore'
 
@@ -378,9 +379,10 @@ export function EstimateRow(props: EstimateRowProps): React.JSX.Element {
         <span
           data-testid="estimate-row-label"
           onDoubleClick={() => onStartRename?.()}
-          style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          style={{ display: 'flex', gap: 6, alignItems: 'center', minWidth: 0 }}
         >
-          {item.label}
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
+          <CostLibraryButton target={item} />
         </span>
       )}
       <span

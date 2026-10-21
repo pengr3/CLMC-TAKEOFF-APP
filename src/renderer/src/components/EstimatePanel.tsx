@@ -8,6 +8,7 @@ import { useViewerStore } from '../stores/viewerStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useMarkupStore } from '../stores/markupStore'
 import { EstimateCategoryBlock } from './EstimateCategoryBlock'
+import { CostLibraryButton } from './CostLibraryDialog'
 import { DefaultMarkupChangeModal } from './DefaultMarkupChangeModal'
 import { TotalsRowContextMenu } from './TotalsRowContextMenu'
 import { GroupCategoryDialog } from './GroupCategoryDialog'
@@ -295,7 +296,10 @@ function EstimatePanelComponent(): React.JSX.Element {
         }}
       >
         <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.textPrimary }}>Estimate</span>
-        <DefaultMarkupControl />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <CostLibraryButton />
+          <DefaultMarkupControl />
+        </div>
       </div>
 
       {/* Grouped column header — two-tier: group labels (Internal / Client) over the

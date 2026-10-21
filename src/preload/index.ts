@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer, webFrame } from 'electron'
+import type { CostLibraryApi } from '../shared/cost-library'
 
 webFrame.setVisualZoomLevelLimits(1, 1)
 
@@ -55,6 +56,13 @@ interface BoqStructure {
 }
 
 const api = {
+  costLibrary: {
+    load: () => ipcRenderer.invoke('costLibrary:load'),
+    preview: () => ipcRenderer.invoke('costLibrary:preview'),
+    commit: (token: string) => ipcRenderer.invoke('costLibrary:commit', token),
+    cancel: (token: string) => ipcRenderer.invoke('costLibrary:cancel', token),
+    downloadTemplate: () => ipcRenderer.invoke('costLibrary:template')
+  } satisfies CostLibraryApi,
   openPdf: (): Promise<{ filePath: string; data: ArrayBuffer } | null> =>
     ipcRenderer.invoke('dialog:openPdf'),
 
