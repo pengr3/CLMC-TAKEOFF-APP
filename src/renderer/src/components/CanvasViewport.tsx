@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useCallback, memo } from 'react'
-import { Stage, Layer, Image as KonvaImage, Circle, Line, Rect } from 'react-konva'
+import { Stage, Layer, Circle, Line, Rect } from 'react-konva'
+import { PdfPageImage } from './PdfPageImage'
 import Konva from 'konva'
 import { usePdfRenderer } from '../hooks/usePdfRenderer'
 import { useViewerStore } from '../stores/viewerStore'
@@ -274,20 +275,10 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
   }, [])
   const { pageCanvas, pageSize } = usePdfRenderer()
 
-  // Keep a ref to the last valid render so we never flash blank during transitions
-  const lastValidRef = useRef<{
-    pageCanvas: HTMLCanvasElement
-    pageSize: { width: number; height: number }
-  } | null>(null)
-
-  // Update the ref whenever we have a valid new render
-  if (pageCanvas && pageSize) {
-    lastValidRef.current = { pageCanvas, pageSize }
-  }
-
-  // Use current values if available, otherwise fall back to last valid
-  const displayCanvas = pageCanvas ?? lastValidRef.current?.pageCanvas ?? null
-  const displayPageSize = pageSize ?? lastValidRef.current?.pageSize ?? null
+  // The renderer owns the displayed canvas through React's commit. Never reuse
+  // another page/document's image beneath the current page's editable markups.
+  const displayCanvas = pageCanvas
+  const displayPageSize = pageSize
 
   const currentPage = useViewerStore((s) => s.currentPage)
   const totalPages = useViewerStore((s) => s.totalPages)
@@ -2098,11 +2089,7 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
       >
         {/* Layer 0: PDF background */}
         <Layer listening={false}>
-          <KonvaImage
-            image={displayCanvas}
-            width={displayPageSize.width}
-            height={displayPageSize.height}
-          />
+          <PdfPageImage canvas={displayCanvas} size={displayPageSize} />
         </Layer>
         {/* Layer 1a: Non-interactive calibration + in-progress linear preview */}
         <Layer listening={false}>
