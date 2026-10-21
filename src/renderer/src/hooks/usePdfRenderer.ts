@@ -10,7 +10,9 @@ export function clampedRenderScale(
   dpr = window.devicePixelRatio || 1
 ): number {
   const viewport = page.getViewport({ scale: desiredScale })
-  return desiredScale * Math.min(1, MAX_CANVAS_DIM / (Math.max(viewport.width, viewport.height) * dpr))
+  return (
+    desiredScale * Math.min(1, MAX_CANVAS_DIM / (Math.max(viewport.width, viewport.height) * dpr))
+  )
 }
 
 function useDevicePixelRatio(): number {
@@ -36,6 +38,7 @@ function useDevicePixelRatio(): number {
 
 interface Frame {
   raster: PageRaster
+  size: { width: number; height: number }
   document: PDFDocumentProxy
   page: number
 }
@@ -96,7 +99,12 @@ export function usePdfRenderer(): {
         cache.retain(raster)
         session.owned.add(raster)
       }
-      setFrame({ raster, document: doc, page: currentPage })
+      setFrame({
+        raster,
+        size: { width: raster.width, height: raster.height },
+        document: doc,
+        page: currentPage
+      })
     }
 
     async function render(pageNumber: number, adjacent: boolean): Promise<void> {
@@ -122,7 +130,8 @@ export function usePdfRenderer(): {
         raster = { canvas, width: logical.width, height: logical.height }
         cache.track(raster, adjacent ? 'adjacent' : 'foreground')
         activeTask = page.render({
-          canvas, viewport,
+          canvas,
+          viewport,
           transform: [width / viewport.width, 0, 0, height / viewport.height, 0, 0]
         })
         await activeTask.promise
@@ -162,16 +171,20 @@ export function usePdfRenderer(): {
     }
   }, [pdfDocument, currentPage, totalPages, dpr, session])
 
-  useEffect(() => () => {
-    session.generation++
-    session.cache.clear()
-    for (const raster of session.owned) session.cache.release(raster)
-    session.owned.clear()
-  }, [session])
+  useEffect(
+    () => () => {
+      session.generation++
+      session.cache.clear()
+      for (const raster of session.owned) session.cache.release(raster)
+      session.owned.clear()
+    },
+    [session]
+  )
 
   return {
     pageCanvas: visible?.raster.canvas ?? null,
-    pageSize: visible ? { width: visible.raster.width, height: visible.raster.height } : null,
+    // Stable identity prevents viewport effects from running on every render.
+    pageSize: visible?.size ?? null,
     getRasterStats: () => session.cache.stats()
   }
 }

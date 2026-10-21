@@ -21,6 +21,8 @@ export interface RasterStats {
   liveBytes: number
   peakBytes: number
   peakTransientBytes: number
+  peakForegroundBytes: number
+  peakAdjacentBytes: number
   entries: number
 }
 
@@ -30,6 +32,8 @@ export class PdfPageCache {
   private resources = new Map<PageRaster, Ownership>()
   private peakBytes = 0
   private peakTransientBytes = 0
+  private peakForegroundBytes = 0
+  private peakAdjacentBytes = 0
 
   constructor(readonly budget = PDF_RASTER_BUDGET) {}
 
@@ -108,9 +112,19 @@ export class PdfPageCache {
       if (ownership.rendering === 'foreground') foregroundBytes += bytes
       if (ownership.rendering === 'adjacent') adjacentBytes += bytes
     }
-    return { retainedBytes, displayedBytes, transientBytes, foregroundBytes, adjacentBytes,
-      liveBytes, peakBytes: this.peakBytes, peakTransientBytes: this.peakTransientBytes,
-      entries: this.pages.size }
+    return {
+      retainedBytes,
+      displayedBytes,
+      transientBytes,
+      foregroundBytes,
+      adjacentBytes,
+      liveBytes,
+      peakBytes: this.peakBytes,
+      peakTransientBytes: this.peakTransientBytes,
+      peakForegroundBytes: this.peakForegroundBytes,
+      peakAdjacentBytes: this.peakAdjacentBytes,
+      entries: this.pages.size
+    }
   }
 
   private bytes(raster: PageRaster): number {
@@ -125,5 +139,7 @@ export class PdfPageCache {
     const stats = this.stats()
     this.peakBytes = Math.max(this.peakBytes, stats.liveBytes)
     this.peakTransientBytes = Math.max(this.peakTransientBytes, stats.transientBytes)
+    this.peakForegroundBytes = Math.max(this.peakForegroundBytes, stats.foregroundBytes)
+    this.peakAdjacentBytes = Math.max(this.peakAdjacentBytes, stats.adjacentBytes)
   }
 }
