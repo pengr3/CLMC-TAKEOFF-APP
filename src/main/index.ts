@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, type Event } from 'electron'
 import { join } from 'path'
 import { pathToFileURL } from 'node:url'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -40,7 +40,7 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,
+      sandbox: true,
       zoomFactor: 1
     }
   })
@@ -83,10 +83,17 @@ function createWindow(): void {
   mainWindow.on('ready-to-show', showOnce)
   mainWindow.webContents.on('did-finish-load', showOnce)
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
-    return { action: 'deny' }
-  })
+  // Local application pages never navigate or create external browser/shell windows.
+  const denyNavigation = (event: Event): void => event.preventDefault()
+  mainWindow.webContents.on('will-navigate', denyNavigation)
+  mainWindow.webContents.on('will-frame-navigate', denyNavigation)
+  mainWindow.webContents.on('will-redirect', denyNavigation)
+  mainWindow.webContents.on('will-attach-webview', denyNavigation)
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  mainWindow.webContents.session.setPermissionRequestHandler((_contents, _permission, callback) =>
+    callback(false)
+  )
+  mainWindow.webContents.session.setPermissionCheckHandler(() => false)
 
   // HMR for renderer based on electron-vite cli.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -117,7 +124,13 @@ app.whenReady().then(() => {
 
   // Confirm-close listener: renderer calls this after save/discard decision resolves.
   // Sets canClose=true then re-triggers the OS close — next close event is allowed through.
-  ipcMain.on('app:confirm-close', () => {
+  ipcMain.on('app:confirm-close', (event) => {
+    // Send-style IPC must fail closed without throwing out of the event loop.
+    try {
+      assertTrusted(event)
+    } catch {
+      return
+    }
     canClose = true
     mainWindowRef?.close()
   })

@@ -10,6 +10,7 @@ import { pathToFileURL } from 'node:url'
 const transport = vi.hoisted(() => {
   const frame = { url: 'file:///app/out/renderer/index.html' }
   const contents = {
+    session: { setPermissionRequestHandler: vi.fn(), setPermissionCheckHandler: vi.fn() },
     mainFrame: frame,
     on: vi.fn(),
     send: vi.fn(),

@@ -8,6 +8,7 @@ import { CostLibraryRepository } from '../main/cost-library'
 const host = vi.hoisted(() => {
   const frame = { url: '' }
   const contents = {
+    session: { setPermissionRequestHandler: vi.fn(), setPermissionCheckHandler: vi.fn() },
     mainFrame: frame,
     on: vi.fn(),
     send: vi.fn(),
@@ -21,7 +22,7 @@ const host = vi.hoisted(() => {
     order: [] as string[],
     frame,
     contents,
-    handlers: new Map<string, (...args: any[]) => any>(),
+    handlers: new Map<string, (...args: unknown[]) => unknown>(),
     model: vi.fn()
   }
 })
@@ -33,7 +34,7 @@ vi.mock('electron', () => ({
       host.order.push(`path:${name}`)
     },
     commandLine: { appendSwitch: vi.fn() },
-    whenReady: () => {
+    whenReady: (): Promise<void> => {
       host.order.push('ready')
       return Promise.resolve()
     },
@@ -44,13 +45,13 @@ vi.mock('electron', () => ({
   BrowserWindow: class {
     webContents = host.contents
     on = vi.fn()
-    loadFile = (path: string) => {
+    loadFile = (path: string): void => {
       host.frame.url = pathToFileURL(path).href
     }
     loadURL = vi.fn()
   },
   ipcMain: {
-    handle: (name: string, fn: (...args: any[]) => any) => host.handlers.set(name, fn),
+    handle: (name: string, fn: (...args: unknown[]) => unknown) => host.handlers.set(name, fn),
     on: vi.fn()
   },
   dialog: {},
