@@ -6,6 +6,11 @@ import { DEFAULT_MARKUP_PCT } from './estimate-defaults'
 export type RateBasis = 'ea' | ScaleUnit | `${ScaleUnit}²`
 export type RateReview = 'reviewed' | 'legacy-unresolved'
 
+export function inferredRateBasis(key: string, unit: unknown): RateBasis {
+  const savedUnit = typeof unit === 'string' && Object.hasOwn(MM_PER_UNIT, unit) ? unit as ScaleUnit : 'm'
+  return visibleRateBasis(rateTypeFromKey(key) ?? 'linear', savedUnit)
+}
+
 export function visibleRateBasis(type: BoqRowType, unit: ScaleUnit): RateBasis {
   if (type === 'count') return 'ea'
   if (type === 'wall') return 'm²'

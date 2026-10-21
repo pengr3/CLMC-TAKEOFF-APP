@@ -212,7 +212,7 @@ describe('project-serialize', () => {
     } as unknown as ProjectFileV2
     hydrateStores(data)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((useProjectStore.getState() as any).rates).toEqual({ 'Outlet|count': { material: 7, labor: 2, markup: 40 } })
+    expect((useProjectStore.getState() as any).rates).toEqual({ 'Outlet|count': { material: 7, labor: 2, markup: 40, basis: 'ea', review: 'legacy-unresolved' } })
   })
 
   it('hydrateStores coerces a Phase-15 legacy scalar rate → { material, labor:0, markup:30 } (proof b back-compat)', () => {
@@ -223,7 +223,7 @@ describe('project-serialize', () => {
     const data = { ...MINIMAL_V2, rates: { 'X|count': 50 } } as unknown as ProjectFileV2
     hydrateStores(data)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((useProjectStore.getState() as any).rates['X|count']).toEqual({ material: 50, labor: 0, markup: 30 })
+    expect((useProjectStore.getState() as any).rates['X|count']).toEqual({ material: 50, labor: 0, markup: 30, basis: 'ea', review: 'legacy-unresolved' })
   })
 
   it('hydrateStores defaults a missing markup on a PriceEntry object → 30 (proof b)', () => {

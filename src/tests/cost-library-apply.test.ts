@@ -71,7 +71,8 @@ describe('explicit library application', () => {
     expect(useProjectStore.getState().rates['Outlet|count']).toEqual({
       material: 100,
       labor: 80,
-      markup: 17.5
+      markup: 17.5,
+      basis: 'ea', review: 'reviewed'
     })
     expect(useProjectStore.getState().isDirty).toBe(true)
     expect(useMarkupStore.getState().pageMarkups).toBe(markups)
@@ -115,7 +116,8 @@ describe('explicit library application', () => {
     expect(useProjectStore.getState().rates['Outlet|count']).toEqual({
       material: 100,
       labor: 80,
-      markup: 30
+      markup: 30,
+      basis: 'ea', review: 'reviewed'
     })
     const m = useMarkupStore.getState()
     const boq = aggregateBoq({

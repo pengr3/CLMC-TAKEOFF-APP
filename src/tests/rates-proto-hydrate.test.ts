@@ -51,6 +51,6 @@ describe('PROTO-RATES: a __proto__ key in a crafted .clmc rates map is dropped s
     const rates = useProjectStore.getState().rates
     expect(Object.prototype.hasOwnProperty.call(rates, '__proto__')).toBe(false)
     expect(Object.getPrototypeOf(rates)).toBe(Object.prototype)
-    expect(rates['Slab|area']).toEqual({ material: 5, labor: 1, markup: 30 })
+    expect(rates['Slab|area']).toEqual({ material: 5, labor: 1, markup: 30, basis: 'm²', review: 'legacy-unresolved' })
   })
 })

@@ -4,6 +4,7 @@ import { useScaleStore } from './scaleStore'
 import { useViewerStore } from './viewerStore'
 import { DEFAULT_MARKUP_PCT } from '../lib/estimate-defaults'
 import type { PriceEntry } from '../lib/boq-types'
+import { inferredRateBasis } from '../lib/rate-units'
 
 export interface SaveFailure {
   path: string
@@ -70,6 +71,8 @@ interface ProjectStoreState {
    * get().markDirty() — without it an edited price would not survive Save.
    */
   setPrice: (key: string, patch: Partial<PriceEntry>) => void
+  getUnresolvedRateKeys: () => string[]
+  acknowledgeRateBasis: (keys: readonly string[]) => void
   /**
    * Set the project-wide default markup % (WR-01). Coerces to a finite value ≥ 0
    * (Number.isFinite(pct) && pct >= 0 ? pct : 0), then marks the project dirty so
@@ -206,9 +209,24 @@ const createProjectStore = () =>
     },
 
     setPrice: (key, patch) => {
+      if (['__proto__', 'constructor', 'prototype'].includes(key)) return
       set((s) => {
-        const cur = s.rates[key] ?? { material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT }
+        const cur = s.rates[key] ?? { material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT,
+          basis: inferredRateBasis(key, useScaleStore.getState().globalUnit), review: 'reviewed' as const }
         return { rates: { ...s.rates, [key]: { ...cur, ...patch } } }
+      })
+      get().markDirty()
+    },
+
+    getUnresolvedRateKeys: () => Object.keys(get().rates).filter(key => get().rates[key].review !== 'reviewed'),
+
+    acknowledgeRateBasis: (keys) => {
+      const unresolved = keys.filter(key => Object.hasOwn(get().rates, key) && get().rates[key].review !== 'reviewed')
+      if (unresolved.length === 0) return
+      set(s => {
+        const rates = { ...s.rates }
+        for (const key of unresolved) rates[key] = { ...rates[key], review: 'reviewed' }
+        return { rates }
       })
       get().markDirty()
     },
@@ -220,6 +238,7 @@ const createProjectStore = () =>
     },
 
     reKeyRate: (oldKey, newKey) => {
+      if (['__proto__', 'constructor', 'prototype'].includes(newKey)) return
       set((s) => {
         const entry = s.rates[oldKey]
         if (entry === undefined || oldKey === newKey) return s
@@ -259,8 +278,10 @@ const createProjectStore = () =>
     },
 
     addBlankRate: (key) => {
+      if (['__proto__', 'constructor', 'prototype'].includes(key)) return
       set((s) => ({
-        rates: { ...s.rates, [key]: { material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT } }
+        rates: { ...s.rates, [key]: { material: 0, labor: 0, markup: DEFAULT_MARKUP_PCT,
+          basis: inferredRateBasis(key, useScaleStore.getState().globalUnit), review: 'reviewed' } }
       }))
       get().markDirty()
     },

@@ -6,13 +6,14 @@ import {
 import { useProjectStore } from '../stores/projectStore'
 import { labelToName } from '../components/TotalsRow'
 import type { BoqItemRow } from './boq-types'
+import { basisMatchesType, isRateBasis } from './rate-units'
 
 export function applyLibraryRate(
   target: BoqItemRow,
   source: CostLibraryItem
 ): LibraryResult<boolean> {
   const unit = normalizeLibraryUnit(target.uom)
-  if (!unit || unit !== normalizeLibraryUnit(source.unit))
+  if (!unit || !isRateBasis(unit) || !basisMatchesType(unit, target.type) || unit !== normalizeLibraryUnit(source.unit))
     return {
       ok: false,
       reason: `Choose a rate per ${target.uom}. Rates are not automatically converted.`
@@ -24,7 +25,9 @@ export function applyLibraryRate(
   project.setPrice(key, {
     material: source.material,
     labor: source.labor,
-    markup: project.rates[key]?.markup ?? project.defaultMarkupPct
+    markup: project.rates[key]?.markup ?? project.defaultMarkupPct,
+    basis: unit,
+    review: 'reviewed'
   })
   return { ok: true, value: true }
 }

@@ -12,6 +12,7 @@ import type { PageScale } from '../types/scale'
 import type { ViewportState } from '../types/viewer'
 import type { PriceEntry } from './boq-types'
 import { DEFAULT_MARKUP_PCT } from './estimate-defaults'
+import { inferredRateBasis } from './rate-units'
 
 export interface SnapshotParams {
   pdfOriginalFilename: string  // display name only (D-04); v1 path-based fields removed in Phase 4.1
@@ -139,7 +140,7 @@ export function hydrateStores(data: ProjectFileV2): void {
 
     useScaleStore.getState().hydrate({
       pageScales,
-      globalUnit: data.globalUnit
+      globalUnit: data.globalUnit ?? 'm'
     })
 
     // viewerStore — do NOT touch filePath/fileName/totalPages here;
@@ -176,14 +177,18 @@ export function hydrateStores(data: ProjectFileV2): void {
           safeRates[k] = {
             material: coerceField(v, 0),
             labor: 0,
-            markup: DEFAULT_MARKUP_PCT
+            markup: DEFAULT_MARKUP_PCT,
+            basis: inferredRateBasis(k, data.globalUnit),
+            review: 'legacy-unresolved'
           }
         } else if (v && typeof v === 'object') {
           const e = v as Partial<PriceEntry>
           safeRates[k] = {
             material: coerceField(e.material, 0),
             labor: coerceField(e.labor, 0),
-            markup: coerceField(e.markup, DEFAULT_MARKUP_PCT)
+            markup: coerceField(e.markup, DEFAULT_MARKUP_PCT),
+            basis: e.basis ?? inferredRateBasis(k, data.globalUnit),
+            review: e.basis && e.review === 'reviewed' ? 'reviewed' : 'legacy-unresolved'
           }
         }
         // else: neither number nor object → drop the entry entirely.
