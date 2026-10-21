@@ -132,7 +132,7 @@
   "next": {
     "command": "/gsd:verify-work 19",
     "label": "Continue Phase 19 manual UAT",
-    "reason": "Phase 19 manual UAT: 7 passed, 4 pending; Test 8 valid CSV import and unchanged project prices awaits response"
+    "reason": "Phase 19 manual UAT: 8 passed, 3 pending; Test 9 saved-project reopen and prices without spreadsheet reimport/relink awaits response"
   },
-  "updated_at": "2026-10-21T09:04:17.7995761Z"
+  "updated_at": "2026-10-21T09:08:30.5921334Z"
 }

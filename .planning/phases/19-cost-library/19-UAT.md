@@ -8,24 +8,22 @@ updated: 2026-10-21
 
 ## Current Test
 
-number: 8
-name: CSV import follows the same template
+number: 9
+name: Saved project retains applied prices independently
 expected: |
-  Test 7 passed—**7 of 11 tests passed**.
+  Test 8 passed—**8 of 11 tests passed**.
 
-  1. In Excel, open your **valid revision** and select the **Cost Library** worksheet.
-  2. Save a copy as **CSV UTF-8 (Comma delimited)**, named **Phase19-Test-Library.csv**. Export only that worksheet; Excel's single-sheet warning is expected.
-  3. In the app, choose **Cost Library → Import CSV / Excel** and select the CSV.
-  4. Check that the preview shows both items correctly, then choose **Replace Library**.
+  1. Save your test project using **Save As**, named **Phase19-Pricing-Test.clmc**.
+  2. Create a new folder and copy **only that .clmc file** into it—leave the PDF and costing spreadsheets in their original locations.
+  3. Fully close and relaunch the app, keeping Excel closed.
+  4. Use the app's **Open** button to open the copied `.clmc` file. No library reimport should be needed.
 
-  **Expected:** The current library shows the CSV filename and **2 items**, retaining:
+  **Expected:** The PDF and both Test Outlet count pins reopen in their saved positions. In **Estimate**, Test Outlet retains:
 
-  | Code | Description | Category | Unit | Material | Labor |
-  |---|---|---|---|---:|---:|
-  | E001 | Test Outlet | Electrical | ea / pcs | 200 | 80 |
-  | F001 | Test Wall Painting | Finishes | m² | 50 | 20 |
+  - Quantity **2 ea**, material **₱200**, labor **₱80**, markup **30%**.
+  - Cost **₱560**, total **₱728**.
 
-  Your existing Estimate remains unchanged: Test Outlet still has material **200**, labor **80**, markup **30%**, quantity **2 ea** and total **₱728**.
+  There should be no request to locate the costing spreadsheet or reapply its rates. Cross-PC installation and portability checks remain part of Phase 20.
 awaiting: user response
 
 ## Test Setup
@@ -79,7 +77,8 @@ reported: "pass"
 
 ### 8. CSV import follows the same template
 expected: Export just the valid Cost Library worksheet as UTF-8 comma-separated CSV. Import/preview/confirm shows the same codes, descriptions, categories, units and numeric rates. CSV import requires the same six headings and does not change existing project prices.
-result: [pending]
+result: pass
+reported: "pass"
 
 ### 9. Saved project retains applied prices independently
 expected: Save As a test .clmc after applying rates; close/reopen it and verify material/labor/markup and totals match. Open that project with its master spreadsheet moved or unavailable, or from a folder containing only the .clmc: saved prices still load. No spreadsheet relink is required and markups remain editable. Cross-PC installed-app portability is additionally tested in Phase 20.
@@ -96,9 +95,9 @@ result: [pending]
 ## Summary
 
 total: 11
-passed: 7
+passed: 8
 issues: 0
-pending: 4
+pending: 3
 skipped: 0
 blocked: 0
 
