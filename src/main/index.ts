@@ -7,6 +7,7 @@ import { registerIpcHandlers } from './ipc-handlers'
 import { registerCostLibraryHandlers } from './cost-library-ipc'
 import { readReleaseInfo } from './release-info'
 import { APP_ID, pinUserData, trustedWindowSender } from './app-identity'
+import { registerRecoveryHandlers } from './project-recovery'
 
 pinUserData(app)
 
@@ -117,6 +118,7 @@ app.whenReady().then(() => {
 
   registerIpcHandlers(assertTrusted)
   registerCostLibraryHandlers(assertTrusted)
+  registerRecoveryHandlers(app.getPath('userData'), assertTrusted)
   ipcMain.handle('app:getReleaseInfo', async (event) => {
     assertTrusted(event)
     return readReleaseInfo(app.getVersion(), join(app.getAppPath(), 'resources/release-notes.json'))

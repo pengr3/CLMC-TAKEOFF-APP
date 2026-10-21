@@ -8,6 +8,9 @@ import { migrate, type ProjectFileV2 } from '../lib/project-schema'
 import { snapshotProject, hydrateStores } from '../lib/project-serialize'
 import type { PDFDocumentProxy } from '../lib/pdf-setup'
 
+let recoveryOperation: Promise<unknown> | null = null
+const protectedRevisions = new Map<string, number>()
+
 export function routeOpenByExtension(extension: string): 'pdf' | 'clmc' | 'unknown' {
   const normalized = extension.toLowerCase()
   if (normalized === '.pdf') return 'pdf'
@@ -88,6 +91,8 @@ export async function finalizeProjectSnapshot(captured: CapturedProjectSnapshot,
 }
 
 interface ProjectActions {
+  writeRecoverySnapshot: () => Promise<boolean>
+  restoreRecovery: (id: string) => Promise<ProjectOpenResult>
   newProject: () => void
   saveProject: () => Promise<'ok' | 'canceled' | 'error'>
   saveProjectAs: () => Promise<'ok' | 'canceled' | 'error'>
@@ -99,10 +104,56 @@ interface ProjectActions {
   applyArchiveCorruptedProceed: (project: ProjectFileV2, bytes: Uint8Array, path: string) => Promise<void>
 }
 export function useProject(): ProjectActions {
-  const { loadPdfFromPath, loadPdfFromBytes } = usePdfDocument()
+  const { loadPdfFromPath, loadPdfFromBytes, stagePdfFromBytes, adoptStagedPdf } = usePdfDocument()
+
+  const writeRecoverySnapshot = useCallback(async (): Promise<boolean> => {
+    const state = useProjectStore.getState()
+    if (state.isSaving || recoveryOperation || !state.isDirty || !useViewerStore.getState().pdfBytes) return false
+    if (protectedRevisions.get(state.documentSessionId) === state.editRevision) return true
+    const captured = captureProjectSnapshot()
+    const operation = (async (): Promise<boolean> => {
+      try {
+        const metadata = await finalizeProjectSnapshot(captured)
+        const result = await window.api.writeRecovery({ session: captured.documentSessionId, revision: captured.revision,
+          sourcePath: captured.sourcePath, lastSavedAt: state.lastSavedAt, projectJson: JSON.stringify(metadata), pdfBytes: captured.pdfBytes })
+        if (!result.ok) return false
+        protectedRevisions.set(captured.documentSessionId, captured.revision)
+        return true
+      } catch { return false }
+    })()
+    recoveryOperation = operation
+    try { return await operation } finally { if (recoveryOperation === operation) recoveryOperation = null }
+  }, [])
+
+  const restoreRecovery = useCallback(async (id: string): Promise<ProjectOpenResult> => {
+    if (useProjectStore.getState().isSaving || recoveryOperation) return { kind: 'canceled' }
+    const operation = (async (): Promise<ProjectOpenResult> => {
+      let staged: PDFDocumentProxy | undefined
+      try {
+        const result = await window.api.readRecovery(id)
+        if (!result.ok) return { kind: 'error', message: result.message }
+        const raw = JSON.parse(result.projectJson)
+        const { data } = migrate(raw, raw.formatVersion)
+        if (await window.api.hashBuffer(result.pdfBytes) !== data.pdf.sha256) throw new Error('The recovery PDF is missing or damaged. This copy cannot be opened safely.')
+        if (data.pages.length !== data.pdf.totalPages || data.pages.some(p => !p || !Number.isInteger(p.pageIndex) || !p.dimensions || !Array.isArray(p.markups) || !p.viewport)) throw new Error('Damaged recovery metadata.')
+        staged = await stagePdfFromBytes(result.pdfBytes)
+        if (staged.numPages !== data.pdf.totalPages) throw new Error('The recovery PDF is missing or damaged. This copy cannot be opened safely.')
+        // All fallible I/O/validation precedes this synchronous store commit.
+        hydrateStores(data)
+        adoptStagedPdf(staged, result.pdfBytes, data.pdf.originalFilename)
+        staged = undefined
+        useProjectStore.setState({ currentFilePath: result.candidate.sourcePath, documentSessionId: result.candidate.session,
+          editRevision: result.candidate.revision, savedRevision: -1, isDirty: true, lastSavedAt: result.candidate.lastSavedAt })
+        return { kind: 'ok' }
+      } catch (error) { return { kind: 'error', message: error instanceof Error ? error.message : String(error) } }
+      finally { if (staged) void staged.destroy().catch(() => {}) }
+    })()
+    recoveryOperation = operation
+    try { return await operation } finally { if (recoveryOperation === operation) recoveryOperation = null }
+  }, [stagePdfFromBytes, adoptStagedPdf])
 
   const newProject = useCallback((): void => {
-    if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure) return
+    if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure || recoveryOperation) return
     useMarkupStore.getState().reset()
     useScaleStore.getState().reset()
     useViewerStore.getState().resetViewer()
@@ -112,6 +163,7 @@ export function useProject(): ProjectActions {
   // ===== SAVE =====
 
   const saveProject = useCallback(async (): Promise<'ok' | 'canceled' | 'error'> => {
+    if (recoveryOperation) await recoveryOperation
     const { currentFilePath, isSaving } = useProjectStore.getState()
     if (isSaving) return 'canceled'   // T-4.1-04-05 race guard
     if (!currentFilePath) return saveProjectAsImpl()
@@ -119,6 +171,7 @@ export function useProject(): ProjectActions {
   }, [])
 
   const saveProjectAs = useCallback(async (): Promise<'ok' | 'canceled' | 'error'> => {
+    if (recoveryOperation) await recoveryOperation
     if (useProjectStore.getState().isSaving) return 'canceled'
     return saveProjectAsImpl()
   }, [])
@@ -431,6 +484,8 @@ export function useProject(): ProjectActions {
   )
 
   return {
+    writeRecoverySnapshot,
+    restoreRecovery,
     newProject,
     saveProject,
     saveProjectAs,

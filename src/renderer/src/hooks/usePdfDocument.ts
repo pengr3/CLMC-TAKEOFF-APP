@@ -7,6 +7,17 @@ export function usePdfDocument() {
   const setPdfDocument = useViewerStore((s) => s.setPdfDocument)
   const setPdfBytes = useViewerStore((s) => s.setPdfBytes)
 
+  // Decode without changing or destroying the active document. Recovery commits only
+  // after metadata, checksum and PDF loading have all succeeded.
+  const stagePdfFromBytes = useCallback(async (bytes: Uint8Array): Promise<PDFDocumentProxy> => {
+    return pdfjsLib.getDocument({ data: cloneForPdfWorker(bytes) }).promise
+  }, [])
+  const adoptStagedPdf = useCallback((doc: PDFDocumentProxy, bytes: Uint8Array, name: string): void => {
+    const previous = useViewerStore.getState().pdfDocument as PDFDocumentProxy | null
+    setPdfDocument(doc); setPdfBytes(bytes); setFile(name, name, doc.numPages)
+    if (previous && previous !== doc) void previous.destroy().catch(() => {})
+  }, [setPdfDocument, setPdfBytes, setFile])
+
   /**
    * Internal: load PDF.js document from raw bytes; cache bytes in viewerStore
    * so the save flow doesn't re-read from disk (RESEARCH §10.9).
@@ -57,5 +68,5 @@ export function usePdfDocument() {
     [loadPdf]
   )
 
-  return { loadPdf, loadPdfFromPath, loadPdfFromBytes }
+  return { loadPdf, loadPdfFromPath, loadPdfFromBytes, stagePdfFromBytes, adoptStagedPdf }
 }

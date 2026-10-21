@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { flushSync } from 'react-dom'
 import { TitleBar } from './components/TitleBar'
 import { AboutDialog } from './components/AboutDialog'
+import { RecoveryDialog } from './components/RecoveryDialog'
+import type { RecoveryCandidate } from '../../shared/reliability'
 import { TopActionBar } from './components/TopActionBar'
 import { ContextBar } from './components/ContextBar'
 import { ToolRail } from './components/ToolRail'
@@ -54,7 +56,8 @@ function App(): React.JSX.Element {
     retrySaveProject,
     replacePlanPdf,
     applyReplacePlanPdf,
-    applyArchiveCorruptedProceed
+    applyArchiveCorruptedProceed,
+    writeRecoverySnapshot, restoreRecovery
   } = useProject()
   const { exportBoq, applyExportAfterConfirm } = useExport()
 
@@ -138,6 +141,18 @@ function App(): React.JSX.Element {
   const [saveToast, setSaveToast] = useState<string | null>(null)
   const [closeModal, setCloseModal] = useState<'close-window' | 'open-other' | null>(null)
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [recoveryCandidates, setRecoveryCandidates] = useState<RecoveryCandidate[]>([])
+  const [recoveryOpen, setRecoveryOpen] = useState(false)
+  const [recoveryBusy, setRecoveryBusy] = useState(false)
+  const [recoveryError, setRecoveryError] = useState<string | null>(null)
+  useEffect(() => {
+    let canceled = false
+    void window.api.listRecovery().then(result => {
+      if (!canceled && result.ok) { setRecoveryCandidates(result.candidates); setRecoveryOpen(result.candidates.length > 0) }
+    }).catch(() => {})
+    const timer = window.setInterval(() => { void writeRecoverySnapshot() }, 60_000)
+    return () => { canceled = true; window.clearInterval(timer) }
+  }, [writeRecoverySnapshot])
   const [pendingOpen, setPendingOpen] = useState<{ filePath: string; extension: string } | null>(null)
   useEffect(() => useProjectStore.subscribe((state, previous) => {
     if (state.lastSaveOutcome && state.lastSaveOutcome !== previous.lastSaveOutcome) {
@@ -684,6 +699,16 @@ function App(): React.JSX.Element {
 
       {aboutOpen && !saveFailure && !closeModal && !openError && !exportError && !uncalibratedWarning && !archiveCorrupted && !replacePageAbort && !replaceDimMiss && (
         <AboutDialog projectPath={currentFilePath} onClose={() => setAboutOpen(false)} />
+      )}
+
+      {recoveryOpen && recoveryCandidates.length > 0 && !saveFailure && !closeModal && !aboutOpen && !openError && (
+        <RecoveryDialog candidates={recoveryCandidates} busy={recoveryBusy} error={recoveryError}
+          onKeep={() => setRecoveryOpen(false)} onRecover={async id => {
+            if (recoveryBusy) return
+            setRecoveryBusy(true)
+            try { const result = await restoreRecovery(id); if (result.kind === 'ok') { setRecoveryOpen(false); setSaveToast('Recovered unsaved work. Save the project to keep these changes.') } else if (result.kind === 'error') setRecoveryError(result.message) }
+            finally { setRecoveryBusy(false) }
+          }} />
       )}
 
       {saveFailure && (

@@ -1,5 +1,6 @@
 import type { CostLibraryApi } from '../shared/cost-library'
 import type { ReleaseInfo } from '../shared/release-info'
+import type { RecoveryApi } from '../shared/reliability'
 
 type ReadProjectResult =
   | { kind: 'v2-zip'; projectJson: string; pdfBytes: Uint8Array; computedSha256: string; backupPath?: string }
@@ -47,7 +48,7 @@ interface BoqStructure {
   grandTotalMargin: number
 }
 
-interface ElectronAPI {
+interface ElectronAPI extends RecoveryApi {
   getReleaseInfo: () => Promise<ReleaseInfo>
   costLibrary: CostLibraryApi
   openPdf: () => Promise<{ filePath: string; data: ArrayBuffer } | null>

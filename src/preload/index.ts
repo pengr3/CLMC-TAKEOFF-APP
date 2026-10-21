@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer, webFrame } from 'electron'
 import type { CostLibraryApi } from '../shared/cost-library'
 import type { ReleaseInfo } from '../shared/release-info'
+import type { RecoveryApi } from '../shared/reliability'
 
 webFrame.setVisualZoomLevelLimits(1, 1)
 
@@ -57,6 +58,14 @@ interface BoqStructure {
 }
 
 const api = {
+  ...({
+    listRecovery: () => ipcRenderer.invoke('recovery:list'),
+    writeRecovery: (input) => ipcRenderer.invoke('recovery:write', input),
+    readRecovery: (id) => ipcRenderer.invoke('recovery:read', id),
+    deleteRecovery: (id) => ipcRenderer.invoke('recovery:delete', id),
+    retireRecoveryRevision: (session, revision) => ipcRenderer.invoke('recovery:retire', session, revision),
+    recoveryDestinationWritable: (path) => ipcRenderer.invoke('recovery:destinationWritable', path)
+  } satisfies RecoveryApi),
   getReleaseInfo: (): Promise<ReleaseInfo> => ipcRenderer.invoke('app:getReleaseInfo'),
   costLibrary: {
     load: () => ipcRenderer.invoke('costLibrary:load'),
