@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: phase_18_complete
+status: phase_19_executing
 stopped_at: "2026-10-21 quick-261021-jqu COMPLETE: reviewed slider fix and six regression tests committed as 1355499; no blocking findings. Full suite 877/877, fresh production build and TypeScript pass; focused lint matches HEAD baseline. Human walkthrough complete: 16 passed, 1 category-collapse check skipped/deferred, 0 pending. UAT/manual/debug records reconciled in the wrap-up documentation commit. Unrelated untracked AGENTS.md excluded. Next: v1.0 milestone audit."
 last_updated: "2026-10-21"
 last_activity: 2026-10-21
@@ -26,14 +26,14 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 18 — toolbar-revamp
+**Current Focus:** Phase 19 — Cost Library; original rollout agreement in RELEASE-HANDOVER.md; Phases 20-21 retain installer, portability, recovery, offline guide and internal pilot obligations.
 
 ---
 
 ## Current Position
 
-Phase: 18 (toolbar-revamp) — COMPLETE
-Plan: 9 of 9 — all plans complete; phase verified (6/6 SC PASS) + code-reviewed (no blockers, findings fixed)
+Phase: 19 (cost-library) — EXECUTING
+Plan: 19-01 — template/import/local persistence/Estimate rate picker, approved by user 2026-10-21. Historical Phase 18 verification remains complete.
 
 ## Performance Metrics
 
@@ -240,6 +240,8 @@ None.
 | 261021-jqu | Review and commit slider fix, regression tests, and completed walkthrough records; no blocking findings; 877 tests pass, production build clean, 16 human checks passed and 1 skipped | 2026-10-21 | 1355499 | [261021-jqu-review-and-commit-slider-fix-and-complet](./quick/261021-jqu-review-and-commit-slider-fix-and-complet/) |
 
 ### Roadmap Evolution
+
+- 2026-10-21: Added Phase 19 Cost Library, Phase 20 Production Readiness, Phase 21 User Guide and Internal Handover. User approved three phases instead of five; scope retained in RELEASE-HANDOVER.md. Ready-to-use rates in user-maintained fixed template, individual per-PC uploads, no central sync. Finalize and begin Phase 19 authorized.
 
 - Phase 03.1 inserted after Phase 3: Markup Gap Closure and Visual Redesign (URGENT) â€” supersedes MARK-08 per-category-color must-have, revises UI-SPEC D-04/D-13 count pin label format, closes 4 bugs surfaced in Plan 03-05 human verification (spacebar blocked in text inputs, Linear/Area label legibility, stale currentZoom after zoom)
 - Phase 06.1 inserted after Phase 6: Remove Left Thumbnail Strip Panel â€” navigation arrows cover page switching, panel wastes horizontal space (URGENT)

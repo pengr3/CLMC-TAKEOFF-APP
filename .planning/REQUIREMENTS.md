@@ -76,11 +76,32 @@
 
 ## Out of Scope
 
+## Internal Production Rollout Requirements (2026-10-21)
+
+Preserve the core takeoff/offline/geometry goals. Source: [RELEASE-HANDOVER.md](RELEASE-HANDOVER.md). These additions extend the existing milestone; completed v1 requirements remain complete.
+
+- [ ] **COST-01** (Phase 19): Download a blank standard .xlsx template with Item Code, Description, Category, Unit, Material Unit Rate and Labor Unit Rate; CSV uses the same schema.
+- [ ] **COST-02** (Phase 19): Validate XLSX/CSV headers, required values, case-insensitive unique codes, supported units and finite nonnegative rates, with actionable row/column errors.
+- [ ] **COST-03** (Phase 19): Preview and explicitly replace a per-PC library; invalid, failed or cancelled imports preserve the prior library; accepted library persists offline across restarts.
+- [ ] **COST-04** (Phase 19): Manage library without a PDF, search/select an item from an Estimate row, and block incompatible units.
+- [ ] **COST-05** (Phase 19): Explicitly copy material/labor rates into project pricing, preserve selling markup/manual editing and existing live totals/export.
+- [ ] **COST-06** (Phase 19): Project rate snapshots remain independent of subsequent library imports and reopen correctly on PCs without the library.
+- [ ] **REL-01** (Phase 20): Versioned Windows installer, final stable identity, version visibility and release notes, manually distributed internally.
+- [ ] **REL-02** (Phase 20): Verified fresh install/in-place upgrade preserving user projects and local library, with supported runtime/package review.
+- [ ] **REL-03** (Phase 20): Verify/repair single-file .clmc portability and supported migration without separate source PDF dependency.
+- [ ] **REL-04** (Phase 20): Define and implement minimal backup/recovery and safe compatibility/rollback behavior.
+- [ ] **REL-05** (Phase 20): Installed-app offline, large-PDF, measurement/Windows-scaling and export validation; resolve export audience before changing it.
+- [ ] **HAND-01** (Phase 21): Offline how-to guide with a worked takeoff/cost-library/estimate/export example and troubleshooting.
+- [ ] **HAND-02** (Phase 21): Technical maintainer handover and assigned ownership of releases, rates and support.
+- [ ] **HAND-03** (Phase 21): Two-PC user pilot with blockers fixed and recorded acceptance before remaining-ten-PC distribution.
+
+## Out of Scope (Current)
+
 | Feature | Reason |
 |---------|--------|
 | Multi-user collaboration / sharing | Single-user tool for v1; adds server infrastructure and conflict resolution complexity |
 | Cloud sync / web access | Desktop-only; no internet dependency required for core workflow |
-| Unit cost / pricing calculations | BOQ quantity output only; pricing happens in client's separate tools |
+| Central pricing service / cost assemblies | Basic pricing delivered in Phases 15-16; user-owned local rate import added in Phase 19. No cloud sync, automatic market prices or resource recipes. |
 | AI auto-detection of items | High complexity, requires computer vision model, unvalidated need |
 | Snap to PDF vector geometry | Only works on CAD-generated PDFs (not scanned); adds rendering library complexity |
 | Mobile app | Construction site use not in scope; desktop estimating workflow only |

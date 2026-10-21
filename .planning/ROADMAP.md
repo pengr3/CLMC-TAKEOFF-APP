@@ -699,6 +699,7 @@ Plans:
 **Plans:** 9/9 plans complete
 
 Plans:
+
 - [x] 18-01-PLAN.md — Wave 0 RED tests: ToolRail tools/chain-badge + Snap/Arc toggles + Arc-seam unit
 - [x] 18-02-PLAN.md — Wave 0 RED tests: TopActionBar file-ops/nav + standalone Plan|Estimate toggle (no reset) + Show/Hide All markDirty; retire legacy Toolbar/ribbon-reset tests
 - [x] 18-03-PLAN.md — Wave 0 RED tests: ContextBar morph + edit ops + consolidated status-line nudge
@@ -708,6 +709,55 @@ Plans:
 - [x] 18-07-PLAN.md — ToolRail (6 tools + Set Scale + Snap/Arc toggles, chain badges, scale context menu)
 - [x] 18-08-PLAN.md — ContextBar (morphing sub-bar: placing/scale/selected/idle + inline rename/recolor/delete)
 - [x] 18-09-PLAN.md — App shell rewire + delete RibbonToolbar/RibbonButton/Toolbar/CanvasHeaderBar + 18-MANUAL-NOTES.md (+ human-verify checkpoint; F3 double-listener fix)
+
+### Phase 19: Cost Library
+
+**Goal:** Estimators download an app-standard template, fill it with their own ready-to-use material/labor unit rates, import revisions individually on each PC, and explicitly apply compatible rates in Estimate without retyping or silently repricing existing projects.
+**Requirements**: COST-01 through COST-06. Locked original vision and scope: [Internal rollout agreement](RELEASE-HANDOVER.md).
+**Depends on:** Phase 18
+**Success Criteria:**
+1. Blank .xlsx template and CSV use the same six fixed columns; invalid headers, duplicate codes, unsupported units and nonnumeric/negative rates yield actionable row errors.
+2. Preview/confirm replaces this PC's offline library; invalid/cancelled/failed imports preserve the prior library; accepted data survives restart.
+3. Estimate rows select compatible items explicitly, copy material/labor rates, retain selling markup and manual edits, and update existing live totals/export.
+4. Applied rates persist in .clmc independently of the library; later imports never reprice saved estimates.
+5. Team owns spreadsheet content, accuracy, revisions and per-PC uploads. No centralized library, sync, assemblies or automatic pricing.
+**Plans:** 1 plan
+
+Plans:
+
+- [ ] 19-01-PLAN.md — Complete template/import/local persistence/Estimate picker vertical slice, validation, integration and regressions.
+
+### Phase 20: Production Readiness
+
+**Goal:** Prepare a reliable installed Windows release for approximately 12 internal PCs with versioned manual upgrades, portable single-file projects, protected user data and recorded installed-app validation.
+**Requirements**: REL-01 through REL-05; [Internal rollout agreement](RELEASE-HANDOVER.md).
+**Depends on:** Phase 19
+**Success Criteria:**
+1. Versioned installer has final app identity/metadata, visible version and release notes, no scaffold update host, and a documented internal distribution path. Automatic updates are deferred.
+2. Fresh installation and in-place upgrade on a non-development PC preserve projects and imported library; supported runtime/dependencies and package contents are reviewed.
+3. Copy ONLY .clmc to another PC and retain embedded PDF, scales, precise geometry, prices and ordering; verify existing Phase 4.1 implementation and supported legacy migration rather than rebuild it unnecessarily.
+4. Define and implement minimal backup/recovery behavior, including interrupted/failed saves and recoverable unsaved work; document compatibility and safe rollback limits.
+5. Installed app works offline through PDF→calibration→markup→Estimate→export; representative large/multi-page PDFs and Windows scaling preserve accurate coordinates. Resolve client-versus-internal export audience before any export scope expansion.
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run $gsd-plan-phase 20 to break down)
+
+### Phase 21: User Guide and Internal Handover
+
+**Goal:** Transfer day-to-day use and maintenance to the internal team with offline instructions and a two-PC pilot before distributing the approved release to the remaining ten PCs.
+**Requirements**: HAND-01 through HAND-03; [Internal rollout agreement](RELEASE-HANDOVER.md).
+**Depends on:** Phase 20
+**Success Criteria:**
+1. Offline user guide reflects final UI with a worked PDF/calibration/markup/library/estimate/save-transfer/export example, shortcuts, troubleshooting and explicit internal-cost export guidance.
+2. Maintainer handover covers reproducible build/package, approved installer distribution/manual upgrades, version/release notes, project/library storage, backup/recovery and issue triage; named internal ownership is established.
+3. Pilot users on two actual PCs complete representative work and blockers are fixed; record acceptance before remaining-ten-PC rollout. Do not substitute automated tests for human acceptance or claim deployment without evidence.
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run $gsd-plan-phase 21 to break down)
 
 ---
 

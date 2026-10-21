@@ -35,7 +35,7 @@ Speed up quantity takeoff — let the estimator focus on reading the plan, not d
 
 - Multi-user / team collaboration — single-user tool for now; adds significant complexity
 - Cloud sync or web access — desktop-only; no server infrastructure needed for v1
-- Preset item library — freehand naming per markup is sufficient for v1
+- Preset placement/assembly library — freehand naming stays; optional user-owned costing-library import is approved for Phase 19
 - Custom Excel template matching — standard layout export is sufficient; user adjusts as needed
 
 ## Context
@@ -45,7 +45,7 @@ Speed up quantity takeoff — let the estimator focus on reading the plan, not d
 - Single-user app; no sharing or collaboration requirements
 - Plans come as multi-page PDFs; each page is a different drawing (floor plan, electrical, plumbing, etc.)
 - Scale varies per plan and must be set explicitly per page or per project
-- Markup names are typed freehand — no fixed item library to manage
+- Markup names remain freehand. For the approximately 12-PC internal rollout, the team maintains and imports its own cost spreadsheet on each PC using the app's fixed template; the app supplies no benchmark prices or synchronization.
 
 ## Constraints
 
@@ -66,6 +66,8 @@ Speed up quantity takeoff — let the estimator focus on reading the plan, not d
 | Estimating workspace (internal cost + client price/margin) | Pricing separated from measurement per industry practice (PlanSwift/STACK); single rate → material+labor+markup | Delivered in Phase 16 (dedicated Estimate sheet + 9-column export; price-book / item library / equipment / overhead deferred per D-09) |
 
 ## Current State
+
+2026-10-21: Phases 1-18 completed; internal production rollout finalized as Phase 19 Cost Library, Phase 20 Production Readiness, Phase 21 User Guide and Internal Handover. See [RELEASE-HANDOVER.md](RELEASE-HANDOVER.md) for the agreed scope, all four original requests, release gates and deferred decisions. Phase 19 planning/execution starts now. The historical summary below is retained for provenance, not the current release status.
 
 Phase 14 complete (2026-06-29) — Markup Geometry Precision (final phase of this milestone). Cursor snapping to existing endpoints/vertices and nearest-point-on-segment (grid-hash spatial index, screen-constant tolerance, □/△ glyphs, F3 toggle / Alt suspend) now applies during placement and editing; any linear/perimeter/area/wall edge can be a true circular arc via a 3-click gesture with live preview, bulge-handle reshaping, and endpoint re-solve, all undoable; arc length and circular-segment area are measured exactly (outward + inward), self-intersecting boundaries are blocked on commit, and arc geometry round-trips through save/reload and BOQ export. Human UAT approved. All phases complete — the milestone is feature-complete.
 
