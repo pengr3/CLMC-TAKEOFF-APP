@@ -8,18 +8,29 @@ updated: 2026-10-21
 
 ## Current Test
 
-number: 3
-name: Confirm replacement and retain the library after restart
+number: 4
+name: Apply count rates and preserve selling markup
 expected: |
-  Test 2 passed—**2 of 11 tests passed**.
+  Test 3 passed—**3 of 11 tests passed**.
 
-  1. Import **Phase19-Test-Library.xlsx** again through **Estimate → Cost Library → Import CSV / Excel**.
-  2. Choose **Replace Library**.
-  3. Confirm the current library shows the filename, import time and **2 items**.
-  4. Fully close and relaunch the app. If using development mode, restart **npm run dev**. Keep the Excel file closed.
-  5. Open **Estimate → Cost Library** again.
+  1. Open a PDF in a **test project**. Place **two count pins** in the same group named **Test Outlet**.
+  2. Switch to **Estimate**. Confirm its quantity is **2 ea** and set that row's **Markup** to **30%**.
+  3. Click the small **book icon** beside Test Outlet.
+  4. Select library item **E001**, then choose **Apply Rates**.
 
-  **Expected:** Both items remain available without reimporting: **E001** has material **100**, labor **80**; **F001** has material **50**, labor **20**.
+  **Expected:** The row updates to:
+
+  | Field | Value |
+  |---|---:|
+  | Material rate | ₱100 |
+  | Labor rate | ₱80 |
+  | Cost | ₱360 |
+  | Markup | 30% |
+  | Unit price | ₱234 |
+  | Total | ₱468 |
+  | Margin | ₱108 |
+
+  The name **Test Outlet** and both count pins stay unchanged.
 awaiting: user response
 
 ## Test Setup
@@ -48,7 +59,8 @@ reported: "pass"
 
 ### 3. Confirm replacement and retain the library after restart
 expected: Import the test .xlsx again and choose Replace Library. The current library shows its filename, import time and two items. Close/relaunch the app and reopen Cost Library: the same items and rates remain available without reopening the master spreadsheet.
-result: [pending]
+result: pass
+reported: "pass"
 
 ### 4. Apply count rates and preserve selling markup
 expected: In a test PDF/project, place two count pins named Test Outlet. In Estimate set that row's markup to 30%, then choose its book button, select E001 and Apply Rates. Material becomes 100, labor 80 and markup remains 30%. Quantity 2 ea gives Cost 360, UNIT PRICE 234, TOTAL 468 and Margin 108. Item name/geometry are unchanged.
@@ -85,9 +97,9 @@ result: [pending]
 ## Summary
 
 total: 11
-passed: 2
+passed: 3
 issues: 0
-pending: 9
+pending: 8
 skipped: 0
 blocked: 0
 
