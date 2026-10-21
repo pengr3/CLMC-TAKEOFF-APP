@@ -5,7 +5,17 @@ import { useViewerStore } from './viewerStore'
 import { DEFAULT_MARKUP_PCT } from '../lib/estimate-defaults'
 import type { PriceEntry } from '../lib/boq-types'
 
+export interface SaveFailure {
+  path: string
+  stage: 'write' | 'validate' | 'backup' | 'replace'
+  message: string
+  firstSave: boolean
+}
+
 interface ProjectStoreState {
+  saveFailure: SaveFailure | null
+  lastSaveOutcome: { revision: number; message: string; at: number } | null
+  setSaveFailure: (failure: SaveFailure | null) => void
   documentSessionId: string
   editRevision: number
   savedRevision: number
@@ -126,13 +136,17 @@ export function isHydrating(): boolean {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createProjectStore = () =>
   create<ProjectStoreState>((set, get) => ({
+    saveFailure: null,
+    lastSaveOutcome: null,
+    setSaveFailure: (saveFailure) => set({ saveFailure }),
     documentSessionId: crypto.randomUUID(),
     editRevision: 0,
     savedRevision: 0,
     acknowledgeSavedRevision: (path, session, revision) => {
       if (get().documentSessionId !== session) return false
       const clean = get().editRevision === revision
-      set({ currentFilePath: path, savedRevision: revision, isDirty: !clean, lastSavedAt: Date.now() })
+      set({ currentFilePath: path, savedRevision: revision, isDirty: !clean, lastSavedAt: Date.now(), saveFailure: null,
+        lastSaveOutcome: { revision, at: Date.now(), message: clean ? 'Saved' : 'Earlier changes saved. Newer changes are still unsaved.' } })
       return clean
     },
     currentFilePath: null,
@@ -161,6 +175,8 @@ const createProjectStore = () =>
 
     reset: () =>
       set({
+        saveFailure: null,
+        lastSaveOutcome: null,
         documentSessionId: crypto.randomUUID(),
         editRevision: 0,
         savedRevision: 0,

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useProjectStore } from '../stores/projectStore'
 
 /**
  * Subscribe to the main process's 'app:close-request' signal. Fires the
@@ -13,7 +14,11 @@ export function useCloseGuard(onRequest: () => void): void {
   handlerRef.current = onRequest
 
   useEffect(() => {
-    const stable = (): void => handlerRef.current()
+    const stable = (): void => {
+      const state = useProjectStore.getState()
+      if (state.isSaving || state.saveFailure || document.querySelector('[role="dialog"]')) return
+      handlerRef.current()
+    }
     window.api.onCloseRequest(stable)
     return () => {
       window.api.offCloseRequest(stable)

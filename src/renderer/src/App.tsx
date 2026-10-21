@@ -14,6 +14,7 @@ import { ArchiveCorruptedModal } from './components/ArchiveCorruptedModal'
 import { DimensionMismatchModal } from './components/DimensionMismatchModal'
 import { PageCountAbortModal } from './components/PageCountAbortModal'
 import { SaveCloseModal } from './components/SaveCloseModal'
+import { SaveFailureDialog } from './components/SaveFailureDialog'
 import { OpenErrorModal } from './components/OpenErrorModal'
 import { UncalibratedExportWarningModal } from './components/UncalibratedExportWarningModal'
 import { useViewerStore } from './stores/viewerStore'
@@ -43,10 +44,13 @@ function App(): React.JSX.Element {
   // clear reopenToast when the user navigates while the toast is showing.
   const currentPage = useViewerStore((s) => s.currentPage)
   const currentFilePath = useProjectStore((s) => s.currentFilePath)
+  const isSaving = useProjectStore((s) => s.isSaving)
+  const saveFailure = useProjectStore((s) => s.saveFailure)
   const {
     openByExtension,
     saveProject,
     saveProjectAs,
+    retrySaveProject,
     replacePlanPdf,
     applyReplacePlanPdf,
     applyArchiveCorruptedProceed
@@ -133,6 +137,11 @@ function App(): React.JSX.Element {
   const [saveToast, setSaveToast] = useState<string | null>(null)
   const [closeModal, setCloseModal] = useState<'close-window' | 'open-other' | null>(null)
   const [pendingOpen, setPendingOpen] = useState<{ filePath: string; extension: string } | null>(null)
+  useEffect(() => useProjectStore.subscribe((state, previous) => {
+    if (state.lastSaveOutcome && state.lastSaveOutcome !== previous.lastSaveOutcome) {
+      setSaveToast(state.lastSaveOutcome.message)
+    }
+  }), [])
 
   // Replace-flow state (NEW)
   const [replacePageAbort, setReplacePageAbort] =
@@ -242,8 +251,11 @@ function App(): React.JSX.Element {
   }, [])
 
   const handleOpenClick = useCallback(async () => {
+    if (document.querySelector('[role="dialog"]')) return
+    if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure || closeModal) return
     const picked = await window.api.openProject()
     if (!picked) return
+    if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure) return
     if (useProjectStore.getState().isDirty) {
       setPendingOpen({ filePath: picked.filePath, extension: picked.extension })
       setCloseModal('open-other')
@@ -251,20 +263,22 @@ function App(): React.JSX.Element {
     }
     const r = await openByExtension(picked.filePath, picked.extension)
     handleOpenResult(r)
-  }, [openByExtension, handleOpenResult])
+  }, [openByExtension, handleOpenResult, closeModal])
 
   const handleSaveClick = useCallback(async () => {
-    const r = await saveProject()
-    if (r === 'ok') setSaveToast('Saved')
+    if (document.querySelector('[role="dialog"]')) return
+    await saveProject()
   }, [saveProject])
 
   const handleSaveAsClick = useCallback(async () => {
-    const r = await saveProjectAs()
-    if (r === 'ok') setSaveToast('Saved')
+    if (document.querySelector('[role="dialog"]')) return
+    await saveProjectAs()
   }, [saveProjectAs])
 
   // NEW (D-08): Replace Plan PDF — opens picker, runs validation, routes result.
   const handleReplaceClick = useCallback(async () => {
+    if (document.querySelector('[role="dialog"]')) return
+    if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure || closeModal) return
     const pick = await window.api.openPdf()
     if (!pick) return
     const newBytes = new Uint8Array(pick.data)
@@ -282,7 +296,17 @@ function App(): React.JSX.Element {
       return
     }
     // r.kind === 'ok' — replacePlanPdf already updated viewerStore + marked dirty.
-  }, [replacePlanPdf])
+  }, [replacePlanPdf, closeModal])
+
+  const finishGuardedSave = async (result: 'ok' | 'canceled' | 'error'): Promise<void> => {
+    if (result !== 'ok' || useProjectStore.getState().isDirty || useProjectStore.getState().isSaving) return
+    if (closeModal === 'close-window') window.api.confirmClose()
+    else if (closeModal === 'open-other' && pendingOpen) {
+      handleOpenResult(await openByExtension(pendingOpen.filePath, pendingOpen.extension))
+    }
+    setCloseModal(null)
+    setPendingOpen(null)
+  }
 
   // Phase 5: Export click handler — routes ExportResult kinds to UI state
   const handleExportClick = useCallback(async () => {
@@ -652,24 +676,26 @@ function App(): React.JSX.Element {
         />
       )}
 
-      {closeModal && (
+      {saveFailure && (
+        <SaveFailureDialog failure={saveFailure} busy={isSaving}
+          onRetry={async () => { await finishGuardedSave(await retrySaveProject()) }}
+          onSaveAs={async () => { await finishGuardedSave(await saveProjectAs()) }}
+          onClose={() => {
+            useProjectStore.getState().setSaveFailure(null)
+            setCloseModal(null)
+            setPendingOpen(null)
+          }} />
+      )}
+
+      {closeModal && !saveFailure && (
         <SaveCloseModal
           filename={displayFilename}
+          busy={isSaving}
           onSave={async () => {
-            const r = await saveProject()
-            if (r === 'ok') {
-              setSaveToast('Saved')
-              if (closeModal === 'close-window') {
-                window.api.confirmClose()
-              } else if (closeModal === 'open-other' && pendingOpen) {
-                const res = await openByExtension(pendingOpen.filePath, pendingOpen.extension)
-                handleOpenResult(res)
-              }
-              setCloseModal(null)
-              setPendingOpen(null)
-            }
+            await finishGuardedSave(await saveProject())
           }}
           onDiscard={async () => {
+            if (useProjectStore.getState().isSaving) return
             if (closeModal === 'close-window') {
               window.api.confirmClose()
             } else if (closeModal === 'open-other' && pendingOpen) {

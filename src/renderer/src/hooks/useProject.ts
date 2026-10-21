@@ -61,7 +61,15 @@ function basenameAny(p: string): string {
 }
 
 /** Capture before the first await: recovery and explicit saves share this coherent input. */
-export function captureProjectSnapshot() {
+export interface CapturedProjectSnapshot {
+  metadata: ProjectFileV2
+  pdfBytes: Uint8Array
+  pdfDocument: PDFDocumentProxy
+  documentSessionId: string
+  revision: number
+  sourcePath: string | null
+}
+export function captureProjectSnapshot(): CapturedProjectSnapshot {
   const { fileName, totalPages, pdfBytes, pdfDocument } = useViewerStore.getState()
   const project = useProjectStore.getState()
   if (!fileName || !totalPages || !pdfBytes || !pdfDocument) throw new Error('No PDF is open to save.')
@@ -72,18 +80,29 @@ export function captureProjectSnapshot() {
     documentSessionId: project.documentSessionId, revision: project.editRevision, sourcePath: project.currentFilePath }
 }
 
-export async function finalizeProjectSnapshot(captured: ReturnType<typeof captureProjectSnapshot>, createdAt?: string) {
+export async function finalizeProjectSnapshot(captured: CapturedProjectSnapshot, createdAt?: string): Promise<ProjectFileV2> {
   const pdfSha256 = await window.api.hashBuffer(captured.pdfBytes)
   const dimensions = await perPageDimensions(captured.pdfDocument)
   return snapshotProject({ pdfOriginalFilename: captured.metadata.pdf.originalFilename, pdfSha256,
     pdfTotalPages: captured.metadata.pdf.totalPages, perPageDimensions: dimensions, createdAt }, captured.metadata)
 }
 
-export function useProject() {
+interface ProjectActions {
+  newProject: () => void
+  saveProject: () => Promise<'ok' | 'canceled' | 'error'>
+  saveProjectAs: () => Promise<'ok' | 'canceled' | 'error'>
+  retrySaveProject: () => Promise<'ok' | 'canceled' | 'error'>
+  openByExtension: (path: string, extension: string) => Promise<ProjectOpenResult>
+  openProjectDialog: () => Promise<ProjectOpenResult | null>
+  replacePlanPdf: (bytes: Uint8Array, path: string) => Promise<ReplacePlanPdfResult>
+  applyReplacePlanPdf: (bytes: Uint8Array, path: string) => Promise<void>
+  applyArchiveCorruptedProceed: (project: ProjectFileV2, bytes: Uint8Array, path: string) => Promise<void>
+}
+export function useProject(): ProjectActions {
   const { loadPdfFromPath, loadPdfFromBytes } = usePdfDocument()
 
   const newProject = useCallback((): void => {
-    if (useProjectStore.getState().isSaving) return
+    if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure) return
     useMarkupStore.getState().reset()
     useScaleStore.getState().reset()
     useViewerStore.getState().resetViewer()
@@ -104,17 +123,28 @@ export function useProject() {
     return saveProjectAsImpl()
   }, [])
 
+  const retrySaveProject = useCallback(async (): Promise<'ok' | 'canceled' | 'error'> => {
+    const { isSaving, saveFailure } = useProjectStore.getState()
+    if (isSaving) return 'canceled'
+    if (!saveFailure?.path) return saveProjectAsImpl()
+    return writeSnapshotToPath(saveFailure.path, saveFailure.firstSave)
+  }, [])
+
   async function saveProjectAsImpl(): Promise<'ok' | 'canceled' | 'error'> {
     useProjectStore.getState().setSaving(true)
     try {
-    const { fileName: pdfName, totalPages } = useViewerStore.getState()
-    if (totalPages === 0) return 'error'
-    const dotIdx = (pdfName ?? '').lastIndexOf('.')
-    const baseNoExt = dotIdx > 0 ? (pdfName as string).slice(0, dotIdx) : (pdfName ?? 'project')
-    const defaultPath = `${baseNoExt}.clmc`
-    const chosen = await window.api.saveProjectDialog(defaultPath)
-    if (!chosen) return 'canceled'
-    return await writeSnapshotToPath(chosen, true)
+      const { fileName: pdfName, totalPages } = useViewerStore.getState()
+      if (totalPages === 0) throw new Error('No PDF is open to save.')
+      const dotIdx = (pdfName ?? '').lastIndexOf('.')
+      const baseNoExt = dotIdx > 0 ? (pdfName as string).slice(0, dotIdx) : (pdfName ?? 'project')
+      const defaultPath = `${baseNoExt}.clmc`
+      const chosen = await window.api.saveProjectDialog(defaultPath)
+      if (!chosen) return 'canceled'
+      return await writeSnapshotToPath(chosen, true)
+    } catch (error) {
+      useProjectStore.getState().setSaveFailure({ path: '', stage: 'write', firstSave: true,
+        message: error instanceof Error ? error.message : String(error) })
+      return 'error'
     } finally {
       useProjectStore.getState().setSaving(false)
     }
@@ -145,11 +175,16 @@ export function useProject() {
 
       const snap = await finalizeProjectSnapshot(captured, createdAt)
       const result = await window.api.writeProject(clmcPath, JSON.stringify(snap), captured.pdfBytes)
-      if (!result.ok) throw new Error(result.message)
+      if (!result.ok) {
+        useProjectStore.getState().setSaveFailure({ ...result, path: clmcPath })
+        return 'error'
+      }
       useProjectStore.getState().acknowledgeSavedRevision(clmcPath, captured.documentSessionId, captured.revision)
       return 'ok'
     } catch (err) {
       console.error('[useProject] save failed:', err)
+      useProjectStore.getState().setSaveFailure({ path: clmcPath, stage: 'write', firstSave,
+        message: err instanceof Error ? err.message : String(err) })
       return 'error'
     } finally {
       setSaving(false)  // T-4.1-04-01: ALWAYS reset, even on error
@@ -160,7 +195,7 @@ export function useProject() {
 
   const openClmcFromPath = useCallback(
     async (clmcPath: string): Promise<ProjectOpenResult> => {
-      if (useProjectStore.getState().isSaving) return { kind: 'canceled' }
+      if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure) return { kind: 'canceled' }
       try {
         const result = await window.api.readProject(clmcPath)
         if (result.kind === 'unknown') {
@@ -277,6 +312,7 @@ export function useProject() {
    */
   const applyArchiveCorruptedProceed = useCallback(
     async (validated: ProjectFileV2, pdfBytes: Uint8Array, clmcPath: string): Promise<void> => {
+      if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure) return
       await loadPdfFromBytes(pdfBytes, validated.pdf.originalFilename)
       hydrateStores(validated)
       useProjectStore.getState().setCurrentFilePath(clmcPath)
@@ -289,7 +325,7 @@ export function useProject() {
 
   const replacePlanPdf = useCallback(
     async (newBytes: Uint8Array, pickedPath: string): Promise<ReplacePlanPdfResult> => {
-      if (useProjectStore.getState().isSaving) return { kind: 'canceled' }
+      if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure) return { kind: 'canceled' }
       try {
         const { totalPages: expectedPages, pdfDocument: currentDoc } = useViewerStore.getState()
         const currentDocProxy = currentDoc as PDFDocumentProxy | null
@@ -355,7 +391,7 @@ export function useProject() {
 
   const applyReplacePlanPdf = useCallback(
     async (newBytes: Uint8Array, pickedPath: string): Promise<void> => {
-      if (useProjectStore.getState().isSaving) return
+      if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure) return
       const filename = basenameAny(pickedPath)
       await loadPdfFromBytes(newBytes, filename)
       // loadPdfFromBytes already updated viewerStore.pdfBytes, pdfDocument, fileName, totalPages.
@@ -367,7 +403,7 @@ export function useProject() {
   // ===== TOP-LEVEL OPEN ENTRY =====
 
   const openProjectDialog = useCallback(async (): Promise<ProjectOpenResult | null> => {
-    if (useProjectStore.getState().isSaving) return { kind: 'canceled' }
+    if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure) return { kind: 'canceled' }
     const picked = await window.api.openProject()
     if (!picked) return { kind: 'canceled' }
     return openByExtension(picked.filePath, picked.extension)
@@ -375,7 +411,7 @@ export function useProject() {
 
   const openByExtension = useCallback(
     async (filePath: string, extension: string): Promise<ProjectOpenResult> => {
-      if (useProjectStore.getState().isSaving) return { kind: 'canceled' }
+      if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure) return { kind: 'canceled' }
       const route = routeOpenByExtension(extension)
       if (route === 'pdf') {
         try {
@@ -398,6 +434,7 @@ export function useProject() {
     newProject,
     saveProject,
     saveProjectAs,
+    retrySaveProject,
     openByExtension,
     openProjectDialog,
     replacePlanPdf,

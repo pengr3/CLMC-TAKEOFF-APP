@@ -264,6 +264,7 @@ export function TopActionBar({
   // a compact 34px row. Keeps the accent-primary chrome + Ctrl+O aria-label.
   const renderOpenButton = (): React.JSX.Element => (
     <button
+      disabled={isSaving}
       onClick={() => {
         void onOpenClick()
       }}

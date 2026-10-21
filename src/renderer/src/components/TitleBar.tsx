@@ -15,11 +15,11 @@ export function TitleBar(): React.JSX.Element {
   const displayName = basename(currentFilePath) ?? fileName ?? null
   const dirtyMark = isDirty ? ' * ' : ' '
 
-  // D-11: while saving, override the regular title with "Saving..." prefix.
+  // Keep the dirty asterisk while a captured revision is being saved.
   const title = isSaving
     ? (displayName !== null
-        ? `Saving... ${displayName} — CLMC Takeoff`
-        : 'Saving... — CLMC Takeoff')
+        ? `Saving… ${displayName}${dirtyMark}— CLMC Takeoff`
+        : 'Saving… — CLMC Takeoff')
     : (displayName !== null
         ? `${displayName}${dirtyMark}— CLMC Takeoff`
         : 'CLMC Takeoff')
@@ -38,7 +38,7 @@ export function TitleBar(): React.JSX.Element {
         flexShrink: 0
       }}
     >
-      <span style={{ fontSize: 13, fontWeight: 600, color: '#cccccc' }}>
+      <span title={title} style={{ fontSize: 13, fontWeight: 600, color: '#cccccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {title}
       </span>
     </div>
