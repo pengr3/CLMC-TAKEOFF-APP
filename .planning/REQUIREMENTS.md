@@ -74,18 +74,16 @@
 
 ---
 
-## Out of Scope
-
 ## Internal Production Rollout Requirements (2026-10-21)
 
 Preserve the core takeoff/offline/geometry goals. Source: [RELEASE-HANDOVER.md](RELEASE-HANDOVER.md). These additions extend the existing milestone; completed v1 requirements remain complete.
 
-- [ ] **COST-01** (Phase 19): Download a blank standard .xlsx template with Item Code, Description, Category, Unit, Material Unit Rate and Labor Unit Rate; CSV uses the same schema.
-- [ ] **COST-02** (Phase 19): Validate XLSX/CSV headers, required values, case-insensitive unique codes, supported units and finite nonnegative rates, with actionable row/column errors.
-- [ ] **COST-03** (Phase 19): Preview and explicitly replace a per-PC library; invalid, failed or cancelled imports preserve the prior library; accepted library persists offline across restarts.
-- [ ] **COST-04** (Phase 19): Manage library without a PDF, search/select an item from an Estimate row, and block incompatible units.
-- [ ] **COST-05** (Phase 19): Explicitly copy material/labor rates into project pricing, preserve selling markup/manual editing and existing live totals/export.
-- [ ] **COST-06** (Phase 19): Project rate snapshots remain independent of subsequent library imports and reopen correctly on PCs without the library.
+- [x] **COST-01** (Phase 19): Download a blank standard .xlsx template with Item Code, Description, Category, Unit, Material Unit Rate and Labor Unit Rate; CSV uses the same schema.
+- [x] **COST-02** (Phase 19): Validate XLSX/CSV headers, required values, case-insensitive unique codes, supported units and finite nonnegative rates, with actionable row/column errors.
+- [x] **COST-03** (Phase 19): Preview and explicitly replace a per-PC library; invalid, failed or cancelled imports preserve the prior library; accepted library persists offline across restarts.
+- [x] **COST-04** (Phase 19): Manage library without a PDF, search/select an item from an Estimate row, and block incompatible units.
+- [x] **COST-05** (Phase 19): Explicitly copy material/labor rates into project pricing, preserve selling markup/manual editing and existing live totals/export.
+- [x] **COST-06** (Phase 19): Project rate snapshots remain independent of subsequent library imports and reopen correctly on PCs without the library.
 - [ ] **REL-01** (Phase 20): Versioned Windows installer, final stable identity, version visibility and release notes, manually distributed internally.
 - [ ] **REL-02** (Phase 20): Verified fresh install/in-place upgrade preserving user projects and local library, with supported runtime/package review.
 - [ ] **REL-03** (Phase 20): Verify/repair single-file .clmc portability and supported migration without separate source PDF dependency.
@@ -137,8 +135,23 @@ Preserve the core takeoff/offline/geometry goals. Source: [RELEASE-HANDOVER.md](
 | EXPRT-01 | Phase 5 | Complete |
 | EXPRT-02 | Phase 5 | Complete |
 | VIEW-01 | Phase 6 | Complete |
+| COST-01 | Phase 19 | Complete |
+| COST-02 | Phase 19 | Complete |
+| COST-03 | Phase 19 | Complete |
+| COST-04 | Phase 19 | Complete |
+| COST-05 | Phase 19 | Complete |
+| COST-06 | Phase 19 | Complete |
+| REL-01 | Phase 20 | Pending |
+| REL-02 | Phase 20 | Pending |
+| REL-03 | Phase 20 | Pending |
+| REL-04 | Phase 20 | Pending |
+| REL-05 | Phase 20 | Pending |
+| HAND-01 | Phase 21 | Pending |
+| HAND-02 | Phase 21 | Pending |
+| HAND-03 | Phase 21 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 25 total
 - Mapped to phases: 25
 - Unmapped: 0 ✓

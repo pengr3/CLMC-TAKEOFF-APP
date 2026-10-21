@@ -1,17 +1,20 @@
 ---
-gsd_state_version: 1.0
+gsd_state_version: "1.0"
 milestone: v1.0
-milestone_name: milestone
-status: phase_19_executing
-stopped_at: "2026-10-21 quick-261021-jqu COMPLETE: reviewed slider fix and six regression tests committed as 1355499; no blocking findings. Full suite 877/877, fresh production build and TypeScript pass; focused lint matches HEAD baseline. Human walkthrough complete: 16 passed, 1 category-collapse check skipped/deferred, 0 pending. UAT/manual/debug records reconciled in the wrap-up documentation commit. Unrelated untracked AGENTS.md excluded. Next: v1.0 milestone audit."
-last_updated: "2026-10-21"
+current_phase: 20
+current_phase_name: Production Readiness
+status: ready_to_plan
+stopped_at: Phase 19 complete, ready to plan Phase 20
+last_updated: "2026-10-21T06:57:10.185Z"
 last_activity: 2026-10-21
+state_head: 1e92018edf830df4b926016f7ead885de8713f9b
 progress:
-  total_phases: 22
-  completed_phases: 22
-  total_plans: 122
-  completed_plans: 122
-  percent: 100
+  total_phases: 25
+  completed_phases: 23
+  total_plans: 123
+  completed_plans: 123
+  percent: 92
+milestone_name: milestone
 ---
 
 # Project State: CLMC Takeoff App
@@ -26,22 +29,23 @@ progress:
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 19 — Cost Library; original rollout agreement in RELEASE-HANDOVER.md; Phases 20-21 retain installer, portability, recovery, offline guide and internal pilot obligations.
+**Current Focus:** Phase 20 — Production Readiness, ready to plan. Phase 19 complete (2da29cb; 938 tests/build/Electron smoke pass). Original rollout agreement in RELEASE-HANDOVER.md; Phases 20-21 retain installer, portability, recovery, offline guide and internal pilot obligations.
 
 ---
 
 ## Current Position
 
-Phase: 19 (cost-library) — EXECUTING
-Plan: 19-01 — template/import/local persistence/Estimate rate picker, approved by user 2026-10-21. Historical Phase 18 verification remains complete.
+Phase: 20 — Production Readiness
+Plan: Not started
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
-| Phases complete | 13 / 13 |
-| Plans complete | 81 |
-| Requirements delivered | 25 / 25 |
+| Phases complete | 23 / 25 (22 previously complete + Phase 19) |
+| Plans complete | 123 (122 previous + Phase 19 plan) |
+| v1 requirements delivered | 25 / 25 |
+| Internal rollout requirements delivered | 6 / 14 |
 | Session count | 8 |
 
 ---
@@ -256,6 +260,8 @@ None.
 
 ## Session Continuity
 
+**2026-10-21 authoritative handoff:** User approved the three-phase rollout and beginning implementation. Roadmap/scope finalized (bef08b6), Phase 19 implemented (2da29cb), summary/verification committed (1e92018). COST-01..06 pass; 61 new tests, 938 full-suite tests, TypeScript/production build and eight built Electron workflows pass with no renderer errors. Phase 20 ready to plan; Phase 21 user guide/maintainer handover/two-PC pilot pending. All original goals retained in RELEASE-HANDOVER.md. Review unit changes after pricing during Phase 20. Client-only export is an open scope decision, not implemented. Existing untracked AGENTS.md preserved. GSD completion/sync undercounted historical phases due duplicate Phase-10 directories/older metadata; counters reconciled to the pre-session baseline plus Phase 19, without changing historical phase artifacts. Older continuity entries below are historical.
+
 **Session resumed:** 2026-07-19 — via /gsd-resume-work. Milestone v1.0 (extended) still feature-complete (22/22 phases, 122/122 plans, 100%). Restored the post-Phase-18 **markup-gaps spike** (GAP-003), PAUSED at task 4/5 per HANDOFF.json (2026-07-17T14:51Z): both prototype improvements BUILT + committed — **006 circle-input** (3-pt rim / 2-pt diameter / center-radius, `fccabdc`) and **008 type-it-exact** pill (`ff1784c`); working tree CLEAN, branch `claude/sync-status-check-768f9c` is 79 commits ahead of origin/master on its own remote. Remaining spike tasks: **(4)** human feel-test `006-area-cutouts/index.html` + `008-live-readout/index.html` — the ONLY unverified half (all math/perf/logic proven headlessly); blocked last session by the in-app Browser MCP being down (2× 300s timeouts). **(5)** plan the build (`/gsd-plan-phase` cutouts MM-01, math proven exact) or `/gsd-review-backlog`. Also still pending: `/gsd-audit-milestone` for v1.0. Consumed HANDOFF.json. Next: retry the feel-test in the now-available in-app Browser, then decide build vs backlog.
 
 **Session resumed:** 2026-07-17 — via /gsd-resume-work. Restored from HANDOFF.json (today 00:40) + `.planning/spikes/.continue-here.md`: a post-Phase-18 **markup-gaps spike session** (GAP-003, "what do we lack on marking up?") is PAUSED at task 5/8, working tree clean at `4637f7e`. Three spikes built + committed: **006 area-cutouts** (math VALIDATED — netArea = outer − Σholes via the shipped arc-aware engine, exact ≤1.35e-8), **008 live-readout** (math+perf VALIDATED — recompute per mousemove is free, ≤129µs@5000pts + MM-09 per-segment labels), **009 autocount-review-ux** (pipeline+dial VALIDATED but **user SHELVED** — too much wizard UI for v1). User decisions: **DROP 009, KEEP 006+008**; 006 circle-cutout input = **3-point method** (reuse shipped solveCircle, ~1e-10) with 2-point/{cx,cy,r} πr² storage; 008 = passive see-it-live + maybe PlanSwift "type-it-exact". **Blocker:** in-app Browser MCP was down last session → the demos' subjective FEEL is the only unverified half (all math/perf proven via Node oracles). **Remaining:** (6) human feel-test 006+008 index.html, (7) OPTIONAL wire 3-pt/2-pt circle input into the 006 demo, (8) plan the build — /gsd-plan-phase (cutouts MM-01, highest value) or /gsd-review-backlog. Milestone still feature-complete (22/22 phases); frontmatter stays phase_18_complete — spike is pre-planning exploration, no new phase started.
@@ -268,7 +274,7 @@ None.
 
 **Session resumed:** 2026-07-16 — restored via /gsd-resume-work from HANDOFF.json (2026-07-15 pause). Phase 18 (tab-less toolbar revamp) is nearly done: plans 18-01..18-08 executed with SUMMARYs; 18-09 committed Tasks 1-3 (`37821c7`, `ac76fc0`, `529cb36`); PAUSED at Task 4 (human-verify checkpoint). At that checkpoint the user found 4 bugs + 1 declutter ask → ran a /gsd-debug loop: Bug1 ContextBar focus-steal `285f3d4`, Bug3 arc verified `2176405`, Bug4 splitter memoize+imperative `32e62be`/`935f420`, declutter `d967412` — **all user-approved**. Sole open item: **Bug2 F3 snap-toggle** — F3 doesn't toggle snap when a project is open (works with no project) and focus-highlights buttons (browser default for unhandled F3). Two F3 attempts landed (`c0cd9a3` register-once + guard-exempt, `08be351` HMR store singleton). Note: branch now lives in the PRIMARY repo (no longer the linked worktree the handoff was written from); `.git` is a directory, tree clean at HEAD `a2334b9`. STATE.md frontmatter was stale (worktree execution skips STATE writes) — reconciled to phase_18_executing_paused, 121/122 plans. **Next: resume F3 debug — re-add the 2 clean-build diagnostics (exact code in 18 `.continue-here.md`), clear vite cache, user CLEAN-restarts `npm run dev`, presses F3 once with a project open, reports 5 data points; datapoint (a) `[snap-debug] F3 INTERCEPTED` is make-or-break.** Local branch is well ahead of origin/master (`4c73103`).
 
-**Last activity:** 2026-07-14
+**Last activity:** 2026-10-21
 
 **Session continued:** 2026-07-14 — ran `/gsd-spike` on the scattered toolbar → built spike 007 (two interactive mockups, Direction A vs B); user feel-tested and chose **A** ("everything one click away"). Then `/gsd-plan-phase 18`: added **Phase 18 (Toolbar Revamp)** to the roadmap extending v1.0, seeded `18-CONTEXT.md` from the spike (express path, no discuss round), and ran the full pipeline — gsd-phase-researcher (`18-RESEARCH.md`, HIGH confidence, 21-row behavior-parity inventory), gsd-pattern-mapper (`18-PATTERNS.md`, 10 files/8 analogs), gsd-planner (**9 plans, 4 waves**), gsd-plan-checker (**PASS** after one revision: HIGH Arc-reactivity gap fixed via `subscribeArcSticky` + `useSyncExternalStore`; 2 doc warnings closed). Key commits: `e710f1a` (plans), `5810735` (revision). **Next: `/gsd-execute-phase 18`.** Phase 17 remains COMPLETE; the v1.0 milestone audit (`/gsd-audit-milestone`) is still pending and can run before or after Phase 18.
 
@@ -278,7 +284,7 @@ None.
 
 **Last session:** 2026-07-09T08:53:22.850Z
 
-**Stopped at:** Phase 17 (markup-rename-and-reorder) EXECUTED + VERIFIED (automated PASS) + review-fixed — suite 793 green, typecheck + build clean; awaiting human UAT (4 items).
+**Stopped at:** Phase 19 complete, ready to plan Phase 20
 
 **Next action:** **Phase 17 (Markup Rename and Reorder) EXECUTED + VERIFIED + review-fixed — awaiting human UAT.** All 7 plans built sequentially on master (feat commits `b7c651c`..`c20e383`). gsd-verifier confirmed 10/10 SPEC acceptance criteria + 11/11 decisions (D-01..D-11) against real source; suite 793 green, typecheck + build clean; the shared-order goal claim verified end-to-end (one aggregator sort → totals panel + Estimate sheet + xlsx/csv). gsd-code-reviewer found 1 High / 3 Med / 3 Low → FIXED HG-01 (blank-category guard `10daec6`), MD-01 (category-scoped inline-rename `93db214`), LW-01 (`__proto__` hydrate hardening `b0c319f`), LW-02 (drag unmount cleanup `6efe392`); DEFERRED MD-02 (move un-hides a hidden group — verifier ruled acceptable per SPEC), MD-03 (same-category cross-type visibility coupling), LW-03 (group-name case-sensitivity) — recorded in `17-REVIEW.md`. **4 human-UAT items pending** in `17-HUMAN-UAT.md`: grip-drag feel, collision-message readability, export cross-surface order parity, totals single-click-stays-instant. Once UAT-approved, mark Phase 17 complete (`phase.complete`). — Prior context (planning): **Phase 17 (Markup Rename and Reorder) PLANNED — ready to execute.** Full research-first plan-phase pipeline: 17-RESEARCH.md (HIGH confidence — corrected CONTEXT shorthand: the BOQ aggregator is renderer-side at boq-aggregator.ts:264 not src/main; the visibility key is the composite name|categoryId; categoryItemOrder lives in markupStore so reorder+move are single-store commands), 17-VALIDATION.md (Vitest; 12 Wave-0 test files), 17-PATTERNS.md (19 files → line-cited analogs), then 7 PLAN.md in 4 waves. Plan-checker: 0 blockers, 3 warnings resolved (D-02 double-click `e.detail===2` regression test added to 17-06; markupStore↔projectStore circular-import note + lazy fallback added to 17-02; RESEARCH Open Questions marked RESOLVED). Coverage: SPEC Req 1–5 ✓, decisions D-01..D-11 ✓. Waves — W1: 17-01 categoryItemOrder spine + aggregator sort swap (all 3 surfaces) + additive .clmc (no formatVersion bump). W2: 17-02 rename + cross-store one-Ctrl+Z atomic undo + group-ops, 17-03 GroupCategoryDialog + useRowReorder. W3: 17-04 move/copy/duplicate commands, 17-05 shared context menu + InlineRenameInput + collision message. W4: 17-06 totals-panel wiring, 17-07 estimate-sheet wiring. Commits: research 8855d9c, validation 494e157, patterns 505d946, plans 0b1d6ff (+ warning-fix commit). Delivers the Phase-16-deferred rename+reorder (user: "sooner or later"), extended in discuss to move/copy/duplicate; rename blocks on name collision (no merge, per user's rejection of silent merge). Next: /clear then /gsd-execute-phase 17.
 

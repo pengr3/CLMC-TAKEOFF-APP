@@ -8,7 +8,7 @@ App-provided fixed Excel template; optional CSV with identical headers; per-PC i
 
 ## Implementation discretion
 
-Reuse ExcelJS already installed, native dialogs and main-process filesystem access. Persist versioned library JSON in userData rather than installation/project directories. Reuse Estimate controls, COLORS, and existing modal patterns. Keep management accessible even without an open PDF. Unit compatibility uses the displayed BOQ unit; count uses pcs. Accept documented common aliases and canonicalize them, without implicit rate conversions. A code is case-insensitively unique. Import empty rows are ignored; an empty library is rejected. Disallow formulas rather than trusting cached Excel values. Show rate-key scope (same name/type across categories) when applying. Stage candidate state in the main process to avoid renderer-chosen filesystem paths.
+Reuse ExcelJS already installed, native dialogs and main-process filesystem access. Persist versioned library JSON in userData rather than installation/project directories. Reuse Estimate controls, COLORS, and existing modal patterns. Keep management accessible even without an open PDF. Unit compatibility uses the displayed BOQ unit; inspection confirmed count uses ea (pcs aliases to ea) and wall always uses m². Accept documented common aliases and canonicalize them, without implicit rate conversions. A code is case-insensitively unique. Import empty rows are ignored; an empty library is rejected. Disallow formulas rather than trusting cached Excel values. Show rate-key scope (same name/type across categories) when applying. Stage candidate state in the main process to avoid renderer-chosen filesystem paths.
 
 ## Out of scope
 

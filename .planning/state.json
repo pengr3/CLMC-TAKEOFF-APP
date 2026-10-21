@@ -1,0 +1,138 @@
+{
+  "contract": "1.0.0",
+  "flavor": "core",
+  "milestone": "v1.0",
+  "phases": [
+    {
+      "number": "1",
+      "name": "PDF Viewer and Canvas Foundation",
+      "status": "complete"
+    },
+    {
+      "number": "2",
+      "name": "Scale Calibration",
+      "status": "complete"
+    },
+    {
+      "number": "3",
+      "name": "Markup Tools and Editing",
+      "status": "complete"
+    },
+    {
+      "number": "3.1",
+      "name": "Markup Gap Closure and Visual Redesign",
+      "status": "complete"
+    },
+    {
+      "number": "4",
+      "name": "Project Persistence",
+      "status": "complete"
+    },
+    {
+      "number": "4.1",
+      "name": "ZIP-Embedded .clmc Format",
+      "status": "complete"
+    },
+    {
+      "number": "5",
+      "name": "BOQ Export",
+      "status": "complete"
+    },
+    {
+      "number": "6",
+      "name": "Live View and UI Polish",
+      "status": "complete"
+    },
+    {
+      "number": "6.1",
+      "name": "Remove Left Thumbnail Strip Panel",
+      "status": "complete"
+    },
+    {
+      "number": "7",
+      "name": "Canvas Workspace UX and Markup Editing Fixes",
+      "status": "complete"
+    },
+    {
+      "number": "7.1",
+      "name": "Resume Markup Group from Totals Panel",
+      "status": "complete"
+    },
+    {
+      "number": "8",
+      "name": "Markup Workflow Acceleration and Wall Measurement Tool",
+      "status": "complete"
+    },
+    {
+      "number": "9",
+      "name": "Selection Model, Ribbon Toolbar, Modal Polish, and Markup Completion",
+      "status": "complete"
+    },
+    {
+      "number": "10",
+      "name": "Granular Undo Foundation",
+      "status": "complete"
+    },
+    {
+      "number": "11",
+      "name": "Scale Ratio Input",
+      "status": "complete"
+    },
+    {
+      "number": "12",
+      "name": "Markup Geometry Editing",
+      "status": "complete"
+    },
+    {
+      "number": "13",
+      "name": "Post-Commit Step-Level Undo",
+      "status": "complete"
+    },
+    {
+      "number": "14",
+      "name": "Markup Geometry Precision — Snapping + Curved-Edge Measurement",
+      "status": "complete"
+    },
+    {
+      "number": "15",
+      "name": "BOQ Pricing & Perimeter Simplification",
+      "status": "complete"
+    },
+    {
+      "number": "16",
+      "name": "Estimating Workspace",
+      "status": "complete"
+    },
+    {
+      "number": "17",
+      "name": "Markup Rename and Reorder",
+      "status": "complete"
+    },
+    {
+      "number": "18",
+      "name": "Toolbar Revamp — Seamless One-Click Toolbar",
+      "status": "complete"
+    },
+    {
+      "number": "19",
+      "name": "Cost Library",
+      "status": "complete"
+    },
+    {
+      "number": "20",
+      "name": "Production Readiness",
+      "status": "pending"
+    },
+    {
+      "number": "21",
+      "name": "User Guide and Internal Handover",
+      "status": "pending"
+    }
+  ],
+  "next": {
+    "command": "/gsd:plan-phase 20",
+    "label": "Plan Phase 20: Production Readiness",
+    "reason": "Phase 19 complete; installer, portability, recovery and installed-app checks remain"
+  },
+  "updated_at": "2026-10-21T06:57:40.6235927Z"
+}
