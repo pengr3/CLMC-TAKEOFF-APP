@@ -38,7 +38,7 @@ coverage:
     human_judgment: true
     rationale: Runtime installation is blocked by a running Electron instance holding icudtl.dat; smoke has not run.
 actuals:
-  tokens: 11651
+  tokens: 8310
   tasks: 2
   commits: 4
 plan_head_before: 09e2f8ece92f78cd4ee7b7eec512c8f1d51d2c09
