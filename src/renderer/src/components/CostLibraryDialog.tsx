@@ -8,6 +8,7 @@ import { labelToName } from './TotalsRow'
 import type { BoqItemRow } from '../lib/boq-types'
 import {
   normalizeLibraryUnit,
+  LIBRARY_IMPORT_MESSAGES,
   type CostLibrarySnapshot,
   type LibraryPreview,
   type LibraryIssue
@@ -33,7 +34,10 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
   const titleId = useId()
   const [library, setLibrary] = useState<CostLibrarySnapshot | null>(null)
   const [preview, setPreview] = useState<LibraryPreview | null>(null)
-  const [busy, setBusy] = useState(true)
+  const [operation, setOperation] = useState<
+    'loading' | 'checking' | 'replacing' | 'template' | null
+  >('loading')
+  const busy = operation !== null
   const [message, setMessage] = useState('')
   const [issues, setIssues] = useState<LibraryIssue[]>([])
   const [query, setQuery] = useState('')
@@ -57,7 +61,7 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
         if (alive.current) setMessage('Could not load the cost library. Try reopening it.')
       })
       .finally(() => {
-        if (alive.current) setBusy(false)
+        if (alive.current) setOperation(null)
       })
     return () => {
       alive.current = false
@@ -67,7 +71,10 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
   }, [])
 
   const importFile = async (): Promise<void> => {
-    setBusy(true)
+    setOperation('checking')
+    setPreview(null)
+    tokenRef.current = null
+    setQuery('')
     setMessage('')
     setIssues([])
     setSelectedCode(null)
@@ -78,21 +85,25 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
         ok: result.ok,
         cancelled: result.ok && result.value === null
       })
-      if (!alive.current) return
+      if (!alive.current) {
+        if (result.ok && result.value)
+          void window.api.costLibrary.cancel(result.value.token).catch(() => {})
+        return
+      }
       if (result.ok) {
         setPreview(result.value)
         tokenRef.current = result.value?.token ?? null
         if (!result.value)
           setMessage('Library import cancelled. Your current library is unchanged.')
       } else {
-        setMessage(result.reason)
+        setMessage(result.code ? LIBRARY_IMPORT_MESSAGES[result.code] : result.reason)
         setIssues(result.issues ?? [])
       }
     } catch (error) {
       console.error('[cost-library] Library import request failed', error)
       if (alive.current) setMessage('Could not import the file. Your current library was kept.')
     } finally {
-      if (alive.current) setBusy(false)
+      if (alive.current) setOperation(null)
     }
   }
   const cancelPreview = (): void => {
@@ -104,7 +115,7 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
   }
   const replace = async (): Promise<void> => {
     if (!preview) return
-    setBusy(true)
+    setOperation('replacing')
     setMessage('')
     try {
       const result = await window.api.costLibrary.commit(preview.token)
@@ -120,11 +131,11 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
       if (alive.current)
         setMessage('Could not save the new library. Your current library was kept.')
     } finally {
-      if (alive.current) setBusy(false)
+      if (alive.current) setOperation(null)
     }
   }
   const download = async (): Promise<void> => {
-    setBusy(true)
+    setOperation('template')
     setMessage('')
     try {
       console.info('[cost-library] Template download requested')
@@ -142,7 +153,7 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
       console.error('[cost-library] Template download request failed', error)
       if (alive.current) setMessage('Could not save the template. Try another folder.')
     } finally {
-      if (alive.current) setBusy(false)
+      if (alive.current) setOperation(null)
     }
   }
   const selected = library?.items.find((item) => item.code === selectedCode)
@@ -212,13 +223,16 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
       <div
         ref={dialogRef}
         role="dialog"
+        aria-busy={busy}
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
         style={{
           width: 900,
           maxWidth: '100%',
-          maxHeight: '85vh',
+          maxHeight: 'calc(100vh - 48px)',
+          overflow: 'hidden',
+          overflowWrap: 'anywhere',
           display: 'flex',
           flexDirection: 'column',
           gap: 14,
@@ -236,7 +250,8 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            gap: 16
+            gap: 16,
+            flexShrink: 0
           }}
         >
           <h2 id={titleId} style={{ fontSize: 17, margin: 0 }}>
@@ -246,64 +261,219 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
             Close
           </button>
         </div>
-        <div style={{ color: COLORS.textSecondary, lineHeight: 1.6 }}>
-          Maintain your master spreadsheet in Excel and import updates on each PC. Rates are
-          available offline.
-          {target && (
-            <div>
-              Choose a rate per <strong style={{ color: COLORS.textPrimary }}>{target.uom}</strong>.
-              Applying replaces material and labor for all “{labelToName(target.label)}”{' '}
-              {target.type} items across categories. Selling markup and item names stay unchanged.
+        <div
+          data-testid="cost-library-content"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+            minHeight: 0,
+            overflowY: 'auto'
+          }}
+        >
+          <div style={{ color: COLORS.textSecondary, lineHeight: 1.6 }}>
+            Maintain your master spreadsheet in Excel and import updates on each PC. Rates are
+            available offline.
+            {target && (
+              <div>
+                Choose a rate per{' '}
+                <strong style={{ color: COLORS.textPrimary }}>{target.uom}</strong>. Applying
+                replaces material and labor for all “{labelToName(target.label)}” {target.type}{' '}
+                items across categories. Selling markup and item names stay unchanged.
+              </div>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              type="button"
+              style={buttonStyle}
+              disabled={busy || !!preview}
+              onClick={() => void download()}
+            >
+              Download Excel Template
+            </button>
+            <button
+              type="button"
+              style={buttonStyle}
+              disabled={busy || !!preview}
+              onClick={() => void importFile()}
+            >
+              Import CSV / Excel
+            </button>
+            {busy && (
+              <span role="status" aria-live="polite">
+                {operation === 'checking'
+                  ? 'Checking workbook… Your current library is unchanged.'
+                  : operation === 'replacing'
+                    ? 'Replacing library…'
+                    : operation === 'template'
+                      ? 'Saving template…'
+                      : 'Loading cost library…'}
+              </span>
+            )}
+          </div>
+          {library && (
+            <div data-testid="cost-library-metadata" style={{ color: COLORS.textSecondary }}>
+              Current library: {library.sourceFilename} · {library.items.length.toLocaleString()}{' '}
+              items · Imported {new Date(library.importedAt).toLocaleString()}
             </div>
           )}
+          {message && (
+            <div role="status" aria-live="polite" style={{ color: COLORS.warning }}>
+              {message}
+            </div>
+          )}
+          {issues.length > 0 && (
+            <ul
+              aria-label="Import errors"
+              style={{ maxHeight: 160, overflow: 'auto', margin: 0, paddingLeft: 22 }}
+            >
+              {issues.map((issue, index) => (
+                <li key={index}>
+                  Row {issue.row}, {issue.column}: {issue.message}
+                </li>
+              ))}
+              {issues.length >= 100 && (
+                <li>Showing the first 100 errors. Fix these and import again.</li>
+              )}
+            </ul>
+          )}
+          {(library || preview) && (
+            <>
+              <input
+                aria-label="Search cost library"
+                placeholder="Search item code, description or category"
+                value={query}
+                disabled={busy}
+                onChange={(event) => setQuery(event.target.value)}
+                style={{
+                  padding: 8,
+                  background: COLORS.secondary,
+                  color: COLORS.textPrimary,
+                  border: `1px solid ${COLORS.border}`,
+                  borderRadius: 4
+                }}
+              />
+              <div
+                data-testid="cost-library-table-scroll"
+                tabIndex={0}
+                aria-label="Cost library items"
+                style={{ overflow: 'auto', minHeight: 80, maxHeight: 340, flexShrink: 0 }}
+              >
+                <table
+                  style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    textAlign: 'left',
+                    fontSize: 12
+                  }}
+                >
+                  <thead style={{ position: 'sticky', top: 0, background: COLORS.secondary }}>
+                    <tr>
+                      {[
+                        'Item',
+                        'Category',
+                        'Unit',
+                        'Material / unit',
+                        'Labor / unit',
+                        ...(target && !preview ? ['Select'] : [])
+                      ].map((heading) => (
+                        <th key={heading} scope="col" style={{ padding: 8 }}>
+                          {heading}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {shown.map((item) => {
+                      const matches =
+                        !target ||
+                        normalizeLibraryUnit(target.uom) === normalizeLibraryUnit(item.unit)
+                      return (
+                        <tr
+                          key={item.code}
+                          style={{
+                            background:
+                              selectedCode === item.code ? COLORS.activeSurface : undefined,
+                            borderBottom: `1px solid ${COLORS.border}`
+                          }}
+                        >
+                          <td style={{ padding: 8 }}>
+                            <strong>{item.code}</strong>
+                            <div>{item.description}</div>
+                          </td>
+                          <td style={{ padding: 8 }}>{item.category}</td>
+                          <td style={{ padding: 8 }}>{item.unit}</td>
+                          <td
+                            style={{
+                              padding: 8,
+                              textAlign: 'right',
+                              fontVariantNumeric: 'tabular-nums'
+                            }}
+                          >
+                            {money(item.material)}
+                          </td>
+                          <td
+                            style={{
+                              padding: 8,
+                              textAlign: 'right',
+                              fontVariantNumeric: 'tabular-nums'
+                            }}
+                          >
+                            {money(item.labor)}
+                          </td>
+                          {target && !preview && (
+                            <td style={{ padding: 8 }}>
+                              <button
+                                type="button"
+                                style={buttonStyle}
+                                disabled={busy || !matches}
+                                aria-pressed={selectedCode === item.code}
+                                aria-label={`Select ${item.code}`}
+                                title={
+                                  matches
+                                    ? 'Select rates'
+                                    : `Requires ${target.uom}; no automatic rate conversion`
+                                }
+                                onClick={() => setSelectedCode(item.code)}
+                              >
+                                {matches
+                                  ? selectedCode === item.code
+                                    ? 'Selected'
+                                    : 'Select'
+                                  : `Needs ${target.uom}`}
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+                {!shown.length && <p>No matching items. Try another search.</p>}
+              </div>
+              <div style={{ color: COLORS.textSecondary }}>
+                Showing {shown.length} of {filtered.length.toLocaleString()} matching items
+                {filtered.length > shown.length ? ' — narrow your search to see more.' : '.'}
+              </div>
+            </>
+          )}
+          {!library && !preview && !busy && (
+            <p>
+              No cost library on this PC. Download the template, fill your rates, then import it.
+            </p>
+          )}
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <button
-            type="button"
-            style={buttonStyle}
-            disabled={busy || !!preview}
-            onClick={() => void download()}
-          >
-            Download Excel Template
-          </button>
-          <button
-            type="button"
-            style={buttonStyle}
-            disabled={busy || !!preview}
-            onClick={() => void importFile()}
-          >
-            Import CSV / Excel
-          </button>
-          {busy && <span role="status">Working…</span>}
-        </div>
-        {library && (
-          <div data-testid="cost-library-metadata" style={{ color: COLORS.textSecondary }}>
-            Current library: {library.sourceFilename} · {library.items.length.toLocaleString()}{' '}
-            items · Imported {new Date(library.importedAt).toLocaleString()}
-          </div>
-        )}
-        {message && (
-          <div role="status" style={{ color: COLORS.warning }}>
-            {message}
-          </div>
-        )}
-        {issues.length > 0 && (
-          <ul
-            aria-label="Import errors"
-            style={{ maxHeight: 160, overflow: 'auto', margin: 0, paddingLeft: 22 }}
-          >
-            {issues.map((issue, index) => (
-              <li key={index}>
-                Row {issue.row}, {issue.column}: {issue.message}
-              </li>
-            ))}
-            {issues.length >= 100 && (
-              <li>Showing the first 100 errors. Fix these and import again.</li>
-            )}
-          </ul>
-        )}
         {preview && (
-          <div style={{ padding: 12, border: `1px solid ${COLORS.warning}`, borderRadius: 4 }}>
+          <div
+            data-testid="cost-library-preview-footer"
+            style={{
+              flexShrink: 0,
+              padding: 12,
+              border: `1px solid ${COLORS.warning}`,
+              borderRadius: 4
+            }}
+          >
             <strong>
               Preview: {preview.library.sourceFilename} ·{' '}
               {preview.library.items.length.toLocaleString()} items
@@ -311,13 +481,17 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
             <p style={{ margin: '6px 0 10px' }}>
               Replace the complete library on this PC? Existing estimates keep their saved rates.
             </p>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button type="button" style={buttonStyle} disabled={busy} onClick={cancelPreview}>
                 Cancel Import
               </button>
               <button
                 type="button"
-                style={{ ...buttonStyle, background: COLORS.accent, color: COLORS.textOnAccent }}
+                style={{
+                  ...buttonStyle,
+                  background: COLORS.accent,
+                  color: COLORS.textOnAccent
+                }}
                 disabled={busy}
                 onClick={() => void replace()}
               >
@@ -326,114 +500,15 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
             </div>
           </div>
         )}
-        {(library || preview) && (
-          <>
-            <input
-              aria-label="Search cost library"
-              placeholder="Search item code, description or category"
-              value={query}
-              disabled={busy}
-              onChange={(event) => setQuery(event.target.value)}
-              style={{
-                padding: 8,
-                background: COLORS.secondary,
-                color: COLORS.textPrimary,
-                border: `1px solid ${COLORS.border}`,
-                borderRadius: 4
-              }}
-            />
-            <div style={{ overflow: 'auto', minHeight: 80, maxHeight: 340 }}>
-              <table
-                style={{
-                  width: '100%',
-                  borderCollapse: 'collapse',
-                  textAlign: 'left',
-                  fontSize: 12
-                }}
-              >
-                <thead style={{ position: 'sticky', top: 0, background: COLORS.secondary }}>
-                  <tr>
-                    {[
-                      'Item',
-                      'Category',
-                      'Unit',
-                      'Material / unit',
-                      'Labor / unit',
-                      ...(target && !preview ? ['Select'] : [])
-                    ].map((heading) => (
-                      <th key={heading} scope="col" style={{ padding: 8 }}>
-                        {heading}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {shown.map((item) => {
-                    const matches =
-                      !target ||
-                      normalizeLibraryUnit(target.uom) === normalizeLibraryUnit(item.unit)
-                    return (
-                      <tr
-                        key={item.code}
-                        style={{
-                          background: selectedCode === item.code ? COLORS.activeSurface : undefined,
-                          borderBottom: `1px solid ${COLORS.border}`
-                        }}
-                      >
-                        <td style={{ padding: 8 }}>
-                          <strong>{item.code}</strong>
-                          <div>{item.description}</div>
-                        </td>
-                        <td style={{ padding: 8 }}>{item.category}</td>
-                        <td style={{ padding: 8 }}>{item.unit}</td>
-                        <td style={{ padding: 8 }}>{money(item.material)}</td>
-                        <td style={{ padding: 8 }}>{money(item.labor)}</td>
-                        {target && !preview && (
-                          <td style={{ padding: 8 }}>
-                            <button
-                              type="button"
-                              style={buttonStyle}
-                              disabled={busy || !matches}
-                              aria-pressed={selectedCode === item.code}
-                              aria-label={`Select ${item.code}`}
-                              title={
-                                matches
-                                  ? 'Select rates'
-                                  : `Requires ${target.uom}; no automatic rate conversion`
-                              }
-                              onClick={() => setSelectedCode(item.code)}
-                            >
-                              {matches
-                                ? selectedCode === item.code
-                                  ? 'Selected'
-                                  : 'Select'
-                                : `Needs ${target.uom}`}
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-              {!shown.length && <p>No matching items. Try another search.</p>}
-            </div>
-            <div style={{ color: COLORS.textSecondary }}>
-              Showing {shown.length} of {filtered.length.toLocaleString()} matching items
-              {filtered.length > shown.length ? ' — narrow your search to see more.' : '.'}
-            </div>
-          </>
-        )}
-        {!library && !preview && !busy && (
-          <p>No cost library on this PC. Download the template, fill your rates, then import it.</p>
-        )}
         {target && !preview && (
           <div
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              gap: 16
+              gap: 16,
+              flexWrap: 'wrap',
+              flexShrink: 0
             }}
           >
             <span>
@@ -473,7 +548,16 @@ export function CostLibraryButton({ target }: { target?: BoqItemRow }): React.JS
         title={name}
         style={
           target
-            ? { ...buttonStyle, padding: '2px 4px', display: 'inline-flex', flexShrink: 0 }
+            ? {
+                ...buttonStyle,
+                padding: '2px 4px',
+                display: 'inline-flex',
+                flexShrink: 0,
+                minWidth: 28,
+                minHeight: 28,
+                alignItems: 'center',
+                justifyContent: 'center'
+              }
             : buttonStyle
         }
         onMouseDown={(event) => event.stopPropagation()}

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/explicit-function-return-type -- Executed directly by the actual Electron test host. */
+/* eslint-disable @typescript-eslint/no-require-imports -- Executed directly by the actual Electron test host. */
 const { app, utilityProcess } = require('electron')
 const path = require('node:path')
 const assert = require('node:assert/strict')
@@ -78,6 +78,21 @@ app
         'unused ZIP content must fail admission before ExcelJS'
       )
     }
+    let completions = 0
+    const invalid = await parseInUtilityProcess('duplicate.xlsx', {
+      workerPath: path.resolve(__dirname, 'library-worker-protocol.cjs')
+    }).then((result) => {
+      completions++
+      return result
+    })
+    assert.equal(invalid.code, 'parser')
+    await new Promise((resolve) => setTimeout(resolve, 30))
+    assert.equal(completions, 1)
+    assert.equal(observed.at(-1).exits, 1)
+    const excessive = await parseInUtilityProcess('oversized.xlsx', {
+      workerPath: path.resolve(__dirname, 'library-worker-protocol.cjs')
+    })
+    assert.equal(excessive.code, 'resource')
     console.log(
       'LIBRARY_WORKER_RESULT ' + JSON.stringify({ success, timed, crash, observed, beats })
     )

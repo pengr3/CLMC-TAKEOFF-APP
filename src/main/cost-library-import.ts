@@ -38,7 +38,9 @@ function decodeResult(message: unknown): LibraryResult<CostLibraryItem[]> {
     }
     if (result?.ok === false && typeof result.reason === 'string' && result.reason.length <= 2000) {
       if (result.code)
-        return importFailure(result.code in LIBRARY_IMPORT_MESSAGES ? result.code : 'parser')
+        return importFailure(
+          Object.hasOwn(LIBRARY_IMPORT_MESSAGES, result.code) ? result.code : 'parser'
+        )
       if (
         result.issues !== undefined &&
         (!Array.isArray(result.issues) ||
@@ -72,6 +74,7 @@ export function parseInUtilityProcess(
 ): Promise<LibraryResult<CostLibraryItem[]>> {
   if (options.signal?.aborted) return Promise.resolve(importFailure('parser'))
   return new Promise((resolve) => {
+    const expiresAt = Date.now() + (options.deadlineMs ?? LIBRARY_IMPORT_DEADLINE_MS)
     const env = { ...process.env }
     delete env.NODE_OPTIONS
     delete env.ELECTRON_RUN_AS_NODE
@@ -114,7 +117,11 @@ export function parseInUtilityProcess(
     )
     const abort = (): void => stop(importFailure('parser'))
     options.signal?.addEventListener('abort', abort, { once: true })
-    child.on('message', (message) => stop(decodeResult(message)))
+    child.on('message', (message) => {
+      if (result || exited) return
+      const decoded = Date.now() >= expiresAt ? importFailure('timeout') : decodeResult(message)
+      stop(Date.now() >= expiresAt ? importFailure('timeout') : decoded)
+    })
     child.on('error', () => stop(importFailure('parser')))
     child.once('exit', () => {
       exited = true

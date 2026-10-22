@@ -195,7 +195,7 @@ describe('cost library workflow UI', () => {
       dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'F3', bubbles: true }))
     })
     expect(outside).not.toHaveBeenCalled()
-    const last = document.querySelector('input')!
+    const last = document.querySelector<HTMLElement>('[data-testid="cost-library-table-scroll"]')!
     last.focus()
     await act(async () => {
       last.dispatchEvent(
