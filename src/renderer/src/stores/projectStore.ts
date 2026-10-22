@@ -14,6 +14,8 @@ export interface SaveFailure {
 }
 
 interface ProjectStoreState {
+  geometryReviewPages: number[]
+  verifyGeometryPage: (page: number) => boolean
   preservedSource: { path: string; format: number; backup: boolean } | null
   upgradeRequested: boolean
   recoveryWarning: string | null
@@ -149,6 +151,15 @@ const createProjectStore = () =>
     lastSaveOutcome: null,
     setSaveFailure: (saveFailure) => set({ saveFailure }),
     documentSessionId: crypto.randomUUID(),
+    geometryReviewPages: [],
+    verifyGeometryPage: (page) => {
+      if (!get().geometryReviewPages.includes(page)) return true
+      if ((useMarkupStore.getState().pageMarkups[page] ?? []).some(m => m.type !== 'count') &&
+        !useScaleStore.getState().pageScales[page]) return false
+      set({ geometryReviewPages: get().geometryReviewPages.filter(p => p !== page) })
+      get().markDirty()
+      return true
+    },
     editRevision: 0,
     savedRevision: 0,
     acknowledgeSavedRevision: (path, session, revision) => {
@@ -185,6 +196,7 @@ const createProjectStore = () =>
     reset: () =>
       set({
         preservedSource: null,
+        geometryReviewPages: [],
         upgradeRequested: false,
         recoveryWarning: null,
         saveFailure: null,

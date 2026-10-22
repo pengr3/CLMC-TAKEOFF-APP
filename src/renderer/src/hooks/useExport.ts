@@ -43,6 +43,7 @@ export function useExport(): UseExportApi {
   // can be held across the user-confirmation modal in the uncalibrated path.
   async function dialogAndWriteInner(structure: BoqStructure): Promise<ExportResult> {
     try {
+      if (useProjectStore.getState().geometryReviewPages.length) return { kind: 'error', message: 'Verify legacy geometry and recalibrate each flagged page before exporting.' }
       if (useProjectStore.getState().isSaving || requireRateReview()) return { kind: 'canceled' }
       const { currentFilePath } = useProjectStore.getState()
       const { fileName: pdfName } = useViewerStore.getState()
@@ -53,6 +54,7 @@ export function useExport(): UseExportApi {
       )
       const chosen = await window.api.saveExportDialog(defaultPath, 'xlsx')
       if (!chosen) return { kind: 'canceled' }
+      if (useProjectStore.getState().geometryReviewPages.length) return { kind: 'error', message: 'Verify legacy geometry and recalibrate each flagged page before exporting.' }
       if (useProjectStore.getState().isSaving || requireRateReview()) return { kind: 'canceled' }
 
       const writeResult =
@@ -73,6 +75,7 @@ export function useExport(): UseExportApi {
   const exportBoq = useCallback(async (): Promise<ExportResult> => {
     const { isExporting, isSaving, setExporting } = useProjectStore.getState()
     if (isExporting || isSaving) return { kind: 'canceled' }
+    if (useProjectStore.getState().geometryReviewPages.length) return { kind: 'error', message: 'Verify legacy geometry and recalibrate each flagged page before exporting.' }
     if (requireRateReview()) return { kind: 'canceled' }
 
     // Set the race flag IMMEDIATELY after the guard so a second invocation

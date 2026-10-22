@@ -89,6 +89,8 @@ export function validateProjectData(input: unknown, legacyHydration = false): vo
     )
       fail('page dimensions/index')
     const page = p as Record<string, unknown>
+    if (page.coordinateBasis !== undefined && !['pdf-base-scale-2', 'legacy-unverified'].includes(page.coordinateBasis as string))
+      fail('coordinate basis (newer app required)')
     if (
       !object(page.viewport) ||
       !positive(page.viewport.zoom) ||

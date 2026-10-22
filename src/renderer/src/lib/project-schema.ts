@@ -24,6 +24,7 @@ export interface ProjectFileV1 {
   currentPage: number
   pages: Array<{
     pageIndex: number
+    coordinateBasis?: 'pdf-base-scale-2' | 'legacy-unverified'
     dimensions: { width: number; height: number }
     scale: PageScale | null
     viewport: ViewportState
@@ -81,6 +82,8 @@ export interface ProjectFileV2 {
   currentPage: number
   pages: Array<{
     pageIndex: number
+    /** Missing historical DPI/clamp information must never be inferred. */
+    coordinateBasis?: 'pdf-base-scale-2' | 'legacy-unverified'
     dimensions: { width: number; height: number }
     scale: PageScale | null
     viewport: ViewportState

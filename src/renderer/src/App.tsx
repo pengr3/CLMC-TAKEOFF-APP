@@ -5,6 +5,7 @@ import { AboutDialog } from './components/AboutDialog'
 import { RecoveryDialog } from './components/RecoveryDialog'
 import { LegacyRateReviewDialog, LEGACY_RATE_WARNING } from './components/LegacyRateReviewDialog'
 import { UpgradeProjectDialog } from './components/UpgradeProjectDialog'
+import { LegacyGeometryReview } from './components/LegacyGeometryReview'
 import type { RecoveryCandidate } from '../../shared/reliability'
 import { TopActionBar } from './components/TopActionBar'
 import { ContextBar } from './components/ContextBar'
@@ -546,6 +547,7 @@ function App(): React.JSX.Element {
         }}
       />
       <ContextBar />
+      <LegacyGeometryReview />
       {unresolvedRates && <aside aria-label="Review rate units" style={{ padding: '8px 16px', background: COLORS.secondary, color: COLORS.textPrimary, fontSize: 13, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
         <span style={{ flex: 1, minWidth: 0 }}>{LEGACY_RATE_WARNING}</span>
         <button disabled={isSaving} onClick={() => setRateReviewOpen(true)} style={{ minHeight: 28, padding: '4px 8px', flexShrink: 0 }}>Review Rates</button>

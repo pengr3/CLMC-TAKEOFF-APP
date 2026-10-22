@@ -50,6 +50,8 @@ export function snapshotProject(params: SnapshotParams, captured?: ProjectFile):
     const pageIndex = i + 1
     return {
       pageIndex,
+      coordinateBasis: useProjectStore.getState().geometryReviewPages.includes(pageIndex)
+        ? 'legacy-unverified' as const : 'pdf-base-scale-2' as const,
       dimensions: params.perPageDimensions[pageIndex] ?? { width: 0, height: 0 },
       scale: scale.pageScales[pageIndex] ?? null,
       viewport: viewer.pageViewports[pageIndex] ?? { zoom: 1, panX: 0, panY: 0 },
@@ -104,10 +106,13 @@ export function hydrateStores(data: ProjectFile): void {
     const pageMarkups: Record<number, Markup[]> = {}
     const pageScales: Record<number, PageScale> = {}
     const pageViewports: Record<number, ViewportState> = {}
+    const geometryReviewPages: number[] = []
 
     for (const page of data.pages) {
       pageMarkups[page.pageIndex] = page.markups
-      if (page.scale) pageScales[page.pageIndex] = page.scale
+      const unverified = page.coordinateBasis !== 'pdf-base-scale-2' && (page.markups.length > 0 || page.scale !== null)
+      if (unverified) geometryReviewPages.push(page.pageIndex)
+      if (page.scale && !unverified) pageScales[page.pageIndex] = page.scale
       pageViewports[page.pageIndex] = page.viewport
     }
 
@@ -221,6 +226,7 @@ export function hydrateStores(data: ProjectFile): void {
     // Array.isArray guard tolerates pre-Phase 8 files where the field is absent (defaults to []).
     // MUST run inside the suspend/resume bracket so markDirty stays suppressed.
     useProjectStore.setState({
+      geometryReviewPages,
       hiddenItemNames: Array.isArray(data.hiddenItemNames) ? data.hiddenItemNames : [],
       hiddenItemSet: new Set(Array.isArray(data.hiddenItemNames) ? data.hiddenItemNames : []),
       rates: safeRates,

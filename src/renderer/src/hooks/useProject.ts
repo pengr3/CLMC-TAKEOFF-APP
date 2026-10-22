@@ -344,7 +344,7 @@ export function useProject(): ProjectActions {
           staged = undefined
           useProjectStore.setState({
             currentFilePath: data.preservedSource?.backup ? null : result.candidate.sourcePath,
-            preservedSource: data.preservedSource ?? (raw.formatVersion < 3 && result.candidate.sourcePath ? { path: result.candidate.sourcePath, format: raw.formatVersion, backup: false } : null),
+            preservedSource: data.preservedSource ?? ((raw.formatVersion < 3 || useProjectStore.getState().geometryReviewPages.length > 0) && result.candidate.sourcePath ? { path: result.candidate.sourcePath, format: raw.formatVersion, backup: false } : null),
             documentSessionId: result.candidate.session,
             editRevision: result.candidate.revision,
             savedRevision: -1,
@@ -594,7 +594,7 @@ export function useProject(): ProjectActions {
     const backup = path.toLowerCase().endsWith('.clmc.bak')
     useProjectStore.setState({
       currentFilePath: backup ? null : path,
-      preservedSource: format < 3 || backup ? { path, format, backup } : null,
+      preservedSource: format < 3 || backup || useProjectStore.getState().geometryReviewPages.length > 0 ? { path, format, backup } : null,
       isDirty: migrated || backup,
       lastSavedAt: migrated || backup ? null : Date.now(),
       lastSaveOutcome: backup ? { revision: -1, message: 'Backup opened. Use Save As to create a project copy.', at: Date.now() } : null
