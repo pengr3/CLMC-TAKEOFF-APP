@@ -136,9 +136,10 @@ it('advertises only an integrity-validated adjacent backup after a damaged origi
   expect((await handlers['file:readProject']({}, path)).backupPath).toBeUndefined()
 })
 
-it('does not replace a good backup with a corrupt original', async () => {
+it('preserves an unclassifiable original and its good backup; requires a new destination', async () => {
   await real.writeFile(path, 'corrupt')
-  expect(await handlers['file:writeProject']({}, path, json(3), pdf)).toEqual({ ok: true })
+  expect(await handlers['file:writeProject']({}, path, json(3), pdf)).toMatchObject({ ok: false, message: expect.stringMatching(/classified/) })
+  expect(await real.readFile(path, 'utf8')).toBe('corrupt')
   expect(await real.readFile(path + '.bak')).toEqual(backup)
 })
 
@@ -161,7 +162,7 @@ it('ignores incomplete crash temps after restart and preserves them as unowned d
     kind: 'unknown',
     backupPath: path + '.bak'
   })
-  expect(await handlers['file:writeProject']({}, path, json(3), pdf)).toEqual({ ok: true })
+  expect(await handlers['file:writeProject']({}, path, json(3), pdf)).toMatchObject({ ok: false, message: expect.stringMatching(/classified/) })
   expect(await real.readFile(path + '.crashed.tmp', 'utf8')).toBe('partial')
 })
 

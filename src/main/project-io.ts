@@ -96,6 +96,50 @@ export interface ExtractedClmc {
   pdfBytes: Buffer     // for IPC return + verifySha256 compare
 }
 
+/** Read only bounded version metadata, independently of today's archive layout.
+ * Unknown layouts remain unclassified; callers must preserve such destinations.
+ */
+export async function inspectClmcVersion(bytes: Buffer): Promise<{ formatVersion: number; minimumReaderVersion?: number }> {
+  const limit = 64 * 1024 * 1024
+  let json: string
+  if (detectClmcFormat(bytes) !== 'v2-zip') {
+    if (bytes.length > limit) throw new Error('Version metadata limit exceeded')
+    json = bytes.toString('utf8')
+  } else {
+    const zip = await fromBufferPromise(bytes, { lazyEntries: true, validateEntrySizes: true, strictFileNames: true })
+    let metadata: Buffer | undefined
+    try {
+      if (zip.entryCount > 1024) throw new Error('Version entry limit exceeded')
+      for await (const entry of zip.eachEntry()) {
+        if (entry.fileName !== 'project.json') continue
+        if (metadata || entry.generalPurposeBitFlag & (1 | 64) || ![0, 8].includes(entry.compressionMethod) ||
+          !Number.isSafeInteger(entry.uncompressedSize) || entry.uncompressedSize < 0 || entry.uncompressedSize > limit)
+          throw new Error('Unsafe version metadata')
+        const stream = await zip.openReadStreamPromise(entry)
+        const chunks: Buffer[] = []
+        let size = 0, crc = 0
+        try {
+          for await (const chunk of stream) {
+            size += chunk.length
+            if (size > limit) throw new Error('Version metadata limit exceeded')
+            crc = crc32(chunk, crc)
+            chunks.push(chunk)
+          }
+        } finally { stream.destroy() }
+        if (size !== entry.uncompressedSize || crc !== entry.crc32) throw new Error('Damaged version metadata')
+        metadata = Buffer.concat(chunks, size)
+      }
+      if (!metadata) throw new Error('Unknown version metadata layout')
+      json = metadata.toString('utf8')
+    } finally { zip.close() }
+  }
+  const raw = JSON.parse(json)
+  if (!Number.isSafeInteger(raw?.formatVersion) || raw.formatVersion < 1 ||
+    (raw.minimumReaderVersion !== undefined && (!Number.isSafeInteger(raw.minimumReaderVersion) || raw.minimumReaderVersion < 1)))
+    throw new Error('Unknown version metadata')
+  return raw
+}
+
 /**
  * Assemble a v2 .clmc archive from project JSON text and embedded PDF bytes.
  * Layout (D-01, D-04):

@@ -1,7 +1,7 @@
 import { readFile, rename, unlink, open, realpath, stat } from 'fs/promises'
 import { resolve, dirname, basename } from 'path'
 import { randomUUID } from 'crypto'
-import { assembleClmcZip, extractClmcZip, sha256Buffer, detectClmcFormat } from './project-io'
+import { assembleClmcZip, extractClmcZip, sha256Buffer, detectClmcFormat, inspectClmcVersion } from './project-io'
 import { validateProjectData } from '../shared/project-validation'
 const RENAME_RETRY_DELAYS_MS = [120, 250]
 function isLockedDestError(error: unknown): boolean {
@@ -64,12 +64,19 @@ export async function assertCopyDestination(destination: string, preservedPaths:
   }
 }
 async function rejectFutureOriginal(bytes: Buffer): Promise<void> {
-  let raw: unknown
+  let raw: { formatVersion: number; minimumReaderVersion?: number }
   try {
-    raw = JSON.parse(detectClmcFormat(bytes) === 'v2-zip' ? (await extractClmcZip(bytes)).projectJson : bytes.toString('utf8'))
-  } catch { return } // A damaged destination can be repaired without replacing its last-good backup.
-  if (raw && typeof raw === 'object' && ((raw as { formatVersion?: number }).formatVersion! > 3 || (raw as { minimumReaderVersion?: number }).minimumReaderVersion! > 3))
+    raw = await inspectClmcVersion(bytes)
+  } catch {
+    throw new Error('The existing project version cannot be safely classified. It has not been changed. Save to a different destination.')
+  }
+  if (raw.formatVersion > 3 || (raw.minimumReaderVersion ?? 1) > 3)
     throw new Error('Project needs a newer version. This file has not been changed.')
+  if (detectClmcFormat(bytes) === 'v2-zip') {
+    try { await extractClmcZip(bytes) } catch {
+      throw new Error('The existing project layout cannot be safely classified. It has not been changed. Save to a different destination.')
+    }
+  }
 }
 export async function validatedArchive(bytes: Buffer): Promise<void> {
   const { projectJson, pdfBytes } = await extractClmcZip(bytes)
