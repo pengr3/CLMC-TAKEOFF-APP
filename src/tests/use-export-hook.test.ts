@@ -77,6 +77,12 @@ describe('useExport — D-06 / D-21 / D-24 / EXPRT-01', () => {
     })
   })
 
+  it('blocks unverified legacy geometry before any export or uncalibrated override', async () => {
+    useProjectStore.setState({ geometryReviewPages: [1] })
+    expect(await callExport()).toMatchObject({ kind: 'error', message: expect.stringMatching(/geometry/) })
+    expect(mockSaveExportDialog).not.toHaveBeenCalled()
+    expect(mockWriteBoqXlsx).not.toHaveBeenCalled()
+  })
   it('returns needs-uncalibrated-confirmation when a page has linear markup but no scale — D-06', async () => {
     const r = await callExport()
     expect(r.kind).toBe('needs-uncalibrated-confirmation')

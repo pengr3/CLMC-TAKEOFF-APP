@@ -14,7 +14,7 @@ export function LegacyGeometryReview(): React.JSX.Element | null {
   if (!pending.length) return null
   const measured = (markups ?? []).some(m => m.type !== 'count')
   return <aside aria-label="Verify legacy geometry" style={{ padding: '8px 16px', background: COLORS.secondary, color: COLORS.textPrimary, fontSize: 13 }}>
-    <p style={{ margin: 0 }}>This project's drawing coordinate basis was not recorded. Markups may be displaced. Original coordinates are retained; old calibration has been cleared. Export is blocked until review is complete. Your original project is preserved; save a copy.</p>
+    <p style={{ margin: 0 }}>This project has no recorded drawing coordinate basis. Markups may be displaced. Original coordinates are retained; old calibration has been cleared. Export is blocked until review is complete. Your original project is preserved; save a copy.</p>
     <p style={{ margin: '8px 0' }}>Check every count, vertex and curved edge against the PDF landmarks on pages {pending.join(', ')}. Move or redraw displaced geometry, then set scale again on measured pages. Do not confirm from appearance alone if you cannot verify the plan.</p>
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
       {pending.map(p => <button key={p} disabled={busy} style={{ minHeight: 28, padding: '4px 8px' }} onClick={() => useViewerStore.getState().setPage(p)}>Review page {p}</button>)}

@@ -387,7 +387,7 @@ export function useProject(): ProjectActions {
 
   function requestUpgrade(): boolean {
     const source = useProjectStore.getState().preservedSource
-    if (!source || source.backup || source.format >= 3) return false
+    if (!source || source.backup) return false
     useProjectStore.setState({ upgradeRequested: true })
     return true
   }
@@ -592,11 +592,12 @@ export function useProject(): ProjectActions {
 
   function openedAssociation(path: string, format: number, migrated: boolean): void {
     const backup = path.toLowerCase().endsWith('.clmc.bak')
+    const geometryReview = useProjectStore.getState().geometryReviewPages.length > 0
     useProjectStore.setState({
       currentFilePath: backup ? null : path,
-      preservedSource: format < 3 || backup || useProjectStore.getState().geometryReviewPages.length > 0 ? { path, format, backup } : null,
-      isDirty: migrated || backup,
-      lastSavedAt: migrated || backup ? null : Date.now(),
+      preservedSource: format < 3 || backup || geometryReview ? { path, format, backup } : null,
+      isDirty: migrated || backup || geometryReview,
+      lastSavedAt: migrated || backup || geometryReview ? null : Date.now(),
       lastSaveOutcome: backup ? { revision: -1, message: 'Backup opened. Use Save As to create a project copy.', at: Date.now() } : null
     })
   }

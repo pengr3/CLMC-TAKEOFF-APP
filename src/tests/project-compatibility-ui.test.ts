@@ -110,6 +110,22 @@ afterEach(async () => {
   await rm(dir, { recursive: true, force: true })
 })
 describe('original-preserving upgrade and backup opens', () => {
+  it('routes an unrecorded format-3 coordinate basis through Save Copy even after review', async () => {
+    const legacy = JSON.parse((await extractClmcZip(oldBytes)).projectJson)
+    legacy.formatVersion = 3
+    legacy.minimumReaderVersion = 3
+    delete legacy.pages[0].coordinateBasis
+    legacy.pages[0].markups = [{ id: 'legacy-pin', type: 'count', page: 1, name: 'Pin', categoryId: '', color: '#abc', createdAt: 1, point: { x: 4096, y: 2000 }, sequence: 1 }]
+    const source = await assembleClmcZip(JSON.stringify(legacy), pdf)
+    await writeFile(original, source)
+    expect(await project.openByExtension(original, '.clmc')).toEqual({ kind: 'ok' })
+    expect(useProjectStore.getState()).toMatchObject({ geometryReviewPages: [1], isDirty: true })
+    expect(useProjectStore.getState().verifyGeometryPage(1)).toBe(true)
+    expect(await project.saveProject()).toBe('canceled')
+    expect(useProjectStore.getState().upgradeRequested).toBe(true)
+    expect(await project.saveUpgradedCopy()).toBe('ok')
+    expect(await readFile(original)).toEqual(source)
+  })
   it('rejects original and hardlink aliases in main without changing either file', async () => {
     const alias = join(dir, 'alias.clmc')
     await link(original, alias)
