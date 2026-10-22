@@ -171,6 +171,11 @@ function App(): React.JSX.Element {
       if (result.ok) {
         setRecoveryCandidates(result.candidates)
         setRecoveryError(null)
+        if (
+          useProjectStore.getState().recoveryWarning ===
+          'Recovery copies could not be checked. Try again later.'
+        )
+          useProjectStore.setState({ recoveryWarning: null })
         if (present) setRecoveryOpen(result.candidates.length > 0)
         if (result.candidates.length === 0) setRecoveryOpen(false)
       } else {
@@ -178,10 +183,12 @@ function App(): React.JSX.Element {
         useProjectStore.setState({ recoveryWarning: result.message })
       }
     } catch {
-      if (mounted.current)
+      if (mounted.current) {
+        setRecoveryError('Recovery copies could not be checked. Try again later.')
         useProjectStore.setState({
           recoveryWarning: 'Recovery copies could not be checked. Try again later.'
         })
+      }
     } finally {
       scanActive.current = false
       if (mounted.current) setRecoveryScanning(false)
@@ -518,7 +525,7 @@ function App(): React.JSX.Element {
         onAboutClick={() => {
           if (!document.querySelector('[role="dialog"]') && !isSaving) setAboutOpen(true)
         }}
-        recoveryAvailable={recoveryCandidates.length > 0}
+        recoveryAvailable={recoveryCandidates.length > 0 || recoveryError !== null}
         onRecoverClick={() => {
           if (!document.querySelector('[role="dialog"]') && !isSaving && !recoveryScanning)
             void refreshRecovery(true)

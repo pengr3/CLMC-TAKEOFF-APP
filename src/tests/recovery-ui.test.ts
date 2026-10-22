@@ -199,7 +199,9 @@ it('retains the selected candidate and explains a failed deletion', async () => 
   click(button('Discard Recovery Copy'))
   await act(async () => button('Delete Recovery Copy').click())
   expect(document.querySelector('[role="alert"]')?.textContent).toContain('It has been kept')
-  expect(document.querySelector('[role="alert"]')?.textContent).not.toContain('incomplete or unreadable')
+  expect(document.querySelector('[role="alert"]')?.textContent).not.toContain(
+    'incomplete or unreadable'
+  )
   expect(document.querySelector('[role="dialog"]')?.textContent).toContain('Unsaved plan.pdf')
 })
 
@@ -335,4 +337,23 @@ it('App shows one persistent protection warning with a working Save Project acti
   expect(appActions.saveProject).toHaveBeenCalled()
   act(() => useProjectStore.setState({ recoveryWarning: null }))
   expect(document.body.textContent).not.toContain('Recovery copy could not be updated')
+})
+
+it('App allows a failed restart scan to be retried from More without losing candidates', async () => {
+  appBridge([])
+  window.api.listRecovery = vi
+    .fn()
+    .mockResolvedValueOnce({
+      ok: false,
+      stage: 'scan',
+      message: 'Recovery copies could not be checked. Try again later.'
+    })
+    .mockResolvedValue({ ok: true, candidates: [entry('one')] })
+  await act(async () => root.render(React.createElement(App)))
+  expect(document.querySelector('[data-recovery-dialog]')).toBeNull()
+  expect(document.body.textContent).toContain('Recovery copies could not be checked.')
+  click(document.querySelector('[data-testid="overflow-menu-button"]') as HTMLButtonElement)
+  await act(async () => button('Recover Unsaved Work').click())
+  expect(document.querySelector('[data-recovery-dialog]')).not.toBeNull()
+  expect(useProjectStore.getState().recoveryWarning).toBeNull()
 })
