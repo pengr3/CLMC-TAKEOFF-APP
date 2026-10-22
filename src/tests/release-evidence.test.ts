@@ -154,6 +154,9 @@ describe('candidate-bound installed release evidence', () => {
     const generated = complete()
     generated.predecessor.kind = 'generated-exercise'
     expect(validate(generated, manifest).length).toBeGreaterThan(0)
+    const newer = complete()
+    newer.predecessor.version = '1.2.0'
+    expect(validate(newer, manifest).length).toBeGreaterThan(0)
   })
   it('rejects missing, duplicate cases and missing hardware/fixture provenance', () => {
     const record = complete()

@@ -19,7 +19,10 @@ const REQUIRED_CASES = [
   'monitor-transition',
   'ui-keyboard-overflow'
 ]
-const text = (value) => typeof value === 'string' && value.trim().length > 0
+const text = (value) =>
+  typeof value === 'string' &&
+  value.trim().length > 0 &&
+  !/^(pending|unknown|tbd|todo|not supplied)$/i.test(value.trim())
 const hash = (value) => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value)
 const date = (value) => text(value) && Number.isFinite(Date.parse(value))
 const positive = (value) => typeof value === 'number' && Number.isFinite(value) && value > 0
@@ -158,12 +161,22 @@ function validateEvidence(record, manifest) {
       errors.push(`${id}: pass requires an actual multi-monitor transition`)
     if (id === 'actual-predecessor-upgrade') {
       const predecessor = record.predecessor
+      const previous = /^\d+\.\d+\.\d+$/.test(predecessor?.version || '')
+        ? predecessor.version.split('.').map(Number)
+        : []
+      const current = manifest.version.split('.').map(Number)
+      const firstDifference = previous.findIndex((part, index) => part !== current[index])
+      const older =
+        previous.length === 3 &&
+        firstDifference >= 0 &&
+        previous[firstDifference] < current[firstDifference]
       if (
         predecessor?.kind !== 'actual-installed' ||
         !text(predecessor?.version) ||
         !hash(predecessor?.installerSha256) ||
         !text(predecessor?.registration) ||
-        !text(predecessor?.inventoryArtifact)
+        !text(predecessor?.inventoryArtifact) ||
+        !older
       )
         errors.push(
           `${id}: generated predecessor exercise cannot replace actual deployed-install inventory`
