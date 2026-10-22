@@ -19,7 +19,7 @@ created: "2026-10-21"
 | Full suite | `node node_modules/vitest/vitest.mjs run --pool=threads --maxWorkers=2 --reporter=dot` |
 | Types | `npm run typecheck` |
 | Windows candidate | `npm run build:win` |
-| Runtime | Full suite156 files/1193 tests passed309.06sec at38cb5d2; failed sandbox discovery excluded |
+| Runtime | Final157 files/1228 tests passed420.92sec at e61ae4a; failed sandbox discovery excluded |
 
 ## Sampling Rate
 
@@ -31,7 +31,7 @@ created: "2026-10-21"
 
 ## Per-Task Verification Map
 
-Exact task ownership below. Every new test is created by the listed task before that task verifies it; reused suites depend on the earlier owning task/plan. Automated entries below were audited against the completed implementation and final full suite at source38cb5d2; actual installed-PC acceptance remains pending. Each task also has a concrete fails_when gate: nonzero, no-tests, unexecuted/infrastructure failure or violated behavioral invariant cannot pass.
+Exact task ownership below. Every new test is created by the listed task before that task verifies it; reused suites depend on the earlier owning task/plan. Automated entries below were audited against the completed implementation and final full suite at source e61ae4a; actual installed-PC acceptance remains pending. Each task also has a concrete fails_when gate: nonzero, no-tests, unexecuted/infrastructure failure or violated behavioral invariant cannot pass.
 
 | Task ID | Wave | Requirement | Behavior / threat | Automated verification (focused entry; full task commands in PLAN) | Status |
 |---|---|---|---|---|---|
@@ -93,7 +93,7 @@ Record candidate hash, tester/date, machine details, fixture identity, expected/
 - [x] Exact task map finalized by planner (25 tasks, nine plans, six waves).
 - [x] Every task has automated verification or an explicit human checkpoint; no three consecutive implementation tasks lack automated checks.
 - [x] New test paths have creation dependencies; no watch commands.
-- [x] Focused feedback latency measured; security153tests30.48s and45tests58.81s; full suite309.06s.
+- [x] Focused feedback latency measured; security153tests30.48s and45tests58.81s; final full suite420.92s; focus35tests29.21s.
 - [x] Automated suites and package checks green; final inspected candidate and measured smoke pass.
 - [ ] Installed non-development-PC evidence complete.
 - [ ] `nyquist_compliant: true` set only after validation, never inferred from planning.
@@ -107,10 +107,12 @@ Record candidate hash, tester/date, machine details, fixture identity, expected/
 | Planned tasks |25|
 | Referenced test paths |52, all exist|
 | Missing automated targets |0|
-| Final full regression |156files /1193tests passed,309.06sec,exit0 at38cb5d2|
+| Final full regression |157files /1228tests passed,420.92sec,exit0 at e61ae4a|
 | Independent security probes |20files /198tests passed|
 | External checkpoint |20-09-03 remains pending;16 required installed cases|
 
 Cross-checked plan commands, summaries, actual source/test imports and converged review regressions. No new test scaffolding is needed: failure/restart/financial/geometry/parser/identity/evidence negative cases now run in the full suite. Additional actual two-process and Chromium geometry/keyboard checks passed. The unchanged whole-suite run includes prior-phase suites; no source change followed its successful result, so redundant reruns are avoided. nyquist_compliant remainsfalse because declared installed evidence is incomplete. No missing test, failed sandbox discovery, pending physical case or inferred approval is counted as a pass.
 
-Final candidate refresh:68803dd presentation-only fixes passed39affectedtests29.73sec; final build/typechecks/NSIS inspection and measured packaged smoke passed. Candidate installer SHA256ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6. Independent security closure verified exact payload identity. Installed evidence validator exits1 with16pendingcases/90missing evidence reasons as expected; no automated gap inferred from explicitly external cases.
+Final candidate refresh e61ae4a: both typechecks/build, full offline NSIS, actual package inspection and measured packaged smoke passed. Installerd3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180; ASARcf6bac214a8afbce8b8be6b4f2db2e00ef5afb412793e4e70f45fe1b6273cd45. Raw final full regression .planning/tmp/20-library-focus-full-regression.log:157files/1228tests,420.92sec,exit0. Earlier independent source68803dd run156files/1193tests476.42sec remains historical support, superseded by this final full run.
+
+Actual installed manual core walkthrough and both manual fixes passed; detailed per-run provenance remains in20-MANUAL-TEST.md/20-MANUAL-EVIDENCE.json. Final149installed payload files match; original source/backup/library bytes are preserved. The16non-development cases remain pending, and the evidence validator must continue to reject incomplete release acceptance. Remaining native edge/long-content/failure/never-saved cases are not inferred from automated tests. nyquist_compliant remainsfalse.

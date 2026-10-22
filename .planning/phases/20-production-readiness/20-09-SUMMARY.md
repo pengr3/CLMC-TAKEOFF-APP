@@ -73,10 +73,10 @@ coverage:
 | Item | Actual result |
 |---|---|
 | Installer | `dist/clmc-takeoff-1.1.0-x64-setup.exe` |
-| Installer bytes | 136810434 |
-| Installer SHA256 | `ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6` |
+| Installer bytes | 136810369 |
+| Installer SHA256 | `d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180` |
 | ASAR | `dist/win-unpacked/resources/app.asar` |
-| ASAR SHA256 | `90f958f3b8579a572c09993a44ba8d58e94e7e2b9633e3dd3285f0c4d640e798` |
+| ASAR SHA256 | `cf6bac214a8afbce8b8be6b4f2db2e00ef5afb412793e4e70f45fe1b6273cd45` |
 | Inventory/hash manifest | `dist/release-manifest.json` |
 | Packaged runtime evidence | `dist/packaged-smoke.json`; actual facts also preserved in `20-INSTALLED-EVIDENCE.json` |
 | Product/identity/data | CLMC Takeoff / `com.clmc.takeoff` / pinned `%APPDATA%/clmc-takeoff` |
@@ -94,7 +94,7 @@ The source package was 1.0.0 and read-only developer-PC inventory previously fou
 
 Measured five commits before this checkpoint-summary metadata commit. Actuals use chars/4 over the realized committed diff, including 305158 bytes of preserved third-party notices; this explains the estimate overrun rather than mixing harness token scales.
 
-## What Was Verified
+## Initial Task Verification (historical)
 
 - Artifact tests: 15/15. Real ASAR clean controls and contaminated archives cover planning/env/private project/PDF/dev-dependency contamination, missing worker/preload resources/notes/fonts/licenses/dependency entries/closure and version mismatch. Tests inspect actual archives, not only YAML.
 - Candidate-bound evidence tests: 11/11. Required 16-case completeness, provenance, hashes/version, numerical oracle comparison, developer-only rejection, actual predecessor classification/version and explicit unsupported-hardware review are exercised. Final focused release matrix: 26/26.
@@ -137,8 +137,12 @@ Parent-owned pre-existing STATE edits were preserved. This executor does not adv
 
 Both validator scripts, packaged smoke harness, preparation hook, tests, notices, compatibility/validation docs, candidate installer/ASAR, manifest and pending record exist. All five task commit hashes resolve; no tracked files were deleted. Frozen installer/ASAR hashes still match the manifest. Required real target-PC cases remain explicitly pending.
 
-## Final review and candidate refresh2026-10-22
+## Final review, native findings and candidate refresh2026-10-22
 
-Initial candidate/evidence superseded. Eight independent code-review findings were corrected through38cb5d2; code re-review clean85files. UI audit corrections68803dd passed39affectedtests and source re-audit24/24. Final full regression156files/1193tests passed309.06sec before UI-only polish; build includes both typechecks. Final npm run build:win, actual NSIS/ASAR inspector and strengthened measured packaged smoke passed on the exact hashes above. Smoke measures each launched file pre/post, compares approvedElectron44.9.3, and proves redalternatePDF→savedbluePDF plus distinctive markup/scale/rates/rendererSaveAsreadback. Actual failed-reopen negative exits1. Real2process ownership and150page600/400height/nativekeyboard regressions passed. Current source68803dd; all target-PC cases remainpending.
+Current source e61ae4a; current installer/ASAR hashes are in the Candidate table above. Original task checks above are historical; this section supersedes their final-run/candidate claims. Eight independent review findings were corrected and the85-file re-review was clean; source UI audit24/24 remains the last visual audit. Native testing subsequently found tool switching801a532 and library focus e61ae4a; both are fixed and verified on the installed app.
 
-Legacy pages with unrecorded coordinate basis retain rawgeometry but quarantine oldcalibration, blockexport, require perpage inspection/repositioning/recalibration and savecopy preserving source. Newfiles persist canonical basis. Unclassifiable existing destinations requireSaveAs; duplicate/dangling/omitted categories cannot silently altermoney. Recovery reconciles safeorphanfiles under exclusiveapplicationownership.
+Final full regression:157files/1228tests passed, exit0,420.92seconds; raw .planning/tmp/20-library-focus-full-regression.log. Both typechecks and production build passed; final NSIS packaging, actual payload inspection and measured packaged smoke passed. All149 installed payload files matched. Focused library/keyboard35tests passed; exact old-source reversion reproduced all4new failures. Scoped changed-file ESLint0errors0warnings. Parent reviewed the narrow15-line focus repair and behavioral regressions; this is an explicit delta review, not a new85-file independent review.
+
+Actual developer-host native tests passed quantities10m/100m²/40m/30m²/1count,740cost/962selling/222margin and actual Excel/CSV readback, protected successful replacement backup, controlled saved-work interruption/restart/Keep/Restore/Save As with unchanged source/backup, local copied-project reopen, compatible library rate application and offline About. The final candidate repeated native picker cancellation in empty and Count-armed workspaces: Escape closes the library, restores its invoker and preserves Count placement. Final native Save As archive retains exact original geometry/scale/rates/PDF and962selling.20-MANUAL-TEST.md and20-MANUAL-EVIDENCE.json preserve actual per-run candidate hashes.
+
+Initial independent goal verification plus the parent-owned focused amendment remains human_needed. All16actual target cases, real predecessor/non-development upgrade, representative PDFs, physical scaling/monitor transition and named organizational reviews remain pending. No release acceptance or Phase21 pilot is claimed.

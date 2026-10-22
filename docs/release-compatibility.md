@@ -47,3 +47,4 @@ An existing destination whose format or archive layout cannot be classified safe
 
 One application instance owns the pinned userData root. A second launch activates the existing window before it can initialize shared storage. Recovery orphan reconciliation runs under this ownership and preserves blobs whenever a manifest cannot be read safely.
 
+Development-host installed walkthrough evidence is recorded in `.planning/phases/20-production-readiness/20-MANUAL-TEST.md`. It includes actual adjacent backup retention and saved-work restart recovery without source overwrite. Those observations do not replace the required non-development installation, actual predecessor upgrade, historical-project inspection or physical display matrix.

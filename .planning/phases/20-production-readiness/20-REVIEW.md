@@ -165,3 +165,7 @@ Actual historical-project geometry review, physical Windows scaling/monitor tran
 _Reviewer: gsd-code-reviewer_
 
 _Depth: standard; iteration: 3_
+
+## Parent delta review after authorized native testing
+
+The original85-file independent re-review above remains historical. Parent reviewed801a532's changed-tool guard and e61ae4a's15-line modal focus repair, including removal of focus listeners before invoker restoration, busy-state containment and preservation of active inputs. Causal regressions reproduced21tool and4focus failures on old source, passed on repair; final157files/1228tests and build/typechecks pass. Installed native tests confirm distinct perimeter/wall/count types and safe Escape after native cancellation without cancelling Count. No new source blocker remains demonstrated; this is a focused parent review, not a new independent whole-phase review. Current candidate inspection and smoke pass; the earlier stale-package warning is superseded. External release gates remain open.

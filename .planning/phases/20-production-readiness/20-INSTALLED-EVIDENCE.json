@@ -3,11 +3,11 @@
   "status": "awaiting-non-development-evidence",
   "candidate": {
     "version": "1.1.0",
-    "installerSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
-    "archiveSha256": "90f958f3b8579a572c09993a44ba8d58e94e7e2b9633e3dd3285f0c4d640e798",
+    "installerSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+    "archiveSha256": "cf6bac214a8afbce8b8be6b4f2db2e00ef5afb412793e4e70f45fe1b6273cd45",
     "installer": "dist/clmc-takeoff-1.1.0-x64-setup.exe",
     "manifest": "dist/release-manifest.json",
-    "bytes": 136810434,
+    "bytes": 136810369,
     "architecture": "x64"
   },
   "handoff": {
@@ -40,7 +40,7 @@
       "ramGiB": 15.749954223632812,
       "supportedScaling": [],
       "monitorCount": null,
-      "scope": "Read-only OS facts; no physical display settings inspected."
+      "scope": "Development PC: actual local per-user installation/manual input observed; renderer device-scale-factor1. No physical display matrix or non-development classification is inferred."
     }
   ],
   "fixtures": [],
@@ -48,7 +48,7 @@
     {
       "id": "fresh-install",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -58,12 +58,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "actual-predecessor-upgrade",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -73,12 +73,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "project-only-transfer",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -88,12 +88,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "recovery-saved",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -103,12 +103,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "recovery-never-saved",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -118,12 +118,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "failed-save-backup",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -133,12 +133,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "offline-workflow",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -148,12 +148,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "large-vector",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -163,12 +163,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "large-scan",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -178,12 +178,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "multipage-navigation",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -193,12 +193,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "scaling-100",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -208,12 +208,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "scaling-125",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -223,12 +223,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "scaling-150",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -238,12 +238,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "scaling-200",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -253,12 +253,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "monitor-transition",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -268,12 +268,12 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     },
     {
       "id": "ui-keyboard-overflow",
       "status": "pending",
-      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -283,7 +283,7 @@
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification."
+      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
     }
   ],
   "developerEvidence": [
@@ -293,7 +293,7 @@
       "artifact": "dist/packaged-smoke.json",
       "status": "pass",
       "scope": "scripted-packaged-developer-host",
-      "date": "2026-10-22T04:33:27.844Z",
+      "date": "2026-10-22T08:36:01.833Z",
       "machine": {
         "classification": "development",
         "hostname": "Lenovo-X390-PC1H2FSA",
@@ -303,9 +303,9 @@
       },
       "candidate": {
         "version": "1.1.0",
-        "installerSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
-        "archiveSha256": "90f958f3b8579a572c09993a44ba8d58e94e7e2b9633e3dd3285f0c4d640e798",
-        "executableSha256": "b7a03a67be49170ee28f59b55e3d7c79d84a7415dd0c8f1aeec4b1240e18f900"
+        "installerSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+        "archiveSha256": "cf6bac214a8afbce8b8be6b4f2db2e00ef5afb412793e4e70f45fe1b6273cd45",
+        "executableSha256": "896cc96e73272030f6415ced2c9fa2a219f606c88254a6ce93519a7d0127da30"
       },
       "actual": {
         "electron": "44.9.3",
@@ -336,6 +336,33 @@
       "limitations": [
         "Dialog destinations scripted through inspector; physical UI and non-development-PC install/upgrade/scaling are pending."
       ]
+    },
+    {
+      "id": "authorized-installed-manual",
+      "tester": "Codex via user-authorized Windows Computer Use",
+      "artifact": ".planning/phases/20-production-readiness/20-MANUAL-EVIDENCE.json",
+      "status": "local-core-passed-external-acceptance-pending",
+      "scope": "installed-development-host",
+      "source": "e61ae4a",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "date": "2026-10-22T09:29:11.180Z",
+      "report": ".planning/phases/20-production-readiness/20-MANUAL-TEST.md",
+      "actual": {
+        "nativePickerCancel": true,
+        "idleEscapeClosesLibrary": true,
+        "invokerFocusRestored": true,
+        "countPlacementPreserved": true,
+        "quantityAndGeometryUnchanged": true,
+        "ratesAndBasesUnchanged": true,
+        "embeddedPdfUnchanged": true,
+        "estimateCost": 740,
+        "estimateSelling": 962,
+        "estimateMargin": 222,
+        "libraryUnchanged": true,
+        "originalProjectUnchanged": true,
+        "originalBackupUnchanged": true
+      },
+      "limitation": "Core recovery/export walkthrough was observed on preceding3f9f6fd3 candidate. Finald3a9a6f0 build repeated native cancellation/Count containment and project reopen/Estimate/Save As. Each run retains its actual hash."
     }
   ],
   "edgeReviews": [
@@ -376,8 +403,8 @@
       "reason": "Flagged unclassified edge assumption remains open for actual evidence and independent review."
     }
   ],
-  "scope": "Candidate preparation only. No Phase20 acceptance, non-development-PC success, Phase21 pilot, or twelve-PC rollout is claimed.",
-  "blockedBy": "No accessible non-development Windows PC, approved representative construction PDFs, actual predecessor inventory, or physical scaling/monitor test evidence supplied. Parent owns physical/manual testing after independent review and verification.",
+  "scope": "Current candidate inspected; developer-host packaged and actual installed manual evidence retained separately. No Phase20 acceptance, non-development success, Phase21 pilot or twelve-PC rollout is claimed.",
+  "blockedBy": "No accessible non-development Windows PC, approved representative construction PDFs, actual deployed-predecessor installer/inventory or physical scaling/monitor evidence supplied. Handoff owners/share/signing policy, four edge reviews and three explicit prohibition dispositions remain open.",
   "licenseReview": {
     "status": "pending-release-review",
     "package": "buffers@0.1.1",

@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "status": "local-core-and-final-candidate-retest-passed-external-acceptance-pending",
+  "scope": "agent-driven-installed-development-host",
+  "tester": "Codex using user-authorized Windows Computer Use",
+  "coreRun": {
+    "candidate": {
+      "status": "pass",
+      "scope": "installed-development-host",
+      "executable": "C:\\Users\\Admin\\AppData\\Local\\Programs\\clmc-takeoff\\clmc-takeoff.exe",
+      "matchedFiles": 149,
+      "installerSha256": "3f9f6fd3f1057a1dfb6603c50423ca3914626f67a5f1be814117dcf80959431d",
+      "archiveSha256": "eefb415a719400b064372a9e9e7a25f6c0017e4d82af02fe9070d7eafc09e5eb"
+    },
+    "install": {
+      "ExitCode": 0,
+      "Registrations": [
+        {
+          "PSChildName": "1c30aa9b-6d24-50bf-8469-d032f8038b7f",
+          "DisplayName": "CLMC Takeoff",
+          "DisplayVersion": "1.1.0",
+          "InstallLocation": null,
+          "DisplayIcon": "C:\\Users\\Admin\\AppData\\Local\\Programs\\clmc-takeoff\\clmc-takeoff.exe,0",
+          "UninstallString": "\"C:\\Users\\Admin\\AppData\\Local\\Programs\\clmc-takeoff\\Uninstall clmc-takeoff.exe\" /currentuser"
+        }
+      ],
+      "LibraryPreserved": true,
+      "InstalledAt": "2026-10-22T15:58:11.7265922+08:00"
+    },
+    "readback": {
+      "status": "pass",
+      "date": "2026-10-22T08:27:32.428Z",
+      "scope": "independent-readback-of-installed-development-host-manual-run",
+      "candidateInstallerSha256": "3f9f6fd3f1057a1dfb6603c50423ca3914626f67a5f1be814117dcf80959431d",
+      "source": "801a532",
+      "oracle": "independent Euclidean length, shoelace area, wall height and arithmetic; no application aggregation or serializer imported",
+      "projects": [
+        {
+          "file": "manual-final.clmc",
+          "bytes": 4749,
+          "sha256": "61bba63586305d482fed7b4671865d7a56975d3b51135ec6328b4e3ca6c26e39",
+          "pdfSha256": "9c0bc7b6f133905fc62b7dff8abec2e78c0beb078f3ddcdddb57c157ed025e10",
+          "items": {
+            "Grid length|linear": 10,
+            "Grid area|area": 99.99999999999997,
+            "Retest area|area": 99.99999999999997,
+            "Grid perimeter|perimeter": 40,
+            "Grid wall|wall": 30,
+            "Grid count|count": 1
+          },
+          "totals": {
+            "cost": 739.9999999999999,
+            "price": 961.9999999999999,
+            "margin": 222
+          },
+          "formatVersion": 3,
+          "rateBasesVerified": true
+        },
+        {
+          "file": "manual-final.clmc.bak",
+          "bytes": 4736,
+          "sha256": "2d293adc8b5324a18d4741fc6e93154c0dde5e8b2601eceef713a2e0ca9c91ac",
+          "pdfSha256": "9c0bc7b6f133905fc62b7dff8abec2e78c0beb078f3ddcdddb57c157ed025e10",
+          "items": {
+            "Grid length|linear": 10,
+            "Grid area|area": 99.99999999999997,
+            "Retest area|area": 99.99999999999997,
+            "Grid perimeter|perimeter": 40,
+            "Grid wall|wall": 30,
+            "Grid count|count": 1
+          },
+          "totals": {
+            "cost": 739.9999999999999,
+            "price": 961.9999999999999,
+            "margin": 222
+          },
+          "formatVersion": 3,
+          "rateBasesVerified": true
+        },
+        {
+          "file": "manual-recovered.clmc",
+          "bytes": 4991,
+          "sha256": "4eea63bbc4eb479ff49a8699ee93e0eb3381d86f496aaaabbad5f85e99b2afbd",
+          "pdfSha256": "9c0bc7b6f133905fc62b7dff8abec2e78c0beb078f3ddcdddb57c157ed025e10",
+          "items": {
+            "Grid length|linear": 10,
+            "Grid area|area": 99.99999999999997,
+            "Retest area|area": 99.99999999999997,
+            "Grid perimeter|perimeter": 40,
+            "Grid wall|wall": 30,
+            "Grid count|count": 2
+          },
+          "totals": {
+            "cost": 839.9999999999999,
+            "price": 1092,
+            "margin": 252.0000000000001
+          },
+          "formatVersion": 3,
+          "rateBasesVerified": true
+        },
+        {
+          "file": "portable-only/manual-final.clmc",
+          "bytes": 4722,
+          "sha256": "c5e83adb239e892298791dce31b01699a23b55f6f579d76084a165d3baa403f4",
+          "pdfSha256": "9c0bc7b6f133905fc62b7dff8abec2e78c0beb078f3ddcdddb57c157ed025e10",
+          "items": {
+            "Grid length|linear": 10,
+            "Grid area|area": 99.99999999999997,
+            "Retest area|area": 99.99999999999997,
+            "Grid perimeter|perimeter": 40,
+            "Grid wall|wall": 30,
+            "Grid count|count": 1
+          },
+          "totals": {
+            "cost": 919.9999999999999,
+            "price": 1196,
+            "margin": 276.0000000000001
+          },
+          "formatVersion": 3,
+          "rateBasesVerified": true
+        }
+      ],
+      "exports": [
+        {
+          "file": "manual-final-BOQ.xlsx",
+          "sha256": "3eab1c464814069c9eb2c75959e7a2e4e182ab0503fc7a6747813f75ac8cf57a",
+          "rowsVerified": 6,
+          "cost": 740,
+          "price": 962,
+          "margin": 222
+        },
+        {
+          "file": "manual-final-BOQ.csv",
+          "sha256": "76b08e434655491b3cab7893e43964cc7e07fc1ce45d659e663fce019e7569e8",
+          "rowsVerified": 6,
+          "cost": 740,
+          "price": 962,
+          "margin": 222
+        }
+      ],
+      "library": {
+        "bytes": 339,
+        "sha256": "75b6ffc06827b76b17d86fae10e0969430e20d5dc6cc12c864698e152c17df60",
+        "unchanged": true
+      },
+      "matchingRecoveryRetired": true
+    },
+    "recovery": {
+      "session": "14f66d5b-1fea-485c-8648-1f89128d5c28",
+      "revision": 17,
+      "capturedAt": "2026-10-22T08:13:35.294Z",
+      "lastSavedAt": 1792656770173,
+      "pdfHash": "9c0bc7b6f133905fc62b7dff8abec2e78c0beb078f3ddcdddb57c157ed025e10",
+      "sourcePath": "C:\\Users\\Admin\\Roaming\\CLMC TAKEOFF APP\\.planning\\tmp\\20-manual-run\\manual-final.clmc",
+      "keepReopened": true,
+      "restoredDirty": true,
+      "sourceAndBackupUnchanged": true,
+      "retiredAfterExplicitSeparateSave": true
+    },
+    "screenshots": [
+      "installed-about.png",
+      "installed-estimate-962.png",
+      "installed-library-applied.png",
+      "installed-library-cancel.png",
+      "installed-library-escape-retained.png",
+      "installed-perimeter-fixed.png",
+      "installed-portable-reopened.png",
+      "installed-recovered-dirty.png",
+      "installed-recovery-offer.png",
+      "installed-reopened-estimate-962.png",
+      "installed-unsaved-count2.png",
+      "installed-zoom-100.png",
+      "perimeter-created-area.png"
+    ]
+  },
+  "finalCandidateRetest": {
+    "status": "pass",
+    "date": "2026-10-22T09:29:11.180Z",
+    "source": "e61ae4a",
+    "installation": {
+      "status": "pass",
+      "scope": "installed-development-host-candidate-refresh",
+      "source": "e61ae4a",
+      "installedAt": "2026-10-22T16:38:21.9375885+08:00",
+      "matchedFiles": 149,
+      "installerSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "archiveSha256": "cf6bac214a8afbce8b8be6b4f2db2e00ef5afb412793e4e70f45fe1b6273cd45",
+      "librarySha256": "75b6ffc06827b76b17d86fae10e0969430e20d5dc6cc12c864698e152c17df60",
+      "registrations": [
+        {
+          "PSChildName": "1c30aa9b-6d24-50bf-8469-d032f8038b7f",
+          "DisplayName": "CLMC Takeoff",
+          "DisplayVersion": "1.1.0",
+          "DisplayIcon": "C:\\Users\\Admin\\AppData\\Local\\Programs\\clmc-takeoff\\clmc-takeoff.exe,0"
+        }
+      ],
+      "deployedPredecessorUpgradeProven": false
+    },
+    "method": "actual native picker cancellation and Escape in empty and Count-armed workspaces, final installed project reopen/Estimate/Save As",
+    "checks": {
+      "nativePickerCancel": true,
+      "idleEscapeClosesLibrary": true,
+      "invokerFocusRestored": true,
+      "countPlacementPreserved": true,
+      "quantityAndGeometryUnchanged": true,
+      "ratesAndBasesUnchanged": true,
+      "embeddedPdfUnchanged": true,
+      "estimateCost": 740,
+      "estimateSelling": 962,
+      "estimateMargin": 222,
+      "libraryUnchanged": true,
+      "originalProjectUnchanged": true,
+      "originalBackupUnchanged": true
+    },
+    "savedProject": {
+      "file": ".planning/tmp/20-manual-run/final-native-checked.clmc",
+      "sha256": "c8a466c0886ad40fb792771646b7d64f8dd7af6da26909a665ffdfa291d156cb",
+      "bytes": 4736,
+      "markupCount": 6
+    },
+    "screenshots": [
+      "final-library-escape-fixed.png",
+      "final-library-count-preserved.png",
+      "final-estimate-962.png",
+      "final-native-save-962.png"
+    ]
+  },
+  "externalAcceptance": "pending; none of the sixteen required non-development cases is satisfied by this local run"
+}

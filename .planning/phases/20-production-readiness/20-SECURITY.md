@@ -67,7 +67,7 @@ Independent focused tests:20files/198tests passed, including actual utility-proc
 
 Recorded dependency audit:0critical/24high/10moderate/2low. Scoped reachability dispositions in20-DEPENDENCY-REVIEW.md independently checked. No whole-app certification is claimed.
 
-T20-09-01 closed:149 unpacked files,37 packaged outputs and3resources match current files and measured smoke;108 production dependency locations. Installer SHA256 ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6, ASAR90f958f3b8579a572c09993a44ba8d58e94e7e2b9633e3dd3285f0c4d640e798;Electron44.9.3 and true reopen proof passed. T20-09-02 requires actual predecessor/non-development upgrade evidence. T20-09-04 requires named signing/distribution owner and approved location.
+T20-09-01 closed (initial independent closure; current parent revalidation):149 unpacked files,37 packaged outputs and3resources match current files and measured smoke;108 production dependency locations. Installer SHA256 d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180, ASARcf6bac214a8afbce8b8be6b4f2db2e00ef5afb412793e4e70f45fe1b6273cd45;Electron44.9.3 and true reopen proof passed. T20-09-02 requires actual predecessor/non-development upgrade evidence. T20-09-04 requires named signing/distribution owner and approved location.
 
 ## Sign-Off
 
@@ -77,3 +77,7 @@ T20-09-01 closed:149 unpacked files,37 packaged outputs and3resources match curr
 - [ ] status:verified.
 
 Phase advancement remains blocked. Continue authorized local work without claiming acceptance.
+
+## Post-manual candidate revalidation
+
+Sourcee61ae4a changes only library focus containment after the manual-discovered tool fix801a532. Parent reviewed this delta and retained four causal regressions,35focused tests, both typechecks/build and157files/1228tests passing. Current actual payload inspection, measured packaged smoke and149-file installed comparison passed; unchanged IPC/parser/storage mitigations retain their prior independent dispositions. Current installerd3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180; ASARcf6bac214a8afbce8b8be6b4f2db2e00ef5afb412793e4e70f45fe1b6273cd45. This is a documented parent delta/payload revalidation; no additional independent whole-source audit is claimed. T20-09-02 and T20-09-04 remain open. Local native evidence cannot transfer signing/share ownership or establish deployed upgrade acceptance.

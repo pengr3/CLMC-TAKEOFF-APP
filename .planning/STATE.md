@@ -4,10 +4,10 @@ milestone: v1.0
 current_phase: 20
 current_phase_name: Production Readiness
 status: in_progress
-stopped_at: Phase20 implementation and reviews complete; final artifact inspection, independent verification and authorized manual PC run in progress; external acceptance pending
-last_updated: "2026-10-21T15:33:26.913Z"
+stopped_at: Phase20 final automated and installed core manual checks passed; both manual defects resolved; external acceptance and remaining native edge cases pending
+last_updated: "2026-10-22T09:32:07.039Z"
 last_activity: 2026-10-22
-state_head: 68803dd
+state_head: e61ae4a
 progress:
   total_phases: 25
   completed_phases: 23
@@ -37,7 +37,7 @@ milestone_name: milestone
 Phase: 20 (Production Readiness) — VERIFYING
 Plan: 9 of 9 —20-01 through20-08 complete;20-09 tasks01/02 complete,task03 external evidence pending
 
-Next action: Inspect the rebuilt candidate, complete independent goal verification, then drive the authorized manual PC run. Full156files/1193tests passed; subsequent UI-only changes passed39affectedtests. Code review clean after8fixes; UI re-audit24/24. Security source controls verified; artifact and actual predecessor/non-development evidence gates remain. No deployment or Phase21 pilot is claimed.
+Next action: Obtain actual non-development PC/access, previous installer/inventory, approved representative PDFs and physical display evidence; complete remaining native edge cases and named release reviews. Final source e61ae4a:157files/1228tests passed420.92sec; build/types, final NSIS/ASAR inspection, packaged smoke and149installed-file comparison pass. Native core workflow, backup/recovery, both manual defects and final candidate reopen/Estimate/Save As pass. Installer d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180. See20-MANUAL-TEST.md. Phase20 remains human_needed;09task03/REL-01..05 pending; no Phase21 pilot/deployment is claimed.
 
 ## Performance Metrics
 
@@ -228,7 +228,7 @@ Next action: Inspect the rebuilt candidate, complete independent goal verificati
 
 ### Blockers
 
-None.
+Phase20 acceptance requires an accessible non-development Windows PC, real deployed-predecessor inventory/installer, approved representative construction PDFs, physical scaling/monitor evidence and named handoff/signing/share/rollback reviews. Sixteen target cases, four edge reviews and three narrative prohibition dispositions remain pending. Local agent testing cannot substitute for those observations or reviews.
 
 ### Quick Tasks Completed
 
@@ -265,6 +265,8 @@ None.
 - Phase 18 added (2026-07-14): Toolbar Revamp — Seamless One-Click Toolbar. Replaces the 7-tab ribbon with a tab-less, co-visible layout (persistent left tool rail + slim top action bar + morphing context sub-bar) per feel-tested spike 007 (Direction A, "everything one click away"). Extends v1.0 (user chose extend over new v1.1 milestone). Snap/Arc become clickable controls; Settings/Help stubs drop to a reserved ⋯ button; duplicate top/bottom page+scale chrome folds into one status line. Planned via /gsd-plan-phase: 9 plans / 4 waves, plan-checker PASS (1 HIGH resolved — Arc on-state made reactive via subscribeArcSticky + useSyncExternalStore so Shift+A updates the toggle; 2 doc warnings closed). Next: /gsd-execute-phase 18.
 
 ## Session Continuity
+
+**Current authoritative handoff2026-10-22:** Phase19 was accepted and Phase20 planned/executed under the user's autonomous authorization. Phase20 is VERIFYING, eight plans complete, plan09task03 external evidence pending. Two manual defects were reproduced and fixed (801a532/e61ae4a). Core installed manual observations and independent readback are retained in20-MANUAL-TEST.md/20-MANUAL-EVIDENCE.json; final candidate/retest passed with157files/1228tests. External acceptance and unobserved native edge cases remain pending. Source branch unchanged; untracked userAGENTS.md must not be staged. Older continuity entries below are historical and do not override this position.
 
 **Resume file:** None
 
