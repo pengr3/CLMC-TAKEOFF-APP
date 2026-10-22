@@ -162,7 +162,7 @@ function App(): React.JSX.Element {
   const scanActive = useRef(false)
   const mounted = useRef(true)
   const refreshRecovery = useCallback(async (present = false): Promise<void> => {
-    if (scanActive.current || !window.api.listRecovery) return
+    if (scanActive.current || !window.api?.listRecovery) return
     scanActive.current = true
     setRecoveryScanning(true)
     try {

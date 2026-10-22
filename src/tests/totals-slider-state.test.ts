@@ -22,7 +22,10 @@ vi.mock('@renderer/components/CanvasViewport', () => ({
 vi.mock('@renderer/components/ContextBar', () => ({ ContextBar: () => null }))
 vi.mock('@renderer/components/ToolRail', () => ({ ToolRail: () => null }))
 vi.mock('@renderer/components/EstimatePanel', () => ({ EstimatePanel: () => null }))
-vi.mock('@renderer/hooks/useProject', () => ({ useProject: () => ({}) }))
+vi.mock('@renderer/hooks/useProject', () => ({
+  useProject: () => ({}),
+  startRecoverySchedule: () => () => {}
+}))
 vi.mock('@renderer/hooks/useExport', () => ({ useExport: () => ({}) }))
 vi.mock('@renderer/hooks/useCloseGuard', () => ({ useCloseGuard: () => {} }))
 vi.mock('@renderer/hooks/useKeyboardShortcuts', () => ({ useKeyboardShortcuts: () => {} }))
