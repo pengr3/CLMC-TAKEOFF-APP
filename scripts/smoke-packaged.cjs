@@ -6,6 +6,7 @@ const assert = require('node:assert/strict')
 const { spawn } = require('node:child_process')
 const crypto = require('node:crypto')
 const net = require('node:net')
+const { verifyReopenTransition } = require('./smoke-reopen.cjs')
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 async function measuredFile(file) {
   const info = await fs.lstat(file)
@@ -61,8 +62,8 @@ function assertObservedCandidate(identity, host) {
   assert.equal(normalized(host.executable), normalized(identity.executable), 'Observed executable identity differs')
   assert.equal(normalized(host.appPath), normalized(identity.archivePath), 'Observed application resources differ')
 }
-function makePdf() {
-  const stream = '0.2 0.5 0.8 rg 20 20 200 100 re f\n'
+function makePdf(red = false) {
+  const stream = `${red ? '0.8 0.2 0.2' : '0.2 0.5 0.8'} rg 20 20 200 100 re f\n`
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',
     '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
@@ -119,6 +120,7 @@ async function run() {
   const pdf = makePdf()
   const pdfPath = path.join(scratch, 'packaged-plan.pdf'),
     savePath = path.join(scratch, 'packaged-project.clmc')
+  const alternatePath = path.join(scratch, 'different-red-plan.pdf')
   const workbook = new (require('exceljs').Workbook)()
   const sheet = workbook.addWorksheet('Cost Library')
   sheet.addRow([
@@ -132,6 +134,7 @@ async function run() {
   sheet.addRow(['SMOKE', 'Paint', 'Finishes', 'm²', 100, 50])
   const libraryPath = path.join(scratch, 'library.xlsx')
   await fs.writeFile(pdfPath, pdf)
+  await fs.writeFile(alternatePath, makePdf(true))
   await fs.writeFile(libraryPath, Buffer.from(await workbook.xlsx.writeBuffer()))
   const server = net.createServer()
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
@@ -250,9 +253,11 @@ async function run() {
         .digest('hex'),
       crypto.createHash('sha256').update(pdf).digest('hex')
     )
-    await main(`__smoke.nextOpen=${JSON.stringify(savePath)}`)
-    await renderer(`document.querySelector('button[title="Open project or PDF (Ctrl+O)"]').click()`)
-    await wait(`document.body.textContent.includes('packaged-project')`)
+    const reopen = await verifyReopenTransition({ execute: renderer, waitFor: wait,
+      setOpen: target => main(`__smoke.nextOpen=${JSON.stringify(target)}`),
+      setSave: target => main(`__smoke.savePath=${JSON.stringify(target)}`),
+      savePath, alternatePath, saved,
+      beforeReopen: process.env.CLMC_SMOKE_FAIL_REOPEN === '1' ? () => main(`__smoke.electron.ipcMain.removeHandler('file:readProject');__smoke.electron.ipcMain.handle('file:readProject',()=>{throw new Error('Injected renderer reopen failure')});true`) : undefined })
     await main(`__smoke.nextOpen=${JSON.stringify(libraryPath)}`)
     const preview = await renderer('window.api.costLibrary.preview()')
     assert.equal(preview.ok, true, JSON.stringify(preview))
@@ -350,6 +355,7 @@ async function run() {
         pdfWorker: true,
         renderedPdf: true,
         format3SaveReadReopen: true,
+        reopen,
         importUtilityChild: true,
         internalXlsxCsv: true,
         externalNetworkRequests: detail.network,

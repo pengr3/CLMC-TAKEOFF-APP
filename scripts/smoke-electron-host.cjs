@@ -5,6 +5,7 @@ const fs = require('node:fs/promises')
 const path = require('node:path')
 const os = require('node:os')
 const assert = require('node:assert/strict')
+const { verifyReopenTransition } = require('./smoke-reopen.cjs')
 
 if (!process.versions.electron) {
   const { spawn } = require('node:child_process')
@@ -39,8 +40,8 @@ if (!process.versions.electron) {
   })
 }
 
-function makePdf() {
-  const stream = '0.2 0.5 0.8 rg 20 20 200 100 re f\n'
+function makePdf(red = false) {
+  const stream = `${red ? '0.8 0.2 0.2' : '0.2 0.5 0.8'} rg 20 20 200 100 re f\n`
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',
     '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
@@ -86,13 +87,16 @@ async function run() {
   await fs.writeFile(libraryPath, libraryText)
   const pdfPath = path.join(scratch, 'sandbox-plan.pdf')
   const savePath = path.join(scratch, 'sandbox-project.clmc')
+  const alternatePath = path.join(scratch, 'different-red-plan.pdf')
   const pdf = makePdf()
   await fs.writeFile(pdfPath, pdf)
+  await fs.writeFile(alternatePath, makePdf(true))
   app.setPath('appData', scratch)
   app.setAppPath(root)
   let nextOpen = pdfPath
+  let nextSave = savePath
   dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [nextOpen] })
-  dialog.showSaveDialog = async () => ({ canceled: false, filePath: savePath })
+  dialog.showSaveDialog = async () => ({ canceled: false, filePath: nextSave })
   const failures = []
   const workers = []
   let resolveWindow
@@ -110,6 +114,7 @@ async function run() {
     )
     window.webContents.on('console-message', (event) => {
       if (event.message?.includes('fake worker')) failures.push(event.message)
+      if (event.level === 'error' || event.level === 3) console.error('Renderer:', event.message)
     })
     window.webContents.debugger.attach('1.3')
     window.webContents.debugger.on('message', (_event, method, params) => {
@@ -133,7 +138,10 @@ async function run() {
     require(path.join(root, 'out/main/index.js'))
     const window = await windowReady
     const contents = window.webContents
-    const execute = (source) => contents.executeJavaScript(source)
+    const execute = async (source) => {
+      try { return await contents.executeJavaScript(source) }
+      catch (error) { throw new Error(`Renderer evaluation failed: ${source}`, { cause: error }) }
+    }
     const waitFor = async (source) => {
       for (let attempt = 0; attempt < 150; attempt++) {
         const result = await execute(source)
@@ -184,9 +192,14 @@ async function run() {
     assert.equal(result.kind, 'v2-zip')
     assert.deepEqual(Buffer.from(result.pdfBytes), pdf)
     assert.equal(JSON.parse(result.projectJson).pdf.sha256, result.computedSha256)
-    nextOpen = savePath
-    await execute(`document.querySelector('button[title="Open project or PDF (Ctrl+O)"]').click()`)
-    await waitFor(`document.body.textContent.includes('sandbox-project')`)
+    const reopen = await verifyReopenTransition({ execute, waitFor,
+      setOpen: target => { nextOpen = target }, setSave: target => { nextSave = target },
+      savePath, alternatePath, saved: result,
+      beforeReopen: process.env.CLMC_SMOKE_FAIL_REOPEN === '1' ? () => {
+        const { ipcMain } = require('electron')
+        ipcMain.removeHandler('file:readProject')
+        ipcMain.handle('file:readProject', () => { throw new Error('Injected renderer reopen failure') })
+      } : undefined })
     assert.equal(await fs.readFile(libraryPath, 'utf8'), libraryText)
     assert.deepEqual(failures, [])
     console.log(
@@ -203,6 +216,7 @@ async function run() {
           pdfWorker: workers,
           renderedPlan: true,
           projectSaveReadReopen: true,
+          reopen,
           pdfBytes: pdf.length,
           disposableAppData: true
         },
