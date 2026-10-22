@@ -1,6 +1,7 @@
 import { open } from 'node:fs/promises'
 import { extname } from 'node:path'
 import { LIBRARY_IMPORT_MESSAGES, MAX_WORKER_MESSAGE_CHARS } from '../shared/cost-library'
+import { admitWorkbook, WorkbookAdmissionError } from './workbook-admission'
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024
 // Exactly one main-selected path, no renderer paths or messages are accepted here.
@@ -38,12 +39,14 @@ process.parentPort?.once('message', async ({ data }) => {
     } finally {
       await file.close()
     }
+    if (extname(data.path).toLowerCase() === '.xlsx') await admitWorkbook(bytes)
+    // ExcelJS is deliberately loaded only after every ZIP entry passed admission.
     const { parseCostLibrary } = await import('./cost-library')
     const result = await parseCostLibrary(bytes, data.path)
     reply = JSON.stringify(result)
     if (reply.length > MAX_WORKER_MESSAGE_CHARS) reply = fail('resource')
-  } catch {
-    reply = fail('parser')
+  } catch (error) {
+    reply = fail(error instanceof WorkbookAdmissionError ? error.code : 'parser')
   }
   process.parentPort?.postMessage(reply)
 })

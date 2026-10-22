@@ -142,11 +142,15 @@ describe('main-process library import protocol', () => {
     )
     expect(mock.read).not.toHaveBeenCalled()
   })
-  it('bounds input before reading and returns file-access errors', async () => {
-    mock.stat.mockResolvedValueOnce({ size: 101 })
+  it('delegates the bounded file read to the child and retains resource/file-access failures', async () => {
+    mock.parse.mockResolvedValueOnce({ ok: false, code: 'resource', reason: 'limits' })
     expect((await call('preview')).ok).toBe(false)
     expect(mock.read).not.toHaveBeenCalled()
-    mock.stat.mockRejectedValueOnce(new Error('denied'))
+    expect(mock.parse).toHaveBeenCalledWith(
+      'C:/master.csv',
+      expect.objectContaining({ signal: expect.anything() })
+    )
+    mock.parse.mockRejectedValueOnce(new Error('denied'))
     expect((await call('preview')).ok).toBe(false)
   })
   it('saves templates through a native dialog and treats cancellation as no write', async () => {

@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto'
 import {
   COST_LIBRARY_HEADERS,
   COST_LIBRARY_UNITS,
+  LIBRARY_IMPORT_MESSAGES,
   MAX_LIBRARY_ITEMS,
   validateLibraryRows,
   validateLibrarySnapshot,
@@ -54,6 +55,8 @@ export async function parseCostLibrary(
     }
     return validateLibraryRows(rows)
   } catch {
+    if (extname(filename).toLowerCase() === '.xlsx')
+      return { ok: false, code: 'parser', reason: LIBRARY_IMPORT_MESSAGES.parser }
     return {
       ok: false,
       reason:

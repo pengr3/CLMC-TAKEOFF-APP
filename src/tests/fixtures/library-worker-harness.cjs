@@ -68,6 +68,16 @@ app
         'MAXIMUM_MEASURE ' + JSON.stringify({ milliseconds: performance.now() - started })
       )
     }
+    if (await fs.stat(path.join(scratch, 'resource.xlsx')).catch(() => null)) {
+      const rejected = await parseInUtilityProcess(path.join(scratch, 'resource.xlsx'), {
+        workerPath
+      })
+      assert.equal(
+        rejected.code,
+        'resource',
+        'unused ZIP content must fail admission before ExcelJS'
+      )
+    }
     console.log(
       'LIBRARY_WORKER_RESULT ' + JSON.stringify({ success, timed, crash, observed, beats })
     )

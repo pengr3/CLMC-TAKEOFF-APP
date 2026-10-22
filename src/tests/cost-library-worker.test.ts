@@ -6,6 +6,7 @@ import { spawn } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { build } from 'esbuild'
 import ExcelJS from 'exceljs'
+import JSZip from 'jszip'
 import { COST_LIBRARY_HEADERS } from '../shared/cost-library'
 
 describe('isolated library parser', () => {
@@ -39,6 +40,15 @@ describe('isolated library parser', () => {
       sheet.addRow([...COST_LIBRARY_HEADERS])
       sheet.addRow(['REAL-001', 'Real child import', 'Test', 'm²', 100, 50])
       await writeFile(join(scratch, 'valid.xlsx'), Buffer.from(await workbook.xlsx.writeBuffer()))
+      for (let row = 3; row <= 10001; row++)
+        sheet.addRow([`ITEM-${row}`, `Construction ${row}`, 'Finishes', 'm²', 100, 50])
+      await writeFile(join(scratch, 'maximum.xlsx'), Buffer.from(await workbook.xlsx.writeBuffer()))
+      const overBudget = new JSZip()
+      overBudget.file('unused.xml', 'x'.repeat(32 * 1024 * 1024 + 1))
+      await writeFile(
+        join(scratch, 'resource.xlsx'),
+        await overBudget.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
+      )
       const executable = createRequire(import.meta.url)('electron') as string
       const env = { ...process.env }
       delete env.ELECTRON_RUN_AS_NODE
@@ -68,6 +78,8 @@ describe('isolated library parser', () => {
       })
       expect(output).toContain('LIBRARY_WORKER_RESULT')
       expect(output).toContain('"timeout"')
+      expect(output).toContain('MAXIMUM_MEASURE')
+      console.info(output.match(/MAXIMUM_MEASURE .*/)?.[0])
     } finally {
       await rm(scratch, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
     }

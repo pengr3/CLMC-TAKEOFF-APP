@@ -1,12 +1,8 @@
 import { app, ipcMain, dialog, BrowserWindow } from 'electron'
-import { stat, writeFile } from 'fs/promises'
+import { writeFile } from 'fs/promises'
 import { basename, join } from 'path'
 import { randomUUID } from 'crypto'
-import {
-  buildCostLibraryTemplate,
-  CostLibraryRepository,
-  MAX_LIBRARY_FILE_BYTES
-} from './cost-library'
+import { buildCostLibraryTemplate, CostLibraryRepository } from './cost-library'
 import type { CostLibrarySnapshot } from '../shared/cost-library'
 import { trustedIpcHandle, type TrustedSender } from './app-identity'
 import { parseInUtilityProcess } from './cost-library-import'
@@ -60,8 +56,6 @@ export function registerCostLibraryHandlers(assertTrusted: TrustedSender): void 
         }
       }
       const path = pick.filePaths[0]
-      if ((await stat(path)).size > MAX_LIBRARY_FILE_BYTES)
-        return { ok: false, reason: 'Choose a cost library smaller than 10 MB.' }
       if (request.signal.aborted) return { ok: true, value: null }
       const result = await parseInUtilityProcess(path, { signal: request.signal })
       if (request.signal.aborted || requests.get(owner) !== request)
