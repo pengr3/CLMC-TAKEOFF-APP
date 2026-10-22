@@ -2,7 +2,14 @@ import { useCallback } from 'react'
 import { pdfjsLib, PDFDocumentProxy, cloneForPdfWorker } from '../lib/pdf-setup'
 import { useViewerStore } from '../stores/viewerStore'
 
-export function usePdfDocument() {
+interface PdfDocumentActions {
+  loadPdf: (bytes: ArrayBuffer | Uint8Array, path: string) => Promise<PDFDocumentProxy>
+  loadPdfFromPath: (path: string) => Promise<PDFDocumentProxy>
+  loadPdfFromBytes: (bytes: Uint8Array, name: string) => Promise<PDFDocumentProxy>
+  stagePdfFromBytes: (bytes: Uint8Array) => Promise<PDFDocumentProxy>
+  adoptStagedPdf: (doc: PDFDocumentProxy, bytes: Uint8Array, name: string) => void
+}
+export function usePdfDocument(): PdfDocumentActions {
   const setFile = useViewerStore((s) => s.setFile)
   const setPdfDocument = useViewerStore((s) => s.setPdfDocument)
   const setPdfBytes = useViewerStore((s) => s.setPdfBytes)
@@ -12,11 +19,24 @@ export function usePdfDocument() {
   const stagePdfFromBytes = useCallback(async (bytes: Uint8Array): Promise<PDFDocumentProxy> => {
     return pdfjsLib.getDocument({ data: cloneForPdfWorker(bytes) }).promise
   }, [])
-  const adoptStagedPdf = useCallback((doc: PDFDocumentProxy, bytes: Uint8Array, name: string): void => {
-    const previous = useViewerStore.getState().pdfDocument as PDFDocumentProxy | null
-    setPdfDocument(doc); setPdfBytes(bytes); setFile(name, name, doc.numPages)
-    if (previous && previous !== doc) void previous.destroy().catch(() => {})
-  }, [setPdfDocument, setPdfBytes, setFile])
+  const adoptStagedPdf = useCallback(
+    (doc: PDFDocumentProxy, bytes: Uint8Array, name: string): void => {
+      const previous = useViewerStore.getState().pdfDocument as PDFDocumentProxy | null
+      // Hydration already restored the page and applied the existing auto-fit policy. Do not call setFile,
+      // which intentionally resets those fields for an ordinary PDF open.
+      useViewerStore.setState({
+        pdfDocument: doc,
+        pdfBytes: bytes,
+        filePath: name,
+        fileName: name,
+        totalPages: doc.numPages,
+        selectedMarkupIds: [],
+        vertexEditMarkupId: null
+      })
+      if (previous && previous !== doc) void previous.destroy().catch(() => {})
+    },
+    []
+  )
 
   /**
    * Internal: load PDF.js document from raw bytes; cache bytes in viewerStore
@@ -40,7 +60,7 @@ export function usePdfDocument() {
       const doc = await pdfjsLib.getDocument({ data: cloneForPdfWorker(u8) }).promise
       const fileName = filePath.split(/[\\/]/).pop() ?? 'Unknown'
       setPdfDocument(doc)
-      setPdfBytes(u8)              // cache bytes for save (Phase 4.1)
+      setPdfBytes(u8) // cache bytes for save (Phase 4.1)
       setFile(filePath, fileName, doc.numPages)
       return doc
     },

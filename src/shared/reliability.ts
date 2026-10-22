@@ -19,16 +19,24 @@ export interface RecoveryCandidate {
   problem?: 'metadata' | 'pdf'
 }
 export type RecoveryStage = 'scan' | 'validate' | 'write' | 'quota' | 'read' | 'delete'
-export interface RecoveryFailure { ok: false; stage: RecoveryStage; message: string }
+export interface RecoveryFailure {
+  ok: false
+  stage: RecoveryStage
+  message: string
+}
 export type RecoveryListResult = { ok: true; candidates: RecoveryCandidate[] } | RecoveryFailure
-export type RecoveryWriteResult = { ok: true; candidate: RecoveryCandidate; unchanged: boolean } | RecoveryFailure
-export type RecoveryReadResult = { ok: true; candidate: RecoveryCandidate; projectJson: string; pdfBytes: Uint8Array } | RecoveryFailure
+export type RecoveryWriteResult =
+  | { ok: true; candidate: RecoveryCandidate; unchanged: boolean }
+  | RecoveryFailure
+export type RecoveryReadResult =
+  | { ok: true; candidate: RecoveryCandidate; projectJson: string; pdfBytes: Uint8Array }
+  | RecoveryFailure
 export type RecoveryDeleteResult = { ok: true } | RecoveryFailure
 export interface RecoveryApi {
   listRecovery: () => Promise<RecoveryListResult>
   writeRecovery: (input: RecoveryWrite) => Promise<RecoveryWriteResult>
   readRecovery: (id: string) => Promise<RecoveryReadResult>
-  deleteRecovery: (id: string) => Promise<RecoveryDeleteResult>
+  deleteRecovery: (id: string, revision: number) => Promise<RecoveryDeleteResult>
   retireRecoveryRevision: (session: string, revision: number) => Promise<RecoveryDeleteResult>
-  recoveryDestinationWritable: (path: string) => Promise<boolean>
+  recoveryDestinationWritable: (session: string) => Promise<boolean>
 }

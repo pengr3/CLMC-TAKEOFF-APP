@@ -14,6 +14,7 @@ export interface SaveFailure {
 }
 
 interface ProjectStoreState {
+  recoveryWarning: string | null
   saveFailure: SaveFailure | null
   lastSaveOutcome: { revision: number; message: string; at: number } | null
   setSaveFailure: (failure: SaveFailure | null) => void
@@ -139,6 +140,7 @@ export function isHydrating(): boolean {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createProjectStore = () =>
   create<ProjectStoreState>((set, get) => ({
+    recoveryWarning: null,
     saveFailure: null,
     lastSaveOutcome: null,
     setSaveFailure: (saveFailure) => set({ saveFailure }),
@@ -178,6 +180,7 @@ const createProjectStore = () =>
 
     reset: () =>
       set({
+        recoveryWarning: null,
         saveFailure: null,
         lastSaveOutcome: null,
         documentSessionId: crypto.randomUUID(),

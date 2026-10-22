@@ -3,6 +3,7 @@ import { useScaleStore } from '../stores/scaleStore'
 import { useMarkupStore } from '../stores/markupStore'
 import { formatScaleRatio } from '../lib/scale-math'
 import { COLORS } from '../lib/constants'
+import { useProjectStore } from '../stores/projectStore'
 import { getCalibrationControls } from './CanvasViewport'
 import type { Markup } from '../types/markup'
 
@@ -26,7 +27,12 @@ function Divider(): React.JSX.Element {
   )
 }
 
-export function StatusBar(): React.JSX.Element {
+export function StatusBar({
+  onSaveProject,
+  recoveryScanning = false
+}: { onSaveProject?: () => void; recoveryScanning?: boolean } = {}): React.JSX.Element {
+  const recoveryWarning = useProjectStore((s) => s.recoveryWarning)
+  const saving = useProjectStore((s) => s.isSaving)
   const { fileName, totalPages, currentPage } = useViewerStore()
   const getViewport = useViewerStore((s) => s.getViewport)
   const getScale = useScaleStore((s) => s.getScale)
@@ -98,70 +104,112 @@ export function StatusBar(): React.JSX.Element {
   }
 
   return (
-    <div
-      style={{
-        height: 28,
-        background: '#252526',
-        borderTop: '1px solid #3c3c3c',
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 16px',
-        fontSize: 13,
-        fontWeight: 400,
-        color: '#cccccc',
-        flexShrink: 0
-      }}
-    >
-      {/* Left: filename */}
-      <span
+    <>
+      {recoveryWarning && (
+        <div
+          role="status"
+          style={{
+            padding: '8px 16px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
+            flexShrink: 0,
+            background: COLORS.secondary,
+            color: COLORS.warning,
+            fontSize: 13,
+            overflowWrap: 'anywhere'
+          }}
+        >
+          <span>{recoveryWarning}</span>
+          <button
+            type="button"
+            disabled={saving}
+            onClick={onSaveProject}
+            style={{
+              background: COLORS.accent,
+              color: COLORS.textOnAccent,
+              borderRadius: 4,
+              border: 0,
+              padding: '4px 8px'
+            }}
+          >
+            Save Project
+          </button>
+        </div>
+      )}
+      {recoveryScanning && (
+        <div
+          role="status"
+          style={{
+            padding: '4px 16px',
+            color: COLORS.textSecondary,
+            background: COLORS.secondary,
+            fontSize: 13
+          }}
+        >
+          Checking recovery copies…
+        </div>
+      )}
+      <div
         style={{
-          maxWidth: 300,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap'
+          height: 28,
+          background: '#252526',
+          borderTop: '1px solid #3c3c3c',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 16px',
+          fontSize: 13,
+          fontWeight: 400,
+          color: '#cccccc',
+          flexShrink: 0
         }}
       >
-        {hasFile ? fileName : '\u2014'}
-      </span>
+        {/* Left: filename */}
+        <span
+          style={{
+            maxWidth: 300,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          {hasFile ? fileName : '\u2014'}
+        </span>
 
-      <Divider />
+        <Divider />
 
-      {/* Center: page */}
-      <span>
-        {hasFile ? `Page ${currentPage} of ${totalPages}` : '\u2014'}
-      </span>
+        {/* Center: page */}
+        <span>{hasFile ? `Page ${currentPage} of ${totalPages}` : '\u2014'}</span>
 
-      <Divider />
+        <Divider />
 
-      {/* Zoom */}
-      <span>{hasFile ? `Zoom: ${zoomPct}%` : '\u2014'}</span>
+        {/* Zoom */}
+        <span>{hasFile ? `Zoom: ${zoomPct}%` : '\u2014'}</span>
 
-      <Divider />
+        <Divider />
 
-      {/* Scale (18-06): calibrated ratio | "Not Set" | "Page not calibrated." + Set Scale nudge */}
-      <span aria-live="polite">Scale: {scaleSegment}</span>
+        {/* Scale (18-06): calibrated ratio | "Not Set" | "Page not calibrated." + Set Scale nudge */}
+        <span aria-live="polite">Scale: {scaleSegment}</span>
 
-      <Divider />
+        <Divider />
 
-      {/* Snap (Phase 14 D-03): ON shows an accent dot; held-off is dimmed; OFF is amber. */}
-      <span
-        aria-live="polite"
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
-      >
-        Snap: <span style={{ color: snapColor }}>{snapText}</span>
-        {snapEnabled && !snapSuspended && (
-          <span
-            aria-hidden="true"
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: COLORS.accent,
-              display: 'inline-block'
-            }}
-          />
-        )}
-      </span>
-    </div>
+        {/* Snap (Phase 14 D-03): ON shows an accent dot; held-off is dimmed; OFF is amber. */}
+        <span aria-live="polite" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          Snap: <span style={{ color: snapColor }}>{snapText}</span>
+          {snapEnabled && !snapSuspended && (
+            <span
+              aria-hidden="true"
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: COLORS.accent,
+                display: 'inline-block'
+              }}
+            />
+          )}
+        </span>
+      </div>
+    </>
   )
 }

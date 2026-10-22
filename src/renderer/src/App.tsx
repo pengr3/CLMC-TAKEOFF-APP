@@ -23,7 +23,7 @@ import { UncalibratedExportWarningModal } from './components/UncalibratedExportW
 import { useViewerStore } from './stores/viewerStore'
 import { useMarkupStore } from './stores/markupStore'
 import { attachDirtyTracking, useProjectStore } from './stores/projectStore'
-import { useProject, type ProjectOpenResult } from './hooks/useProject'
+import { useProject, startRecoverySchedule, type ProjectOpenResult } from './hooks/useProject'
 import { useExport } from './hooks/useExport'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useCloseGuard } from './hooks/useCloseGuard'
@@ -57,7 +57,9 @@ function App(): React.JSX.Element {
     replacePlanPdf,
     applyReplacePlanPdf,
     applyArchiveCorruptedProceed,
-    writeRecoverySnapshot, restoreRecovery
+    writeRecoverySnapshot,
+    restoreRecovery,
+    discardRecovery
   } = useProject()
   const { exportBoq, applyExportAfterConfirm } = useExport()
 
@@ -78,24 +80,27 @@ function App(): React.JSX.Element {
   // imperatively must be restored imperatively — not left to reconciliation.)
   const dragBaseTransitionRef = useRef<string | null>(null)
 
-  const handleTotalsDragWidth = useCallback((w: number): void => {
-    const open = w > TOTALS_RAIL_WIDTH
-    if ((totalsDragOpenRef.current ?? totals.open) !== open) {
-      totalsDragOpenRef.current = open
-      // Mount the correct panel contents before writing its live DOM width.
-      // This runs only on an open/closed boundary crossing, not every move.
-      flushSync(() => setTotalsDragOpen(open))
-    }
-    const el = totalsPanelRef.current
-    if (!el) return
-    if (dragBaseTransitionRef.current === null) {
-      // First move of this drag: freeze the 150ms width transition so the panel
-      // tracks the pointer 1:1 instead of easing behind it.
-      dragBaseTransitionRef.current = el.style.transition
-      el.style.transition = 'none'
-    }
-    el.style.width = `${w}px`
-  }, [totals.open])
+  const handleTotalsDragWidth = useCallback(
+    (w: number): void => {
+      const open = w > TOTALS_RAIL_WIDTH
+      if ((totalsDragOpenRef.current ?? totals.open) !== open) {
+        totalsDragOpenRef.current = open
+        // Mount the correct panel contents before writing its live DOM width.
+        // This runs only on an open/closed boundary crossing, not every move.
+        flushSync(() => setTotalsDragOpen(open))
+      }
+      const el = totalsPanelRef.current
+      if (!el) return
+      if (dragBaseTransitionRef.current === null) {
+        // First move of this drag: freeze the 150ms width transition so the panel
+        // tracks the pointer 1:1 instead of easing behind it.
+        dragBaseTransitionRef.current = el.style.transition
+        el.style.transition = 'none'
+      }
+      el.style.width = `${w}px`
+    },
+    [totals.open]
+  )
 
   const handleTotalsCommitWidth = useCallback(
     (finalWidth: number): void => {
@@ -135,36 +140,89 @@ function App(): React.JSX.Element {
   }, [copyToast])
 
   // Open-flow state (slimmed for v2)
-  const [archiveCorrupted, setArchiveCorrupted] =
-    useState<{ validated: ProjectFileV2; pdfBytes: Uint8Array; clmcPath: string } | null>(null)
+  const [archiveCorrupted, setArchiveCorrupted] = useState<{
+    validated: ProjectFileV2
+    pdfBytes: Uint8Array
+    clmcPath: string
+  } | null>(null)
   const [openError, setOpenError] = useState<string | null>(null)
   const [saveToast, setSaveToast] = useState<string | null>(null)
-  const [closeModal, setCloseModal] = useState<'close-window' | 'open-other' | null>(null)
+  const [closeModal, setCloseModal] = useState<
+    'close-window' | 'open-other' | 'recover-other' | null
+  >(null)
   const [aboutOpen, setAboutOpen] = useState(false)
   const [recoveryCandidates, setRecoveryCandidates] = useState<RecoveryCandidate[]>([])
   const [recoveryOpen, setRecoveryOpen] = useState(false)
   const [recoveryBusy, setRecoveryBusy] = useState(false)
   const [recoveryError, setRecoveryError] = useState<string | null>(null)
-  useEffect(() => {
-    let canceled = false
-    void window.api.listRecovery().then(result => {
-      if (!canceled && result.ok) { setRecoveryCandidates(result.candidates); setRecoveryOpen(result.candidates.length > 0) }
-    }).catch(() => {})
-    const timer = window.setInterval(() => { void writeRecoverySnapshot() }, 60_000)
-    return () => { canceled = true; window.clearInterval(timer) }
-  }, [writeRecoverySnapshot])
-  const [pendingOpen, setPendingOpen] = useState<{ filePath: string; extension: string } | null>(null)
-  useEffect(() => useProjectStore.subscribe((state, previous) => {
-    if (state.lastSaveOutcome && state.lastSaveOutcome !== previous.lastSaveOutcome) {
-      setSaveToast(state.lastSaveOutcome.message)
+  const [recoveryScanning, setRecoveryScanning] = useState(false)
+  const [pendingRecovery, setPendingRecovery] = useState<string | null>(null)
+  const [discardBusy, setDiscardBusy] = useState(false)
+  const recoveryAction = useRef(false)
+  const scanActive = useRef(false)
+  const mounted = useRef(true)
+  const refreshRecovery = useCallback(async (present = false): Promise<void> => {
+    if (scanActive.current || !window.api.listRecovery) return
+    scanActive.current = true
+    setRecoveryScanning(true)
+    try {
+      const result = await window.api.listRecovery()
+      if (!mounted.current) return
+      if (result.ok) {
+        setRecoveryCandidates(result.candidates)
+        setRecoveryError(null)
+        if (present) setRecoveryOpen(result.candidates.length > 0)
+        if (result.candidates.length === 0) setRecoveryOpen(false)
+      } else {
+        setRecoveryError(result.message)
+        useProjectStore.setState({ recoveryWarning: result.message })
+      }
+    } catch {
+      if (mounted.current)
+        useProjectStore.setState({
+          recoveryWarning: 'Recovery copies could not be checked. Try again later.'
+        })
+    } finally {
+      scanActive.current = false
+      if (mounted.current) setRecoveryScanning(false)
     }
-  }), [])
+  }, [])
+  useEffect(() => {
+    mounted.current = true
+    void refreshRecovery(true)
+    const stop = startRecoverySchedule(writeRecoverySnapshot)
+    const changed = (): void => {
+      void refreshRecovery()
+    }
+    window.addEventListener('clmc:recovery-updated', changed)
+    return () => {
+      mounted.current = false
+      stop()
+      window.removeEventListener('clmc:recovery-updated', changed)
+    }
+  }, [writeRecoverySnapshot, refreshRecovery])
+  const [pendingOpen, setPendingOpen] = useState<{ filePath: string; extension: string } | null>(
+    null
+  )
+  useEffect(
+    () =>
+      useProjectStore.subscribe((state, previous) => {
+        if (state.lastSaveOutcome && state.lastSaveOutcome !== previous.lastSaveOutcome) {
+          setSaveToast(state.lastSaveOutcome.message)
+        }
+      }),
+    []
+  )
 
   // Replace-flow state (NEW)
-  const [replacePageAbort, setReplacePageAbort] =
-    useState<{ expected: number; actual: number } | null>(null)
-  const [replaceDimMiss, setReplaceDimMiss] =
-    useState<{ pendingBytes: Uint8Array; pendingFilename: string } | null>(null)
+  const [replacePageAbort, setReplacePageAbort] = useState<{
+    expected: number
+    actual: number
+  } | null>(null)
+  const [replaceDimMiss, setReplaceDimMiss] = useState<{
+    pendingBytes: Uint8Array
+    pendingFilename: string
+  } | null>(null)
 
   // Phase 5: BOQ Export state
   const [exportToast, setExportToast] = useState<string | null>(null)
@@ -184,7 +242,9 @@ function App(): React.JSX.Element {
   useEffect(() => attachDirtyTracking(), [])
 
   useEffect(() => {
-    const preventNav = (e: DragEvent): void => { e.preventDefault() }
+    const preventNav = (e: DragEvent): void => {
+      e.preventDefault()
+    }
     window.addEventListener('dragover', preventNav)
     window.addEventListener('drop', preventNav)
     return () => {
@@ -194,7 +254,9 @@ function App(): React.JSX.Element {
   }, [])
 
   useEffect(() => {
-    const preventNativeZoom = (e: WheelEvent): void => { if (e.ctrlKey) e.preventDefault() }
+    const preventNativeZoom = (e: WheelEvent): void => {
+      if (e.ctrlKey) e.preventDefault()
+    }
     window.addEventListener('wheel', preventNativeZoom, { passive: false })
     return () => window.removeEventListener('wheel', preventNativeZoom)
   }, [])
@@ -270,7 +332,8 @@ function App(): React.JSX.Element {
 
   const handleOpenClick = useCallback(async () => {
     if (document.querySelector('[role="dialog"]')) return
-    if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure || closeModal) return
+    if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure || closeModal)
+      return
     const picked = await window.api.openProject()
     if (!picked) return
     if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure) return
@@ -293,10 +356,43 @@ function App(): React.JSX.Element {
     await saveProjectAs()
   }, [saveProjectAs])
 
+  const performRecovery = async (id: string): Promise<void> => {
+    if (recoveryAction.current || recoveryScanning) return
+    recoveryAction.current = true
+    setRecoveryBusy(true)
+    setRecoveryError(null)
+    try {
+      const result = await restoreRecovery(id)
+      if (result.kind === 'ok') {
+        setRecoveryOpen(false)
+        setSaveToast('Recovered unsaved work. Save the project to keep these changes.')
+      } else if (result.kind === 'error') setRecoveryError(result.message)
+    } finally {
+      recoveryAction.current = false
+      setRecoveryBusy(false)
+    }
+  }
+  const requestRecovery = async (id: string): Promise<void> => {
+    const state = useProjectStore.getState()
+    if (state.isSaving || recoveryAction.current || recoveryScanning) return
+    if (state.isDirty) {
+      if (state.documentSessionId === id) {
+        setRecoveryOpen(false)
+        setSaveToast('This recovery copy is already open. Save the project to keep these changes.')
+        return
+      }
+      setPendingRecovery(id)
+      setCloseModal('recover-other')
+      return
+    }
+    await performRecovery(id)
+  }
+
   // NEW (D-08): Replace Plan PDF — opens picker, runs validation, routes result.
   const handleReplaceClick = useCallback(async () => {
     if (document.querySelector('[role="dialog"]')) return
-    if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure || closeModal) return
+    if (useProjectStore.getState().isSaving || useProjectStore.getState().saveFailure || closeModal)
+      return
     const pick = await window.api.openPdf()
     if (!pick) return
     const newBytes = new Uint8Array(pick.data)
@@ -317,13 +413,21 @@ function App(): React.JSX.Element {
   }, [replacePlanPdf, closeModal])
 
   const finishGuardedSave = async (result: 'ok' | 'canceled' | 'error'): Promise<void> => {
-    if (result !== 'ok' || useProjectStore.getState().isDirty || useProjectStore.getState().isSaving) return
+    if (
+      result !== 'ok' ||
+      useProjectStore.getState().isDirty ||
+      useProjectStore.getState().isSaving
+    )
+      return
     if (closeModal === 'close-window') window.api.confirmClose()
     else if (closeModal === 'open-other' && pendingOpen) {
       handleOpenResult(await openByExtension(pendingOpen.filePath, pendingOpen.extension))
+    } else if (closeModal === 'recover-other' && pendingRecovery) {
+      await performRecovery(pendingRecovery)
     }
     setCloseModal(null)
     setPendingOpen(null)
+    setPendingRecovery(null)
   }
 
   // Phase 5: Export click handler — routes ExportResult kinds to UI state
@@ -414,6 +518,11 @@ function App(): React.JSX.Element {
         onAboutClick={() => {
           if (!document.querySelector('[role="dialog"]') && !isSaving) setAboutOpen(true)
         }}
+        recoveryAvailable={recoveryCandidates.length > 0}
+        onRecoverClick={() => {
+          if (!document.querySelector('[role="dialog"]') && !isSaving && !recoveryScanning)
+            void refreshRecovery(true)
+        }}
       />
       <ContextBar />
       <main
@@ -441,147 +550,211 @@ function App(): React.JSX.Element {
             PDF, and measure 0×0 on return. Markups already live in Zustand, so no
             data is ever at risk; keeping the (cheap) Estimate DOM mounted while
             hidden costs nothing meaningful. */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'row', minWidth: 0, overflow: 'hidden' }}>
-        {/* Plan subtree: CanvasViewport + toasts. Phase 18 (D-06): the top
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'row',
+            minWidth: 0,
+            overflow: 'hidden'
+          }}
+        >
+          {/* Plan subtree: CanvasViewport + toasts. Phase 18 (D-06): the top
             CanvasHeaderBar is gone — its page/scale + "Page not calibrated → Set Scale"
             nudge now live on the single consolidated bottom StatusBar line.
             CRITICAL: minWidth: 0 prevents the canvas's intrinsic content from blocking
             shrinking when both panels are open (flex-child needs explicit 0 floor). */}
-        <div
-          style={{
-            display: viewMode === 'plan' ? 'flex' : 'none',
-            flexDirection: 'column',
-            flex: 1,
-            minWidth: 0,
-            minHeight: 0,
-            overflow: 'hidden'
-          }}
-        >
-          <div data-testid="canvas-viewport-container" style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-            {totalPages === 0
-              ? <EmptyState />
-              : <CanvasViewport
+          <div
+            style={{
+              display: viewMode === 'plan' ? 'flex' : 'none',
+              flexDirection: 'column',
+              flex: 1,
+              minWidth: 0,
+              minHeight: 0,
+              overflow: 'hidden'
+            }}
+          >
+            <div
+              data-testid="canvas-viewport-container"
+              style={{ flex: 1, position: 'relative', minHeight: 0 }}
+            >
+              {totalPages === 0 ? (
+                <EmptyState />
+              ) : (
+                <CanvasViewport
                   hoverMatches={hoverMatches}
                   pulse={pulse}
                   onPulseComplete={clearPulse}
                   onReopenToast={handleReopenToast}
                 />
-            }
+              )}
 
-            {/* Toasts relocated inside center column so they don't bleed across side panels */}
-            {saveToast !== null && (
-              <div
-                role="status"
-                aria-live="polite"
-                style={{
-                  position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
-                  padding: '8px 16px', background: '#252526', border: '1px solid #3c3c3c',
-                  borderRadius: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.4)', zIndex: 15,
-                  display: 'flex', gap: 16, fontSize: 13, color: '#cccccc'
-                }}
-              >
-                <span>{saveToast}</span>
-                <button
-                  onClick={() => setSaveToast(null)}
+              {/* Toasts relocated inside center column so they don't bleed across side panels */}
+              {saveToast !== null && (
+                <div
+                  role="status"
+                  aria-live="polite"
                   style={{
-                    background: 'transparent', border: 'none',
-                    color: '#888', cursor: 'pointer', fontSize: 13
+                    position: 'absolute',
+                    bottom: 16,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    padding: '8px 16px',
+                    background: '#252526',
+                    border: '1px solid #3c3c3c',
+                    borderRadius: 4,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                    zIndex: 15,
+                    display: 'flex',
+                    gap: 16,
+                    fontSize: 13,
+                    color: '#cccccc'
                   }}
                 >
-                  Dismiss
-                </button>
-              </div>
-            )}
+                  <span>{saveToast}</span>
+                  <button
+                    onClick={() => setSaveToast(null)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#888',
+                      cursor: 'pointer',
+                      fontSize: 13
+                    }}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              )}
 
-            {exportToast !== null && (
-              <div
-                role="status"
-                aria-live="polite"
-                style={{
-                  position: 'absolute', bottom: 60, left: '50%', transform: 'translateX(-50%)',
-                  padding: '8px 16px', background: '#252526', border: '1px solid #3c3c3c',
-                  borderRadius: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.4)', zIndex: 15,
-                  display: 'flex', gap: 16, fontSize: 13, color: '#cccccc'
-                }}
-              >
-                <span>{exportToast}</span>
-                <button
-                  onClick={() => setExportToast(null)}
+              {exportToast !== null && (
+                <div
+                  role="status"
+                  aria-live="polite"
                   style={{
-                    background: 'transparent', border: 'none',
-                    color: '#888', cursor: 'pointer', fontSize: 13
+                    position: 'absolute',
+                    bottom: 60,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    padding: '8px 16px',
+                    background: '#252526',
+                    border: '1px solid #3c3c3c',
+                    borderRadius: 4,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                    zIndex: 15,
+                    display: 'flex',
+                    gap: 16,
+                    fontSize: 13,
+                    color: '#cccccc'
                   }}
                 >
-                  Dismiss
-                </button>
-              </div>
-            )}
+                  <span>{exportToast}</span>
+                  <button
+                    onClick={() => setExportToast(null)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#888',
+                      cursor: 'pointer',
+                      fontSize: 13
+                    }}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              )}
 
-            {/* Phase 6 D-14: Copy toast — 2000ms parent-owned dismiss */}
-            {copyToast !== null && (
-              <div
-                role="status"
-                aria-live="polite"
-                style={{
-                  position: 'absolute', bottom: 104, left: '50%', transform: 'translateX(-50%)',
-                  padding: '8px 16px', background: '#252526', border: '1px solid #3c3c3c',
-                  borderRadius: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.4)', zIndex: 15,
-                  display: 'flex', gap: 16, fontSize: 13, color: '#cccccc'
-                }}
-              >
-                <span>{copyToast}</span>
-                <button
-                  onClick={() => setCopyToast(null)}
+              {/* Phase 6 D-14: Copy toast — 2000ms parent-owned dismiss */}
+              {copyToast !== null && (
+                <div
+                  role="status"
+                  aria-live="polite"
                   style={{
-                    background: 'transparent', border: 'none',
-                    color: '#888', cursor: 'pointer', fontSize: 13
+                    position: 'absolute',
+                    bottom: 104,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    padding: '8px 16px',
+                    background: '#252526',
+                    border: '1px solid #3c3c3c',
+                    borderRadius: 4,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                    zIndex: 15,
+                    display: 'flex',
+                    gap: 16,
+                    fontSize: 13,
+                    color: '#cccccc'
                   }}
                 >
-                  Dismiss
-                </button>
-              </div>
-            )}
+                  <span>{copyToast}</span>
+                  <button
+                    onClick={() => setCopyToast(null)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#888',
+                      cursor: 'pointer',
+                      fontSize: 13
+                    }}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              )}
 
-            {/* Phase 13 (D-11 / D-20): post-commit re-open toast. bottom: 148 avoids stacking
+              {/* Phase 13 (D-11 / D-20): post-commit re-open toast. bottom: 148 avoids stacking
                 collision with saveToast (16), exportToast (60), copyToast (104). */}
-            {reopenToast !== null && (
-              <div
-                role="status"
-                aria-live="polite"
-                style={{
-                  position: 'absolute', bottom: 148, left: '50%', transform: 'translateX(-50%)',
-                  padding: '8px 16px', background: '#252526', border: '1px solid #3c3c3c',
-                  borderRadius: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.4)', zIndex: 15,
-                  display: 'flex', gap: 16, fontSize: 13, color: '#cccccc'
-                }}
-              >
-                <span>{reopenToast}</span>
-                <button
-                  onClick={() => setReopenToast(null)}
+              {reopenToast !== null && (
+                <div
+                  role="status"
+                  aria-live="polite"
                   style={{
-                    background: 'transparent', border: 'none',
-                    color: '#888', cursor: 'pointer', fontSize: 13
+                    position: 'absolute',
+                    bottom: 148,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    padding: '8px 16px',
+                    background: '#252526',
+                    border: '1px solid #3c3c3c',
+                    borderRadius: 4,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                    zIndex: 15,
+                    display: 'flex',
+                    gap: 16,
+                    fontSize: 13,
+                    color: '#cccccc'
                   }}
                 >
-                  Dismiss
-                </button>
-              </div>
-            )}
+                  <span>{reopenToast}</span>
+                  <button
+                    onClick={() => setReopenToast(null)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#888',
+                      cursor: 'pointer',
+                      fontSize: 13
+                    }}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Estimate subtree — always mounted, shown only in Estimate mode. Fills the
+          {/* Estimate subtree — always mounted, shown only in Estimate mode. Fills the
             center area (full width); the totals panel + splitter hide (below). */}
-        <div
-          style={{
-            display: viewMode === 'estimate' ? 'flex' : 'none',
-            flex: 1,
-            minWidth: 0,
-            minHeight: 0
-          }}
-        >
-          <EstimatePanel />
-        </div>
+          <div
+            style={{
+              display: viewMode === 'estimate' ? 'flex' : 'none',
+              flex: 1,
+              minWidth: 0,
+              minHeight: 0
+            }}
+          >
+            <EstimatePanel />
+          </div>
         </div>
 
         {/* Right-side chrome — Plan-only (D-01/A4). In Estimate mode the grid is
@@ -614,13 +787,15 @@ function App(): React.JSX.Element {
           </>
         )}
       </main>
-      <StatusBar />
+      <StatusBar
+        onSaveProject={() => {
+          void handleSaveClick()
+        }}
+        recoveryScanning={recoveryScanning}
+      />
 
       {openError !== null && (
-        <OpenErrorModal
-          message={openError}
-          onClose={() => setOpenError(null)}
-        />
+        <OpenErrorModal message={openError} onClose={() => setOpenError(null)} />
       )}
 
       {/* GAP-2: export errors use export-appropriate copy — NOT the "Failed to
@@ -697,52 +872,112 @@ function App(): React.JSX.Element {
         />
       )}
 
-      {aboutOpen && !saveFailure && !closeModal && !openError && !exportError && !uncalibratedWarning && !archiveCorrupted && !replacePageAbort && !replaceDimMiss && (
-        <AboutDialog projectPath={currentFilePath} onClose={() => setAboutOpen(false)} />
-      )}
+      {aboutOpen &&
+        !saveFailure &&
+        !closeModal &&
+        !openError &&
+        !exportError &&
+        !uncalibratedWarning &&
+        !archiveCorrupted &&
+        !replacePageAbort &&
+        !replaceDimMiss && (
+          <AboutDialog projectPath={currentFilePath} onClose={() => setAboutOpen(false)} />
+        )}
 
-      {recoveryOpen && recoveryCandidates.length > 0 && !saveFailure && !closeModal && !aboutOpen && !openError && (
-        <RecoveryDialog candidates={recoveryCandidates} busy={recoveryBusy} error={recoveryError}
-          onKeep={() => setRecoveryOpen(false)} onRecover={async id => {
-            if (recoveryBusy) return
-            setRecoveryBusy(true)
-            try { const result = await restoreRecovery(id); if (result.kind === 'ok') { setRecoveryOpen(false); setSaveToast('Recovered unsaved work. Save the project to keep these changes.') } else if (result.kind === 'error') setRecoveryError(result.message) }
-            finally { setRecoveryBusy(false) }
-          }} />
-      )}
+      {recoveryOpen &&
+        recoveryCandidates.length > 0 &&
+        !saveFailure &&
+        !closeModal &&
+        !aboutOpen &&
+        !openError &&
+        !exportError &&
+        !uncalibratedWarning &&
+        !archiveCorrupted &&
+        !replacePageAbort &&
+        !replaceDimMiss && (
+          <RecoveryDialog
+            candidates={recoveryCandidates}
+            busy={recoveryBusy || recoveryScanning}
+            error={recoveryError}
+            onKeep={() => setRecoveryOpen(false)}
+            onRecover={requestRecovery}
+            onRetry={() => refreshRecovery()}
+            onDiscard={async (candidate) => {
+              if (recoveryAction.current || recoveryScanning)
+                return { ok: false, stage: 'delete', message: 'Recovery is busy. Try again later.' }
+              recoveryAction.current = true
+              try {
+                const result = await window.api.deleteRecovery(candidate.id, candidate.revision)
+                if (result.ok) {
+                  setRecoveryCandidates((current) => current.filter((c) => c.id !== candidate.id))
+                  await refreshRecovery()
+                }
+                return result
+              } finally {
+                recoveryAction.current = false
+              }
+            }}
+          />
+        )}
 
       {saveFailure && (
-        <SaveFailureDialog failure={saveFailure} busy={isSaving}
-          onRetry={async () => { await finishGuardedSave(await retrySaveProject()) }}
-          onSaveAs={async () => { await finishGuardedSave(await saveProjectAs()) }}
+        <SaveFailureDialog
+          failure={saveFailure}
+          busy={isSaving}
+          onRetry={async () => {
+            await finishGuardedSave(await retrySaveProject())
+          }}
+          onSaveAs={async () => {
+            await finishGuardedSave(await saveProjectAs())
+          }}
           onClose={() => {
             useProjectStore.getState().setSaveFailure(null)
             setCloseModal(null)
             setPendingOpen(null)
-          }} />
+          }}
+        />
       )}
 
       {closeModal && !saveFailure && (
         <SaveCloseModal
           filename={displayFilename}
-          busy={isSaving}
+          busy={isSaving || discardBusy}
           onSave={async () => {
             await finishGuardedSave(await saveProject())
           }}
           onDiscard={async () => {
-            if (useProjectStore.getState().isSaving) return
-            if (closeModal === 'close-window') {
-              window.api.confirmClose()
-            } else if (closeModal === 'open-other' && pendingOpen) {
-              const res = await openByExtension(pendingOpen.filePath, pendingOpen.extension)
-              handleOpenResult(res)
+            if (useProjectStore.getState().isSaving || recoveryAction.current) return
+            recoveryAction.current = true
+            setDiscardBusy(true)
+            try {
+              if (!(await discardRecovery())) {
+                setCloseModal(null)
+                setOpenError(
+                  'Could not delete the recovery copy. It has been kept. Try again later.'
+                )
+                return
+              }
+              if (closeModal === 'close-window') {
+                window.api.confirmClose()
+              } else if (closeModal === 'open-other' && pendingOpen) {
+                const res = await openByExtension(pendingOpen.filePath, pendingOpen.extension)
+                handleOpenResult(res)
+              } else if (closeModal === 'recover-other' && pendingRecovery) {
+                recoveryAction.current = false
+                await performRecovery(pendingRecovery)
+              }
+              setCloseModal(null)
+              setPendingOpen(null)
+              setPendingRecovery(null)
+            } finally {
+              recoveryAction.current = false
+              setDiscardBusy(false)
             }
-            setCloseModal(null)
-            setPendingOpen(null)
           }}
           onCancel={() => {
             setCloseModal(null)
             setPendingOpen(null)
+            setPendingRecovery(null)
           }}
         />
       )}

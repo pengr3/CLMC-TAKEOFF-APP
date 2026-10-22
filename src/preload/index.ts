@@ -62,9 +62,9 @@ const api = {
     listRecovery: () => ipcRenderer.invoke('recovery:list'),
     writeRecovery: (input) => ipcRenderer.invoke('recovery:write', input),
     readRecovery: (id) => ipcRenderer.invoke('recovery:read', id),
-    deleteRecovery: (id) => ipcRenderer.invoke('recovery:delete', id),
+    deleteRecovery: (id, revision) => ipcRenderer.invoke('recovery:delete', id, revision),
     retireRecoveryRevision: (session, revision) => ipcRenderer.invoke('recovery:retire', session, revision),
-    recoveryDestinationWritable: (path) => ipcRenderer.invoke('recovery:destinationWritable', path)
+    recoveryDestinationWritable: (session) => ipcRenderer.invoke('recovery:destinationWritable', session)
   } satisfies RecoveryApi),
   getReleaseInfo: (): Promise<ReleaseInfo> => ipcRenderer.invoke('app:getReleaseInfo'),
   costLibrary: {
