@@ -2,6 +2,8 @@ import { createReadStream } from 'fs'
 import { createHash } from 'crypto'
 import { extname } from 'path'
 import JSZip from 'jszip'
+import { fromBufferPromise } from 'yauzl'
+import { crc32 } from 'node:zlib'
 
 /**
  * Stream-based SHA256 hash of a file.
@@ -123,14 +125,37 @@ export async function assembleClmcZip(
  * exact-match lookup defends against ZIP entry-name traversal (T-4.1-01-01).
  */
 export async function extractClmcZip(zipBytes: Buffer): Promise<ExtractedClmc> {
-  const zip = await JSZip.loadAsync(zipBytes)
-  const jsonEntry = zip.file('project.json')
-  const pdfEntry = zip.file('plan.pdf')
-  if (!jsonEntry) throw new Error('Invalid .clmc archive: missing project.json')
-  if (!pdfEntry) throw new Error('Invalid .clmc archive: missing plan.pdf')
-  const [projectJson, pdfBytes] = await Promise.all([
-    jsonEntry.async('string'),
-    pdfEntry.async('nodebuffer')
-  ])
-  return { projectJson, pdfBytes }
+  // Projects carry real construction PDFs: allow 1 GiB PDF + 64 MiB metadata,
+  // independently of the much smaller workbook admission budget. Only two entries.
+  const metadataLimit = 64 * 1024 * 1024, pdfLimit = 1024 * 1024 * 1024
+  if (zipBytes.length > pdfLimit + metadataLimit + 1024 * 1024)
+    throw new Error('Invalid .clmc archive: project size limit exceeded')
+  const zip = await fromBufferPromise(zipBytes, { lazyEntries: true, validateEntrySizes: true, strictFileNames: true })
+  const entries = new Map<string, Buffer>()
+  try {
+    if (zip.entryCount > 2) throw new Error('Invalid .clmc archive: unexpected entries')
+    for await (const entry of zip.eachEntry()) {
+      const limit = entry.fileName === 'project.json' ? metadataLimit : entry.fileName === 'plan.pdf' ? pdfLimit : 0
+      if (!limit || entries.has(entry.fileName) || entry.generalPurposeBitFlag & (1 | 64) || ![0, 8].includes(entry.compressionMethod))
+        throw new Error('Invalid .clmc archive: unexpected or duplicate entry')
+      if (!Number.isSafeInteger(entry.uncompressedSize) || entry.uncompressedSize < 0 || entry.uncompressedSize > limit)
+        throw new Error('Invalid .clmc archive: expanded size limit exceeded')
+      const stream = await zip.openReadStreamPromise(entry)
+      const chunks: Buffer[] = []
+      let size = 0, checksum = 0
+      try {
+        for await (const chunk of stream) {
+          size += chunk.length
+          if (size > limit) throw new Error('Invalid .clmc archive: expanded size limit exceeded')
+          checksum = crc32(chunk, checksum)
+          chunks.push(chunk)
+        }
+      } finally { stream.destroy() }
+      if (size !== entry.uncompressedSize || checksum !== entry.crc32) throw new Error('Invalid .clmc archive: entry integrity failed')
+      entries.set(entry.fileName, Buffer.concat(chunks, size))
+    }
+    if (!entries.has('project.json')) throw new Error('Invalid .clmc archive: missing project.json')
+    if (!entries.has('plan.pdf')) throw new Error('Invalid .clmc archive: missing plan.pdf')
+    return { projectJson: entries.get('project.json')!.toString('utf8'), pdfBytes: entries.get('plan.pdf')! }
+  } finally { zip.close() }
 }

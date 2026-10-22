@@ -3,6 +3,7 @@ import type { ScaleUnit, PageScale } from '../types/scale'
 import type { ViewportState } from '../types/viewer'
 import type { PriceEntry } from './boq-types'
 import { validateRateEntries } from './rate-units'
+import { validateProjectData } from '../../../shared/project-validation'
 
 // ----- v1 (legacy plain-JSON .clmc) -----
 // Kept for migration source. New code should use ProjectFileV2.
@@ -120,7 +121,11 @@ export interface ProjectFileV2 {
   categoryItemOrder?: Record<string, string[]>
 }
 
-export type ProjectFile = ProjectFileV2
+export interface ProjectFileV3 extends Omit<ProjectFileV2, 'formatVersion'> {
+  formatVersion: 3
+  minimumReaderVersion: 3
+}
+export type ProjectFile = ProjectFileV2 | ProjectFileV3
 
 export function validateV2(raw: unknown): ProjectFileV2 {
   if (!raw || typeof raw !== 'object') throw new Error('Invalid project file: not an object')
@@ -190,14 +195,25 @@ function migrateV1ToV2(v1: ProjectFileV1): ProjectFileV2 {
 export function migrate(
   raw: unknown,
   fromVersion: number
-): { data: ProjectFileV2; wasMigrated: boolean } {
-  if (fromVersion === 2) return { data: validateV2(raw), wasMigrated: false }
+): { data: ProjectFile; wasMigrated: boolean } {
+  if (fromVersion !== (raw as { formatVersion?: unknown })?.formatVersion)
+    throw new Error(`Unsupported formatVersion: ${fromVersion}`)
+  if (fromVersion === 3) {
+    validateProjectData(raw)
+    return { data: raw as ProjectFileV3, wasMigrated: false }
+  }
+  if (fromVersion === 2) {
+    validateV2(raw)
+    validateProjectData(raw)
+    return { data: raw as ProjectFileV2, wasMigrated: true }
+  }
   if (fromVersion === 1) {
     const v1 = validateV1(raw)
+    validateProjectData(v1)
     return { data: migrateV1ToV2(v1), wasMigrated: true }
   }
   throw new Error(
-    `Unsupported formatVersion: ${fromVersion}. Expected 1 or 2. ` +
+    `Unsupported formatVersion: ${fromVersion}. Expected 1, 2 or 3. ` +
       `File may be corrupt or from a newer app version.`
   )
 }

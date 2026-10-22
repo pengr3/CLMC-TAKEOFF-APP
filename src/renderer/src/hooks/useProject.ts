@@ -4,7 +4,7 @@ import { useProjectStore } from '../stores/projectStore'
 import { useMarkupStore } from '../stores/markupStore'
 import { useScaleStore } from '../stores/scaleStore'
 import { usePdfDocument } from './usePdfDocument'
-import { migrate, type ProjectFileV2 } from '../lib/project-schema'
+import { migrate, type ProjectFile } from '../lib/project-schema'
 import { snapshotProject, hydrateStores } from '../lib/project-serialize'
 import type { PDFDocumentProxy } from '../lib/pdf-setup'
 import { MM_PER_UNIT } from '../types/scale'
@@ -22,7 +22,7 @@ export function startRecoverySchedule(capture: () => Promise<boolean>): () => vo
   }, 60_000)
   return () => window.clearInterval(timer)
 }
-function validateRecoveryMetadata(data: ProjectFileV2): void {
+function validateRecoveryMetadata(data: ProjectFile): void {
   const finite = (value: unknown): value is number =>
     typeof value === 'number' && Number.isFinite(value)
   const point = (value: unknown): boolean =>
@@ -110,7 +110,7 @@ export function routeOpenByExtension(extension: string): 'pdf' | 'clmc' | 'unkno
  */
 export type ProjectOpenResult =
   | { kind: 'ok' }
-  | { kind: 'archive-corrupted'; validated: ProjectFileV2; pdfBytes: Uint8Array; clmcPath: string }
+  | { kind: 'archive-corrupted'; validated: ProjectFile; pdfBytes: Uint8Array; clmcPath: string }
   | { kind: 'canceled' }
   | { kind: 'error'; message: string }
 
@@ -150,7 +150,7 @@ function basenameAny(p: string): string {
 
 /** Capture before the first await: recovery and explicit saves share this coherent input. */
 export interface CapturedProjectSnapshot {
-  metadata: ProjectFileV2
+  metadata: ProjectFile
   pdfBytes: Uint8Array
   pdfDocument: PDFDocumentProxy
   documentSessionId: string
@@ -171,7 +171,7 @@ export function captureProjectSnapshot(): CapturedProjectSnapshot {
         perPageDimensions: {}
       })
     )
-  ) as ProjectFileV2
+  ) as ProjectFile
   return {
     metadata,
     pdfBytes: pdfBytes.slice(),
@@ -185,7 +185,7 @@ export function captureProjectSnapshot(): CapturedProjectSnapshot {
 export async function finalizeProjectSnapshot(
   captured: CapturedProjectSnapshot,
   createdAt?: string
-): Promise<ProjectFileV2> {
+): Promise<ProjectFile> {
   const pdfSha256 = await window.api.hashBuffer(captured.pdfBytes)
   const dimensions = await perPageDimensions(captured.pdfDocument)
   return snapshotProject(
@@ -213,7 +213,7 @@ interface ProjectActions {
   replacePlanPdf: (bytes: Uint8Array, path: string) => Promise<ReplacePlanPdfResult>
   applyReplacePlanPdf: (bytes: Uint8Array, path: string) => Promise<void>
   applyArchiveCorruptedProceed: (
-    project: ProjectFileV2,
+    project: ProjectFile,
     bytes: Uint8Array,
     path: string
   ) => Promise<void>
@@ -443,7 +443,7 @@ export function useProject(): ProjectActions {
         try {
           const prev = await window.api.readProject(clmcPath)
           if (prev.kind === 'v2-zip' && prev.projectJson) {
-            const prevData = JSON.parse(prev.projectJson) as ProjectFileV2
+            const prevData = JSON.parse(prev.projectJson) as ProjectFile
             createdAt = prevData.createdAt
           }
         } catch {
@@ -537,11 +537,25 @@ export function useProject(): ProjectActions {
       return { kind: 'archive-corrupted', validated, pdfBytes, clmcPath }
     }
 
-    await loadPdfFromBytes(pdfBytes, validated.pdf.originalFilename)
-    hydrateStores(validated)
+    await stageAndCommit(validated, pdfBytes)
     useProjectStore.getState().setCurrentFilePath(clmcPath)
     useProjectStore.setState({ isDirty: false, lastSavedAt: Date.now() })
     return { kind: 'ok' }
+  }
+
+  async function stageAndCommit(data: ProjectFile, bytes: Uint8Array): Promise<void> {
+    const staged = await stagePdfFromBytes(bytes)
+    try {
+      if (staged.numPages !== data.pdf.totalPages) throw new Error('Project PDF page count does not match metadata.')
+      const dims = await perPageDimensions(staged)
+      if (data.pages.some(p => Math.abs(dims[p.pageIndex].width - p.dimensions.width) > 0.5 || Math.abs(dims[p.pageIndex].height - p.dimensions.height) > 0.5))
+        throw new Error('Project PDF dimensions do not match metadata.')
+      hydrateStores(data)
+      adoptStagedPdf(staged, bytes, data.pdf.originalFilename)
+    } catch (error) {
+      void staged.destroy().catch(() => {})
+      throw error
+    }
   }
 
   /**
@@ -566,6 +580,7 @@ export function useProject(): ProjectActions {
    */
   async function openV1Silent(text: string, clmcPath: string): Promise<ProjectOpenResult> {
     const raw = JSON.parse(text) as unknown
+    const { data: validated, wasMigrated } = migrate(raw, 1)
 
     // Step 2: Extract absolutePath from raw v1 BEFORE migrate discards it.
     const v1pdf = (raw as { pdf: { absolutePath: string } }).pdf
@@ -575,28 +590,24 @@ export function useProject(): ProjectActions {
     let pdfArrayBuf: ArrayBuffer
     try {
       pdfArrayBuf = await window.api.readPdfBytes(absPath)
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
+    } catch {
       return {
         kind: 'error',
-        message: `v1 .clmc file references a PDF at "${absPath}" which cannot be read (${msg}). v1 .clmc files are dev-only — re-create the project from the PDF to get a v2 archive.`
+        message: 'The PDF used by this older project is unavailable. Restore it at the original location and open the project again. Your current project has been kept.'
       }
     }
     const pdfBytes = new Uint8Array(pdfArrayBuf)
 
     // Step 4: Cache bytes in viewerStore BEFORE migrate (HIGH review concern).
-    useViewerStore.getState().setPdfBytes(pdfBytes)
 
     // Step 5: Migrate (drops absolutePath/relativePath; bytes already cached).
-    const { data: validated, wasMigrated } = migrate(raw, 1)
 
     // Step 6: Load PDF for rendering. loadPdfFromBytes ALSO calls setPdfBytes,
     // which is intentionally redundant — Step 4 above is the load-bearing call
     // for the test, this one is the standard PDF-load housekeeping.
-    await loadPdfFromBytes(pdfBytes, validated.pdf.originalFilename)
+    await stageAndCommit(validated, pdfBytes)
 
     // Step 7: hydrate, set current path, mark dirty.
-    hydrateStores(validated)
     useProjectStore.getState().setCurrentFilePath(clmcPath)
     if (wasMigrated) {
       useProjectStore.setState({ isDirty: true, lastSavedAt: null })
@@ -609,15 +620,14 @@ export function useProject(): ProjectActions {
    * Bypass the hash check; proceed to load + hydrate.
    */
   const applyArchiveCorruptedProceed = useCallback(
-    async (validated: ProjectFileV2, pdfBytes: Uint8Array, clmcPath: string): Promise<void> => {
+    async (validated: ProjectFile, pdfBytes: Uint8Array, clmcPath: string): Promise<void> => {
       if (
         useProjectStore.getState().isSaving ||
         useProjectStore.getState().saveFailure ||
         recoveryOperation
       )
         return
-      await loadPdfFromBytes(pdfBytes, validated.pdf.originalFilename)
-      hydrateStores(validated)
+      await stageAndCommit(validated, pdfBytes)
       useProjectStore.getState().setCurrentFilePath(clmcPath)
       useProjectStore.setState({ isDirty: false, lastSavedAt: Date.now() })
     },
@@ -762,3 +772,4 @@ export function useProject(): ProjectActions {
     applyArchiveCorruptedProceed
   }
 }
+

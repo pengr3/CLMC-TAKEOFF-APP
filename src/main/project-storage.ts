@@ -2,6 +2,7 @@ import { readFile, rename, unlink, open } from 'fs/promises'
 import { resolve } from 'path'
 import { randomUUID } from 'crypto'
 import { assembleClmcZip, extractClmcZip, sha256Buffer } from './project-io'
+import { validateProjectData } from '../shared/project-validation'
 const RENAME_RETRY_DELAYS_MS = [120, 250]
 function isLockedDestError(error: unknown): boolean {
   return ['EPERM', 'EEXIST', 'EBUSY'].includes((error as NodeJS.ErrnoException)?.code ?? '')
@@ -26,7 +27,7 @@ export function parseProjectMetadata(json: string): { pdf: { sha256: string } } 
   const data = JSON.parse(json)
   if (
     !data ||
-    data.formatVersion !== 2 ||
+    ![2, 3].includes(data.formatVersion) ||
     typeof data.createdAt !== 'string' ||
     typeof data.updatedAt !== 'string' ||
     typeof data.pdf?.originalFilename !== 'string' ||
@@ -43,6 +44,7 @@ export function parseProjectMetadata(json: string): { pdf: { sha256: string } } 
   ) {
     throw new Error('Invalid project metadata.')
   }
+  validateProjectData(data)
   return data
 }
 export async function validatedArchive(bytes: Buffer): Promise<void> {

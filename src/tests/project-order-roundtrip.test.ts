@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { snapshotProject, hydrateStores } from '@renderer/lib/project-serialize'
-import { validateV2 } from '@renderer/lib/project-schema'
+import { migrate } from '@renderer/lib/project-schema'
 import { useMarkupStore } from '@renderer/stores/markupStore'
 import { useScaleStore } from '@renderer/stores/scaleStore'
 import { useViewerStore } from '@renderer/stores/viewerStore'
@@ -66,7 +66,7 @@ describe('project-serialize — categoryItemOrder persistence (Phase 17 Req 2)',
     expect(snap.categoryItemOrder).toEqual(order)
 
     // validateV2 accepts it (no new validation branch rejects the additive field).
-    const parsed = validateV2(JSON.parse(JSON.stringify(snap)))
+    const parsed = migrate(JSON.parse(JSON.stringify(snap)), 3).data
     expect(parsed.categoryItemOrder).toEqual(order)
 
     // Wipe to a DIFFERENT value so a stale in-memory value can't mask a bad restore.
@@ -117,7 +117,7 @@ describe('project-serialize — categoryItemOrder persistence (Phase 17 Req 2)',
     }
   })
 
-  it('(d) the snapshot keeps formatVersion 2 (no bump) even with categoryItemOrder present', () => {
+  it('(d) the snapshot uses semantic format 3 with categoryItemOrder preserved', () => {
     useMarkupStore.setState({ categoryItemOrder: { 'cat-e': ['A|count'] } })
     const snap = snapshotProject({
       pdfOriginalFilename: 'plans.pdf',
@@ -125,9 +125,8 @@ describe('project-serialize — categoryItemOrder persistence (Phase 17 Req 2)',
       pdfTotalPages: 1,
       perPageDimensions: { 1: { width: 595, height: 842 } }
     })
-    expect(snap.formatVersion).toBe(2)
-    // The literal 2 (never 3) — additive field must not trigger a version bump.
-    expect(JSON.parse(JSON.stringify(snap)).formatVersion).toBe(2)
+    expect(snap.formatVersion).toBe(3)
+    expect(JSON.parse(JSON.stringify(snap)).minimumReaderVersion).toBe(3)
   })
 
   it('(e) LW-01: a __proto__ key is dropped, is inert, does not repoint the prototype, never throws', () => {

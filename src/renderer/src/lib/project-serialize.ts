@@ -1,4 +1,5 @@
-import type { ProjectFileV2 } from './project-schema'
+import type { ProjectFile, ProjectFileV3 } from './project-schema'
+import { validateProjectData } from '../../../shared/project-validation'
 import { useMarkupStore } from '../stores/markupStore'
 import { useScaleStore } from '../stores/scaleStore'
 import { useViewerStore } from '../stores/viewerStore'
@@ -28,10 +29,12 @@ export interface SnapshotParams {
  * Excludes transient state (D-09): undoStack, redoStack, calibMode, activeTool,
  * pdfDocument.
  */
-export function snapshotProject(params: SnapshotParams, captured?: ProjectFileV2): ProjectFileV2 {
+export function snapshotProject(params: SnapshotParams, captured?: ProjectFile): ProjectFileV3 {
   if (captured) {
     return {
       ...captured,
+      formatVersion: 3,
+      minimumReaderVersion: 3,
       createdAt: params.createdAt ?? captured.createdAt,
       pdf: { originalFilename: params.pdfOriginalFilename, sha256: params.pdfSha256, totalPages: params.pdfTotalPages },
       pages: captured.pages.map(page => ({ ...page, dimensions: params.perPageDimensions[page.pageIndex] ?? page.dimensions }))
@@ -55,7 +58,8 @@ export function snapshotProject(params: SnapshotParams, captured?: ProjectFileV2
   })
 
   return {
-    formatVersion: 2,
+    formatVersion: 3,
+    minimumReaderVersion: 3,
     createdAt: params.createdAt ?? now,
     updatedAt: now,
     pdf: {
@@ -86,9 +90,10 @@ export function snapshotProject(params: SnapshotParams, captured?: ProjectFileV2
  * a second project in the same session (Runtime State Inventory).
  * Excludes transient state (D-09): undoStack, redoStack, calibMode, activeTool.
  */
-export function hydrateStores(data: ProjectFileV2): void {
+export function hydrateStores(data: ProjectFile): void {
   // Validate before resetting any live stores, including recovery/direct hydration.
   validateRateEntries(data.rates)
+  validateProjectData(data)
   suspendDirtyTracking()
   try {
     useProjectStore.getState().reset()

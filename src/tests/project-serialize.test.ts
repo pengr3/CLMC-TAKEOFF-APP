@@ -66,7 +66,7 @@ describe('project-serialize', () => {
       expect(snap).toHaveProperty(key)
     }
     expect(snap.pages[0].markups[0].id).toBe('m1')
-    expect(snap.formatVersion).toBe(2)
+    expect(snap.formatVersion).toBe(3)
     expect(snap.pdf.originalFilename).toBe('plans.pdf')
     expect((snap.pdf as Record<string, unknown>).absolutePath).toBeUndefined()
     expect((snap.pdf as Record<string, unknown>).relativePath).toBeUndefined()
