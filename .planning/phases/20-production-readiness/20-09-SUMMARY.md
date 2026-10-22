@@ -73,10 +73,10 @@ coverage:
 | Item | Actual result |
 |---|---|
 | Installer | `dist/clmc-takeoff-1.1.0-x64-setup.exe` |
-| Installer bytes | 136808412 |
-| Installer SHA256 | `f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8` |
+| Installer bytes | 136810434 |
+| Installer SHA256 | `ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6` |
 | ASAR | `dist/win-unpacked/resources/app.asar` |
-| ASAR SHA256 | `5b20754de65e50d39e01b81c360025ed199b810e620146c1aa274ad3f043176a` |
+| ASAR SHA256 | `90f958f3b8579a572c09993a44ba8d58e94e7e2b9633e3dd3285f0c4d640e798` |
 | Inventory/hash manifest | `dist/release-manifest.json` |
 | Packaged runtime evidence | `dist/packaged-smoke.json`; actual facts also preserved in `20-INSTALLED-EVIDENCE.json` |
 | Product/identity/data | CLMC Takeoff / `com.clmc.takeoff` / pinned `%APPDATA%/clmc-takeoff` |
@@ -136,3 +136,9 @@ Parent-owned pre-existing STATE edits were preserved. This executor does not adv
 ## Self-Check: PASSED
 
 Both validator scripts, packaged smoke harness, preparation hook, tests, notices, compatibility/validation docs, candidate installer/ASAR, manifest and pending record exist. All five task commit hashes resolve; no tracked files were deleted. Frozen installer/ASAR hashes still match the manifest. Required real target-PC cases remain explicitly pending.
+
+## Final review and candidate refresh2026-10-22
+
+Initial candidate/evidence superseded. Eight independent code-review findings were corrected through38cb5d2; code re-review clean85files. UI audit corrections68803dd passed39affectedtests and source re-audit24/24. Final full regression156files/1193tests passed309.06sec before UI-only polish; build includes both typechecks. Final npm run build:win, actual NSIS/ASAR inspector and strengthened measured packaged smoke passed on the exact hashes above. Smoke measures each launched file pre/post, compares approvedElectron44.9.3, and proves redalternatePDF→savedbluePDF plus distinctive markup/scale/rates/rendererSaveAsreadback. Actual failed-reopen negative exits1. Real2process ownership and150page600/400height/nativekeyboard regressions passed. Current source68803dd; all target-PC cases remainpending.
+
+Legacy pages with unrecorded coordinate basis retain rawgeometry but quarantine oldcalibration, blockexport, require perpage inspection/repositioning/recalibration and savecopy preserving source. Newfiles persist canonical basis. Unclassifiable existing destinations requireSaveAs; duplicate/dangling/omitted categories cannot silently altermoney. Recovery reconciles safeorphanfiles under exclusiveapplicationownership.

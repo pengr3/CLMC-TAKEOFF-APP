@@ -1,9 +1,9 @@
 ---
 phase: "20"
 slug: "production-readiness"
-status: draft
+status: validated
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 created: "2026-10-21"
 ---
 
@@ -16,10 +16,10 @@ created: "2026-10-21"
 | Framework | Vitest 4.1.1; node default with per-file DOM environments |
 | Config | vitest.config.ts; src/tests/**/*.test.ts |
 | Quick command | `npx vitest run src/tests/project-io.test.ts src/tests/atomic-write.test.ts src/tests/cost-library-apply.test.ts --reporter=dot` |
-| Full suite | `npx vitest run` |
+| Full suite | `node node_modules/vitest/vitest.mjs run --pool=threads --maxWorkers=2 --reporter=dot` |
 | Types | `npm run typecheck` |
 | Windows candidate | `npm run build:win` |
-| Runtime | Measure during execution; research attempt failed before tests ran (EPERM realpath) |
+| Runtime | Full suite156 files/1193 tests passed309.06sec at38cb5d2; failed sandbox discovery excluded |
 
 ## Sampling Rate
 
@@ -31,35 +31,35 @@ created: "2026-10-21"
 
 ## Per-Task Verification Map
 
-Exact task ownership below. Every new test is created by the listed task before that task verifies it; reused suites depend on the earlier owning task/plan. All entries remain pending execution. Each task also has a concrete fails_when gate: nonzero, no-tests, unexecuted/infrastructure failure or violated behavioral invariant cannot pass.
+Exact task ownership below. Every new test is created by the listed task before that task verifies it; reused suites depend on the earlier owning task/plan. Automated entries below were audited against the completed implementation and final full suite at source38cb5d2; actual installed-PC acceptance remains pending. Each task also has a concrete fails_when gate: nonzero, no-tests, unexecuted/infrastructure failure or violated behavioral invariant cannot pass.
 
 | Task ID | Wave | Requirement | Behavior / threat | Automated verification (focused entry; full task commands in PLAN) | Status |
 |---|---|---|---|---|---|
-| 20-01-01 | 1 | REL-03, REL-04 | Real coherent save/reopen, writer serialization, captured revision | `npx vitest run src/tests/project-save-flow.test.ts` | Pending; creates suite |
-| 20-01-02 | 1 | REL-04 | Failure stages preserve original/backup; validated backup discovery | `npx vitest run src/tests/atomic-write.test.ts src/tests/project-save-flow.test.ts src/tests/boq-export-ipc.test.ts` | Pending |
-| 20-01-03 | 1 | REL-04 | UI-02 busy/error/long path/focus and close guards | `npx vitest run src/tests/save-protection-ui.test.ts src/tests/title-bar-dirty.test.ts src/tests/title-bar-saving.test.ts src/tests/project-shortcuts.test.ts` | Pending; creates suite |
-| 20-02-01 | 2 | REL-05 | Measured Estimate→actual writers money invariant | `npx vitest run src/tests/rate-unit-invariance.test.ts src/tests/estimate-row-edit.test.ts src/tests/boq-writers-xlsx.test.ts src/tests/boq-writers-csv.test.ts` | Pending; creates invariant suite |
-| 20-02-02 | 2 | REL-03, REL-05 | Explicit basis/application/legacy state roundtrip | `npx vitest run src/tests/rate-basis-roundtrip.test.ts src/tests/cost-library-apply.test.ts src/tests/project-serialize.test.ts src/tests/rates-proto-hydrate.test.ts` | Pending; creates roundtrip suite |
-| 20-02-03 | 2 | REL-05 | All type/unit/operation and invalid basis cases | `npx vitest run src/tests/rate-unit-invariance.test.ts src/tests/rate-basis-operations.test.ts src/tests/rate-basis-roundtrip.test.ts src/tests/project-schema.test.ts` | Pending; creates operation suite |
-| 20-04-01 | 2 | REL-01 | Authoritative bridge/title version, no guessed state | `npx vitest run src/tests/app-version.test.ts src/tests/title-bar-dirty.test.ts src/tests/title-bar-saving.test.ts` | Pending; creates version suite |
-| 20-04-02 | 2 | REL-01, REL-04 | UI-01 notes/Menu/About keyboard/overflow | `npx vitest run src/tests/about-release-notes.test.ts src/tests/top-action-bar-nav.test.ts src/tests/app-version.test.ts` | Pending; creates About suite |
-| 20-08-01 | 2 | REL-05 | Cache/DPR/clamping/canvas pointer tracer | `npx vitest run src/tests/pdf-cache-dpi.test.ts src/tests/stage-transform.test.ts src/tests/zoom.test.ts src/tests/pdf-loader-detached-buffer.test.ts` | Pending; creates cache suite |
-| 20-08-02 | 2 | REL-05 | Navigation memory plateau, known coordinates, dialog reclamping | `npx vitest run src/tests/dialog-viewport.test.ts src/tests/coordinate-dpi-invariance.test.ts src/tests/pdf-cache-dpi.test.ts src/tests/use-draggable.test.ts` | Pending; creates viewport/coordinate suites |
-| 20-05-01 | 3 | REL-01, REL-02 | Stable storage/identity and trusted sender | `npx vitest run src/tests/identity-storage.test.ts src/tests/cost-library-store.test.ts src/tests/project-save-flow.test.ts` | Pending; creates identity suite |
-| 20-05-02 | 3 | REL-02 | Official package support/source/scripts before install | Evidence file existence check plus official registry/lifecycle review; conditional blocking-human gate if findings remain ASSUMED/SUS | Pending; DNS failure is unknown |
-| 20-05-03 | 3 | REL-01, REL-02 | Reviewed runtime/sandbox/preload/navigation | `npx vitest run src/tests/host-security.test.ts src/tests/identity-storage.test.ts`; `npm run build`; actual Electron smoke | Pending; creates host suite |
-| 20-03-01 | 4 | REL-03, REL-04 | Real never-saved PDF recovery across restart | `npx vitest run src/tests/recovery-flow.test.ts` | Pending; creates restart suite |
-| 20-03-02 | 4 | REL-04 | Bounded completed candidates, corruption, deletion, interruption | `npx vitest run src/tests/recovery-repository.test.ts src/tests/recovery-flow.test.ts` | Pending; creates repository suite |
-| 20-03-03 | 4 | REL-03, REL-04 | All UI-03 states, saved/never-saved/keep/discard | `npx vitest run src/tests/recovery-ui.test.ts src/tests/recovery-flow.test.ts src/tests/recovery-repository.test.ts` | Pending; creates UI suite |
-| 20-06-01 | 4 | REL-02, REL-05 | Real child parse/kill/crash and explicit commit | `npx vitest run src/tests/cost-library-worker.test.ts src/tests/cost-library-ipc.test.ts` | Pending; creates process suite |
-| 20-06-02 | 4 | REL-02, REL-05 | Actual streamed ZIP limits and measured valid max template | `npx vitest run src/tests/workbook-admission.test.ts src/tests/cost-library-worker.test.ts src/tests/cost-library.test.ts` | Pending; creates admission suite |
-| 20-06-03 | 4 | REL-05 | All UI-05 import states/retry/library preservation | `npx vitest run src/tests/cost-library-resilience-ui.test.ts src/tests/cost-library-ui.test.ts src/tests/cost-library-apply.test.ts` | Pending; creates UI suite |
-| 20-07-01 | 5 | REL-03, REL-04 | Real portable archive/schema/migration; active-state preservation | `npx vitest run src/tests/project-portability-integration.test.ts src/tests/project-io.test.ts src/tests/project-serialize.test.ts src/tests/project-order-roundtrip.test.ts src/tests/v1-migration-pdfbytes.test.ts` | Pending; creates integration suite |
-| 20-07-02 | 5 | REL-05 | All UI-04 review states and every export/unit guard | `npx vitest run src/tests/legacy-rate-review.test.ts src/tests/use-export-hook.test.ts src/tests/use-keyboard-shortcuts-export.test.ts src/tests/scale-store.test.ts` | Pending; creates review suite |
-| 20-07-03 | 5 | REL-03, REL-04 | Safe upgraded copy/backup/future format UX | `npx vitest run src/tests/project-compatibility-ui.test.ts src/tests/project-open-flow.test.ts src/tests/project-save-flow.test.ts src/tests/open-error-modal-copy.test.ts` | Pending; creates compatibility suite |
-| 20-09-01 | 6 | REL-01, REL-02, REL-05 | Actual NSIS/asar payload/hash/worker inspection | `npx vitest run src/tests/release-artifact.test.ts`; `npm run build:win`; `node scripts/verify-release.cjs dist` | Pending; creates inspector/suite |
-| 20-09-02 | 6 | REL-01..05 | Truthful pending evidence, rollback/manual-release matrix | `npx vitest run src/tests/release-evidence.test.ts` | Pending; creates validator/suite |
-| 20-09-03 | 6 | REL-01..05 | Actual installed non-dev-PC required cases | `node scripts/verify-release-evidence.cjs .planning/phases/20-production-readiness/20-INSTALLED-EVIDENCE.json dist/release-manifest.json` plus actual installed evidence | Pending; blocking-human evidence gate |
+| 20-01-01 | 1 | REL-03, REL-04 | Real coherent save/reopen, writer serialization, captured revision | `npx vitest run src/tests/project-save-flow.test.ts` | Passed — final full suite |
+| 20-01-02 | 1 | REL-04 | Failure stages preserve original/backup; validated backup discovery | `npx vitest run src/tests/atomic-write.test.ts src/tests/project-save-flow.test.ts src/tests/boq-export-ipc.test.ts` | Passed — final full suite |
+| 20-01-03 | 1 | REL-04 | UI-02 busy/error/long path/focus and close guards | `npx vitest run src/tests/save-protection-ui.test.ts src/tests/title-bar-dirty.test.ts src/tests/title-bar-saving.test.ts src/tests/project-shortcuts.test.ts` | Passed — final full suite |
+| 20-02-01 | 2 | REL-05 | Measured Estimate→actual writers money invariant | `npx vitest run src/tests/rate-unit-invariance.test.ts src/tests/estimate-row-edit.test.ts src/tests/boq-writers-xlsx.test.ts src/tests/boq-writers-csv.test.ts` | Passed — final full suite |
+| 20-02-02 | 2 | REL-03, REL-05 | Explicit basis/application/legacy state roundtrip | `npx vitest run src/tests/rate-basis-roundtrip.test.ts src/tests/cost-library-apply.test.ts src/tests/project-serialize.test.ts src/tests/rates-proto-hydrate.test.ts` | Passed — final full suite |
+| 20-02-03 | 2 | REL-05 | All type/unit/operation and invalid basis cases | `npx vitest run src/tests/rate-unit-invariance.test.ts src/tests/rate-basis-operations.test.ts src/tests/rate-basis-roundtrip.test.ts src/tests/project-schema.test.ts` | Passed — final full suite |
+| 20-04-01 | 2 | REL-01 | Authoritative bridge/title version, no guessed state | `npx vitest run src/tests/app-version.test.ts src/tests/title-bar-dirty.test.ts src/tests/title-bar-saving.test.ts` | Passed — final full suite |
+| 20-04-02 | 2 | REL-01, REL-04 | UI-01 notes/Menu/About keyboard/overflow | `npx vitest run src/tests/about-release-notes.test.ts src/tests/top-action-bar-nav.test.ts src/tests/app-version.test.ts` | Passed — final full suite |
+| 20-08-01 | 2 | REL-05 | Cache/DPR/clamping/canvas pointer tracer | `npx vitest run src/tests/pdf-cache-dpi.test.ts src/tests/stage-transform.test.ts src/tests/zoom.test.ts src/tests/pdf-loader-detached-buffer.test.ts` | Passed — final full suite |
+| 20-08-02 | 2 | REL-05 | Navigation memory plateau, known coordinates, dialog reclamping | `npx vitest run src/tests/dialog-viewport.test.ts src/tests/coordinate-dpi-invariance.test.ts src/tests/pdf-cache-dpi.test.ts src/tests/use-draggable.test.ts` | Passed — final full suite |
+| 20-05-01 | 3 | REL-01, REL-02 | Stable storage/identity and trusted sender | `npx vitest run src/tests/identity-storage.test.ts src/tests/cost-library-store.test.ts src/tests/project-save-flow.test.ts` | Passed — final full suite |
+| 20-05-02 | 3 | REL-02 | Official package support/source/scripts before install | Evidence file existence check plus official registry/lifecycle review; conditional blocking-human gate if findings remain ASSUMED/SUS | Passed — exact44.9.3 approved D-05; official registry/lifecycle review recorded |
+| 20-05-03 | 3 | REL-01, REL-02 | Reviewed runtime/sandbox/preload/navigation | `npx vitest run src/tests/host-security.test.ts src/tests/identity-storage.test.ts`; `npm run build`; actual Electron smoke | Passed — final full suite |
+| 20-03-01 | 4 | REL-03, REL-04 | Real never-saved PDF recovery across restart | `npx vitest run src/tests/recovery-flow.test.ts` | Passed — final full suite |
+| 20-03-02 | 4 | REL-04 | Bounded completed candidates, corruption, deletion, interruption | `npx vitest run src/tests/recovery-repository.test.ts src/tests/recovery-flow.test.ts` | Passed — final full suite |
+| 20-03-03 | 4 | REL-03, REL-04 | All UI-03 states, saved/never-saved/keep/discard | `npx vitest run src/tests/recovery-ui.test.ts src/tests/recovery-flow.test.ts src/tests/recovery-repository.test.ts` | Passed — final full suite |
+| 20-06-01 | 4 | REL-02, REL-05 | Real child parse/kill/crash and explicit commit | `npx vitest run src/tests/cost-library-worker.test.ts src/tests/cost-library-ipc.test.ts` | Passed — final full suite |
+| 20-06-02 | 4 | REL-02, REL-05 | Actual streamed ZIP limits and measured valid max template | `npx vitest run src/tests/workbook-admission.test.ts src/tests/cost-library-worker.test.ts src/tests/cost-library.test.ts` | Passed — final full suite |
+| 20-06-03 | 4 | REL-05 | All UI-05 import states/retry/library preservation | `npx vitest run src/tests/cost-library-resilience-ui.test.ts src/tests/cost-library-ui.test.ts src/tests/cost-library-apply.test.ts` | Passed — final full suite |
+| 20-07-01 | 5 | REL-03, REL-04 | Real portable archive/schema/migration; active-state preservation | `npx vitest run src/tests/project-portability-integration.test.ts src/tests/project-io.test.ts src/tests/project-serialize.test.ts src/tests/project-order-roundtrip.test.ts src/tests/v1-migration-pdfbytes.test.ts` | Passed — final full suite |
+| 20-07-02 | 5 | REL-05 | All UI-04 review states and every export/unit guard | `npx vitest run src/tests/legacy-rate-review.test.ts src/tests/use-export-hook.test.ts src/tests/use-keyboard-shortcuts-export.test.ts src/tests/scale-store.test.ts` | Passed — final full suite |
+| 20-07-03 | 5 | REL-03, REL-04 | Safe upgraded copy/backup/future format UX | `npx vitest run src/tests/project-compatibility-ui.test.ts src/tests/project-open-flow.test.ts src/tests/project-save-flow.test.ts src/tests/open-error-modal-copy.test.ts` | Passed — final full suite |
+| 20-09-01 | 6 | REL-01, REL-02, REL-05 | Actual NSIS/asar payload/hash/worker inspection | `npx vitest run src/tests/release-artifact.test.ts`; `npm run build:win`; `node scripts/verify-release.cjs dist` | Passed — final full suite |
+| 20-09-02 | 6 | REL-01..05 | Truthful pending evidence, rollback/manual-release matrix | `npx vitest run src/tests/release-evidence.test.ts` | Passed — final full suite |
+| 20-09-03 | 6 | REL-01..05 | Actual installed non-dev-PC required cases | `node scripts/verify-release-evidence.cjs .planning/phases/20-production-readiness/20-INSTALLED-EVIDENCE.json dist/release-manifest.json` plus actual installed evidence | Pending — external installed-PC evidence gate |
 
 UI consideration mapping: UI-01's four criteria → 20-04-01/02; UI-02's four → 20-01-03; UI-03's eight → 20-03-01/02/03; UI-04's eight → 20-07-02/03; UI-05's eight → 20-06-03. All 32 are lifted verbatim with IDs into the relevant plan must_haves. Cross-cutting typography/color/spacing/focus/scroll/DPI is implemented in those tasks plus 20-08-02 and actually inspected in 20-09-03.
 
@@ -91,11 +91,26 @@ Record candidate hash, tester/date, machine details, fixture identity, expected/
 ## Validation Sign-Off
 
 - [x] Exact task map finalized by planner (25 tasks, nine plans, six waves).
-- [ ] Every task has automated verification or an explicit human checkpoint; no three consecutive implementation tasks lack automated checks.
-- [ ] New test paths have creation dependencies; no watch commands.
-- [ ] Focused feedback latency measured.
-- [ ] Automated suites and package checks green.
+- [x] Every task has automated verification or an explicit human checkpoint; no three consecutive implementation tasks lack automated checks.
+- [x] New test paths have creation dependencies; no watch commands.
+- [x] Focused feedback latency measured; security153tests30.48s and45tests58.81s; full suite309.06s.
+- [x] Automated suites and package checks green; final inspected candidate and measured smoke pass.
 - [ ] Installed non-development-PC evidence complete.
 - [ ] `nyquist_compliant: true` set only after validation, never inferred from planning.
 
-**Approval:** pending execution evidence.
+**Approval:** automated coverage audited; external installed acceptance pending.
+
+## Validation Audit 2026-10-22
+
+| Metric | Result |
+|---|---|
+| Planned tasks |25|
+| Referenced test paths |52, all exist|
+| Missing automated targets |0|
+| Final full regression |156files /1193tests passed,309.06sec,exit0 at38cb5d2|
+| Independent security probes |20files /198tests passed|
+| External checkpoint |20-09-03 remains pending;16 required installed cases|
+
+Cross-checked plan commands, summaries, actual source/test imports and converged review regressions. No new test scaffolding is needed: failure/restart/financial/geometry/parser/identity/evidence negative cases now run in the full suite. Additional actual two-process and Chromium geometry/keyboard checks passed. The unchanged whole-suite run includes prior-phase suites; no source change followed its successful result, so redundant reruns are avoided. nyquist_compliant remainsfalse because declared installed evidence is incomplete. No missing test, failed sandbox discovery, pending physical case or inferred approval is counted as a pass.
+
+Final candidate refresh:68803dd presentation-only fixes passed39affectedtests29.73sec; final build/typechecks/NSIS inspection and measured packaged smoke passed. Candidate installer SHA256ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6. Independent security closure verified exact payload identity. Installed evidence validator exits1 with16pendingcases/90missing evidence reasons as expected; no automated gap inferred from explicitly external cases.

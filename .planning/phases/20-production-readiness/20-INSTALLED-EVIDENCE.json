@@ -3,11 +3,11 @@
   "status": "awaiting-non-development-evidence",
   "candidate": {
     "version": "1.1.0",
-    "installerSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
-    "archiveSha256": "5b20754de65e50d39e01b81c360025ed199b810e620146c1aa274ad3f043176a",
+    "installerSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+    "archiveSha256": "90f958f3b8579a572c09993a44ba8d58e94e7e2b9633e3dd3285f0c4d640e798",
     "installer": "dist/clmc-takeoff-1.1.0-x64-setup.exe",
     "manifest": "dist/release-manifest.json",
-    "bytes": 136808412,
+    "bytes": 136810434,
     "architecture": "x64"
   },
   "handoff": {
@@ -48,7 +48,7 @@
     {
       "id": "fresh-install",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -63,7 +63,7 @@
     {
       "id": "actual-predecessor-upgrade",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -78,7 +78,7 @@
     {
       "id": "project-only-transfer",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -93,7 +93,7 @@
     {
       "id": "recovery-saved",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -108,7 +108,7 @@
     {
       "id": "recovery-never-saved",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -123,7 +123,7 @@
     {
       "id": "failed-save-backup",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -138,7 +138,7 @@
     {
       "id": "offline-workflow",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -153,7 +153,7 @@
     {
       "id": "large-vector",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -168,7 +168,7 @@
     {
       "id": "large-scan",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -183,7 +183,7 @@
     {
       "id": "multipage-navigation",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -198,7 +198,7 @@
     {
       "id": "scaling-100",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -213,7 +213,7 @@
     {
       "id": "scaling-125",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -228,7 +228,7 @@
     {
       "id": "scaling-150",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -243,7 +243,7 @@
     {
       "id": "scaling-200",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -258,7 +258,7 @@
     {
       "id": "monitor-transition",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -273,7 +273,7 @@
     {
       "id": "ui-keyboard-overflow",
       "status": "pending",
-      "candidateSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+      "candidateSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -293,7 +293,7 @@
       "artifact": "dist/packaged-smoke.json",
       "status": "pass",
       "scope": "scripted-packaged-developer-host",
-      "date": "2026-10-22T03:02:45.972Z",
+      "date": "2026-10-22T04:33:27.844Z",
       "machine": {
         "classification": "development",
         "hostname": "Lenovo-X390-PC1H2FSA",
@@ -303,8 +303,9 @@
       },
       "candidate": {
         "version": "1.1.0",
-        "installerSha256": "f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
-        "archiveSha256": "5b20754de65e50d39e01b81c360025ed199b810e620146c1aa274ad3f043176a"
+        "installerSha256": "ad4ffb3850cd632ea7fdb27ae3d0030468b9256bad70588aacabab4bf74f71d6",
+        "archiveSha256": "90f958f3b8579a572c09993a44ba8d58e94e7e2b9633e3dd3285f0c4d640e798",
+        "executableSha256": "b7a03a67be49170ee28f59b55e3d7c79d84a7415dd0c8f1aeec4b1240e18f900"
       },
       "actual": {
         "electron": "44.9.3",
@@ -316,6 +317,11 @@
         "pdfWorker": true,
         "renderedPdf": true,
         "format3SaveReadReopen": true,
+        "reopen": {
+          "differentDocumentObserved": true,
+          "savedPdfAndStateAdopted": true,
+          "rendererSnapshotReadback": true
+        },
         "importUtilityChild": true,
         "internalXlsxCsv": true,
         "externalNetworkRequests": [],

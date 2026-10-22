@@ -559,19 +559,19 @@ Plans:
 - [x] 14-01-PLAN.md — Foundation: arc metadata on the Markup model + arc-math.ts (3-point solver) + arc-aware markup-math length/area (Wave 1) — additive arcs? field (no formatVersion bump) + reshape-arc command; arc-math.ts matches spike-003/003b to ≤1e-6 (48 tests green); polylineLength/polygonArea arc-aware with winding-independent sign rule
 - [x] 14-02-PLAN.md — Foundation: snapping-engine.ts grid-hash spatial index + self-intersection.ts detector (Wave 1)
 
-**Wave 2** *(blocked on Wave 1 completion)*
+**Wave 2**
 
 - [x] 14-03-PLAN.md — Snapping integration: SnapIndicator glyphs + handleStageMouseMove injection + Alt/F3 controls + StatusBar pill (Wave 2)
 
-**Wave 3** *(blocked on Wave 2 completion)*
+**Wave 3**
 
 - [x] 14-04-PLAN.md — Arc drawing: 3-click gesture + ArcPreview + hold-A/sticky arc mode (Wave 3)
 
-**Wave 4** *(blocked on Wave 3 completion)*
+**Wave 4**
 
 - [x] 14-05-PLAN.md — Arc editing: BulgeHandle + endpoint re-solve (undoable) + self-intersection blocked commit (Wave 4)
 
-**Wave 5** *(blocked on Wave 4 completion)*
+**Wave 5**
 
 - [x] 14-06-PLAN.md — Integration: arc-aware BOQ + Area/Perimeter/Linear/Wall arc-drawing renderers (buildArcAwareFlatPoints) + arc-roundtrip test (save/reload deep-equal + arc-aware-vs-chord BOQ) + 14-MANUAL-NOTES.md (Wave 5) — autonomous engineering complete, build green + 586 tests; Task 3 human UAT prepared + returned as checkpoint (Phase 14 checkbox gated on UAT approval)
 
@@ -604,11 +604,11 @@ Plans:
 
 - [x] 15-02-PLAN.md — Data model + types + aggregator: `rates?` additive field (mirrors `hiddenItemNames`, no formatVersion bump) + `setRate`; `BoqItemRow.rate/cost` + `costSubtotal`/`grandTotalCost` across the 3 in-scope type-duplication files (boq-types + preload ×2; **boq-writers deferred to Wave 2/15-04**); perimeter-area removal + one-row + perimeter joins D-02 collision set; arc-aware length preserved. Done 2026-06-29 — commits ac1c97f/c9a5d79/85b1ade; aggregator/serialize/schema GREEN, typecheck clean
 
-**Wave 2** *(blocked on Wave 1 completion)*
+**Wave 2**
 
 - [x] 15-03-PLAN.md — Totals UI: inline ₱ rate field (`e.stopPropagation`, `name|type` rateKey) + `useBoqLive` rates subscription (live recompute) + net-new per-category cost subtotal + grand-total cost bar; PerimeterMarkup → unfilled outline + length-only `P:` label. Done 2026-06-29 — commits ffbd168/1da21b0/380f762; NEW src/renderer/src/lib/currency.ts ₱ seam; inline input is uncontrolled + native listeners (React synthetic onChange value-tracker-suppressed under native dispatch); both Wave 0 proofs (use-boq-live rates recompute + totals-row-rate-edit) GREEN, full suite 621 pass (only 15-04 writer reds remain), typecheck clean; resolved 15-02 stale-comment deferred item
 
-**Wave 3** *(blocked on Wave 1 completion)*
+**Wave 3**
 
 - [x] 15-04-PLAN.md — Export: xlsx/csv Rate + Cost columns (₱ numFmt native numbers, A:E merge, cost subtotals + grand-total, CSV BOM kept) + PROJECT.md pricing scope flip + 15-MANUAL-NOTES.md (perimeter back-compat + ₱ + UAT)
 
@@ -755,33 +755,33 @@ Plans:
 4. Define and implement minimal backup/recovery behavior, including interrupted/failed saves and recoverable unsaved work; document compatibility and safe rollback limits.
 5. Installed app works offline through PDF→calibration→markup→Estimate→export; representative large/multi-page PDFs and Windows scaling preserve accurate coordinates. Resolve client-versus-internal export audience before any export scope expansion.
 
-**Plans:** 1/9 plans executed
+**Plans:**8/9 plans complete;20-09 artifact work complete, actual installed evidence pending
 
 Plans:
 **Wave 1**
 
 - [x] 20-01-PLAN.md — Protected coherent saves, last-good backup and save outcomes (wave 1)
 
-**Wave 2** *(blocked on Wave 1 completion)*
+**Wave 2**
 
-- [ ] 20-02-PLAN.md — Persistent rate basis and invariant internal estimates/exports (wave 2)
-- [ ] 20-04-PLAN.md — Installed version, offline About/release notes and More menu (wave 2)
-- [ ] 20-08-PLAN.md — Bounded PDF raster cache and DPI/viewport accuracy (wave 2)
+- [x] 20-02-PLAN.md — Persistent rate basis and invariant internal estimates/exports (wave 2)
+- [x] 20-04-PLAN.md — Installed version, offline About/release notes and More menu (wave 2)
+- [x] 20-08-PLAN.md — Bounded PDF raster cache and DPI/viewport accuracy (wave 2)
 
-**Wave 3** *(blocked on Wave 2 completion)*
+**Wave 3**
 
-- [ ] 20-05-PLAN.md — Stable data/installer identity, package gate and supported sandboxed runtime (wave 3)
+- [x] 20-05-PLAN.md — Stable data/installer identity, package gate and supported sandboxed runtime (wave 3)
 
-**Wave 4** *(blocked on Wave 3 completion)*
+**Wave 4**
 
-- [ ] 20-03-PLAN.md — Bounded local PDF recovery and restart decisions (wave 4)
-- [ ] 20-06-PLAN.md — Bounded decompression, killable import and resilient library UI (wave 4)
+- [x] 20-03-PLAN.md — Bounded local PDF recovery and restart decisions (wave 4)
+- [x] 20-06-PLAN.md — Bounded decompression, killable import and resilient library UI (wave 4)
 
-**Wave 5** *(blocked on Wave 4 completion)*
+**Wave 5**
 
-- [ ] 20-07-PLAN.md — Portable migration, explicit legacy review and safe upgraded copies (wave 5)
+- [x] 20-07-PLAN.md — Portable migration, explicit legacy review and safe upgraded copies (wave 5)
 
-**Wave 6** *(blocked on Wave 5 completion)*
+**Wave 6**
 
 - [ ] 20-09-PLAN.md — Inspected Windows candidate and actual installed evidence gate (wave 6)
 

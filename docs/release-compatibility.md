@@ -39,3 +39,11 @@ Format 3 includes the PDF, scales, geometry, order, visibility and applied price
 The release owner must record an approved read-only installer location, hash manifest, prior installer retention, publisher/signing policy, and a rollback contact. These actual share/publisher/signing-owner/contact fields are **pending**, not invented. Dependency notices preserve installed metadata and supplied license/readme text; upstream `buffers@0.1.1` supplies no license declaration in the installed package and remains an explicit release review item.
 
 Approximately twelve PCs are planned for manual upgrades. Phase 21 owns the complete offline user guide/worked example, named maintainer turnover, real two-user/two-PC pilot acceptance and remaining-ten distribution. This candidate and developer-host smoke do not establish pilot, deployment or non-development-PC acceptance.
+# Review safeguards added during final verification
+
+Older projects do not record the stage coordinate basis used when their PDF was rendered. The release retains their raw markup coordinates, clears unverified old calibration, and blocks exports until each affected page is checked. Use the compact geometry review controls to inspect every count, vertex and curved edge against the PDF, reposition or redraw displaced geometry, and recalibrate measured pages before confirming. Save a copy; the original remains protected. New files record the canonical coordinate basis. Do not confirm a page whose alignment cannot be verified.
+
+An existing destination whose format or archive layout cannot be classified safely now requires Save As. It is not implicitly treated as damaged data that may be replaced. Future-format archives remain protected even if their layout adds entries.
+
+One application instance owns the pinned userData root. A second launch activates the existing window before it can initialize shared storage. Recovery orphan reconciliation runs under this ownership and preserves blobs whenever a manifest cannot be read safely.
+
