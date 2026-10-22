@@ -7,6 +7,60 @@ const { spawn } = require('node:child_process')
 const crypto = require('node:crypto')
 const net = require('node:net')
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+async function measuredFile(file) {
+  const info = await fs.lstat(file)
+  assert.ok(info.isFile() && !info.isSymbolicLink(), `Invalid candidate file: ${file}`)
+  const hash = crypto.createHash('sha256')
+  for await (const chunk of require('node:fs').createReadStream(file)) hash.update(chunk)
+  return { bytes: info.size, sha256: hash.digest('hex') }
+}
+async function verifyCandidate(executable, manifestPath = path.resolve('dist/release-manifest.json')) {
+  const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'))
+  const root = await fs.realpath(path.dirname(executable))
+  const safePath = (base, name) => {
+    assert.ok(typeof name === 'string' && name && !name.includes('\\') && !path.isAbsolute(name) && !name.split('/').some(p => p === '..' || p === '.' || !p), 'Unsafe candidate manifest path')
+    return path.join(base, name)
+  }
+  const walk = async (directory, prefix = '') => {
+    const files = []
+    for (const entry of await fs.readdir(path.join(directory, prefix), { withFileTypes: true })) {
+      assert.ok(!entry.isSymbolicLink(), 'Unexpected candidate link')
+      const file = prefix ? `${prefix}/${entry.name}` : entry.name
+      if (entry.isDirectory()) files.push(...await walk(directory, file))
+      else files.push(file)
+    }
+    return files
+  }
+  assert.ok(Array.isArray(manifest.unpacked) && manifest.unpacked.length, 'Missing candidate inventory')
+  const files = await walk(root)
+  assert.deepEqual(files.sort(), manifest.unpacked.map(x => x.file).sort(), 'Candidate inventory mismatch')
+  const measured = new Map()
+  for (const entry of manifest.unpacked) {
+    assert.ok(!measured.has(entry.file), 'Duplicate candidate identity')
+    const actual = await measuredFile(safePath(root, entry.file))
+    assert.equal(actual.bytes, entry.bytes, `Candidate size mismatch: ${entry.file}`)
+    assert.equal(actual.sha256, entry.sha256, `Candidate hash mismatch: ${entry.file}`)
+    measured.set(entry.file, actual)
+  }
+  const exe = measured.get(path.basename(executable)), archive = measured.get('resources/app.asar')
+  assert.ok(exe && archive, 'Candidate executable/resources missing')
+  assert.equal(archive.sha256, manifest.archive.sha256, 'Candidate ASAR identity mismatch')
+  const installerPath = safePath(path.dirname(manifestPath), manifest.installer.file)
+  const installer = await measuredFile(installerPath)
+  assert.equal(installer.sha256, manifest.installer.sha256, 'Candidate installer hash mismatch')
+  assert.equal(installer.bytes, manifest.installer.bytes, 'Candidate installer size mismatch')
+  assert.match(manifest.runtime.expectedElectron, /^\d+\.\d+\.\d+$/, 'Missing approved Electron runtime')
+  return { version: manifest.version, executable: await fs.realpath(executable), executableSha256: exe.sha256,
+    archivePath: path.join(root, 'resources/app.asar'), archiveSha256: archive.sha256,
+    installerPath, installerSha256: installer.sha256, expectedElectron: manifest.runtime.expectedElectron,
+    unpackedFiles: manifest.unpacked.map(entry => ({ file: entry.file, ...measured.get(entry.file) })) }
+}
+function assertObservedCandidate(identity, host) {
+  const normalized = value => process.platform === 'win32' ? path.resolve(value).toLowerCase() : path.resolve(value)
+  assert.equal(host.electron, identity.expectedElectron, 'Observed Electron runtime differs from approved candidate')
+  assert.equal(normalized(host.executable), normalized(identity.executable), 'Observed executable identity differs')
+  assert.equal(normalized(host.appPath), normalized(identity.archivePath), 'Observed application resources differ')
+}
 function makePdf() {
   const stream = '0.2 0.5 0.8 rg 20 20 200 100 re f\n'
   const objects = [
@@ -60,6 +114,7 @@ async function client(url) {
 async function run() {
   const executable = path.resolve(process.argv[2] || 'dist/win-unpacked/clmc-takeoff.exe')
   const manifest = JSON.parse(await fs.readFile('dist/release-manifest.json', 'utf8'))
+  const identity = await verifyCandidate(executable)
   const scratch = await fs.mkdtemp(path.join(os.tmpdir(), 'clmc-packaged-smoke-'))
   const pdf = makePdf()
   const pdfPath = path.join(scratch, 'packaged-plan.pdf'),
@@ -166,8 +221,9 @@ async function run() {
     )
     assert.equal(await renderer('typeof require'), 'undefined')
     const host = await main(
-      `({packaged:__smoke.electron.app.isPackaged,appPath:__smoke.electron.app.getAppPath(),userData:__smoke.electron.app.getPath('userData'),preferences:__smoke.window.webContents.getLastWebPreferences(),visible:__smoke.window.isVisible(),electron:process.versions.electron,chrome:process.versions.chrome})`
+      `({packaged:__smoke.electron.app.isPackaged,executable:process.execPath,appPath:__smoke.electron.app.getAppPath(),userData:__smoke.electron.app.getPath('userData'),preferences:__smoke.window.webContents.getLastWebPreferences(),visible:__smoke.window.isVisible(),electron:process.versions.electron,chrome:process.versions.chrome})`
     )
+    assertObservedCandidate(identity, host)
     assert.equal(host.packaged, true)
     assert.ok(host.appPath.endsWith('app.asar'))
     assert.equal(host.userData, path.join(scratch, 'clmc-takeoff'))
@@ -283,11 +339,7 @@ async function run() {
         architecture: os.arch(),
         ramBytes: os.totalmem()
       },
-      candidate: {
-        version: manifest.version,
-        installerSha256: manifest.installer.sha256,
-        archiveSha256: manifest.archive.sha256
-      },
+      candidate: identity,
       actual: {
         electron: host.electron,
         chrome: host.chrome,
@@ -313,6 +365,7 @@ async function run() {
         'Dialog destinations scripted through inspector; physical UI and non-development-PC install/upgrade/scaling are pending.'
       ]
     }
+    assert.deepEqual(await verifyCandidate(executable), identity, 'Candidate changed during smoke')
     await fs.writeFile('dist/packaged-smoke.json', JSON.stringify(evidence, null, 2) + '\n')
     console.log(JSON.stringify(evidence, null, 2))
     inspector.socket.close()
@@ -329,7 +382,8 @@ async function run() {
     child.kill()
   }
 }
-run().catch((error) => {
+module.exports = { verifyCandidate, assertObservedCandidate }
+if (require.main === module) run().catch((error) => {
   console.error(error)
   process.exitCode = 1
 })
