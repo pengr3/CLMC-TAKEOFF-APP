@@ -3,6 +3,7 @@ import { flushSync } from 'react-dom'
 import { TitleBar } from './components/TitleBar'
 import { AboutDialog } from './components/AboutDialog'
 import { RecoveryDialog } from './components/RecoveryDialog'
+import { LegacyRateReviewDialog, LEGACY_RATE_WARNING } from './components/LegacyRateReviewDialog'
 import type { RecoveryCandidate } from '../../shared/reliability'
 import { TopActionBar } from './components/TopActionBar'
 import { ContextBar } from './components/ContextBar'
@@ -33,7 +34,7 @@ import { getCanvasControls, setChainArmedFromTotals } from './components/CanvasV
 import { labelToName, rowTypeToMarkupType } from './components/TotalsRow'
 import { MARKUP_PALETTE } from './lib/markup-palette'
 import { COLORS, TOTALS_RAIL_WIDTH } from './lib/constants'
-import type { ProjectFileV2 } from './lib/project-schema'
+import type { ProjectFile } from './lib/project-schema'
 import type { BoqStructure, BoqItemRow } from './lib/boq-types'
 import type { WallMarkup } from './types/markup'
 
@@ -49,6 +50,14 @@ function App(): React.JSX.Element {
   const currentFilePath = useProjectStore((s) => s.currentFilePath)
   const isSaving = useProjectStore((s) => s.isSaving)
   const saveFailure = useProjectStore((s) => s.saveFailure)
+  const rates = useProjectStore(s => s.rates)
+  const unresolvedRates = Object.values(rates).some(rate => rate.review !== 'reviewed')
+  const [rateReviewOpen, setRateReviewOpen] = useState(false)
+  useEffect(() => {
+    const openReview = (): void => setRateReviewOpen(true)
+    window.addEventListener('clmc:review-rates', openReview)
+    return () => window.removeEventListener('clmc:review-rates', openReview)
+  }, [])
   const {
     openByExtension,
     saveProject,
@@ -141,7 +150,7 @@ function App(): React.JSX.Element {
 
   // Open-flow state (slimmed for v2)
   const [archiveCorrupted, setArchiveCorrupted] = useState<{
-    validated: ProjectFileV2
+    validated: ProjectFile
     pdfBytes: Uint8Array
     clmcPath: string
   } | null>(null)
@@ -532,6 +541,11 @@ function App(): React.JSX.Element {
         }}
       />
       <ContextBar />
+      {unresolvedRates && <aside aria-label="Review rate units" style={{ padding: '8px 16px', background: COLORS.secondary, color: COLORS.textPrimary, fontSize: 13, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+        <span style={{ flex: 1, minWidth: 0 }}>{LEGACY_RATE_WARNING}</span>
+        <button disabled={isSaving} onClick={() => setRateReviewOpen(true)} style={{ minHeight: 28, padding: '4px 8px', flexShrink: 0 }}>Review Rates</button>
+      </aside>}
+      {rateReviewOpen && unresolvedRates && <LegacyRateReviewDialog onClose={() => setRateReviewOpen(false)} />}
       <main
         ref={containerRef}
         style={{

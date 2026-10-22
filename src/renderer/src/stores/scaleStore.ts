@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import type { PageScale, ScaleUnit, CalibMode } from '../types/scale'
 import { DEFAULT_UNIT } from '../types/scale'
+import { requireRateReview } from '../lib/legacy-rate-guard'
 
 interface ScaleStoreState {
   pageScales: Record<number, PageScale>
@@ -47,7 +48,10 @@ const createScaleStore = () =>
           return { pageScales: rest }
         }),
 
-      setGlobalUnit: (unit) => set({ globalUnit: unit }),
+      setGlobalUnit: (unit) => {
+        if (unit !== get().globalUnit && requireRateReview()) return
+        set({ globalUnit: unit })
+      },
 
       setCalibMode: (mode) => set({ calibMode: mode }),
 

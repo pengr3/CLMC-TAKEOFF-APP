@@ -3,6 +3,7 @@ import { aggregateBoq, findUncalibratedMarkupPages } from '../lib/boq-aggregator
 import type { BoqStructure, ExportResult } from '../lib/boq-types'
 import { useProjectStore } from '../stores/projectStore'
 import { useViewerStore } from '../stores/viewerStore'
+import { requireRateReview } from '../lib/legacy-rate-guard'
 
 function basenameAny(p: string): string {
   const i = Math.max(p.lastIndexOf('/'), p.lastIndexOf('\\'))
@@ -42,6 +43,7 @@ export function useExport(): UseExportApi {
   // can be held across the user-confirmation modal in the uncalibrated path.
   async function dialogAndWriteInner(structure: BoqStructure): Promise<ExportResult> {
     try {
+      if (useProjectStore.getState().isSaving || requireRateReview()) return { kind: 'canceled' }
       const { currentFilePath } = useProjectStore.getState()
       const { fileName: pdfName } = useViewerStore.getState()
       const defaultPath = deriveDefaultExportPath(
@@ -51,6 +53,7 @@ export function useExport(): UseExportApi {
       )
       const chosen = await window.api.saveExportDialog(defaultPath, 'xlsx')
       if (!chosen) return { kind: 'canceled' }
+      if (useProjectStore.getState().isSaving || requireRateReview()) return { kind: 'canceled' }
 
       const writeResult =
         chosen.format === 'csv'
@@ -70,6 +73,7 @@ export function useExport(): UseExportApi {
   const exportBoq = useCallback(async (): Promise<ExportResult> => {
     const { isExporting, isSaving, setExporting } = useProjectStore.getState()
     if (isExporting || isSaving) return { kind: 'canceled' }
+    if (requireRateReview()) return { kind: 'canceled' }
 
     // Set the race flag IMMEDIATELY after the guard so a second invocation
     // (Ctrl+Shift+E during the modal-open window) sees the flag and bails.

@@ -7,10 +7,62 @@ import { useScaleStore } from '@renderer/stores/scaleStore'
 import { useExport } from '@renderer/hooks/useExport'
 import { aggregateBoq } from '@renderer/lib/boq-aggregator'
 import { hydrateStores, snapshotProject } from '@renderer/lib/project-serialize'
+import { LegacyRateReviewDialog, LEGACY_RATE_WARNING } from '@renderer/components/LegacyRateReviewDialog'
 
 beforeEach(() => {
   useProjectStore.getState().reset(); useScaleStore.getState().reset()
   Object.assign(window, { api: { saveExportDialog: vi.fn().mockResolvedValue(null) } })
+})
+
+describe('legacy review dialog', () => {
+  it.each([0, 1, 100])('lists every affected item for %s entries and requires explicit checkbox acknowledgement', async (count) => {
+    const rates = Object.fromEntries(Array.from({ length: count }, (_, i) => [`${'Long item name '.repeat(10)}${i}|linear`, { material: 123456789.12, labor: 45.67, markup: 30, basis: 'ft' as const, review: 'legacy-unresolved' as const }]))
+    useProjectStore.setState({ rates })
+    const host = document.createElement('div'); document.body.append(host)
+    const root = createRoot(host), close = vi.fn()
+    await act(async () => root.render(React.createElement(LegacyRateReviewDialog, { onClose: close })))
+    if (count === 0) expect(document.querySelector('[role="dialog"]')).toBeNull()
+    else {
+      const dialog = document.querySelector('[role="dialog"]') as HTMLElement
+      expect(dialog.textContent).toContain(LEGACY_RATE_WARNING)
+      expect(dialog.querySelectorAll('tbody tr')).toHaveLength(count)
+      expect(dialog.textContent).toContain('ft')
+      const buttons = Array.from(dialog.querySelectorAll('button'))
+      const confirm = buttons.find(b => b.textContent === 'Confirm Rate Units')!
+      expect(confirm.disabled).toBe(true)
+      act(() => confirm.click())
+      expect(useProjectStore.getState().getUnresolvedRateKeys()).toHaveLength(count)
+      const checkbox = dialog.querySelector('input')!
+      act(() => checkbox.click())
+      expect(confirm.disabled).toBe(false)
+      act(() => useProjectStore.getState().setSaving(true))
+      expect(confirm.disabled).toBe(true)
+      act(() => confirm.click())
+      expect(close).not.toHaveBeenCalled()
+      act(() => useProjectStore.getState().setSaving(false))
+      act(() => confirm.click())
+      expect(useProjectStore.getState().getUnresolvedRateKeys()).toEqual([])
+      expect(close).toHaveBeenCalledTimes(1)
+    }
+    act(() => root.unmount()); host.remove()
+  })
+  it('contains keyboard shortcuts, Escape cancels and restores focus without acknowledgement', async () => {
+    unresolved()
+    const trigger = document.createElement('button'); document.body.append(trigger); trigger.focus()
+    const host = document.createElement('div'); document.body.append(host)
+    const root = createRoot(host), close = vi.fn(), globalKey = vi.fn()
+    window.addEventListener('keydown', globalKey)
+    await act(async () => root.render(React.createElement(LegacyRateReviewDialog, { onClose: close })))
+    const cancel = document.querySelector('[data-initial-focus]') as HTMLButtonElement
+    expect(document.activeElement).toBe(cancel)
+    act(() => cancel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })))
+    expect(close).toHaveBeenCalledTimes(1)
+    expect(globalKey).not.toHaveBeenCalled()
+    expect(useProjectStore.getState().getUnresolvedRateKeys()).toHaveLength(1)
+    act(() => root.unmount())
+    expect(document.activeElement).toBe(trigger)
+    window.removeEventListener('keydown', globalKey); host.remove(); trigger.remove()
+  })
 })
 function unresolved() {
   useProjectStore.setState({ rates: { 'Pipe|linear': { material: 5, labor: 7, markup: 30, basis: 'm', review: 'legacy-unresolved' } } })
