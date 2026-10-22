@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-22T10:14:35.227Z",
+  "status": "pass",
+  "scope": "handover-preparation-only",
+  "localReferencesChecked": 26,
+  "imagesWithAlt": 2,
+  "htmlPages": 6,
+  "offlineResourcesOnly": true,
+  "example": {
+    "status": "pass",
+    "method": "Independent Euclidean length, shoelace area, wall-height and price arithmetic; ZIP CRC/PDF hash; separate XLSX and CSV readback. No application aggregation imported.",
+    "rows": [
+      {
+        "name": "Grid length",
+        "type": "linear",
+        "quantity": 10,
+        "sellingTotal": 195
+      },
+      {
+        "name": "Grid area",
+        "type": "area",
+        "quantity": 100,
+        "sellingTotal": 390
+      },
+      {
+        "name": "Retest area",
+        "type": "area",
+        "quantity": 100,
+        "sellingTotal": 0
+      },
+      {
+        "name": "Grid perimeter",
+        "type": "perimeter",
+        "quantity": 40,
+        "sellingTotal": 52
+      },
+      {
+        "name": "Grid wall",
+        "type": "wall",
+        "quantity": 30,
+        "sellingTotal": 195
+      },
+      {
+        "name": "Grid count",
+        "type": "count",
+        "quantity": 1,
+        "sellingTotal": 130
+      }
+    ],
+    "cost": 739.9999999999999,
+    "selling": 961.9999999999999,
+    "margin": 222
+  },
+  "integrityPositive": "PASS: 20 kit files match. App acceptance remains pending. TEST-RESULTS.md is intentionally editable.",
+  "integrityCorruptionRejected": true,
+  "protectedHashesUnchanged": 5,
+  "visualReview": "not performed: browser URL policy rejected file protocol; no alternate browser path attempted",
+  "shellNote": "Bundled PowerShell 7 normal RemoteSigned policy passed; Windows PowerShell 5 AuthorizationManager refused execution. No policy change or bypass used. Manual hash-check fallback documented.",
+  "acceptance": "pending",
+  "finalGuideDelta": "Corrected exact Download Excel Template / Recover Unsaved Work labels; documented native vertex selection and middle-button/Space panning from source.",
+  "finalGuideRecheck": "2026-10-22T10:16:25.725Z",
+  "fixtureGitBlobBytesVerified": 4,
+  "deliverableCommit": "f1ecf20"
+}
