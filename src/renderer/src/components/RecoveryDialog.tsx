@@ -255,11 +255,15 @@ function RecoveryDecision({
               )}
               {(problem || failure) && (
                 <div role="alert" style={{ color: COLORS.warning, marginTop: 16 }}>
-                  <strong>Could not recover project</strong>
-                  <p>
-                    The recovery copy is incomplete or unreadable. It has been kept. Open the last
-                    saved project or try again later.
-                  </p>
+                  {!localError && (
+                    <>
+                      <strong>Could not recover project</strong>
+                      <p>
+                        The recovery copy is incomplete or unreadable. It has been kept. Open the
+                        last saved project or try again later.
+                      </p>
+                    </>
+                  )}
                   {selected.problem === 'pdf' && (
                     <p>
                       The recovery PDF is missing or damaged. This copy cannot be opened safely.

@@ -199,6 +199,7 @@ it('retains the selected candidate and explains a failed deletion', async () => 
   click(button('Discard Recovery Copy'))
   await act(async () => button('Delete Recovery Copy').click())
   expect(document.querySelector('[role="alert"]')?.textContent).toContain('It has been kept')
+  expect(document.querySelector('[role="alert"]')?.textContent).not.toContain('incomplete or unreadable')
   expect(document.querySelector('[role="dialog"]')?.textContent).toContain('Unsaved plan.pdf')
 })
 
