@@ -115,7 +115,8 @@ export function StatusBar({
             gap: 8,
             flexShrink: 0,
             background: COLORS.secondary,
-            color: COLORS.warning,
+            color: COLORS.textPrimary,
+            borderLeft: `4px solid ${COLORS.warning}`,
             fontSize: 13,
             overflowWrap: 'anywhere'
           }}

@@ -120,11 +120,11 @@ export function AboutDialog({
             userSelect: 'text'
           }}
         >
-          <h3 style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.2 }}>Release Notes</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.2, marginBottom: 8 }}>Release Notes</h3>
           {loading ? (
             <p>Loading release notes…</p>
           ) : info?.notes && info.notesStatus === 'available' ? (
-            <ul>
+            <ul style={{ display: 'grid', gap: 8, paddingLeft: 16 }}>
               {info.notes.changes.map((change, index) => (
                 <li key={index} style={{ whiteSpace: 'pre-wrap' }}>
                   {change}
@@ -134,31 +134,31 @@ export function AboutDialog({
           ) : (
             <p>{NOTES_UNAVAILABLE}</p>
           )}
-          <h3 style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.2 }}>Manual Updates</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.2, margin: '16px 0 8px' }}>Manual Updates</h3>
           <p>
             Updates are installed manually. Ask your internal maintainer for the approved installer.
           </p>
-          <h3 style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.2 }}>Project Compatibility</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.2, margin: '16px 0 8px' }}>Project Compatibility</h3>
           <p>
             {info?.notes?.compatibility ??
               'Saving will use this version’s project format. Older versions may not preserve rate units correctly. Keep a separate pre-upgrade copy if you need to return to an older version.'}
           </p>
-          <h3 style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.2 }}>Backup and Recovery</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.2, margin: '16px 0 8px' }}>Backup and Recovery</h3>
           <p>
             After a successful replacement save, one last-good backup is kept beside the project as{' '}
             {'${project}.bak'} (for example, Estimate.clmc.bak). A first save does not create a
             previous-version backup.
           </p>
           {projectPath && (
-            <p style={{ whiteSpace: 'pre-wrap' }}>
+            <p style={{ whiteSpace: 'pre-wrap', marginTop: 8 }}>
               Backup location after a successful replacement save: {projectPath}.bak
             </p>
           )}
-          <p>
+          <p style={{ marginTop: 8 }}>
             Use Open and select the adjacent .bak file in the native file picker to open a backup
             copy. Keep the original project; save the recovered work to a separate project file.
           </p>
-          <p>
+          <p style={{ marginTop: 8 }}>
             Recovery copies protect periodic unsaved work and include the PDF. They cannot guarantee
             every latest edit or protect against loss of this computer or its drive. Keep separate
             copies of important projects before updating. Use More → Recover Unsaved Work when a

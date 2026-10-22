@@ -65,7 +65,7 @@ export function LegacyRateReviewDialog({
             {['Item / type', 'Rate unit', 'Material', 'Labor', 'Markup %'].map((label) => (
               <th
                 key={label}
-                style={{ textAlign: label === 'Item / type' ? 'left' : 'right', padding: 8 }}
+                style={{ textAlign: label === 'Item / type' ? 'left' : 'right', padding: 8, fontWeight: 600 }}
               >
                 {label}
               </th>

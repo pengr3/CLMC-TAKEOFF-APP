@@ -29,7 +29,7 @@ export function LegacyGeometryReview(): React.JSX.Element | null {
   const button = { minHeight: 28, padding: '4px 8px' }
   return <aside aria-label="Verify legacy geometry" style={{ padding: '8px 16px', background: COLORS.secondary, color: COLORS.textPrimary, fontSize: 13, flexShrink: 0, maxHeight: '25dvh', overflowY: 'auto' }}>
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', position: 'sticky', top: 0, background: COLORS.secondary }}>
-      <span style={{ flex: 1, minWidth: 160 }}>{pending.length} pages need geometry review. Export blocked.</span>
+      <span style={{ flex: 1, minWidth: 160 }}>{pending.length === 1 ? '1 page needs' : `${pending.length} pages need`} geometry review. Export blocked.</span>
       <label style={{ display: 'flex', gap: 4, alignItems: 'center' }}>Page <input ref={pageInput} key={page} aria-label="Review page number" type="number" min={1} max={totalPages} defaultValue={page} disabled={busy} onInput={event => event.currentTarget.setCustomValidity('')} style={{ width: 64, minHeight: 28 }} /></label>
       <button data-testid="geometry-go" disabled={busy} style={button} onClick={goToPage}>Go</button>
       <button disabled={busy} style={button} onClick={() => useViewerStore.getState().setPage(pending.find(p => p > page) ?? pending[0])}>Next unverified</button>

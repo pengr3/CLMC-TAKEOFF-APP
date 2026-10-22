@@ -16,7 +16,7 @@ const time = (value: string | number): string => new Date(value).toLocaleString(
 function Details({ candidate: c }: { candidate: RecoveryCandidate }): React.JSX.Element {
   return (
     <div style={{ whiteSpace: 'pre-wrap', userSelect: 'text' }}>
-      <strong>{c.sourcePath?.split(/[\\/]/).pop() ?? c.filename}</strong>
+      <strong style={{ fontWeight: 600 }}>{c.sourcePath?.split(/[\\/]/).pop() ?? c.filename}</strong>
       <div>{c.sourcePath ? c.sourcePath : 'Not yet saved as a project'}</div>
       <div>Last recovery: {time(c.capturedAt)}</div>
       {c.sourcePath && (
@@ -99,6 +99,8 @@ function RecoveryDecision({
     padding: '4px 8px',
     borderRadius: 4,
     fontSize: 13,
+    fontWeight: 600,
+    lineHeight: 1.5,
     border: `1px solid ${COLORS.border}`,
     color: COLORS.textPrimary,
     background: COLORS.secondary
@@ -178,7 +180,7 @@ function RecoveryDecision({
       >
         <h2
           id="recovery-heading"
-          style={{ fontSize: 16, fontWeight: 600, margin: '0 0 8px', flexShrink: 0 }}
+          style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.2, margin: '0 0 8px', flexShrink: 0 }}
         >
           {confirm ? 'Discard Recovery Copy' : 'Recover unsaved work?'}
         </h2>
@@ -254,10 +256,10 @@ function RecoveryDecision({
                 </div>
               )}
               {(problem || failure) && (
-                <div role="alert" style={{ color: COLORS.warning, marginTop: 16 }}>
+                <div role="alert" style={{ color: COLORS.textPrimary, marginTop: 16 }}>
                   {!localError && (
                     <>
-                      <strong>Could not recover project</strong>
+                      <strong style={{ fontWeight: 600, color: COLORS.warning }}>Could not recover project</strong>
                       <p>
                         The recovery copy is incomplete or unreadable. It has been kept. Open the
                         last saved project or try again later.

@@ -319,7 +319,7 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
             </div>
           )}
           {message && (
-            <div role="status" aria-live="polite" style={{ color: COLORS.warning }}>
+            <div role="status" aria-live="polite" style={{ color: COLORS.textPrimary }}>
               {message}
             </div>
           )}
