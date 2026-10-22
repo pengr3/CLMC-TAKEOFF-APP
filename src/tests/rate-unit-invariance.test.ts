@@ -110,7 +110,7 @@ it.each(['count', 'linear', 'perimeter', 'area', 'wall'] as const)(
                 pdfOriginalFilename: 'plan.pdf',
                 pdfSha256: 'abc',
                 pdfTotalPages: 1,
-                perPageDimensions: {}
+                perPageDimensions: { 1: { width: 595, height: 842 } }
               })
             )
           )

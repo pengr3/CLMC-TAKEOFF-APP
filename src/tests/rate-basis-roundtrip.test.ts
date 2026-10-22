@@ -6,7 +6,7 @@ import { useViewerStore } from '@renderer/stores/viewerStore'
 import { snapshotProject, hydrateStores } from '@renderer/lib/project-serialize'
 import { applyLibraryRate } from '@renderer/lib/apply-library-rate'
 import { aggregateBoq } from '@renderer/lib/boq-aggregator'
-import type { ProjectFileV2 } from '@renderer/lib/project-schema'
+import type { ProjectFileV2, ProjectFileV3 } from '@renderer/lib/project-schema'
 
 const params = {
   pdfOriginalFilename: 'plan.pdf',
@@ -14,8 +14,11 @@ const params = {
   pdfTotalPages: 1,
   perPageDimensions: { 1: { width: 10000, height: 10000 } }
 }
-function snapshot(): ProjectFileV2 {
+function snapshot(): ProjectFileV3 {
   return JSON.parse(JSON.stringify(snapshotProject(params)))
+}
+function legacySnapshot(): ProjectFileV2 {
+  return { ...snapshot(), formatVersion: 2 }
 }
 beforeEach(() => {
   useProjectStore.getState().reset()
@@ -67,7 +70,7 @@ it('stamps manual prices and retains explicit basis and totals on project-only r
 it.each([10, { material: 10, labor: 5, markup: 0 }])(
   'retains initial legacy numeric interpretation and unresolved state: %j',
   (legacy) => {
-    const saved = snapshot()
+    const saved = legacySnapshot()
     saved.globalUnit = 'ft'
     saved.rates = { 'Wire|linear': legacy } as ProjectFileV2['rates']
     hydrateStores(saved)
@@ -85,7 +88,7 @@ it.each([10, { material: 10, labor: 5, markup: 0 }])(
 )
 
 it('requires explicit acknowledgement, preserves it through save and increments revision', () => {
-  const saved = snapshot()
+  const saved = legacySnapshot()
   saved.rates = { 'Wire|linear': { material: 10, labor: 5, markup: 0 } }
   hydrateStores(saved)
   const revision = useProjectStore.getState().editRevision
@@ -123,7 +126,7 @@ it('stamps normalized library basis, preserves markup, and snapshots a detached 
 })
 
 it('marks absent history unresolved and infers wall basis as square metres', () => {
-  const saved = snapshot()
+  const saved = legacySnapshot()
   delete (saved as Partial<ProjectFileV2>).globalUnit
   saved.rates = {
     'Wall|wall': { material: 7, labor: 0, markup: 0 },

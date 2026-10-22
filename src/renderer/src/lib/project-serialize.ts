@@ -60,6 +60,7 @@ export function snapshotProject(params: SnapshotParams, captured?: ProjectFile):
   return {
     formatVersion: 3,
     minimumReaderVersion: 3,
+    preservedSource: useProjectStore.getState().preservedSource,
     createdAt: params.createdAt ?? now,
     updatedAt: now,
     pdf: {
@@ -93,7 +94,9 @@ export function snapshotProject(params: SnapshotParams, captured?: ProjectFile):
 export function hydrateStores(data: ProjectFile): void {
   // Validate before resetting any live stores, including recovery/direct hydration.
   validateRateEntries(data.rates)
-  validateProjectData(data)
+  // Direct legacy hydration retains its defensive missing-unit fallback. Disk
+  // and recovery readers call strict migrate/admission before reaching here.
+  validateProjectData(data.formatVersion < 3 ? { ...data, globalUnit: data.globalUnit ?? 'm' } : data, data.formatVersion < 3)
   suspendDirtyTracking()
   try {
     useProjectStore.getState().reset()

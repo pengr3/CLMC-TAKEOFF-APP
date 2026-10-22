@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { snapshotProject, hydrateStores } from '@renderer/lib/project-serialize'
-import { validateV2 } from '@renderer/lib/project-schema'
+import { validateV3 } from '@renderer/lib/project-schema'
 import { aggregateBoq } from '@renderer/lib/boq-aggregator'
 import { polygonArea, polylineLength } from '@renderer/lib/markup-math'
 import { useMarkupStore } from '@renderer/stores/markupStore'
@@ -94,7 +94,7 @@ describe('arc round-trip (SC #5)', () => {
 
     // The arcs field rides the existing Markup[] cast through JSON + the validator.
     const text = JSON.stringify(snap)
-    const validated = validateV2(JSON.parse(text))
+    const validated = validateV3(JSON.parse(text))
 
     const reloadedArea = validated.pages[0].markups.find((m) => m.id === 'arc-area-1') as AreaMarkup
     const reloadedLinear = validated.pages[0].markups.find(
@@ -164,7 +164,7 @@ describe('arc round-trip (SC #5)', () => {
     })
     // Inject the arc-less markup into the serialized snapshot's page directly.
     snap.pages[0].markups = [straightArea]
-    const validated = validateV2(JSON.parse(JSON.stringify(snap)))
+    const validated = validateV3(JSON.parse(JSON.stringify(snap)))
     const reloaded = validated.pages[0].markups[0] as AreaMarkup
     expect(reloaded.arcs).toBeUndefined()
     // Measures as the plain square (no arc correction).

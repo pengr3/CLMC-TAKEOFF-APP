@@ -20,7 +20,9 @@ vi.mock('electron', () => ({
 vi.mock('@renderer/hooks/usePdfDocument', () => ({
   usePdfDocument: () => ({
     loadPdfFromPath: vi.fn(),
-    loadPdfFromBytes: vi.fn()
+    loadPdfFromBytes: vi.fn(),
+    stagePdfFromBytes: async () => ({ numPages: 1, getPage: async () => ({ getViewport: () => ({ width: 600, height: 800 }) }), destroy: async () => {} }),
+    adoptStagedPdf: vi.fn()
   })
 }))
 import { registerIpcHandlers } from '../main/ipc-handlers'
@@ -171,7 +173,7 @@ it('serializes same destination writes into complete archives with the preceding
       categoryOrder: [],
       globalUnit: 'mm',
       currentPage: 1,
-      pages: []
+      pages: [{ pageIndex: 1, dimensions: { width: 600, height: 800 }, scale: null, viewport: { zoom: 1, panX: 0, panY: 0 }, markups: [] }]
     })
   await Promise.all([
     handlers['file:writeProject']({}, path, json(1), pdf),

@@ -9,7 +9,7 @@ interface ScaleStoreState {
   globalUnit: ScaleUnit
   calibMode: CalibMode
 
-  setScale: (page: number, pixelsPerMm: number, displayUnit: ScaleUnit) => void
+  setScale: (page: number, pixelsPerMm: number, displayUnit: ScaleUnit) => boolean
   getScale: (page: number) => PageScale | null
   clearScale: (page: number) => void
   setGlobalUnit: (unit: ScaleUnit) => void
@@ -31,13 +31,17 @@ const createScaleStore = () =>
       globalUnit: DEFAULT_UNIT,
       calibMode: 'idle',
 
-      setScale: (page, pixelsPerMm, displayUnit) =>
+      setScale: (page, pixelsPerMm, displayUnit) => {
+        const existing = get().pageScales[page]
+        if (existing && existing.displayUnit !== displayUnit && requireRateReview()) return false
         set((state) => ({
           pageScales: {
             ...state.pageScales,
             [page]: { pixelsPerMm, displayUnit }
           }
-        })),
+        }))
+        return true
+      },
 
       getScale: (page) => get().pageScales[page] ?? null,
 

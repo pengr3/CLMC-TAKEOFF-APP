@@ -2519,7 +2519,7 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
           containerSize={containerSize}
           pixelLength={calibState.linePixelLength}
           onConfirm={(pixelsPerMm: number, displayUnit: ScaleUnit) => {
-            setScale(currentPage, pixelsPerMm, displayUnit)
+            if (!setScale(currentPage, pixelsPerMm, displayUnit)) return
             const ratioText = formatScaleRatio(pixelsPerMm)
             cancel()
             setToast({ ratioText })

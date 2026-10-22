@@ -12,6 +12,7 @@ export const OPEN_ERROR_BODY =
   'An unexpected error occurred while opening the file. The file may be corrupted or inaccessible.'
 
 export interface OpenErrorModalProps {
+  onOpenBackup?: () => void
   message: string
   onClose: () => void
   /**
@@ -30,19 +31,42 @@ export interface OpenErrorModalProps {
 export function OpenErrorModal({
   message,
   onClose,
+  onOpenBackup,
   title = OPEN_ERROR_TITLE,
   body = OPEN_ERROR_BODY
 }: OpenErrorModalProps): React.JSX.Element {
   const closeRef = useRef<HTMLButtonElement>(null)
-  useEffect(() => { closeRef.current?.focus() }, [])
+  const overlayRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null
+    const contain = (event: FocusEvent): void => {
+      if (!overlayRef.current?.contains(event.target as Node)) closeRef.current?.focus()
+    }
+    document.addEventListener('focusin', contain)
+    closeRef.current?.focus()
+    return () => {
+      document.removeEventListener('focusin', contain)
+      if (previous?.isConnected) previous.focus()
+    }
+  }, [])
   const { position, onPointerDown } = useDraggable()
 
   const handleKey = (e: React.KeyboardEvent<HTMLDivElement>): void => {
+    e.stopPropagation()
     if (e.key === 'Escape') { e.preventDefault(); onClose() }
+    if (e.key === 'Tab') {
+      const buttons = Array.from(e.currentTarget.querySelectorAll('button'))
+      const index = buttons.indexOf(document.activeElement as HTMLButtonElement)
+      if ((e.shiftKey && index <= 0) || (!e.shiftKey && index === buttons.length - 1)) {
+        e.preventDefault(); buttons[e.shiftKey ? buttons.length - 1 : 0]?.focus()
+      }
+    }
   }
 
   return (
     <div
+      ref={overlayRef}
+      onKeyUp={e => e.stopPropagation()}
       style={{
         position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
@@ -55,7 +79,7 @@ export function OpenErrorModal({
         aria-label={title}
         onPointerDown={onPointerDown}
         style={{
-          width: 420, padding: 20,
+          width: 'min(420px, calc(100vw - 48px))', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto', padding: 20,
           background: COLORS.secondary,
           border: `1px solid ${COLORS.border}`,
           borderRadius: 8,
@@ -87,7 +111,8 @@ export function OpenErrorModal({
             {message}
           </div>
         )}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+          {onOpenBackup && <button type="button" onClick={onOpenBackup} style={{ minHeight: 28, padding: '4px 8px' }}>Open Backup Copy</button>}
           <button
             ref={closeRef}
             type="button"

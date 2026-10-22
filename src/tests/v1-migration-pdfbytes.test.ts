@@ -54,6 +54,7 @@ beforeEach(() => {
         return Promise.resolve({ kind: 'v1-json', text: V1_FILE_TEXT })
       }),
       readPdfBytes: vi.fn().mockResolvedValue(FAKE_PDF_BYTES.buffer),
+      hashBuffer: vi.fn().mockResolvedValue('a'.repeat(64)),
       openPdf: vi.fn(),
       writeProject: vi.fn().mockResolvedValue({ ok: true }),
       openProject: vi.fn(),

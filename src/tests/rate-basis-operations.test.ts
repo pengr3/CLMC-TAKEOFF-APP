@@ -3,7 +3,7 @@ import { useMarkupStore } from '@renderer/stores/markupStore'
 import { useProjectStore } from '@renderer/stores/projectStore'
 import { useScaleStore } from '@renderer/stores/scaleStore'
 import { aggregateBoq } from '@renderer/lib/boq-aggregator'
-import { validateV2 } from '@renderer/lib/project-schema'
+import { validateV3 } from '@renderer/lib/project-schema'
 import { hydrateStores, snapshotProject } from '@renderer/lib/project-serialize'
 
 const price = {
@@ -18,7 +18,7 @@ function saved() {
     pdfOriginalFilename: 'plan.pdf',
     pdfSha256: 'abc',
     pdfTotalPages: 1,
-    perPageDimensions: {}
+    perPageDimensions: { 1: { width: 595, height: 842 } }
   })
 }
 beforeEach(() => {
@@ -91,7 +91,7 @@ it.each(['bogus', 'm²', 'ea', null, {}, Infinity])(
   (basis) => {
     const input = JSON.parse(JSON.stringify(saved()))
     input.rates['A|B|linear'].basis = basis
-    expect(() => validateV2(input)).toThrow(/basis/i)
+    expect(() => validateV3(input)).toThrow(/basis/i)
     const session = useProjectStore.getState().documentSessionId
     expect(() => hydrateStores(input)).toThrow(/basis/i)
     expect(useProjectStore.getState().documentSessionId).toBe(session)
@@ -103,12 +103,12 @@ it.each([-1, NaN, Infinity, '10', null])(
   (material) => {
     const input = saved()
     input.rates!['A|B|linear'] = { ...price, material }
-    expect(() => validateV2(input)).toThrow(/rate/i)
+    expect(() => validateV3(input)).toThrow(/rate/i)
   }
 )
 
 it('distinguishes valid legacy inference from an invalid new review status', () => {
   const input = saved()
   input.rates!['A|B|linear'] = { ...price, review: 'auto-reviewed' }
-  expect(() => validateV2(input)).toThrow(/review/i)
+  expect(() => validateV3(input)).toThrow(/review/i)
 })

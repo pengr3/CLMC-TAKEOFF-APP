@@ -1,7 +1,7 @@
-import { readFile, rename, unlink, open } from 'fs/promises'
-import { resolve } from 'path'
+import { readFile, rename, unlink, open, realpath, stat } from 'fs/promises'
+import { resolve, dirname, basename } from 'path'
 import { randomUUID } from 'crypto'
-import { assembleClmcZip, extractClmcZip, sha256Buffer } from './project-io'
+import { assembleClmcZip, extractClmcZip, sha256Buffer, detectClmcFormat } from './project-io'
 import { validateProjectData } from '../shared/project-validation'
 const RENAME_RETRY_DELAYS_MS = [120, 250]
 function isLockedDestError(error: unknown): boolean {
@@ -25,6 +25,7 @@ const projectWrites = new Map<string, Promise<void>>()
 /** Disk boundary check kept independent of renderer store/type dependencies. */
 export function parseProjectMetadata(json: string): { pdf: { sha256: string } } {
   const data = JSON.parse(json)
+  if (data?.formatVersion > 3 || data?.minimumReaderVersion > 3) throw new Error('Project needs a newer version')
   if (
     !data ||
     ![2, 3].includes(data.formatVersion) ||
@@ -46,6 +47,29 @@ export function parseProjectMetadata(json: string): { pdf: { sha256: string } } 
   }
   validateProjectData(data)
   return data
+}
+
+/** Resolve existing files and parent directories; stat catches hard-link aliases too. */
+export async function assertCopyDestination(destination: string, preservedPaths: readonly string[]): Promise<void> {
+  const canonical = async (path: string): Promise<string> => {
+    const absolute = resolve(path)
+    const actual = await realpath(absolute).catch(async () => resolve(await realpath(dirname(absolute)).catch(() => dirname(absolute)), basename(absolute)))
+    return process.platform === 'win32' ? actual.toLowerCase() : actual
+  }
+  const target = await canonical(destination), targetStat = await stat(destination).catch(() => null)
+  for (const path of preservedPaths) {
+    const sourceStat = await stat(path).catch(() => null)
+    if (target === await canonical(path) || (targetStat && sourceStat && targetStat.dev === sourceStat.dev && targetStat.ino === sourceStat.ino))
+      throw new Error('Choose a different destination for the project copy. The original project and backup must be preserved.')
+  }
+}
+async function rejectFutureOriginal(bytes: Buffer): Promise<void> {
+  let raw: unknown
+  try {
+    raw = JSON.parse(detectClmcFormat(bytes) === 'v2-zip' ? (await extractClmcZip(bytes)).projectJson : bytes.toString('utf8'))
+  } catch { return } // A damaged destination can be repaired without replacing its last-good backup.
+  if (raw && typeof raw === 'object' && ((raw as { formatVersion?: number }).formatVersion! > 3 || (raw as { minimumReaderVersion?: number }).minimumReaderVersion! > 3))
+    throw new Error('Project needs a newer version. This file has not been changed.')
 }
 export async function validatedArchive(bytes: Buffer): Promise<void> {
   const { projectJson, pdfBytes } = await extractClmcZip(bytes)
@@ -77,7 +101,8 @@ async function renameWithRetry(source: string, destination: string): Promise<voi
 export function writeProtectedProject(
   destination: string,
   json: string,
-  pdf: Uint8Array
+  pdf: Uint8Array,
+  preservedPaths: readonly string[] = []
 ): Promise<void> {
   const finalPath = resolve(destination),
     key = process.platform === 'win32' ? finalPath.toLowerCase() : finalPath
@@ -92,6 +117,7 @@ export function writeProtectedProject(
       let stage: ProjectSaveStage = 'write',
         firstSave = false
       try {
+        await assertCopyDestination(finalPath, preservedPaths)
         let original: Buffer | undefined
         try {
           original = await readFile(finalPath)
@@ -99,6 +125,7 @@ export function writeProtectedProject(
           if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
           firstSave = true
         }
+        if (original) await rejectFutureOriginal(original)
         await durableTemp(temp, await assembleClmcZip(json, bytes))
         stage = 'validate'
         await validatedArchive(await readFile(temp))

@@ -58,6 +58,7 @@ export function validateV1(raw: unknown): ProjectFileV1 {
   if (typeof r.currentPage !== 'number') throw new Error('Invalid currentPage')
   if (!Array.isArray(r.pages)) throw new Error('Invalid pages')
 
+  validateProjectData(raw)
   return raw as ProjectFileV1
 }
 
@@ -65,6 +66,8 @@ export function validateV1(raw: unknown): ProjectFileV1 {
 
 export interface ProjectFileV2 {
   formatVersion: 2
+  /** Recovery carries rollback protection through the exact shared project JSON. */
+  preservedSource?: { path: string; format: number; backup: boolean } | null
   createdAt: string
   updatedAt: string
   pdf: {
@@ -126,6 +129,11 @@ export interface ProjectFileV3 extends Omit<ProjectFileV2, 'formatVersion'> {
   minimumReaderVersion: 3
 }
 export type ProjectFile = ProjectFileV2 | ProjectFileV3
+export function validateV3(raw: unknown): ProjectFileV3 {
+  if ((raw as { formatVersion?: unknown })?.formatVersion !== 3) throw new Error('Expected formatVersion 3')
+  validateProjectData(raw)
+  return raw as ProjectFileV3
+}
 
 export function validateV2(raw: unknown): ProjectFileV2 {
   if (!raw || typeof raw !== 'object') throw new Error('Invalid project file: not an object')
@@ -154,6 +162,7 @@ export function validateV2(raw: unknown): ProjectFileV2 {
   if (!Array.isArray(r.pages)) throw new Error('Invalid pages')
 
   validateRateEntries(r.rates)
+  validateProjectData(raw)
 
   return raw as ProjectFileV2
 }
@@ -169,6 +178,7 @@ function basenameAny(p: string): string {
 
 function migrateV1ToV2(v1: ProjectFileV1): ProjectFileV2 {
   return {
+    ...v1,
     formatVersion: 2,
     createdAt: v1.createdAt,
     updatedAt: v1.updatedAt,
@@ -199,17 +209,14 @@ export function migrate(
   if (fromVersion !== (raw as { formatVersion?: unknown })?.formatVersion)
     throw new Error(`Unsupported formatVersion: ${fromVersion}`)
   if (fromVersion === 3) {
-    validateProjectData(raw)
-    return { data: raw as ProjectFileV3, wasMigrated: false }
+    return { data: validateV3(raw), wasMigrated: false }
   }
   if (fromVersion === 2) {
     validateV2(raw)
-    validateProjectData(raw)
     return { data: raw as ProjectFileV2, wasMigrated: true }
   }
   if (fromVersion === 1) {
     const v1 = validateV1(raw)
-    validateProjectData(v1)
     return { data: migrateV1ToV2(v1), wasMigrated: true }
   }
   throw new Error(

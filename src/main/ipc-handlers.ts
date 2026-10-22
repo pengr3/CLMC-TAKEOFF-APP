@@ -153,9 +153,10 @@ export function registerIpcHandlers(assertTrusted: TrustedSender): void {
     const result = await dialog.showOpenDialog(win, {
       title: 'Open',
       filters: [
-        { name: 'Supported (PDF, CLMC Project)', extensions: ['pdf', 'clmc'] },
+        { name: 'Supported (PDF, CLMC Project, Backup)', extensions: ['pdf', 'clmc', 'bak'] },
         { name: 'PDF Files', extensions: ['pdf'] },
-        { name: 'CLMC Project', extensions: ['clmc'] }
+        { name: 'CLMC Project', extensions: ['clmc'] },
+        { name: 'CLMC Backup Copy', extensions: ['bak'] }
       ],
       properties: ['openFile']
     })
@@ -187,11 +188,15 @@ export function registerIpcHandlers(assertTrusted: TrustedSender): void {
       try {
         const raw = await readFile(filePath)  // Buffer
         const fmt = detectClmcFormat(raw)
+        if (filePath.toLowerCase().endsWith('.clmc.bak') && fmt !== 'v2-zip')
+          throw new Error('The backup copy is incomplete or unreadable.')
         if (fmt === 'v2-zip') {
           const { projectJson, pdfBytes } = await extractClmcZip(raw)
           // Main pre-hashes — renderer never SubtleCrypto's. Review feedback.
           const computedSha256 = sha256Buffer(pdfBytes)
           const metadata = parseProjectMetadata(projectJson)
+          if (filePath.toLowerCase().endsWith('.clmc.bak') && computedSha256 !== metadata.pdf.sha256)
+            throw new Error('The backup copy is incomplete or unreadable.')
           return {
             kind: 'v2-zip',
             projectJson,
@@ -220,12 +225,15 @@ export function registerIpcHandlers(assertTrusted: TrustedSender): void {
       _event,
       filePath: string,
       jsonText: string,
-      pdfBytes: Uint8Array
+      pdfBytes: Uint8Array,
+      preservedPaths: string[] = []
     ): Promise<WriteProjectResult> => {
       try {
         if (typeof filePath !== 'string' || !filePath.trim() || filePath.includes('\0') || extname(filePath).toLowerCase() !== '.clmc' ||
             typeof jsonText !== 'string' || !(pdfBytes instanceof Uint8Array) || pdfBytes.byteLength === 0) throw new Error('Invalid project save input.')
-        await writeProtectedProject(filePath, jsonText, pdfBytes)
+        if (!Array.isArray(preservedPaths) || preservedPaths.length > 4 || preservedPaths.some(path => typeof path !== 'string' || !path.trim() || path.includes('\0')))
+          throw new Error('Invalid preserved project paths.')
+        await writeProtectedProject(filePath, jsonText, pdfBytes, preservedPaths)
         return { ok: true }
       } catch (error) {
         return { ok: false, stage: error instanceof ProjectSaveError ? error.stage : 'write',

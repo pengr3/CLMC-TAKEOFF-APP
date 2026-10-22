@@ -91,6 +91,24 @@ async function bridge(): Promise<RecoveryRepository> {
   return repo
 }
 
+it('retains original-preserving upgrade protection through an unfinished format-3 recovery snapshot', async () => {
+  const repo = await bridge()
+  const path = join(dir, 'old.clmc')
+  await writeFile(path, 'pre-upgrade original')
+  const preserved = { path, format: 2, backup: false }
+  useProjectStore.setState({ currentFilePath: path, preservedSource: preserved })
+  useProjectStore.getState().markDirty()
+  expect(await actions.writeRecoverySnapshot()).toBe(true)
+  const list = await repo.list()
+  if (!list.ok) throw new Error(list.message)
+  useProjectStore.getState().reset()
+  expect(await actions.restoreRecovery(list.candidates[0].id)).toEqual({ kind: 'ok' })
+  expect(useProjectStore.getState().preservedSource).toEqual(preserved)
+  expect(await actions.saveProject()).toBe('canceled')
+  expect(useProjectStore.getState().upgradeRequested).toBe(true)
+  expect(await readFile(path, 'utf8')).toBe('pre-upgrade original')
+})
+
 it('recovers a completed never-saved PDF and matching project state from disk after restart as dirty', async () => {
   // Assertion is intentionally before loading the new repository, so RED is a missing behavior, not an import failure.
   expect(

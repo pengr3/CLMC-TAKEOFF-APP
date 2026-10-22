@@ -91,9 +91,10 @@ const api = {
   writeProject: (
     filePath: string,
     json: string,
-    pdfBytes: Uint8Array
+    pdfBytes: Uint8Array,
+    preservedPaths?: string[]
   ): Promise<{ ok: true } | { ok: false; stage: 'write' | 'validate' | 'backup' | 'replace'; message: string; firstSave: boolean }> =>
-    ipcRenderer.invoke('file:writeProject', filePath, json, pdfBytes),
+    ipcRenderer.invoke('file:writeProject', filePath, json, pdfBytes, preservedPaths),
 
   // SHA256 a buffer in main; used by save flow to populate project.json.pdf.sha256
   // (replaces SubtleCrypto in renderer per review feedback).

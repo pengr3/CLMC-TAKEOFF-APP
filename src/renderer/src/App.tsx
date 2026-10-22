@@ -4,6 +4,7 @@ import { TitleBar } from './components/TitleBar'
 import { AboutDialog } from './components/AboutDialog'
 import { RecoveryDialog } from './components/RecoveryDialog'
 import { LegacyRateReviewDialog, LEGACY_RATE_WARNING } from './components/LegacyRateReviewDialog'
+import { UpgradeProjectDialog } from './components/UpgradeProjectDialog'
 import type { RecoveryCandidate } from '../../shared/reliability'
 import { TopActionBar } from './components/TopActionBar'
 import { ContextBar } from './components/ContextBar'
@@ -50,8 +51,8 @@ function App(): React.JSX.Element {
   const currentFilePath = useProjectStore((s) => s.currentFilePath)
   const isSaving = useProjectStore((s) => s.isSaving)
   const saveFailure = useProjectStore((s) => s.saveFailure)
-  const rates = useProjectStore(s => s.rates)
-  const unresolvedRates = Object.values(rates).some(rate => rate.review !== 'reviewed')
+  const upgradeRequested = useProjectStore(s => s.upgradeRequested)
+  const unresolvedRates = useProjectStore(s => Object.values(s.rates).some(rate => rate.review !== 'reviewed'))
   const [rateReviewOpen, setRateReviewOpen] = useState(false)
   useEffect(() => {
     const openReview = (): void => setRateReviewOpen(true)
@@ -62,6 +63,7 @@ function App(): React.JSX.Element {
     openByExtension,
     saveProject,
     saveProjectAs,
+    saveUpgradedCopy,
     retrySaveProject,
     replacePlanPdf,
     applyReplacePlanPdf,
@@ -155,6 +157,7 @@ function App(): React.JSX.Element {
     clmcPath: string
   } | null>(null)
   const [openError, setOpenError] = useState<string | null>(null)
+  const [openBackupPath, setOpenBackupPath] = useState<string | null>(null)
   const [saveToast, setSaveToast] = useState<string | null>(null)
   const [closeModal, setCloseModal] = useState<
     'close-window' | 'open-other' | 'recover-other' | null
@@ -329,6 +332,7 @@ function App(): React.JSX.Element {
     if (result.kind === 'ok') {
       setArchiveCorrupted(null)
       setOpenError(null)
+      setOpenBackupPath(null)
       return
     }
     if (result.kind === 'archive-corrupted') {
@@ -342,6 +346,7 @@ function App(): React.JSX.Element {
     if (result.kind === 'error') {
       console.error('[App] open error:', result.message)
       setOpenError(result.message)
+      setOpenBackupPath(result.backupPath ?? null)
       return
     }
   }, [])
@@ -816,8 +821,19 @@ function App(): React.JSX.Element {
       />
 
       {openError !== null && (
-        <OpenErrorModal message={openError} onClose={() => setOpenError(null)} />
+        <OpenErrorModal message={openError}
+          {...(/newer version|Unsupported formatVersion/i.test(openError) ? { title: 'Project needs a newer version', body: 'This project uses a format this version cannot open safely. Ask your internal maintainer for a compatible installer. The file has not been changed.' } : {})}
+          onClose={() => { setOpenError(null); setOpenBackupPath(null) }}
+          onOpenBackup={openBackupPath ? async () => {
+            const path = openBackupPath
+            setOpenError(null); setOpenBackupPath(null)
+            handleOpenResult(await openByExtension(path, '.bak'))
+          } : undefined} />
       )}
+
+      {upgradeRequested && <UpgradeProjectDialog
+        onKeep={() => useProjectStore.setState({ upgradeRequested: false })}
+        onSave={() => { void (async () => { await finishGuardedSave(await saveUpgradedCopy()) })() }} />}
 
       {/* GAP-2: export errors use export-appropriate copy — NOT the "Failed to
           open file" open-flow wording. OpenErrorModal is parameterized with
@@ -860,12 +876,15 @@ function App(): React.JSX.Element {
       {archiveCorrupted && (
         <ArchiveCorruptedModal
           onOpenAnyway={async () => {
-            await applyArchiveCorruptedProceed(
-              archiveCorrupted.validated,
-              archiveCorrupted.pdfBytes,
-              archiveCorrupted.clmcPath
-            )
-            setArchiveCorrupted(null)
+            try {
+              await applyArchiveCorruptedProceed(
+                archiveCorrupted.validated,
+                archiveCorrupted.pdfBytes,
+                archiveCorrupted.clmcPath
+              )
+            } catch (error) {
+              setOpenError(error instanceof Error ? error.message : String(error))
+            } finally { setArchiveCorrupted(null) }
           }}
           onCancel={() => setArchiveCorrupted(null)}
         />
@@ -941,7 +960,7 @@ function App(): React.JSX.Element {
           />
         )}
 
-      {saveFailure && (
+      {saveFailure && !upgradeRequested && (
         <SaveFailureDialog
           failure={saveFailure}
           busy={isSaving}
@@ -959,7 +978,7 @@ function App(): React.JSX.Element {
         />
       )}
 
-      {closeModal && !saveFailure && (
+      {closeModal && !saveFailure && !upgradeRequested && (
         <SaveCloseModal
           filename={displayFilename}
           busy={isSaving || discardBusy}

@@ -14,6 +14,8 @@ export interface SaveFailure {
 }
 
 interface ProjectStoreState {
+  preservedSource: { path: string; format: number; backup: boolean } | null
+  upgradeRequested: boolean
   recoveryWarning: string | null
   saveFailure: SaveFailure | null
   lastSaveOutcome: { revision: number; message: string; at: number } | null
@@ -140,6 +142,8 @@ export function isHydrating(): boolean {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createProjectStore = () =>
   create<ProjectStoreState>((set, get) => ({
+    preservedSource: null,
+    upgradeRequested: false,
     recoveryWarning: null,
     saveFailure: null,
     lastSaveOutcome: null,
@@ -180,6 +184,8 @@ const createProjectStore = () =>
 
     reset: () =>
       set({
+        preservedSource: null,
+        upgradeRequested: false,
         recoveryWarning: null,
         saveFailure: null,
         lastSaveOutcome: null,

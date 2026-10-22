@@ -10,7 +10,7 @@ const VALID_V1: ProjectFileV1 = {
   categories: {},
   categoryOrder: [],
   currentPage: 1,
-  pages: []
+  pages: [{ pageIndex: 1, dimensions: { width: 595, height: 842 }, scale: null, viewport: { zoom: 1, panX: 0, panY: 0 }, markups: [] }]
 }
 
 describe('project-schema', () => {
@@ -50,7 +50,7 @@ const VALID_V2: ProjectFileV2 = {
   categories: {},
   categoryOrder: [],
   currentPage: 1,
-  pages: []
+  pages: [{ pageIndex: 1, dimensions: { width: 595, height: 842 }, scale: null, viewport: { zoom: 1, panX: 0, panY: 0 }, markups: [] }]
 }
 
 describe('project-schema v2', () => {
@@ -80,9 +80,9 @@ describe('project-schema v2', () => {
     expect((result.data.pdf as Record<string, unknown>).relativePath).toBeUndefined()
   })
 
-  it('migrate(v2, 2) returns { data: v2, wasMigrated: false }', () => {
+  it('migrate(v2, 2) keeps valid legacy data and flags its writer upgrade', () => {
     const result = migrate(VALID_V2, 2)
-    expect(result.wasMigrated).toBe(false)
+    expect(result.wasMigrated).toBe(true)
     expect(result.data).toEqual(VALID_V2)
   })
 
