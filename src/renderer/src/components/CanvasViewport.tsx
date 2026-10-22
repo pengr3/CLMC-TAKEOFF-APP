@@ -647,11 +647,10 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
   }, [setRubberBand, setDragPreview, setBulgePreview])
 
   // Sync viewerStore.activeTool with the markup tool state machine.
-  // Guard: skip activateMarkup when mode is already non-idle — activatePreset may have
-  // already transitioned the machine to 'placing'/'drawing' with chainArmed:true.
-  // Calling activateMarkup in that case would erase the preset state.
+  // A different measurement tool starts a fresh draw even while chaining.
+  // Matching toolType preserves activatePreset's metadata and same-type chains.
   useEffect(() => {
-    if (isMarkupTool(activeTool) && markupState.toolType !== activeTool && markupState.mode === 'idle') {
+    if (isMarkupTool(activeTool) && markupState.toolType !== activeTool) {
       activateMarkup(activeTool)
     } else if (!isMarkupTool(activeTool) && markupState.mode !== 'idle') {
       cancelMarkup()
