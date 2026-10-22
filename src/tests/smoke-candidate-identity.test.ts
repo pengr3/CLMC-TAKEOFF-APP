@@ -12,7 +12,7 @@ it.each(['exe', 'asar', 'unpacked', 'installer', 'electron'])('rejects a mismatc
   try {
     const app = join(dir, 'alternate-app')
     const contents: Record<string, string> = { 'clmc-takeoff.exe': 'exe', 'resources/app.asar': 'asar', 'resources/app.asar.unpacked/worker.js': 'worker' }
-    const hash = (b: string | Buffer) => createHash('sha256').update(b).digest('hex')
+    const hash = (b: string | Buffer): string => createHash('sha256').update(b).digest('hex')
     for (const [name, bytes] of Object.entries(contents)) { await mkdir(join(app, name, '..'), { recursive: true }); await writeFile(join(app, name), bytes) }
     await writeFile(join(dir, 'setup.exe'), 'installer')
     const manifest = { version: '1.1.0', runtime: { expectedElectron: '44.9.3' }, installer: { file: 'setup.exe', sha256: hash('installer'), bytes: 9 }, archive: { sha256: hash('asar') },
@@ -26,7 +26,8 @@ it.each(['exe', 'asar', 'unpacked', 'installer', 'electron'])('rejects a mismatc
       expect(() => harness.assertObservedCandidate(identity, { electron: '45.0.0', appPath: join(app, 'resources/app.asar'), executable: join(app, 'clmc-takeoff.exe') })).toThrow(/runtime|Electron/)
     } else {
       const target = changed === 'installer' ? join(dir, 'setup.exe') : join(app, changed === 'exe' ? 'clmc-takeoff.exe' : changed === 'asar' ? 'resources/app.asar' : 'resources/app.asar.unpacked/worker.js')
-      await writeFile(target, Buffer.concat([await readFile(target), Buffer.from('changed')]))
+      // Keep size and the manifest version unchanged: only hashing can catch it.
+      await writeFile(target, (await readFile(target)).map(byte => byte ^ 1))
       await expect(harness.verifyCandidate(join(app, 'clmc-takeoff.exe'), manifestPath)).rejects.toThrow(/identity|hash|size|candidate/i)
     }
   } finally { await rm(dir, { recursive: true, force: true }) }
