@@ -1,0 +1,60 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 300] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 711 >>
+stream
+1 1 1 rg 0 0 300 300 re f
+0.8 G 0.3 w
+50 50 m 50 250 l S
+50 50 m 250 50 l S
+70 50 m 70 250 l S
+50 70 m 250 70 l S
+90 50 m 90 250 l S
+50 90 m 250 90 l S
+110 50 m 110 250 l S
+50 110 m 250 110 l S
+130 50 m 130 250 l S
+50 130 m 250 130 l S
+150 50 m 150 250 l S
+50 150 m 250 150 l S
+170 50 m 170 250 l S
+50 170 m 250 170 l S
+190 50 m 190 250 l S
+50 190 m 250 190 l S
+210 50 m 210 250 l S
+50 210 m 250 210 l S
+230 50 m 230 250 l S
+50 230 m 250 230 l S
+250 50 m 250 250 l S
+50 250 m 250 250 l S
+0 0 0 RG 1 w 50 50 200 200 re S
+0 0 0 rg
+BT /F1 10 Tf 65 270 Td (Manual fixture: 10 m x 10 m) Tj ET
+BT /F1 9 Tf 74 30 Td (Each grid square = 1 m x 1 m) Tj ET
+BT /F1 8 Tf 65 15 Td (Square area 100 m2 / perimeter 40 m) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001002 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1072
+%%EOF
