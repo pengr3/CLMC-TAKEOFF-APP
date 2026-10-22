@@ -111,3 +111,27 @@ it('reports scan failures and never advertises incomplete entries as protected',
   expect(await failing.list()).toMatchObject({ ok: false, stage: 'scan' })
   expect((await entries(repo))).toHaveLength(1)
 })
+
+it('uses the 20 candidate / 4 GiB defaults and deduplicates a 16 MiB plan across revisions and sessions', async () => {
+  const { RECOVERY_MAX_BYTES, RECOVERY_MAX_CANDIDATES } = await import('../main/project-recovery')
+  expect(RECOVERY_MAX_BYTES).toBe(4 * 1024 ** 3); expect(RECOVERY_MAX_CANDIDATES).toBe(20)
+  const large = new Uint8Array(Buffer.concat([Buffer.from(pdf), Buffer.alloc(16 * 1024 ** 2)]))
+  const repo = new RecoveryRepository(dir), i = input(randomUUID(), 1, large)
+  expect((await repo.write(i)).ok).toBe(true)
+  expect((await repo.write({ ...i, revision: 2 })).ok).toBe(true)
+  expect((await repo.write({ ...i, session: randomUUID() })).ok).toBe(true)
+  const files = await readdir(repo.root)
+  const bytes = (await Promise.all(files.map(f => stat(join(repo.root, f))))).reduce((n, s) => n + s.size, 0)
+  expect(files.filter(f => f.endsWith('.pdf'))).toHaveLength(1)
+  expect(bytes).toBeLessThan(large.byteLength + 10_000)
+  expect((await entries(new RecoveryRepository(dir)))).toHaveLength(2)
+})
+
+it('freezes queued PDF input and rejects malformed payloads before touching disk', async () => {
+  const repo = new RecoveryRepository(dir), i = input(), expected = i.pdfBytes.slice()
+  const writing = repo.write(i); i.pdfBytes[0] = 0
+  expect((await writing).ok).toBe(true)
+  expect(await repo.read(i.session)).toMatchObject({ ok: true, pdfBytes: expected })
+  for (const invalid of [null, {}, { ...i, session: '../bad' }, { ...i, revision: NaN }, { ...i, lastSavedAt: -1 }, { ...i, sourcePath: '../bad\0' }]) expect((await repo.write(invalid)).ok).toBe(false)
+  expect((await entries(repo))).toHaveLength(1)
+})
