@@ -202,10 +202,12 @@ export function aggregateBoq(opts: AggregateOptions = {}): BoqStructure {
   }
 
   // 2. Build categories in declared order; empty categories excluded (D-11)
-  const orderedCatKeys: string[] = [
+  const orderedCatKeys: string[] = [...new Set([
     ...categoryOrder.filter((id) => buckets.has(id)),
+    // Defensive closure: malformed in-memory order must neither omit nor double charge a bucket.
+    ...[...buckets.keys()].filter(id => id !== UNCAT_BUCKET_KEY),
     ...(buckets.has(UNCAT_BUCKET_KEY) ? [UNCAT_BUCKET_KEY] : [])
-  ]
+  ])]
 
   const categories: BoqCategoryGroup[] = []
   const grandByUom = new Map<string, number>()

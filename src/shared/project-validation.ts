@@ -75,6 +75,11 @@ export function validateProjectData(input: unknown, legacyHydration = false): vo
     )
       fail('category')
   }
+  const categories = d.categories as Record<string, unknown>
+  const categoryOrder = d.categoryOrder as string[]
+  const orderedCategories = new Set(categoryOrder)
+  if (orderedCategories.size !== categoryOrder.length || categoryOrder.some(id => !Object.hasOwn(categories, id)))
+    fail('category order duplicates/references')
   if (!Array.isArray(d.pages) || d.pages.length !== pdf.totalPages) fail('pages/count')
   let markups = 0,
     vertices = 0
@@ -118,6 +123,8 @@ export function validateProjectData(input: unknown, legacyHydration = false): vo
       )
         fail('markup')
       const item = m as Record<string, unknown>
+      if (item.categoryId !== '' && (!Object.hasOwn(categories, item.categoryId as string) || !orderedCategories.has(item.categoryId as string)))
+        fail('markup category reference/order')
       ids.add(item.id as string)
       if (item.type === 'count') {
         if (!point(item.point) || !Number.isInteger(item.sequence) || (item.sequence as number) < 1)

@@ -145,7 +145,7 @@ it('recovers a completed never-saved PDF and matching project state from disk af
             { x: 10, y: 20 },
             { x: 30, y: 40 }
           ],
-          categoryId: '__uncat__'
+          categoryId: ''
         }
       ]
     }
