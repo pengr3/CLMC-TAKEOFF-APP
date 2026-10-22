@@ -22,6 +22,8 @@ const transport = vi.hoisted(() => {
 })
 vi.mock('electron', () => ({
   app: {
+    requestSingleInstanceLock: vi.fn(() => true),
+    exit: vi.fn(),
     getPath: () => process.cwd(),
     setPath: vi.fn(),
     commandLine: { appendSwitch: vi.fn() },

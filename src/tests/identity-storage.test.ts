@@ -28,6 +28,8 @@ const host = vi.hoisted(() => {
 })
 vi.mock('electron', () => ({
   app: {
+    requestSingleInstanceLock: vi.fn(() => true),
+    exit: vi.fn(),
     getPath: (name: string) => host.paths[name] ?? host.root,
     setPath: (name: string, value: string) => {
       host.paths[name] = value

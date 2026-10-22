@@ -9,10 +9,27 @@ import { readReleaseInfo } from './release-info'
 import { APP_ID, pinUserData, trustedWindowSender } from './app-identity'
 import { registerRecoveryHandlers } from './project-recovery'
 
-pinUserData(app)
-
 let canClose = false
 let mainWindowRef: BrowserWindow | null = null
+let activationPending = false
+
+// All instances must resolve the same identity before Chromium acquires its
+// process lock. Contenders exit before ready, IPC registration or storage access.
+pinUserData(app)
+const ownsSharedStorage = app.requestSingleInstanceLock()
+if (!ownsSharedStorage) app.exit(0)
+else app.on('second-instance', () => activateMainWindow())
+
+function activateMainWindow(): void {
+  if (!mainWindowRef || mainWindowRef.isDestroyed()) {
+    activationPending = true
+    return
+  }
+  activationPending = false
+  if (mainWindowRef.isMinimized()) mainWindowRef.restore()
+  mainWindowRef.show()
+  mainWindowRef.focus()
+}
 const rendererFile = join(__dirname, '../renderer/index.html')
 const trustedRendererUrl =
   is.dev && process.env['ELECTRON_RENDERER_URL']
@@ -80,6 +97,7 @@ function createWindow(): void {
     hasShown = true
     mainWindow.maximize()
     mainWindow.show()
+    if (activationPending) activateMainWindow()
   }
   mainWindow.on('ready-to-show', showOnce)
   mainWindow.webContents.on('did-finish-load', showOnce)
@@ -107,6 +125,7 @@ function createWindow(): void {
 // Disable Chromium's compositor-level zoom gesture recognition.
 // Without this, Ctrl+scroll is processed as a zoom gesture by the GPU compositor
 // BEFORE DOM wheel events fire, so preventDefault() in the renderer is too late.
+if (ownsSharedStorage) {
 app.commandLine.appendSwitch('disable-pinch')
 
 app.whenReady().then(() => {
@@ -169,3 +188,4 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
+}

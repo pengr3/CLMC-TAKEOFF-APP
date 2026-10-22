@@ -20,23 +20,32 @@ const host = vi.hoisted(() => {
     },
     close: vi.fn(),
     external: vi.fn(),
-    listeners: new Map<string, (...args: unknown[]) => void>()
+    listeners: new Map<string, (...args: unknown[]) => void>(),
+    appEvents: new Map<string, (...args: unknown[]) => void>(), windowEvents: new Map<string, (...args: unknown[]) => void>(),
+    restore: vi.fn(), show: vi.fn(), focus: vi.fn()
   }
 })
 vi.mock('electron', () => ({
   app: {
+    requestSingleInstanceLock: vi.fn(() => true),
+    exit: vi.fn(),
     getPath: () => process.cwd(),
     setPath: vi.fn(),
     commandLine: { appendSwitch: vi.fn() },
     whenReady: () => Promise.resolve(),
-    on: vi.fn()
+    on: (name: string, fn: (...args: unknown[]) => void) => host.appEvents.set(name, fn)
   },
   BrowserWindow: class {
     constructor(options: Record<string, unknown>) {
       host.options = options
     }
     webContents = host.contents
-    on = vi.fn()
+    on = (name: string, fn: (...args: unknown[]) => void): void => { host.windowEvents.set(name, fn) }
+    isDestroyed = (): boolean => false
+    isMinimized = (): boolean => true
+    restore = host.restore
+    show = host.show
+    focus = host.focus
     close = host.close
     loadFile = (path: string): void => {
       host.frame.url = pathToFileURL(path).href
@@ -91,6 +100,17 @@ describe('offline Electron host policy', () => {
     request(host.contents, 'media', decide)
     expect(decide).toHaveBeenCalledWith(false)
     expect(host.session.setPermissionCheckHandler.mock.calls[0]?.[0]()).toBe(false)
+  })
+  it('activates the existing minimized window without closing it or bypassing unsaved-work protection', () => {
+    host.appEvents.get('second-instance')!({}, ['another.clmc'])
+    expect(host.restore).toHaveBeenCalledOnce()
+    expect(host.show).toHaveBeenCalledOnce()
+    expect(host.focus).toHaveBeenCalledOnce()
+    expect(host.close).not.toHaveBeenCalled()
+    const preventDefault = vi.fn()
+    host.windowEvents.get('close')!({ preventDefault })
+    expect(preventDefault).toHaveBeenCalledOnce()
+    expect(host.contents.send).toHaveBeenCalledWith('app:close-request')
   })
   it('ignores hostile confirm-close events and accepts only the trusted main frame', () => {
     const close = host.listeners.get('app:confirm-close')!
