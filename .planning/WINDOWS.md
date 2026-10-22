@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 3
+open_count: 4
 waived_count: 0
 fixed_count: 1
-total_count: 4
-last_updated: 2026-10-21T23:50:24.677Z
+total_count: 5
+last_updated: 2026-10-22T03:07:46.599Z
 ---
 
 # Broken Windows Ledger
@@ -19,6 +19,7 @@ last_updated: 2026-10-21T23:50:24.677Z
 | 2 | 20 | lint-warning | src/renderer/src/hooks/useCloseGuard.ts | 14 | Pre-existing render-time handler ref assignment fails react-hooks/refs | open |  | 2026-10-21T15:32:31.187Z |  |
 | 3 | 20 | lint-warning | src/tests/app-version.test.ts | 21 | Existing app-version test explicit-any and missing-return-type lint errors remain outside the runtime task | open |  | 2026-10-21T23:48:59.898Z |  |
 | 4 | 20 | deviation | package.json |  | Patched critical build-time tar archive processing dependency with verified exact tar 7.5.21 override | fixed |  | 2026-10-21T23:49:01.022Z | 2026-10-21T23:50:24.677Z |
+| 5 | 20 | unmet-truth | .planning/phases/20-production-readiness/20-INSTALLED-EVIDENCE.json |  | Plan20-09 actual non-development-PC install/upgrade/physical validation remains pending for exact candidate f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8 | open |  | 2026-10-22T03:07:46.599Z |  |
 
 ````json
 [
@@ -69,6 +70,18 @@ last_updated: 2026-10-21T23:50:24.677Z
     "reason": "",
     "recorded_at": "2026-10-21T23:49:01.022Z",
     "resolved_at": "2026-10-21T23:50:24.677Z"
+  },
+  {
+    "id": 5,
+    "kind": "unmet-truth",
+    "phase": "20",
+    "file": ".planning/phases/20-production-readiness/20-INSTALLED-EVIDENCE.json",
+    "line": null,
+    "description": "Plan20-09 actual non-development-PC install/upgrade/physical validation remains pending for exact candidate f510cfd9af47abab99354006e988e9b07e95e5568c40d6853bef7fe875677eb8",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-22T03:07:46.599Z",
+    "resolved_at": null
   }
 ]
 ````
