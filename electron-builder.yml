@@ -1,26 +1,34 @@
 appId: com.clmc.takeoff
 productName: CLMC Takeoff
+publish: null
 directories:
   buildResources: build
 files:
-  - '!**/.vscode/*'
-  - '!src/*'
-  - '!electron.vite.config.{js,ts,mjs,cjs}'
-  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
-  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
-  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-asarUnpack:
-  - resources/**
+  - out/main/**
+  - out/preload/**
+  - out/renderer/**
+  - resources/release-notes.json
+  - resources/icon.png
+  - resources/third-party-notices.json
+  - package.json
+  - node_modules/**
+  - '!**/{test,tests,__tests__,fixtures,example,examples}/**'
+  - '!**/*.{map,ts}'
+  - '!**/{.env,.env.*,dev-app-update.yml,app-update.yml}'
+asar: true
+beforePack: scripts/prepare-release.cjs
 win:
   executableName: clmc-takeoff
-  target: nsis
+  target:
+    - target: nsis
+      arch: [x64]
 nsis:
   perMachine: false
   oneClick: false
   allowElevation: false
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false
-  artifactName: ${name}-${version}-setup.${ext}
+  artifactName: ${name}-${version}-x64-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
