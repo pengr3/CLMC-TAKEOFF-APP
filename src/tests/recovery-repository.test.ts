@@ -49,6 +49,43 @@ async function entries(repo: RecoveryRepository): Promise<RecoveryCandidate[]> {
   if (!result.ok) throw new Error(result.message)
   return result.candidates
 }
+it('reclaims abandoned blobs after repeated manifest failures before charging the next snapshot', async () => {
+  let fail = true
+  const repo = new RecoveryRepository(dir, { maxBytes: 3500, fault: stage => {
+    if (fail && stage === 'manifest-rename') throw new Error('interrupted manifest')
+  } })
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const bytes = Buffer.alloc(1700, attempt + 1); bytes.set(Buffer.from('%PDF-1.4'))
+    expect(await repo.write(input(randomUUID(), 1, bytes))).toMatchObject({ ok: false, stage: 'write' })
+  }
+  expect(await entries(repo)).toEqual([])
+  fail = false
+  const bytes = Buffer.alloc(1700, 7); bytes.set(Buffer.from('%PDF-1.4'))
+  expect((await repo.write(input(randomUUID(), 1, bytes))).ok).toBe(true)
+})
+
+it('reconciles owned crash blobs/stages after restart before quota admission', async () => {
+  const repo = new RecoveryRepository(dir, { maxBytes: 3500 })
+  await repo.list()
+  await writeFile(join(repo.root, `${'a'.repeat(64)}.pdf`), Buffer.alloc(1700))
+  await writeFile(join(repo.root, `${randomUUID()}.stage`), Buffer.alloc(1700))
+  const restarted = new RecoveryRepository(dir, { maxBytes: 3500 })
+  const bytes = Buffer.alloc(1700, 9); bytes.set(Buffer.from('%PDF-1.4'))
+  expect((await restarted.write(input(randomUUID(), 1, bytes))).ok).toBe(true)
+  expect((await readdir(repo.root)).filter(f => f.endsWith('.stage'))).toEqual([])
+})
+
+it('preserves every blob if any completed manifest is unreadable', async () => {
+  const repo = new RecoveryRepository(dir)
+  const good = input()
+  expect((await repo.write(good)).ok).toBe(true)
+  const owned = `${'a'.repeat(64)}.pdf`
+  await writeFile(join(repo.root, `${randomUUID()}.json`), '{unreadable')
+  await writeFile(join(repo.root, owned), 'possibly referenced')
+  await new RecoveryRepository(dir).list()
+  expect(await readFile(join(repo.root, owned), 'utf8')).toBe('possibly referenced')
+  expect((await repo.read(good.session)).ok).toBe(true)
+})
 it('does no disk writes for an unchanged or older revision and stores the PDF only once', async () => {
   const repo = new RecoveryRepository(dir),
     i = input()

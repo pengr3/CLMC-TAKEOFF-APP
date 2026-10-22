@@ -214,6 +214,8 @@ export class RecoveryRepository {
   list(): Promise<RecoveryListResult> {
     return this.serial(async () => {
       try {
+        await this.initialize()
+        await this.prune()
         return { ok: true, candidates: await this.scan() }
       } catch {
         return {
@@ -234,7 +236,9 @@ export class RecoveryRepository {
     }
     return bytes
   }
-  /** Cleanup follows successful commits only; an unreadable manifest keeps all blobs. */
+  /** Called only under the repository queue, with no active stage. An unreadable
+   * completed manifest keeps every blob: its references cannot be disproved.
+   */
   private async prune(): Promise<void> {
     try {
       const files = await readdir(this.root),
@@ -301,6 +305,8 @@ export class RecoveryRepository {
         )
           throw new Error('Recovery PDF integrity validation failed.')
         await this.initialize()
+        // Reconcile crash remnants before quota charging, including on a fresh process.
+        await this.prune()
         let previous: Manifest | undefined
         try {
           previous = await this.manifest(i.session)
@@ -366,6 +372,8 @@ export class RecoveryRepository {
         return { ok: false, stage, message: error instanceof Error ? error.message : String(error) }
       } finally {
         if (temp) await unlink(temp).catch(() => {})
+        // A blob may have committed before manifest replacement failed.
+        await this.prune()
       }
     })
   }
