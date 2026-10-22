@@ -1,9 +1,12 @@
 ---
 phase: 20-production-readiness
-reviewed: 2026-10-22T03:23:11Z
+reviewed: 2026-10-22T04:09:40Z
 depth: standard
+iteration: 3
 diff_base: d0bcee9
-files_reviewed: 64
+fix_diff_base: 83527d2
+source_head: 38cb5d2
+files_reviewed: 85
 files_reviewed_list:
   - electron-builder.yml
   - electron.vite.config.ts
@@ -69,116 +72,96 @@ files_reviewed_list:
   - src/shared/project-validation.ts
   - src/shared/release-info.ts
   - src/shared/reliability.ts
+  - scripts/smoke-reopen.cjs
+  - src/renderer/src/components/LegacyGeometryReview.tsx
+  - src/tests/atomic-write.test.ts
+  - src/tests/category-financial-integrity.test.ts
+  - src/tests/future-destination-preservation.test.ts
+  - src/tests/legacy-geometry-review.test.ts
+  - src/tests/project-compatibility-ui.test.ts
+  - src/tests/project-store.test.ts
+  - src/tests/recovery-flow.test.ts
+  - src/tests/recovery-repository.test.ts
+  - src/tests/smoke-candidate-identity.test.ts
+  - src/tests/smoke-reopen-transition.test.ts
+  - src/tests/use-export-hook.test.ts
+  - scripts/smoke-geometry-layout.cjs
+  - scripts/smoke-single-instance.cjs
+  - src/tests/app-version.test.ts
+  - src/tests/geometry-review-layout.test.ts
+  - src/tests/helpers/geometry-layout-entry.tsx
+  - src/tests/host-security.test.ts
+  - src/tests/identity-storage.test.ts
+  - src/tests/single-instance-bootstrap.test.ts
 findings:
-  critical: 4
-  warning: 2
+  critical: 0
+  warning: 0
   info: 0
-  total: 6
-status: issues_found
+  total: 0
+status: clean
 ---
 
 # Phase 20: Code Review Report
 
-**Reviewed:** 2026-10-22T03:23:11Z  
-**Depth:** standard, explicitly selected by the workflow flag  
-**Files Reviewed:** 64  
-**Status:** issues_found
+**Reviewed:** 2026-10-22T04:09:40Z
+
+**Depth:** standard; GSD automatic re-review, iteration 3
+
+**Scope:** 85 cumulative files: original 64-file IR scope, iteration-1 fixes/support retained through the 77-file second review, and eight additional ownership/layout/support files. Every file changed in `83527d2..38cb5d2` was read for this iteration. Unchanged files retain the preceding review coverage.
+
+**Status:** clean — no unresolved findings remain in this scoped source review.
 
 ## Narrative Findings (AI reviewer)
 
-The exact IR scope was reviewed against `d0bcee9`, with supporting reads of the phase context, nine plans/summaries, dependency review, relevant callers and tests. Four product defects require correction before release: legacy coordinate compatibility, future-file preservation, financial category integrity, and recovery after interrupted writes. Two smoke-harness defects weaken the recorded evidence.
+All eight previously reported findings have substantive corrections and regression coverage. This iteration traced startup ownership, second-launch activation, recovery publication and cleanup, and the actual bounded geometry-review component. No remaining concrete bug, security vulnerability or quality defect was found in these changes. This is a scoped code-review conclusion, not whole-application security certification or installed-release acceptance.
 
-The approved Electron 44.9.3 choice and internal-export/recovery scope are respected. Pending non-development-PC installation, scaling and pilot evidence is an external acceptance gate, not a code defect. Existing CanvasViewport lint debt is not reported as a phase regression. No source changes or commits were made.
+The approved Electron 44.9.3 choice and internal-export/recovery scope are preserved. No source files, dependency versions or commits were modified by the reviewer.
 
-## Critical Issues
+## Resolved findings
 
-### CR-01: Existing clamped-page projects reopen in a different coordinate space
+The following entries are historical dispositions, not active findings; frontmatter counts correctly remain zero.
 
-**Classification:** BLOCKER  
-**File:** `C:/Users/Admin/Roaming/CLMC TAKEOFF APP/src/renderer/src/hooks/usePdfRenderer.ts:121-130`  
-**Related:** `src/renderer/src/lib/project-schema.ts:203-219`; `src/renderer/src/lib/project-serialize.ts:113-124`; `src/renderer/src/hooks/useMarkupTool.ts:511-517`.
+| ID | Previous classification | Re-review disposition |
+| --- | --- | --- |
+| CR-01 | BLOCKER | New snapshots record the canonical per-page basis. Unrecorded legacy geometry enters persistent visible review, retains raw coordinates without guessing historical DPR, clears untrusted calibration and blocks exports until explicit verification/recalibration. Legacy source files, including older format-3 files, remain protected through Save Copy. Review state survives persistence/recovery. |
+| CR-02 | BLOCKER | Independent bounded version inspection precedes current-layout admission. Newer versions and unclassifiable/unknown layouts fail closed without replacing the destination; preservation controls cover additional members and changed layouts. |
+| CR-03 | BLOCKER | Category admission checks uniqueness, known references and coverage of used category IDs. Aggregation also emits each actual bucket once, preventing duplicate or omitted financial totals. Fixture corrections retain the stronger admission rule. |
+| CR-04 | BLOCKER | Serialized orphan reconciliation runs before quota admission and after failures; restart leftovers no longer cause the original quota deadlock. Unreadable completed manifests conservatively retain potentially referenced blobs. |
+| CR-05 | BLOCKER | Startup pins the shared userData identity, then acquires Electron's cross-process single-instance lock before ready, IPC registration, window creation or repository initialization. Denied contenders exit without entering that initialization branch. The owner retains exclusive recovery access. Second launches restore/show/focus the existing window; early activation is remembered, and launch arguments do not replace the active document or bypass its close guard. The actual two-process regression now preserves the acknowledged PDF. |
+| WR-01 | WARNING | Packaged smoke measures the actual executable/resource/unpacked inventory and installer before/after execution, checks observed executable/ASAR paths and exact approved runtime, and emits verified identities. Hash mismatch controls preserve file size/version to exercise the real identity checks. |
+| WR-02 | WARNING | Both smoke harnesses prove an initially false, real red-document-to-saved-blue-document UI transition, distinctive persisted rates/scale/total, and a fresh renderer Save As/readback. A real injected read/open error produces failure rather than a passing reopen claim. |
+| WR-03 | WARNING | The actual component now has a constant control count, compact page selection and a scrollable 25-dvh instruction region with reachable current-page controls. The 150-page native Chromium layout/keyboard regression confirms useful canvas space at both tested heights. |
 
-**Issue:** The new logical page size uses the full, unrounded `PDF_BASE_SCALE` viewport, but existing projects store raw stage-space points, arc midpoints and `pixelsPerMm`. At the review base, the renderer's stage size was the floored, DPR-clamped viewport. Migration/hydration copies those coordinates and calibration unchanged. Consequently, a valid older large-plan project now draws its markups over different PDF locations, and subsequent measurements use calibration from the old coordinate space. The new-format DPR tests create and reopen projects using the new coordinate convention, so they do not exercise this upgrade.
+## Verification performed in this iteration
 
-**Evidence:** For a 7000.25-PDF-unit-wide page at DPR 2, the old stage width is 8192 and the new width is 14000.5. A saved midpoint pin at x=4096 moves from 50% to 29.256% of the PDF width. A newly traced span representing the old calibrated 10 m reports approximately 17.09045 m. These values follow the actual old/new viewport calculations and raw-point persistence; no Windows-monitor acceptance result is inferred.
+Read the cumulative `20-REVIEW-FIX.md`, all ten files changed in `83527d2..38cb5d2`, the full current main bootstrap, the new production component, real-process/native-layout harnesses and their regression tests. Startup order is explicit in the production source: `pinUserData` → `requestSingleInstanceLock` → owner-only `whenReady` and shared handler/repository registration.
 
-**Fix:** Add an explicit coordinate-space migration/compatibility policy before adopting legacy pages. Rebase points, count positions, arc midpoints and calibration together using a verified legacy logical basis; persist that basis for future migrations. Older files do not record the historical clamped dimensions/DPR, so require a visible verification/recalibration/repositioning flow when the basis cannot be established, rather than silently assuming the new space. Add an old-runtime-produced clamped-page fixture and verify PDF landmark alignment plus existing/new length and area measurements after upgrade.
+The reviewer independently reran these focused checks against current built output/source:
 
-### CR-02: Future archives with additional entries are silently overwritten without a backup
+| Check | Actual result |
+| --- | --- |
+| `node scripts/smoke-single-instance.cjs` | Exit 0. `acknowledged:true`, `readable:true`, one activation/focus/restore, and `contenderInitialized:false`. Uses two real Electron processes and real recovery disk I/O. |
+| `node scripts/smoke-geometry-layout.cjs` | Exit 0. Actual production component with 150 flagged pages; keyboard navigation and confirmation passed. At 1024×600: 67-pixel banner, 371-pixel canvas, three buttons; expanded instructions: 150/288 pixels. At 1024×400: 67/171 pixels; expanded: 100/138 pixels. |
 
-**Classification:** BLOCKER  
-**File:** `C:/Users/Admin/Roaming/CLMC TAKEOFF APP/src/main/project-storage.ts:66-72`  
-**Related:** `src/main/project-io.ts:131-139`; `src/main/project-storage.ts:132-157`.
-
-**Issue:** `rejectFutureOriginal` calls the current-format extractor before checking the version and treats every extraction exception as permission to repair a damaged destination. That extractor rejects any third entry. A newer project format that retains `project.json` but adds another archive member therefore bypasses the future-version guard. The subsequent last-good validation also rejects it, so replacement destroys the original without even creating its backup. This contradicts the newly implemented future-file preservation guarantee.
-
-**Evidence:** An isolated real-filesystem reproduction created a ZIP containing `project.json` with `formatVersion: 4` / `minimumReaderVersion: 4`, `plan.pdf`, and `future-metadata.json`, then called the production protected writer with a valid format-3 snapshot. Result: `futureOriginalPreserved: false`, `backupExists: false`, `savedVersion: 3`.
-
-**Fix:** Inspect bounded version metadata independently of the current two-entry admission rules and reject newer formats before replacement. Fail closed when an existing destination's format cannot safely be classified; do not convert an unsupported-layout exception into implicit repair authorization. Add preservation tests for future archives with extra members and changed layout, asserting identical original bytes and no replacement.
-
-### CR-03: Admitted category orders can double or omit estimate totals
-
-**Classification:** BLOCKER  
-**File:** `C:/Users/Admin/Roaming/CLMC TAKEOFF APP/src/shared/project-validation.ts:61-77`  
-**Related:** `src/renderer/src/lib/boq-aggregator.ts:209-214`; `src/renderer/src/lib/boq-aggregator.ts:228-229`.
-
-**Issue:** The new admission boundary checks only that `categoryOrder` is an array of strings. It does not require unique known category IDs, complete coverage of categories used by markups, or valid markup category references. The aggregator iterates this order directly: duplicate IDs emit and charge the same bucket twice; an omitted ID drops that bucket entirely. Such a malformed format-3 project passes admission and can be saved/recovered/exported with plausible but incorrect financial totals.
-
-**Evidence:** A production-validator/aggregator reproduction used one count in category `c`, material 100, labor 0 and markup 30. Admission accepted `categoryOrder: ['c', 'c']`; aggregation returned 260 instead of 130. With the category omitted from the order, the same item returned 0. This is a defect in the new relational validation, not a request to change normal category ordering.
-
-**Fix:** Validate category-order uniqueness and references, ensure every nonempty markup category exists and is represented exactly once, and reject malformed current-format input before hydration. If supported legacy data needs repair, normalize it explicitly without dropping buckets and preserve the original. Also make aggregation defensively emit each actual bucket once. Add duplicate, omitted and dangling-category admission/financial tests.
-
-### CR-04: Interrupted recovery blobs can permanently prevent subsequent recovery writes
-
-**Classification:** BLOCKER  
-**File:** `C:/Users/Admin/Roaming/CLMC TAKEOFF APP/src/main/project-recovery.ts:336-363`  
-**Related:** `src/main/project-recovery.ts:237-257`; `src/main/project-recovery.ts:365-369`.
-
-**Issue:** A write that commits its PDF blob and then fails before manifest replacement leaves the unreferenced blob behind. A process interruption can also leave stages. `usedBytes()` charges these files before quota admission, while pruning occurs only after a successful commit/deletion/retirement. Once abandoned data consumes the quota, every new snapshot fails before cleanup can run. The recovery list can be empty, leaving no candidate the user can discard to restore protection. Saving explicitly does not clean this case because the renderer has no protected revision to retire.
-
-**Evidence:** An isolated production-repository reproduction used a proportionally reduced 3500-byte quota and a 1700-byte PDF, injected failure at `manifest-rename`, then attempted a different PDF. The list contained zero candidates; both retries returned `stage: 'quota'`; the sole remaining file was the orphan hash-named PDF. At the default quota, repeated interrupted captures of different large PDFs produce the same condition. The initial sandbox rename failure was excluded; the successful reproduction ran against real temporary files with host access and cleaned its fixtures afterward.
-
-**Fix:** Under the repository queue, reconcile completed manifests and safely remove owned unreferenced blobs/stages before charging new quota, including after restart and failed writes. Preserve all references when metadata is unreadable, and never evict completed/kept work. Alternatively, roll back newly created unreferenced blobs on ordinary transaction failure and still reconcile crash remnants on startup. Add restart and repeated-failure tests that prove a subsequent valid snapshot can succeed without manual filesystem cleanup.
-
-## Warnings
-
-### WR-01: Packaged smoke copies candidate hashes without verifying the launched candidate
-
-**Classification:** WARNING  
-**File:** `C:/Users/Admin/Roaming/CLMC TAKEOFF APP/scripts/smoke-packaged.cjs:60-62`  
-**Related:** `scripts/smoke-packaged.cjs:286-289`; `scripts/smoke-packaged.cjs:166-180`.
-
-**Issue:** The harness accepts an arbitrary executable argument, reads the fixed `dist/release-manifest.json`, and later copies that manifest's installer/ASAR hashes into passing evidence. It never hashes the launched executable or its associated ASAR against the inspected manifest, and it records the observed Electron version without comparing it to the approved runtime. A different same-version build, or an unpacked directory changed after inspection, can therefore produce apparently candidate-bound evidence for bytes it never executed. This does not assert that the existing recorded candidate was substituted; it identifies an unreliable evidence gate.
-
-**Fix:** Before launch, resolve the executable's actual application resources and compare executable, ASAR and relevant unpacked hashes to the inspected manifest; verify the installer hash used in the evidence too. Assert the observed runtime matches the approved manifest runtime, and emit measured identities. Add mismatch tests for another executable directory and changed same-version resources.
-
-### WR-02: Smoke reopening assertions are already true before reopening
-
-**Classification:** WARNING  
-**File:** `C:/Users/Admin/Roaming/CLMC TAKEOFF APP/scripts/smoke-packaged.cjs:197-199`  
-**Related:** `scripts/smoke-electron-host.cjs:187-189`; `scripts/smoke-packaged.cjs:300`.
-
-**Issue:** After Save succeeds, the title already contains `packaged-project` (or `sandbox-project`). Clicking Open and waiting for that same text can succeed immediately even if reopening never completes or subsequently fails. Both harnesses then claim save/read/reopen evidence. The preceding `readProject` call proves archive readback, but does not prove renderer staging/hydration/adoption through the UI open path.
-
-**Fix:** Open a visibly different document before reopening the saved project, then wait for the saved PDF and distinctive persisted markup/scale/rate state to replace it, with no error modal. Include a negative control where the renderer open fails and ensure the smoke fails. Only emit the reopen success field after that transition is observed.
+The parent-reported final 156-file/1193-test regression, typechecks/build, scoped lint, positive host smoke and actual negative-open run were reviewed as supporting context. They were not rerun wholesale or treated as proof of unrelated behavior. Existing unchanged CanvasViewport lint debt is not represented as a new issue.
 
 ## React checklist applied to Electron
 
-Applied the requested local `react-best-practices` skill as a correctness checklist. Next.js server components, SSR/hydration, network fetching, SWR adoption and performance-only suggestions were excluded from this offline desktop review.
-
-| Area | Review performed |
+| Area | Re-review assessment |
 | --- | --- |
-| Hooks and event lifetimes | Traced save/recovery closures, effect dependencies, native rate-input rebinding, timer/listener cleanup, DPR invalidation and stale raster cancellation. |
-| State and asynchronous actions | Checked captured PDF/state identity, revision acknowledgement, dirty preservation, upgraded/backup sources, modal actions and import preview ownership. Product defects are recorded above. |
-| Component/input behavior | Checked stable store-derived values, visible rate basis, reciprocal conversion and both-field edits, conditional rendering and PDF image bounds. |
-| Accessibility and interaction | Read new dialog focus/keyboard handling, busy actions, focus restoration, wrapped paths and scroll regions. Physical Windows readability/scaling remains pending external evidence. |
-| Type/process boundaries | Traced named preload contracts, exact trusted main-frame checks, shared metadata validation and supervised parser messages. The financial relational-validation defect is CR-03. |
+| Hooks/state | The page-input ref is unconditional; store-derived page/review/calibration state and the existing confirmation action preserve the pending-review contract. |
+| Async and lifecycle behavior | Owner-only startup precedes shared I/O; contender activation leaves document state and close protection intact. No new renderer IPC capability was introduced. |
+| Input, accessibility and viewport behavior | Native page input, validated Go, Next Unverified, busy guards, explicit accessible confirmation and bounded instructions were traced. Actual Chromium keyboard and bounds checks passed. |
+| Framework applicability | No Next.js/SSR/network-fetching guidance or performance-only suggestions were applied to this offline Electron review. |
 
-## Verification limits
+## Remaining release gates
 
-Supporting review executions were disposable targeted reproductions of CR-02, CR-03 and CR-04 plus the independent old/new geometry calculation for CR-01. Existing regression/typecheck/build results were read as context; the reported 149-file/1163-test run was not rerun or treated as proof against these findings. No broad performance or whole-application security certification is claimed. Fixes should add the missing negative controls, rerun the affected suites, and rebuild/rebind candidate evidence when application bytes change.
+The installer, release manifest and packaged-smoke evidence remain stale relative to source `38cb5d2`. The parent must rebuild, inspect and rebind the final candidate before claiming packaged verification. This known remaining work is not a source defect or a passing candidate result.
+
+Actual historical-project geometry review, physical Windows scaling/monitor transitions, deployed-predecessor upgrade, non-development-PC validation and Phase 21 pilot acceptance remain external evidence gates. A clean source review does not satisfy those gates or mark the phase accepted.
 
 ---
 
-_Reviewer: gsd-code-reviewer_  
-_Depth: standard_
+_Reviewer: gsd-code-reviewer_
+
+_Depth: standard; iteration: 3_
