@@ -75,8 +75,8 @@ describe('projectStore', () => {
       updatedAt: '2026-04-21T00:00:00.000Z',
       pdf: { originalFilename: 'plans.pdf', sha256: 'x', totalPages: 1 },
       globalUnit: 'm',
-      categories: {},
-      categoryOrder: [],
+      categories: { c1: { id: 'c1', name: 'Electrical', color: '#0078d4', paletteIndex: 0 } },
+      categoryOrder: ['c1'],
       currentPage: 1,
       pages: [
         {
