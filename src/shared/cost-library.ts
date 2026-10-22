@@ -20,6 +20,16 @@ export const COST_LIBRARY_UNITS = [
   'ft²'
 ] as const
 export const MAX_LIBRARY_ITEMS = 10000
+export const LIBRARY_IMPORT_MESSAGES = {
+  timeout:
+    'Import took too long and was stopped. Your current library was kept. Remove unused sheets or use the CSV template, then import again.',
+  resource:
+    'This workbook exceeds the import limits. Your current library was kept. Remove unused sheets or use the CSV template, then import again.',
+  parser:
+    'Could not read this workbook. Your current library was kept. Save a new copy in Excel or use the CSV template, then import again.'
+} as const
+export type LibraryImportCode = keyof typeof LIBRARY_IMPORT_MESSAGES
+export const MAX_WORKER_MESSAGE_CHARS = 20_000_000
 export interface CostLibraryItem {
   code: string
   description: string
@@ -41,7 +51,7 @@ export interface LibraryIssue {
 }
 export type LibraryResult<T> =
   | { ok: true; value: T }
-  | { ok: false; reason: string; issues?: LibraryIssue[] }
+  | { ok: false; reason: string; issues?: LibraryIssue[]; code?: LibraryImportCode }
 export interface LibraryPreview {
   token: string
   library: CostLibrarySnapshot

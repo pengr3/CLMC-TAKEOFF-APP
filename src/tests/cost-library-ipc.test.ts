@@ -23,6 +23,7 @@ vi.mock('electron', () => ({
   BrowserWindow: { fromWebContents: () => ({}) }
 }))
 vi.mock('fs/promises', () => ({ readFile: mock.read, stat: mock.stat, writeFile: mock.write }))
+vi.mock('../main/cost-library-import', () => ({ parseInUtilityProcess: mock.parse }))
 vi.mock('../main/cost-library', () => ({
   MAX_LIBRARY_FILE_BYTES: 100,
   parseCostLibrary: mock.parse,
@@ -92,6 +93,41 @@ describe('main-process library import protocol', () => {
     expect((await call('preview')).ok).toBe(false)
     mock.open.mockResolvedValueOnce({ canceled: true, filePaths: [] })
     expect(await call('preview')).toEqual({ ok: true, value: null })
+    expect(mock.replace).not.toHaveBeenCalled()
+  })
+  it('expires the previous candidate on timeout and rejects stale work after a competing request', async () => {
+    const previous = await call('preview')
+    mock.parse.mockResolvedValueOnce({ ok: false, code: 'timeout', reason: 'stopped' })
+    expect((await call('preview')).code).toBe('timeout')
+    expect((await call('commit', previous.value.token)).ok).toBe(false)
+    let complete!: (value: unknown) => void
+    mock.parse.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          complete = resolve
+        })
+    )
+    const pending = call('preview')
+    await vi.waitFor(() => expect(complete).toBeTypeOf('function'))
+    expect((await call('preview')).ok).toBe(false)
+    complete({ ok: true, value: items })
+    expect(await pending).toEqual({ ok: true, value: null })
+    expect(mock.replace).not.toHaveBeenCalled()
+  })
+  it('aborts an owner destroyed while parsing without creating a candidate', async () => {
+    let complete!: (value: unknown) => void
+    mock.parse.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          complete = resolve
+        })
+    )
+    const pending = call('preview')
+    await vi.waitFor(() => expect(complete).toBeTypeOf('function'))
+    const destroyed = event.sender.once.mock.calls[0][1]
+    destroyed()
+    complete({ ok: true, value: items })
+    expect(await pending).toEqual({ ok: true, value: null })
     expect(mock.replace).not.toHaveBeenCalled()
   })
   it('starts imports in Downloads and reports an empty selection separately from cancellation', async () => {

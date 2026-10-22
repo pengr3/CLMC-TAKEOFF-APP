@@ -6,6 +6,14 @@ import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 export default defineConfig({
   main: {
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve('src/main/index.ts'),
+          'cost-library-worker': resolve('src/main/cost-library-worker.ts')
+        }
+      }
+    },
     plugins: [externalizeDepsPlugin()]
   },
   preload: {
