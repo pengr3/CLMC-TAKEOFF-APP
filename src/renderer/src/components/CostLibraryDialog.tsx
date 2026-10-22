@@ -49,6 +49,12 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
   useEffect(() => {
     alive.current = true
     const previousFocus = document.activeElement as HTMLElement | null
+    const containFocus = (): void => {
+      const dialog = dialogRef.current
+      if (dialog && !dialog.contains(document.activeElement)) dialog.focus()
+    }
+    document.addEventListener('focusin', containFocus)
+    window.addEventListener('focus', containFocus)
     dialogRef.current?.focus()
     window.api.costLibrary
       .load()
@@ -65,10 +71,19 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
       })
     return () => {
       alive.current = false
+      document.removeEventListener('focusin', containFocus)
+      window.removeEventListener('focus', containFocus)
       if (tokenRef.current) void window.api.costLibrary.cancel(tokenRef.current).catch(() => {})
       if (previousFocus?.isConnected) previousFocus.focus()
     }
   }, [])
+
+  useEffect(() => {
+    // Native pickers and disabling their invoking button can return focus to body.
+    // Reclaim focus after the operation without disturbing an active dialog input.
+    const dialog = dialogRef.current
+    if (dialog && !dialog.contains(document.activeElement)) dialog.focus()
+  }, [busy])
 
   const importFile = async (): Promise<void> => {
     setOperation('checking')

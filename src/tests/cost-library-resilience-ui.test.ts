@@ -236,6 +236,81 @@ it('UI-05/overflow and long-text retain independent scroll, wrapping and tabular
   expect(material.style.fontVariantNumeric).toBe('tabular-nums')
   expect(document.body.textContent).toContain('LONG-CODE-'.repeat(45))
 })
+it.each(['cancel', 'error', 'preview'] as const)(
+  'native-picker %s completion restores modal focus and Escape containment',
+  async (outcome) => {
+    let complete!: (result: LibraryResult<LibraryPreview | null>) => void
+    vi.mocked(api.preview).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          complete = resolve
+        })
+    )
+    await act(async () => root.render(React.createElement(CostLibraryButton, { target })))
+    const trigger = document.querySelector<HTMLButtonElement>('button')!
+    trigger.focus()
+    await click(trigger)
+    await click(button('Import CSV / Excel'))
+    const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!
+    // Native file pickers and disabled controls can leave Chromium focused on body.
+    ;(document.activeElement as HTMLElement).blur()
+    expect(document.activeElement).toBe(document.body)
+    const result: LibraryResult<LibraryPreview | null> =
+      outcome === 'error'
+        ? { ok: false, code: 'parser', reason: 'Rejected test workbook' }
+        : { ok: true, value: outcome === 'preview' ? { token: 'focus-test', library } : null }
+    await act(async () => complete(result))
+    expect(dialog.contains(document.activeElement)).toBe(true)
+    const outside = vi.fn()
+    window.addEventListener('keydown', outside)
+    try {
+      await act(async () =>
+        document.activeElement!.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+        )
+      )
+      expect(document.querySelector('[role="dialog"]')).toBeNull()
+      expect(outside).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(trigger)
+      expect(api.commit).not.toHaveBeenCalled()
+    } finally {
+      window.removeEventListener('keydown', outside)
+    }
+  }
+)
+it('native-picker focus return contains busy shortcuts and outside focus', async () => {
+  let complete!: (result: LibraryResult<LibraryPreview | null>) => void
+  vi.mocked(api.preview).mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        complete = resolve
+      })
+  )
+  await mount()
+  await click(button('Import CSV / Excel'))
+  const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!
+  ;(document.activeElement as HTMLElement).blur()
+  await act(async () => window.dispatchEvent(new FocusEvent('focus')))
+  expect(dialog.contains(document.activeElement)).toBe(true)
+  const outside = vi.fn()
+  window.addEventListener('keydown', outside)
+  try {
+    await act(async () =>
+      document.activeElement!.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+      )
+    )
+    expect(dialog.isConnected).toBe(true)
+    expect(outside).not.toHaveBeenCalled()
+    const escaped = document.createElement('button')
+    host.append(escaped)
+    escaped.focus()
+    expect(dialog.contains(document.activeElement)).toBe(true)
+    await act(async () => complete({ ok: true, value: null }))
+  } finally {
+    window.removeEventListener('keydown', outside)
+  }
+})
 it('contains shortcuts, traps focus in both directions and restores the 28px row control', async () => {
   await act(async () => root.render(React.createElement(CostLibraryButton, { target })))
   const trigger = document.querySelector<HTMLButtonElement>('button')!
