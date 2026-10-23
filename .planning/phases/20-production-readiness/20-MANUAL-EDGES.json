@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-23",
+  "status": "local-scope-complete-external-acceptance-pending",
+  "actor": "Codex agent driving installed app under explicit user authorization",
+  "scope": "development-host manual observation; no target-PC acceptance",
+  "initialCandidateInstallerSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+  "initialSource": "e61ae4a",
+  "newSource": "9a0349f",
+  "newCandidateVerification": {
+    "buildAndTypes": "pass",
+    "inspection": "pass",
+    "packagedSmoke": "pass",
+    "installed": {
+      "date": "2026-10-23T02:31:26.364Z",
+      "status": "pass",
+      "comparedFiles": 149,
+      "installerSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "archiveSha256": "5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd"
+    },
+    "nativePreviewCancelEscape": "pass; modal closed, visible invoker focus, Count and 100/130/30 retained",
+    "tests": {
+      "full": {
+        "files": 157,
+        "tests": 1229,
+        "passed": 1225,
+        "failed": 4,
+        "durationSeconds": 806.37
+      },
+      "isolatedFourFiles": {
+        "passedFiles": 3,
+        "failedFiles": 1,
+        "passedTests": 37,
+        "failedTests": 1,
+        "durationSeconds": 68.49
+      },
+      "workerDiagnosticRerun": {
+        "files": 1,
+        "tests": 2,
+        "status": "pass",
+        "durationSeconds": 17.85
+      },
+      "interpretation": "Every file has a passing result after isolated reruns. The initial full run was not clean; no test timeouts or expectations were relaxed. Parser failure was intermittent; load attribution is an inference, not established proof."
+    },
+    "finalNativeSave": {
+      "file": "corrected-native-checked.clmc",
+      "sha256": "699c15cb052bd898c16fee1eea20adcecc20011f4166ea4e7ac5b3d71684ccdb",
+      "quantity": 1,
+      "cost": 100,
+      "selling": 130,
+      "margin": 30,
+      "geometryScaleRatesPdfPreserved": true,
+      "recoveryRetired": true
+    }
+  },
+  "neverSaved": {
+    "status": "pass",
+    "scope": "installed-development-host-never-saved",
+    "sourceUnavailable": true,
+    "firstExplicitSave": "never-saved-recovered.clmc",
+    "sha256": "5e52dc130bf693ded2f523c0a1ef1a87e75b3177a8d0a069e108e7338e4f819c",
+    "quantity": 1,
+    "cost": 100,
+    "selling": 130,
+    "margin": 30,
+    "scale": {
+      "pixelsPerMm": 0.04007142857142858,
+      "displayUnit": "m"
+    },
+    "remainingRecovery": []
+  },
+  "backupFailure": {
+    "method": "Disposable adjacent backup held FileShare.Read for60seconds; actual rename EPERM stopped protected save",
+    "before": [
+      {
+        "Path": "C:\\Users\\Admin\\Roaming\\CLMC TAKEOFF APP\\.planning\\tmp\\20-manual-edges-20261023\\never-saved-recovered.clmc",
+        "Hash": "31EBE0B52662D782DC01D8EB8EA8ACBC0B59D043C96A8A74496C575A34F41651"
+      },
+      {
+        "Path": "C:\\Users\\Admin\\Roaming\\CLMC TAKEOFF APP\\.planning\\tmp\\20-manual-edges-20261023\\never-saved-recovered.clmc.bak",
+        "Hash": "5E52DC130BF693DED2F523C0A1EF1A87E75B3177A8D0A069E108E7338E4F819C"
+      }
+    ],
+    "afterRetry": [
+      {
+        "Path": "C:\\Users\\Admin\\Roaming\\CLMC TAKEOFF APP\\.planning\\tmp\\20-manual-edges-20261023\\never-saved-recovered.clmc",
+        "Hash": "C96A829D47A1388679A3EC796178E4062951B231DF0F8DE3F36A019C7B5673D4"
+      },
+      {
+        "Path": "C:\\Users\\Admin\\Roaming\\CLMC TAKEOFF APP\\.planning\\tmp\\20-manual-edges-20261023\\never-saved-recovered.clmc.bak",
+        "Hash": "31EBE0B52662D782DC01D8EB8EA8ACBC0B59D043C96A8A74496C575A34F41651"
+      }
+    ],
+    "failedSavePreservedBothHashes": true,
+    "saveAsCancelRetainedError": true,
+    "retrySameDestinationSucceeded": true,
+    "backupOpenedDetached": true,
+    "backupSavedToSeparateCopy": "never-saved-source-copy.clmc",
+    "originalAndBackupPreservedAfterCopy": true
+  },
+  "legacy": {
+    "status": "pass",
+    "fixture": "synthetic-v2-not-deployed-history",
+    "originalSha256": "0C8D6D50072382276F7BC21670241D9395D5E8FBD300ADEE091B7430AD2C4EFA",
+    "upgradedSha256": "453b56ace216f1d2f0c364a072ab0e48c950fc8e05a14e3fc524ec5036ed2606",
+    "originalUnchanged": true,
+    "formatVersion": 3,
+    "geometryReviewRetained": true,
+    "scale": null,
+    "rateReviewsRetained": 5
+  },
+  "library": {
+    "invalidRows": [
+      "negative rate",
+      "duplicate item code",
+      "unsupported unit"
+    ],
+    "actualValidationObserved": true,
+    "retryValidPreviewObserved": true,
+    "cancelPreviewPreservedTwoOriginalEntries": true,
+    "focusDefect": "Cancel Import removes focused button; Escape leaves modal open and resets Count",
+    "fixCommit": "9a0349f",
+    "red": "Focused regression failed at dialog.contains(activeElement)",
+    "green": "4files/38tests passed36.94sec",
+    "correctedCandidateRejections": [
+      "corrupt XLSX",
+      "10MiB-plus CSV",
+      "10001-row CSV"
+    ],
+    "originalLibraryUnchanged": true
+  },
+  "artifacts": [
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/backup-detached-dirty.png",
+      "sha256": "8360dcf8e1d22c4901c45216305f8817c0f0e49b62a0af605c103f62a6545338"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/backup-locked-save-error.png",
+      "sha256": "8f93915280ef36d1a82500b9a7ca41b42e8f7f4b93c5f19faa36c4d92d6ae1fe"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/backup-save-copy-dialog.png",
+      "sha256": "6937071bd5a328641195987839229484eca62363a19855545d964440b211d3d1"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/corrected-native-save.png",
+      "sha256": "592dd189377850d9c4231977360ca5627d03fcc81aa5247d9cf5bc340de97ad6"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/legacy-copy-retains-guards.png",
+      "sha256": "c7ea7a2865f3ce43f458fd94f7410ab935600a6829124d94964547d68f1937a0"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/legacy-guards.png",
+      "sha256": "768c3165c790febf2be83c8e0c2488b53b0d620bd2cb35d5f92f6e1a88e31d68"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/legacy-upgrade-warning.png",
+      "sha256": "c4cdc8c1580ed7cb1b23e57e2fb28e0a6f71908ea4bb73e27185a2a2f4e1a1d1"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/library-10001-rejected.png",
+      "sha256": "3e8e9074a3a7c67079f903a174387ac84495f3aea5ffaca065808c80e041407e"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/library-corrupt-rejected.png",
+      "sha256": "c015ab2b165b5653a09bd49df8eb7348d8d07dfe3c6b16de67c41162c5129397"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/library-invalid.png",
+      "sha256": "890cc6b4aa224a085dae595ba753d7913af1f1742895f1cec5397794d8ee0054"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/library-oversize-rejected.png",
+      "sha256": "cb4060ff69c4a6e5af78acdc4e614c6f79f15f625cbb21326d5e49562a54705d"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/library-preview-cancel-escape.png",
+      "sha256": "7551944bf578e2397d91ed31969dc3fe6bab2f360c60fbdd21ba6fdc88ca9df4"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/library-valid-preview.png",
+      "sha256": "fb6d36a2f97c085d67226a03cc7d53e35d7c476f6da939e9b76d6e4b57cc579d"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/never-saved-offer.png",
+      "sha256": "429dc32c4f7e2be83cefa1a0a2317f537f09f7ec7e0dc2ad7cdad8b102dfa434"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/never-saved-priced.png",
+      "sha256": "843ba68b0334ed003596cef4058e962b88560772694593ee5bb8f6b9fe7d1929"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/never-saved-recovered.png",
+      "sha256": "20aa04df7bd90c1190f212c46801247bba157542f32adb0c0ef61ea18c1e9a7e"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/never-saved-saved.png",
+      "sha256": "2d315373a432431eaee109eb05c7ecec50b02b0a77c90d4adefdd3eaa16307fe"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/preview-cancel-focus-fixed.png",
+      "sha256": "efa07d5ddc34b74511919f33d76e1bc79e3b19001e96c9f6a1298ac5d90e22cb"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/save-as-cancel-preserved-error.png",
+      "sha256": "ac3aeb8f7f669368929789fa07c0c5fc4ac6f08f63f7e3d70389847854617e03"
+    },
+    {
+      "file": ".planning/tmp/20-manual-edges-20261023/save-retry-success.png",
+      "sha256": "19a759f304a98a109039edde301726ca857d28446f7bb9d918092bf67fcd2535"
+    }
+  ]
+}

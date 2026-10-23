@@ -31,7 +31,7 @@ app
     }
     const workerPath = path.join(scratch, 'worker.cjs')
     const success = await parseInUtilityProcess(path.join(scratch, 'valid.xlsx'), { workerPath })
-    assert.equal(success.ok, true)
+    assert.equal(success.ok, true, JSON.stringify(success))
     assert.equal(success.value[0].code, 'REAL-001')
     assert.equal(observed[0].exits, 1)
     let beats = 0

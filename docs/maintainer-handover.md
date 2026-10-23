@@ -1,18 +1,18 @@
 # CLMC Takeoff 1.1.0 — maintainer draft
 
-Prepared 2026-10-22 while Phase 20 remains VERIFYING. This is preparation for internal trials, not release acceptance or authority to distribute to the remaining ten PCs. The user deferred second-PC work until hardware is available. No automatic follow-up has been scheduled.
+Updated 2026-10-23 while Phase 20 remains VERIFYING. This is preparation for internal trials, not release acceptance or authority to distribute to the remaining ten PCs. The user deferred second-PC work until hardware is available. No automatic follow-up has been scheduled.
 
 ## Frozen trial candidate
 
-Application source: `e61ae4a`; installed/manual evidence documentation: `9ae8e41`. Electron is pinned to **44.9.3**. Full Windows x64 per-user NSIS installer:
+Application source: `9a0349f` (preview-cancellation focus fix); previous candidate source `e61ae4a` / documentation `9ae8e41` retained as historical evidence. Electron is pinned to **44.9.3**. Full Windows x64 per-user NSIS installer:
 
 - File: `clmc-takeoff-1.1.0-x64-setup.exe`
-- Bytes: `136810369`
-- Installer SHA-256: `d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180`
-- ASAR SHA-256: `cf6bac214a8afbce8b8be6b4f2db2e00ef5afb412793e4e70f45fe1b6273cd45`
+- Bytes: `136810568`
+- Installer SHA-256: `fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544`
+- ASAR SHA-256: `5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd`
 - Actual signatures: unsigned installer/executable. Publisher and signing policy/owner remain pending.
 
-The installed development-PC payload matched all 149 manifest files. Final source passed 157 test files / 1,228 tests, production build/types, package inventory and packaged smoke. Local installed checks covered the known geometry/prices, native save/backup/recovery, exports and two corrected manual defects. These do not establish a deployed-predecessor upgrade, non-development hardware acceptance or physical display matrix.
+The previous e61ae4a installed development-PC payload matched all 149 manifest files and passed 157 test files / 1,228 tests, production build/types, package inventory and packaged smoke. New source 9a0349f passed 38 focused regressions, build/types, package inspection and packaged smoke; all149installed files matched. Native preview-cancel/Escape now preserves the drawing tool. The full run passed1225/1229tests with four initial failures; all four files passed isolated reruns (three together, parser separately). No timeout/expected behavior was relaxed. The initial full run was not clean; parser-harness behavior was intermittent and requires transparent review. Additional native recovery/save-failure/backup/legacy/import checks and exact run provenance are recorded in 20-MANUAL-EDGES.md. Local installed checks covered the known geometry/prices, native save/backup/recovery, exports and two corrected manual defects. These do not establish a deployed-predecessor upgrade, non-development hardware acceptance or physical display matrix.
 
 ## Build and inspection process
 

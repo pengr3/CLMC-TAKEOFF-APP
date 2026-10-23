@@ -9,7 +9,8 @@ external_acceptance: pending
 
 # Phase 20 Installed Manual Test
 
-The core takeoff, pricing, export, protected-save and saved-work recovery walkthrough passed on the development PC. Manual testing found two reproducible defects: measurement tool switching (801a532) and focus after native library-picker cancellation (e61ae4a). Both are fixed and natively verified. This report does not accept the phase or its target-PC matrix.
+The core takeoff, pricing, export, protected-save and saved-work recovery walkthrough passed on the
+development PC. Manual testing found two reproducible defects: measurement tool switching (801a532) and focus after native library-picker cancellation (e61ae4a). Both are fixed and natively verified. This report does not accept the phase or its target-PC matrix.
 
 ## Provenance
 
@@ -71,3 +72,9 @@ No actual non-development PC, deployed predecessor installer, representative his
 Local groups1/2/4 have observed passing subcases, with full edge/long-content/keyboard/failure/never-saved/destructive-discard coverage still pending wherever not explicitly observed. Automated filesystem fault matrices and real parser supervision are separate supporting evidence. Four edge reviews and three explicit narrative prohibition dispositions remain unresolved; agent observations do not become a human approval.
 
 Phase20 remains in verification;20-09task03 andREL-01..05 remain pending. Phase21 retains the real-user two-PC pilot and remaining-ten distribution boundary.
+
+## Additional installed manual checks — 2026-10-23
+
+See20-MANUAL-EDGES.md and20-MANUAL-EDGES.json for actual never-saved recovery with absent source PDF, backup-lock failure/cancel/retry and detached backup Save As, synthetic legacy safeguards/upgraded copy, invalid/corrupt/oversized/10001-row library rejection and the third manual-discovered focus fix9a0349f. New candidate installer fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544, 136810568bytes; ASAR 5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd. Build/types, inspection, measured packaged smoke,149installed payload hashes and native corrected preview-cancel/Escape/Save As passed. Earlier observations retain e61 candidate provenance.
+
+Regression qualification: initial full157files/1229tests had4failures and1225passes (806.37sec). Four-file isolated recheck passed3files/37tests, parser still failed; parser-only rerun passed2tests17.85sec. Every file has a passing result across runs; no single clean full run or confirmed cause for the intermittent parser failure is claimed. No expectation/deadline was relaxed. This stability limitation remains visible for review. External hardware, representative/historical construction PDFs, named reviews and Phase21 pilot/distribution remain pending.

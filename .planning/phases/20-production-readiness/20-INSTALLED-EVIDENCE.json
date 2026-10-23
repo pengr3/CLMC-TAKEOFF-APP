@@ -3,11 +3,11 @@
   "status": "awaiting-non-development-evidence",
   "candidate": {
     "version": "1.1.0",
-    "installerSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
-    "archiveSha256": "cf6bac214a8afbce8b8be6b4f2db2e00ef5afb412793e4e70f45fe1b6273cd45",
+    "installerSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+    "archiveSha256": "5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd",
     "installer": "dist/clmc-takeoff-1.1.0-x64-setup.exe",
     "manifest": "dist/release-manifest.json",
-    "bytes": 136810369,
+    "bytes": 136810568,
     "architecture": "x64"
   },
   "handoff": {
@@ -48,7 +48,7 @@
     {
       "id": "fresh-install",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -63,7 +63,7 @@
     {
       "id": "actual-predecessor-upgrade",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -78,7 +78,7 @@
     {
       "id": "project-only-transfer",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -93,7 +93,7 @@
     {
       "id": "recovery-saved",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -108,7 +108,7 @@
     {
       "id": "recovery-never-saved",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -123,7 +123,7 @@
     {
       "id": "failed-save-backup",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -138,7 +138,7 @@
     {
       "id": "offline-workflow",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -153,7 +153,7 @@
     {
       "id": "large-vector",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -168,7 +168,7 @@
     {
       "id": "large-scan",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -183,7 +183,7 @@
     {
       "id": "multipage-navigation",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -198,7 +198,7 @@
     {
       "id": "scaling-100",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -213,7 +213,7 @@
     {
       "id": "scaling-125",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -228,7 +228,7 @@
     {
       "id": "scaling-150",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -243,7 +243,7 @@
     {
       "id": "scaling-200",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -258,7 +258,7 @@
     {
       "id": "monitor-transition",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -273,7 +273,7 @@
     {
       "id": "ui-keyboard-overflow",
       "status": "pending",
-      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
       "machineId": null,
       "fixtureIds": [],
       "tester": null,
@@ -288,9 +288,9 @@
   ],
   "developerEvidence": [
     {
-      "id": "scripted-packaged-smoke",
+      "id": "scripted-packaged-smoke-previous-20261022",
       "tester": "Automated packaged-smoke harness",
-      "artifact": "dist/packaged-smoke.json",
+      "artifact": ".planning/tmp/20-manual-edges-20261023/previous-candidate/packaged-smoke.json",
       "status": "pass",
       "scope": "scripted-packaged-developer-host",
       "date": "2026-10-22T08:36:01.833Z",
@@ -338,7 +338,7 @@
       ]
     },
     {
-      "id": "authorized-installed-manual",
+      "id": "authorized-installed-manual-previous-20261022",
       "tester": "Codex via user-authorized Windows Computer Use",
       "artifact": ".planning/phases/20-production-readiness/20-MANUAL-EVIDENCE.json",
       "status": "local-core-passed-external-acceptance-pending",
@@ -363,6 +363,107 @@
         "originalBackupUnchanged": true
       },
       "limitation": "Core recovery/export walkthrough was observed on preceding3f9f6fd3 candidate. Finald3a9a6f0 build repeated native cancellation/Count containment and project reopen/Estimate/Save As. Each run retains its actual hash."
+    },
+    {
+      "id": "scripted-packaged-smoke",
+      "tester": "Automated packaged-smoke harness",
+      "artifact": "dist/packaged-smoke.json",
+      "status": "pass",
+      "scope": "scripted-packaged-developer-host",
+      "date": "2026-10-23T02:28:26.742Z",
+      "machine": {
+        "classification": "development",
+        "hostname": "Lenovo-X390-PC1H2FSA",
+        "windows": "10.0.26100",
+        "architecture": "x64",
+        "ramBytes": 16911384576
+      },
+      "candidate": {
+        "version": "1.1.0",
+        "installerSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+        "archiveSha256": "5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd",
+        "executableSha256": "c69a57b87eae8b230c1ba4d6418ad53d48583927b46b559ed434b851160b0057"
+      },
+      "actual": {
+        "electron": "44.9.3",
+        "chrome": "152.0.7977.167",
+        "packaged": true,
+        "sandbox": true,
+        "hidden": true,
+        "localNotes": true,
+        "pdfWorker": true,
+        "renderedPdf": true,
+        "format3SaveReadReopen": true,
+        "reopen": {
+          "differentDocumentObserved": true,
+          "savedPdfAndStateAdopted": true,
+          "rendererSnapshotReadback": true
+        },
+        "importUtilityChild": true,
+        "internalXlsxCsv": true,
+        "externalNetworkRequests": [],
+        "disposableAppData": true
+      },
+      "fixture": {
+        "name": "generated vector PDF",
+        "bytes": 465,
+        "pages": 1,
+        "sha256": "ece3eebb2990c72ea806d6443e97a5e3df7ead06e528d6ed58ac7d987896db3a"
+      },
+      "limitations": [
+        "Dialog destinations scripted through inspector; physical UI and non-development-PC install/upgrade/scaling are pending."
+      ]
+    },
+    {
+      "id": "authorized-installed-additional-manual",
+      "tester": "Codex via user-authorized Windows Computer Use",
+      "artifact": ".planning/phases/20-production-readiness/20-MANUAL-EDGES.json",
+      "report": ".planning/phases/20-production-readiness/20-MANUAL-EDGES.md",
+      "status": "local-subcases-passed-external-acceptance-pending",
+      "scope": "installed-development-host",
+      "source": "9a0349f",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "date": "2026-10-23",
+      "payload": {
+        "date": "2026-10-23T02:31:26.364Z",
+        "status": "pass",
+        "comparedFiles": 149,
+        "installerSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+        "archiveSha256": "5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd"
+      },
+      "finalNativeSave": {
+        "file": "corrected-native-checked.clmc",
+        "sha256": "699c15cb052bd898c16fee1eea20adcecc20011f4166ea4e7ac5b3d71684ccdb",
+        "quantity": 1,
+        "cost": 100,
+        "selling": 130,
+        "margin": 30,
+        "geometryScaleRatesPdfPreserved": true,
+        "recoveryRetired": true
+      },
+      "regression": {
+        "full": {
+          "files": 157,
+          "tests": 1229,
+          "passed": 1225,
+          "failed": 4,
+          "durationSeconds": 806.37
+        },
+        "isolatedFourFiles": {
+          "passedFiles": 3,
+          "failedFiles": 1,
+          "passedTests": 37,
+          "failedTests": 1,
+          "durationSeconds": 68.49
+        },
+        "workerDiagnosticRerun": {
+          "files": 1,
+          "tests": 2,
+          "status": "pass",
+          "durationSeconds": 17.85
+        },
+        "interpretation": "Every file has a passing result after isolated reruns. The initial full run was not clean; no test timeouts or expectations were relaxed. Parser failure was intermittent; load attribution is an inference, not established proof."
+      }
     }
   ],
   "edgeReviews": [

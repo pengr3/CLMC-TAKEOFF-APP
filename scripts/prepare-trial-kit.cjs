@@ -9,8 +9,8 @@ const root = path.resolve(__dirname, '..')
 const destination = path.join(root, 'dist', 'trial-kit')
 const manual = path.join(root, '.planning', 'tmp', '20-manual-run')
 const hash = (bytes) => crypto.createHash('sha256').update(bytes).digest('hex')
-const installerHash = 'd3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180'
-const archiveHash = 'cf6bac214a8afbce8b8be6b4f2db2e00ef5afb412793e4e70f45fe1b6273cd45'
+const installerHash = 'fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544'
+const archiveHash = '5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd'
 const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-7, `${a} != ${b}`)
 const oracle = [
   ['Grid length', 'linear', 10, 195],
@@ -127,7 +127,7 @@ async function run() {
   assert.equal(manifest.installer.sha256, installerHash)
   assert.equal(manifest.archive.sha256, archiveHash)
   const installerBytes = await fs.readFile(installer)
-  assert.equal(hash(installerBytes), installerHash); assert.equal(installerBytes.length, 136810369)
+  assert.equal(hash(installerBytes), installerHash); assert.equal(installerBytes.length, 136810568)
   // Never overwrite an existing kit, which might contain returned target-PC evidence.
   try { await fs.mkdir(destination) } catch (error) {
     if (error.code === 'EEXIST') throw new Error('dist/trial-kit already exists; preserve its evidence and choose a fresh handoff before regenerating.')

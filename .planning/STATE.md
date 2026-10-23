@@ -4,10 +4,10 @@ milestone: v1.0
 current_phase: 20
 current_phase_name: Production Readiness
 status: in_progress
-stopped_at: Phase20 hardware acceptance deferred by user; offline guide example and trial kit prepared; local and external acceptance checks remain open
-last_updated: "2026-10-22T10:18:36.008Z"
-last_activity: 2026-10-22
-state_head: e61ae4a
+stopped_at: Additional installed recovery/save-failure/backup/legacy/import checks recorded; third manual defect fixed and natively verified; external acceptance and regression-stability review remain open
+last_updated: "2026-10-23T02:41:32.870Z"
+last_activity: 2026-10-23
+state_head: 9a0349f
 progress:
   total_phases: 25
   completed_phases: 23
@@ -37,9 +37,9 @@ milestone_name: milestone
 Phase: 20 (Production Readiness) — VERIFYING
 Plan: 9 of 9 —20-01 through20-08 complete;20-09 tasks01/02 complete,task03 external evidence pending
 
-Next action: User deferred second-PC checks on 2026-10-22. Offline guide/worked example, maintainer draft and frozen-candidate second-PC kit prepared in quick 261022-p4n (f1ecf20); guide visual review and remaining native edge cases remain open. Resume actual non-development PC, predecessor inventory, approved construction PDFs, physical display and named release reviews when available. Final app source e61ae4a / installer d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180 unchanged. Phase20 remains human_needed; 20-09 task03/REL-01..05 and Phase21 pilot/distribution remain pending.
+Next action: Complete deferred actual target-PC/historical-PDF/display and named review gates. Additional local manual checks completed; preview-cancel focus fixed9a0349f and installed retest passed. Current installer fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544;149installed files matched; build/types/inspection/packaged smoke pass. Initial full1225/1229passed; four affected files passed isolated reruns with intermittent parser qualification. See20-MANUAL-EDGES.md/JSON. Broad unobserved edge permutations, stability review and external acceptance remain open;20-09task03/REL-01..05 and Phase21 pilot/distribution pending. Trial kit refreshed; previous candidate/kit retained.
 
-Last activity: 2026-10-22 - Completed quick task 261022-p4n: prepared local guide and trial kit; visual/hardware acceptance remains pending.
+Last activity: 2026-10-23 - Additional installed manual checks and focus repair verified; Phase20 remains in verification.
 
 ## Performance Metrics
 
