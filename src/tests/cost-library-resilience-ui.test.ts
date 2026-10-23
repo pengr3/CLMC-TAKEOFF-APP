@@ -278,6 +278,36 @@ it.each(['cancel', 'error', 'preview'] as const)(
     }
   }
 )
+it('canceling a focused preview keeps Escape inside the modal and restores its invoker', async () => {
+  vi.mocked(api.preview).mockResolvedValue({ ok: true, value: { token: 'cancel-focus', library } })
+  await act(async () => root.render(React.createElement(CostLibraryButton, { target })))
+  const trigger = document.querySelector<HTMLButtonElement>('button')!
+  trigger.focus()
+  await click(trigger)
+  await click(button('Import CSV / Excel'))
+  const cancel = button('Cancel Import')
+  cancel.focus()
+  await click(cancel)
+  const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!
+  expect(dialog.contains(document.activeElement)).toBe(true)
+  const outside = vi.fn()
+  window.addEventListener('keydown', outside)
+  try {
+    await act(async () =>
+      document.activeElement!.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+      )
+    )
+    expect(document.querySelector('[role="dialog"]')).toBeNull()
+    expect(outside).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(trigger)
+    expect(api.cancel).toHaveBeenCalledWith('cancel-focus')
+    expect(api.commit).not.toHaveBeenCalled()
+  } finally {
+    window.removeEventListener('keydown', outside)
+  }
+})
+
 it('native-picker focus return contains busy shortcuts and outside focus', async () => {
   let complete!: (result: LibraryResult<LibraryPreview | null>) => void
   vi.mocked(api.preview).mockImplementation(

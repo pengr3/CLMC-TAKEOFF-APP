@@ -79,11 +79,11 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
   }, [])
 
   useEffect(() => {
-    // Native pickers and disabling their invoking button can return focus to body.
-    // Reclaim focus after the operation without disturbing an active dialog input.
+    // Native pickers, disabled controls and removed preview buttons can leave
+    // focus on body. Reclaim it without disturbing an active dialog input.
     const dialog = dialogRef.current
     if (dialog && !dialog.contains(document.activeElement)) dialog.focus()
-  }, [busy])
+  }, [busy, preview])
 
   const importFile = async (): Promise<void> => {
     setOperation('checking')
