@@ -26,7 +26,16 @@ node scripts/verify-release.cjs dist
 node scripts/smoke-packaged.cjs dist/win-unpacked/clmc-takeoff.exe
 ```
 
-The inspector writes `dist/release-manifest.json`; packaged smoke writes `dist/packaged-smoke.json`. Inspect actual package contents, bundled notices, executable metadata and signature results. Never copy source, environment files or development artifacts into the positive package allowlist. New candidate bytes invalidate old candidate-bound installed evidence. Do not rebuild the frozen candidate just to prepare documentation.
+Run tests to completion before starting packaging; retain their full output and exit codes. Do not run heavy packaging alongside the regression suite. The inspector writes `dist/release-manifest.json`; packaged smoke writes `dist/packaged-smoke.json`. Inspect actual package contents, bundled notices, executable metadata and signature results. Never copy source, environment files or development artifacts into the positive package allowlist. New candidate bytes invalidate old candidate-bound installed evidence. Do not rebuild the frozen candidate just to prepare documentation.
+
+### Candidate reproduction checklist
+
+1. Obtain an approved clean checkout of the exact recorded source commit, including tracked training files and `package-lock.json`. Record `git rev-parse HEAD` and `git status --short`; retain any intentional delta explicitly. Never copy a developer's `node_modules`, scratch outputs, `.env` or personal app data. Build tools/package acquisition may require connectivity; this does not change offline installed-app operation.
+2. Record actual Node/npm/Windows versions. The guide checks in this execution used Node **v24.13.0**; this is observed build-host provenance, not a promise for every Node version. Use the approved supported environment and the lockfile, which pins Electron **44.9.3** and builder **26.8.1**. `npm ci` must succeed without substituting package upgrades. Capture signing configuration decisions without recording secrets.
+3. Run the regression suite separately, then `npm run build:win` (includes both typechecks and bundling). Record failures as failures; passing isolated retries do not rewrite the initial full-run result. Preserve the current candidate's 1225/1229 initial result and parser-intermittency qualification until the release reviewer resolves it.
+4. Run inventory inspection and candidate-bound packaged smoke using the commands above. Save their manifests/logs with the source commit, version and installer/ASAR SHA-256. Inspect notices/signatures and review dependency changes against the Phase 20 dependency and security registers. The `buffers@0.1.1` license-declaration exception, unsigned publisher policy, remaining advisory dispositions and regression stability all require named decisions.
+5. For a new release, deliberately update `package.json` and the lockfile version plus `resources/release-notes.json`; then repeat build/inspection/testing. About must agree with the installed version and offline notes. A documentation revision alone keeps the frozen installer; distinguish documentation revision from application source.
+6. Obtain actual installed-app validation through [release-validation.md](release-validation.md), then the separate [pilot runbook](pilot-runbook.md). No manifest, unit suite or hidden smoke establishes release or estimator acceptance.
 
 Prepare the portable training kit from the frozen artifacts:
 
@@ -34,7 +43,9 @@ Prepare the portable training kit from the frozen artifacts:
 node scripts/prepare-trial-kit.cjs
 ```
 
-Open `dist/trial-kit/START-HERE.html`; verify with its supplied PowerShell integrity checker. The kit can be copied as a folder without installing Node on the target. Keep its complete relative folder structure. This is a trial handoff, not an approved distribution share.
+Open `dist/trial-kit/START-HERE.html`; verify with its supplied PowerShell integrity checker under the normal script policy. The kit can be copied as a folder without installing Node on the target. Keep its complete relative folder structure. This is a trial handoff, not an approved distribution share.
+
+The preparation script intentionally refuses an existing `dist/trial-kit`. Preserve that folder, manifests and returned `TEST-RESULTS.md`; never delete/overwrite them to make the command succeed. Prepare a revised kit in a separate approved clean checkout/destination and review its new manifest. The script's current destination is fixed within that checkout. The existing kit has the earlier guide/maintainer revision; the Phase 21 source documents are newer. A future revised handoff must include the reviewed guide, pilot procedure and worksheets with their actual documentation revision. Do not imply that the preserved kit already contains these updates.
 
 ## Identity, files and recovery
 
@@ -76,3 +87,19 @@ Collect exact installer hash, About version, machine/Windows/display details, st
 | Trial acceptance | Named testers, actual results and approval pending |
 
 Before release acceptance, complete the real target-PC evidence and review in [release-validation.md](release-validation.md), [release-compatibility.md](release-compatibility.md) and the Phase 20 evidence record. Later Phase 21 requires two real internal PCs/estimators and explicit pilot acceptance before broader distribution. This draft does not close those gates.
+
+## Practical turnover and decision record
+
+Record actual primary and backup names, dates, demonstrated results and approval in [the Phase 21 handover record](../.planning/phases/21-user-guide-and-internal-handover/21-HANDOVER.md). A filled name alone does not demonstrate the work. The same person may cover multiple responsibilities if the team explicitly assigns and demonstrates them.
+
+| Responsibility | Exercise with disposable data | Evidence required |
+|---|---|---|
+| Release maintainer + backup | Reproduce a candidate in a separate checkout; explain lockfile/version/notes, inspect package/signature/manifests and compare hashes | Actual source/tool versions, command exits/logs, manifest/hash and observer/date |
+| Rate-file owner + backup | Prepare the six-column template; demonstrate valid preview/replace and rejected invalid copy, matching-unit Apply Rates, manual override and unchanged saved-project rates after later import | Approved disposable library revision/hash, independent expected/actual prices and observer/date |
+| Support/rollback owner + backup | Locate user project, adjacent backup, app-data/library/recovery; make independent closed-app copies; open a disposable backup detached and save another copy | Actual paths/hashes, unchanged originals and observer/date |
+| Support/rollback owner + backup | Triage a disposable failed save or invalid import; explain capture timestamp/lost-work boundary, upgraded copies and predecessor compatibility | Issue record with expected/actual, evidence and next action; demonstrated recovery/rollback limits |
+| Release approver | Review technical/stability/signing/dependency evidence; identify accepted candidate, approved read-only share, access/retention and pilot/distribution approval route | Named dated decisions, precise evidence scope and unresolved items |
+
+For issue intake use: ID/date, reporter/contact, exact candidate/version, PC/Windows/display, affected permitted PDF/project hashes, reproduction steps, independent expected versus actual, severity, preserved originals/backup, evidence paths, assigned owner and fix/retest decision. Keep financial, measurement and file-protection blockers open until relevant checks pass. Keep customer plans within their approved access route. No messaging or upload is authorized by this checklist.
+
+Internal share location, access administrator, previous-installer retention, backup contact, signing policy and dependency/stability dispositions remain **pending**. Distribution needs actual Phase 20 acceptance, named demonstrated owners and two-PC estimator acceptance, followed by explicit approval of the exact candidate and actual target list. See [pilot-runbook.md](pilot-runbook.md); ten pending rollout slots are preparation only.
