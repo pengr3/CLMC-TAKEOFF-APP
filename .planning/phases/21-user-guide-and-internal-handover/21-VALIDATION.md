@@ -1,9 +1,9 @@
 ---
 phase: "21"
 slug: user-guide-and-internal-handover
-status: draft
+status: in_progress
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 created: "2026-10-23"
 ---
 
@@ -15,10 +15,10 @@ Documentation validation uses Node and existing JSDOM/JSZip/ExcelJS; no new depe
 
 | Task | Wave | Requirement | Verification | Status |
 |---|---|---|---|---|
-| 21-01-01 | 1 | HAND-01 | Create/run documentation CLI; intact pass, copied broken link and wrong-value controls fail; source/kit hashes unchanged | Pending |
-| 21-01-02 | 1 | HAND-01 | CLI plus guide-to-control/source audit | Pending |
-| 21-02-01 | 2 | HAND-02 | CLI plus actual-script/storage/compatibility review; named owners still pending | Pending |
-| 21-02-02 | 2 | HAND-03 | CLI plus runbook/worksheet field and gating review | Pending |
+| 21-01-01 | 1 | HAND-01 | CLI intact pass; eight copied corruptions rejected, two actual CLI exit-1 controls; 32 protected hashes unchanged | Preparation PASS, 2026-10-23 |
+| 21-01-02 | 1 | HAND-01 | CLI plus all eight guide-section/source mappings in 21-GUIDE-EVIDENCE.md | Preparation PASS; human walkthrough pending |
+| 21-02-01 | 2 | HAND-02 | CLI plus actual scripts/storage/compatibility review; covered Phase 20 document amendment | Preparation PASS; owners/demonstrations pending |
+| 21-02-02 | 2 | HAND-03 | CLI plus five documents/20 local links, two PC slots, 16 UI states, ten pending rollout rows and gating review | Preparation PASS; actual pilot/rollout pending |
 | 21-03-01 | 3 | HAND-02 | Manual: actual Phase 20 acceptance, named decisions and demonstrated turnover | Pending |
 | 21-03-02 | 3 | HAND-01, HAND-03 | Manual: all 16 UI-probe states, real-estimator guide/task evidence on two actual PCs, independent oracles and blocker retests | Pending |
 | 21-03-03 | 3 | HAND-03 | Manual: actual release approval before distribution; per-PC records | Pending |
@@ -39,8 +39,8 @@ Actual owners must demonstrate build/inspection, rate-file and backup/support pr
 - [x] All tasks have executable automated checks or explicit manual checkpoint criteria.
 - [x] First-task creation accounts for the currently missing documentation checker.
 - [x] No watch mode or new dependencies.
-- [ ] Actual task results and feedback latency recorded.
+- [x] Preparation task results recorded: checker runs 9,541–18,757 ms; negative controls and protected hashes in 21-GUIDE-EVIDENCE.md; no total task-duration measurement claimed.
 - [ ] Actual manual walkthrough, named turnover and two-PC pilot accepted.
 - [ ] Nyquist validation audit complete; no execution acceptance asserted at planning time.
 
-Approval: planning strategy reviewed inline 2026-10-23; execution and human acceptance pending.
+Preparation reviewed inline 2026-10-23: Plans 21-01/02 complete with focused checks. Plan 21-03 human checkpoints and whole-phase acceptance remain pending; nyquist_compliant stays false until the remaining audit/evidence is complete. No whole-app regression rerun or whole-phase verification is claimed.

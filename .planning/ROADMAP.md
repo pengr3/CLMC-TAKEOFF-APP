@@ -797,17 +797,17 @@ Plans:
 2. Maintainer handover covers reproducible build/package, approved installer distribution/manual upgrades, version/release notes, project/library storage, backup/recovery and issue triage; named internal ownership is established.
 3. Pilot users on two actual PCs complete representative work and blockers are fixed; record acceptance before remaining-ten-PC rollout. Do not substitute automated tests for human acceptance or claim deployment without evidence.
 
-**Plans:** 3 plans (planned; execution and acceptance pending)
+**Plans:** 2/3 plans complete for preparation; 21-03 actual human acceptance/distribution pending (2026-10-23)
 
 **Preparation while Phase 20 is VERIFYING:** The user permits independent documentation and pilot-material preparation. Phase 20's acceptance remains open; the dependency above still gates pilot acceptance and release distribution.
 
 **Wave 1 — guide preparation**
 
-- [ ] 21-01-PLAN.md — Verify/refine the existing offline guide and worked example; retain actual visual/estimator walkthrough gates.
+- [x] 21-01-PLAN.md — Source-audited offline guide and read-only checker; independent worked-example checks and eight negative probes pass; actual visual/estimator walkthrough gates retained.
 
-**Wave 2 — blocked on Wave 1 completion**
+**Wave 2 — preparation complete**
 
-- [ ] 21-02-PLAN.md — Prepare maintainer turnover and candidate-bound pilot/rollout records; actual owners and acceptance remain pending.
+- [x] 21-02-PLAN.md — Practical maintainer turnover and candidate-bound two-PC pilot/ten-slot rollout records prepared; actual owners, demonstrations and acceptance remain pending.
 
 **Wave 3 — blocked on Waves 1/2 and actual Phase 20 acceptance**
 

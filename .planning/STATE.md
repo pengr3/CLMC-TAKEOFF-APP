@@ -4,15 +4,15 @@ milestone: v1.0
 current_phase: 20
 current_phase_name: Production Readiness
 status: in_progress
-stopped_at: Phase 21 planned for independent documentation preparation; Phase 20 VERIFYING and external acceptance remain open
-last_updated: "2026-10-23T02:57:28.538Z"
+stopped_at: Phase 21-01/02 preparation complete; 21-03-01 awaiting actual Phase 20 acceptance and demonstrated named owners
+last_updated: "2026-10-23T03:17:09Z"
 last_activity: 2026-10-23
-state_head: 9a0349f
+state_head: c8baf56
 progress:
   total_phases: 25
   completed_phases: 23
   total_plans: 135
-  completed_plans: 131
+  completed_plans: 133
 milestone_name: milestone
 ---
 
@@ -28,7 +28,7 @@ milestone_name: milestone
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 20 acceptance remains open; Phase 21 guide/handover preparation is planned
+**Current Focus:** Phase 20 acceptance remains open; Phase 21-01/02 preparation complete, 21-03-01 human checkpoint pending
 
 ---
 
@@ -39,18 +39,18 @@ Plan: 9 of 9 —20-01 through20-08 complete;20-09 tasks01/02 complete,task03 ext
 
 Next action: Complete deferred actual target-PC/historical-PDF/display and named review gates. Additional local manual checks completed; preview-cancel focus fixed9a0349f and installed retest passed. Current installer fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544;149installed files matched; build/types/inspection/packaged smoke pass. Initial full1225/1229passed; four affected files passed isolated reruns with intermittent parser qualification. See20-MANUAL-EDGES.md/JSON. Broad unobserved edge permutations, stability review and external acceptance remain open;20-09task03/REL-01..05 and Phase21 pilot/distribution pending. Trial kit refreshed; previous candidate/kit retained.
 
-Last activity: 2026-10-23 - Phase 21 planned in three waves; Phase 20 remains VERIFYING, accepted counts unchanged.
+Last activity: 2026-10-23 - Phase 21-01/02 preparation verified and committed; stopped at 21-03-01 actual release/ownership gate. Phase 20 remains VERIFYING; requirement/phase acceptance unchanged.
 
 ## Phase 21 preparation work order
 
-Three plans are ready: 21-01 offline guide/checks, then 21-02 maintainer and pilot materials, then 21-03 actual ownership/Phase 20 acceptance/two-PC pilot and approved distribution checkpoints. Plans 01/02 can proceed while hardware is deferred. No Phase 21 plan is executed or accepted yet. Keep the primary position above at Phase 20 VERIFYING until actual release acceptance. See `.planning/phases/21-user-guide-and-internal-handover/21-CHECK.md`.
+21-01/02 preparation complete: source-audited guide, read-only checker, eight negative copied probes, independent 740/962/222 oracle and unchanged 32 protected files; practical maintainer procedure, pending owner exercises, two-PC pilot runbook/worksheet and ten pending rollout slots. Documentation checks and all 20 handover/runbook local links pass. Next is 21-03-01 (blocking-human): actual fresh Phase 20 acceptance and named demonstrated release/rates/support owners plus signing/share/dependency/stability decisions. Then 21-03-02 actual estimator/guide/two-PC acceptance and 21-03-03 explicit distribution approval and actual rollout. No HAND requirement, pilot or rollout is accepted. Keep the primary position above at Phase 20 VERIFYING until actual release acceptance. See `21-01-SUMMARY.md`, `21-02-SUMMARY.md` and pending `21-HANDOVER.md`/`21-PILOT.md`/`21-ROLLOUT.md` in the Phase 21 directory.
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
 | Phases accepted | 23 / 25; Phase 19 implementation and UAT accepted |
-| Plans complete |131 (123 previous + eight complete Phase20 plans;09 pending)|
+| Plans complete |133 (123 previous + eight complete Phase20 plans + Phase21-01/02 preparation;20-09 and21-03 pending)|
 | v1 requirements delivered | 25 / 25 |
 | Internal rollout requirements delivered | 6 / 14 |
 | Session count | 8 |

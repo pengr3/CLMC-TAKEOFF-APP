@@ -23,7 +23,7 @@ key-files:
   modified: [docs/offline-guide/index.html]
 requirements-completed: []
 requirements-prepared: [HAND-01]
-duration: 20min
+duration: not separately recorded
 completed: "2026-10-23"
 status: complete
 ---
