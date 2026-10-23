@@ -36,7 +36,20 @@ Eight separate disposable copies rejected their intended corruption: missing loc
 
 ## Guide-to-control audit
 
-Pending completion of task 21-01-02; the following source mapping will record the actual reviewed sections and remaining human states.
+All eight sections were reviewed against the current source and existing candidate-bound manual evidence. This is a source audit, not a new installed walkthrough.
+
+| Guide section | Reviewed source / observed contract | Result |
+|---|---|---|
+| 1 Get started | `TopActionBar.tsx`, `ToolRail.tsx`, `ScalePopup.tsx`, `ScaleContextMenu.tsx`, `useViewportControls.ts`: file actions, Plan/Estimate, pan/zoom, per-page calibration and Confirm | Refined the scale arrow/menu instructions to the actual **Verify scale** and **Recalibrate** labels. |
+| 2 Worked example | Read-only `verifyExample`; tracked ZIP/PDF and independent XLSX/CSV/HTML numeric readback | Five tool types plus intentionally unpriced second area; six quantities and 740/962/222 checked. Synthetic/actual-screenshot provenance retained. |
+| 3 Draw/check/edit | `CanvasViewport.tsx` selection/vertex edit/Enter/Escape and `ToolRail.tsx`; snap and arc refs/shortcut hook | Existing instructions match drawing minimums, handle correction/cancel, undo, snap F3/Alt and arc A/Shift+A. Legacy geometry review and export block retained. |
+| 4 Costs/libraries/units | `CostLibraryDialog.tsx`, `src/shared/cost-library.ts`, `rate-units.ts`, `apply-library-rate.ts` | Exact six headers and template/import/replace/apply labels checked. Added supported units, cross-category same-name/type scope and explicit manual override/reapply behavior. Matching-unit application, reciprocal conversion and project snapshots retained. |
+| 5 Save/transfer/recover | `useProject.ts`, `docs/release-compatibility.md`, Phase 20 `20-MANUAL-EDGES.md` | One adjacent last-good backup, embedded-PDF transfer, upgraded-copy limits, approximately 60-second recovery, 20 candidates/4 GiB, detached backup and failed-save instructions match. Prior actual tests retain their respective candidate scopes. |
+| 6 Export | `TopActionBar.tsx`, `useExport.ts` and independent example readback | XLSX/CSV and UTF-8/comma guidance retained. Explicit material/labor/internal margin warning and deferred client quotation scope retained. |
+| 7 Keyboard | `useKeyboardShortcuts.ts`, canvas drawing/vertex handlers | Corrected blanket text-field claim: guarded file/undo/selection/delete commands defer to typing, F3 remains available; finish editing before page/zoom navigation. Existing key combinations retained. |
+| 8 Troubleshooting | Library shared limits/errors, compatibility document and source behaviors above | Added complete-folder/recopy guidance for missing local files. Retained actionable save/import/PDF/legacy advice and explicit **Support contact pending assignment**. |
+
+Guide date advanced to 23 October; no controls, application source, dependencies or example/image bytes changed. No Phase 20 covered document was modified by Plan 21-01. The local checker does not verify image appearance or human comprehension. The candidate's regression qualification remains unchanged: initial full 1225/1229 pass, four affected files passing isolated reruns, intermittent parser review still open.
 
 ## Human evidence still required
 
