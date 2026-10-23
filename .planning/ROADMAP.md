@@ -797,11 +797,27 @@ Plans:
 2. Maintainer handover covers reproducible build/package, approved installer distribution/manual upgrades, version/release notes, project/library storage, backup/recovery and issue triage; named internal ownership is established.
 3. Pilot users on two actual PCs complete representative work and blockers are fixed; record acceptance before remaining-ten-PC rollout. Do not substitute automated tests for human acceptance or claim deployment without evidence.
 
-**Plans:** 0 plans
+**Plans:** 3 plans (planned; execution and acceptance pending)
 
-Plans:
+**Preparation while Phase 20 is VERIFYING:** The user permits independent documentation and pilot-material preparation. Phase 20's acceptance remains open; the dependency above still gates pilot acceptance and release distribution.
 
-- [ ] TBD (run $gsd-plan-phase 21 to break down)
+**Wave 1 — guide preparation**
+
+- [ ] 21-01-PLAN.md — Verify/refine the existing offline guide and worked example; retain actual visual/estimator walkthrough gates.
+
+**Wave 2 — blocked on Wave 1 completion**
+
+- [ ] 21-02-PLAN.md — Prepare maintainer turnover and candidate-bound pilot/rollout records; actual owners and acceptance remain pending.
+
+**Wave 3 — blocked on Waves 1/2 and actual Phase 20 acceptance**
+
+- [ ] 21-03-PLAN.md — Obtain named owner demonstrations, actual two-PC estimator/guide acceptance, then explicit remaining-ten distribution approval and actual rollout records.
+
+Cross-cutting constraints:
+
+- Preparation does not accept Phase 20, replace hardware/representative-plan evidence or remove release/stability reviews.
+- Reuse the frozen guide/kit; preserve existing projects, library and returned results. No client quotation export, central rates or automatic updater.
+- Actual users, owners, candidate-bound results and approvals are required; automated checks never establish pilot acceptance or twelve-PC deployment.
 
 ---
 

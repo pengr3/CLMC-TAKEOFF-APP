@@ -4,14 +4,14 @@ milestone: v1.0
 current_phase: 20
 current_phase_name: Production Readiness
 status: in_progress
-stopped_at: Additional installed recovery/save-failure/backup/legacy/import checks recorded; third manual defect fixed and natively verified; external acceptance and regression-stability review remain open
-last_updated: "2026-10-23T02:41:32.870Z"
+stopped_at: Phase 21 planned for independent documentation preparation; Phase 20 VERIFYING and external acceptance remain open
+last_updated: "2026-10-23T02:57:28.538Z"
 last_activity: 2026-10-23
 state_head: 9a0349f
 progress:
   total_phases: 25
   completed_phases: 23
-  total_plans: 132
+  total_plans: 135
   completed_plans: 131
 milestone_name: milestone
 ---
@@ -28,7 +28,7 @@ milestone_name: milestone
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 20 — Production Readiness
+**Current Focus:** Phase 20 acceptance remains open; Phase 21 guide/handover preparation is planned
 
 ---
 
@@ -39,7 +39,11 @@ Plan: 9 of 9 —20-01 through20-08 complete;20-09 tasks01/02 complete,task03 ext
 
 Next action: Complete deferred actual target-PC/historical-PDF/display and named review gates. Additional local manual checks completed; preview-cancel focus fixed9a0349f and installed retest passed. Current installer fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544;149installed files matched; build/types/inspection/packaged smoke pass. Initial full1225/1229passed; four affected files passed isolated reruns with intermittent parser qualification. See20-MANUAL-EDGES.md/JSON. Broad unobserved edge permutations, stability review and external acceptance remain open;20-09task03/REL-01..05 and Phase21 pilot/distribution pending. Trial kit refreshed; previous candidate/kit retained.
 
-Last activity: 2026-10-23 - Additional installed manual checks and focus repair verified; Phase20 remains in verification.
+Last activity: 2026-10-23 - Phase 21 planned in three waves; Phase 20 remains VERIFYING, accepted counts unchanged.
+
+## Phase 21 preparation work order
+
+Three plans are ready: 21-01 offline guide/checks, then 21-02 maintainer and pilot materials, then 21-03 actual ownership/Phase 20 acceptance/two-PC pilot and approved distribution checkpoints. Plans 01/02 can proceed while hardware is deferred. No Phase 21 plan is executed or accepted yet. Keep the primary position above at Phase 20 VERIFYING until actual release acceptance. See `.planning/phases/21-user-guide-and-internal-handover/21-CHECK.md`.
 
 ## Performance Metrics
 

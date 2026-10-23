@@ -1,6 +1,6 @@
 # Phase 21 context — approved internal handover
 
-Captured 2026-10-21 from the completed user discussion. See ../../RELEASE-HANDOVER.md. Not yet planned/executed; depends on Phase 20's release candidate.
+Captured 2026-10-21 from the completed user discussion. See ../../RELEASE-HANDOVER.md. Planned 2026-10-23; execution/acceptance pending. Depends on Phase 20's release candidate.
 
 ## Locked outcomes
 
@@ -12,3 +12,7 @@ Captured 2026-10-21 from the completed user discussion. See ../../RELEASE-HANDOV
 ## Scope fences
 
 No central cost-library administration/sync, price feeds, automatic updater service, custom export template matching or assembly system. The team maintains spreadsheet accuracy and uploads updates individually to each PC.
+
+## Work-order clarification — 2026-10-23
+
+The user deferred second-PC work and asked to continue useful work with available hardware, then asked whether Phase 21 can proceed. Preparation may proceed autonomously using the existing frozen-candidate guide and trial kit. Plans 21-01/02 cover that independent work. Phase 20 remains VERIFYING; actual target-PC/representative-PDF/display evidence and named release/stability reviews remain open. Plan 21-03 retains actual Phase 20 acceptance, named owner demonstrations and real-estimator/two-PC pilot acceptance before remaining-ten distribution. No requirement or acceptance gate is removed by this scheduling exception.

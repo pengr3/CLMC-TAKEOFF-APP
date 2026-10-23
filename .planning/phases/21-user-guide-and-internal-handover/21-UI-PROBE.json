@@ -1,0 +1,183 @@
+{
+  "mode": "autonomous_kind_confirmation_inline",
+  "elements": [
+    {
+      "id": "E1",
+      "text": "Static guide text and quantity tables, long paths, Unicode units and troubleshooting lists.",
+      "elements": [
+        "static-content",
+        "list-collection"
+      ]
+    },
+    {
+      "id": "E2",
+      "text": "Contents navigation and local example/download links with keyboard focus.",
+      "elements": [
+        "nav",
+        "interactive-control"
+      ]
+    },
+    {
+      "id": "E3",
+      "text": "Local screenshots with descriptive alternative text and captions.",
+      "elements": [
+        "media"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "requirement_id": "E1",
+      "category": "empty",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What is shown when there is no data — zero items, an unfilled form, or absent media?",
+      "reason": null,
+      "probe": "What is shown when there is no data — zero items, an unfilled form, or absent media?"
+    },
+    {
+      "requirement_id": "E1",
+      "category": "loading",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What is shown while data or content is still loading (skeleton, spinner, progressive reveal)?",
+      "reason": null,
+      "probe": "What is shown while data or content is still loading (skeleton, spinner, progressive reveal)?"
+    },
+    {
+      "requirement_id": "E1",
+      "category": "error",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What is shown when the load or submit fails (message, retry affordance, partial fallback)?",
+      "reason": null,
+      "probe": "What is shown when the load or submit fails (message, retry affordance, partial fallback)?"
+    },
+    {
+      "requirement_id": "E1",
+      "category": "populated",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What does the normal populated (happy-path) state look like at a typical volume of content?",
+      "reason": null,
+      "probe": "What does the normal populated (happy-path) state look like at a typical volume of content?"
+    },
+    {
+      "requirement_id": "E1",
+      "category": "partial",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What is shown for partial or incomplete data — some fields or rows present, others missing?",
+      "reason": null,
+      "probe": "What is shown for partial or incomplete data — some fields or rows present, others missing?"
+    },
+    {
+      "requirement_id": "E1",
+      "category": "overflow",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What happens when content exceeds its container — scroll, clip, wrap, or truncate?",
+      "reason": null,
+      "probe": "What happens when content exceeds its container — scroll, clip, wrap, or truncate?"
+    },
+    {
+      "requirement_id": "E1",
+      "category": "zero-one-many",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "How does the layout read at zero, one, and many items (singular vs plural copy, spacing)?",
+      "reason": null,
+      "probe": "How does the layout read at zero, one, and many items (singular vs plural copy, spacing)?"
+    },
+    {
+      "requirement_id": "E1",
+      "category": "long-text",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What happens with unusually long text — truncation, wrapping, ellipsis, or reflow?",
+      "reason": null,
+      "probe": "What happens with unusually long text — truncation, wrapping, ellipsis, or reflow?"
+    },
+    {
+      "requirement_id": "E2",
+      "category": "loading",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What is shown while data or content is still loading (skeleton, spinner, progressive reveal)?",
+      "reason": null,
+      "probe": "What is shown while data or content is still loading (skeleton, spinner, progressive reveal)?"
+    },
+    {
+      "requirement_id": "E2",
+      "category": "error",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What is shown when the load or submit fails (message, retry affordance, partial fallback)?",
+      "reason": null,
+      "probe": "What is shown when the load or submit fails (message, retry affordance, partial fallback)?"
+    },
+    {
+      "requirement_id": "E2",
+      "category": "overflow",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What happens when content exceeds its container — scroll, clip, wrap, or truncate?",
+      "reason": null,
+      "probe": "What happens when content exceeds its container — scroll, clip, wrap, or truncate?"
+    },
+    {
+      "requirement_id": "E2",
+      "category": "long-text",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What happens with unusually long text — truncation, wrapping, ellipsis, or reflow?",
+      "reason": null,
+      "probe": "What happens with unusually long text — truncation, wrapping, ellipsis, or reflow?"
+    },
+    {
+      "requirement_id": "E3",
+      "category": "empty",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What is shown when there is no data — zero items, an unfilled form, or absent media?",
+      "reason": null,
+      "probe": "What is shown when there is no data — zero items, an unfilled form, or absent media?"
+    },
+    {
+      "requirement_id": "E3",
+      "category": "loading",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What is shown while data or content is still loading (skeleton, spinner, progressive reveal)?",
+      "reason": null,
+      "probe": "What is shown while data or content is still loading (skeleton, spinner, progressive reveal)?"
+    },
+    {
+      "requirement_id": "E3",
+      "category": "error",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What is shown when the load or submit fails (message, retry affordance, partial fallback)?",
+      "reason": null,
+      "probe": "What is shown when the load or submit fails (message, retry affordance, partial fallback)?"
+    },
+    {
+      "requirement_id": "E3",
+      "category": "populated",
+      "status": "resolved",
+      "verification": "backstop",
+      "resolution": "What does the normal populated (happy-path) state look like at a typical volume of content?",
+      "reason": null,
+      "probe": "What does the normal populated (happy-path) state look like at a typical volume of content?"
+    }
+  ],
+  "coverage": {
+    "applicable": 16,
+    "resolved": 16,
+    "unresolved": 0,
+    "byVerification": {
+      "explicit": 0,
+      "backstop": 16
+    }
+  }
+}
