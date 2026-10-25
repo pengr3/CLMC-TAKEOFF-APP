@@ -356,7 +356,13 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
           {issues.length > 0 && (
             <ul
               aria-label="Import errors"
-              style={{ maxHeight: 160, overflow: 'auto', margin: 0, paddingLeft: 22 }}
+              style={{
+                maxHeight: 160,
+                overflow: 'auto',
+                flexShrink: 0,
+                margin: 0,
+                paddingLeft: 22
+              }}
             >
               {issues.map((issue, index) => (
                 <li key={index}>
