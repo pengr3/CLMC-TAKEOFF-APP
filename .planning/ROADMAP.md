@@ -755,7 +755,7 @@ Plans:
 4. Define and implement minimal backup/recovery behavior, including interrupted/failed saves and recoverable unsaved work; document compatibility and safe rollback limits.
 5. Installed app works offline through PDF→calibration→markup→Estimate→export; representative large/multi-page PDFs and Windows scaling preserve accurate coordinates. Resolve client-versus-internal export audience before any export scope expansion.
 
-**Plans:**8/9 plans complete;20-09 artifact work complete, actual installed evidence pending (current1.1.1:2/16 complete cases pass,14 pending; see [26October continuation](phases/20-production-readiness/20-CLOSEOUT.md))
+**Plans:** 8/9 plans complete; 20-09 installed acceptance remains open. **26 October 2026:** frozen 1.1.1 has **5 pass, 1 first-release not-applicable, 1 fail, 9 pending**. The native USDA JPX scan renders blank; a 1.1.2 fix is underway, with no replacement-candidate pass or Phase 20 acceptance claimed. Francis selected unsigned internal first release and `C:\Users\franc\OneDrive\Desktop\CLMC TAKEOFF FOLDER`; protected handoff and remaining evidence/reviews stay open. Two extended displays are available, but an actual monitor transition remains unobserved. The original 3191-file profile is restored. See [current continuation](phases/20-production-readiness/20-CLOSEOUT.md) and [frozen 1.1.1 evidence](phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json).
 
 Plans:
 **Wave 1**

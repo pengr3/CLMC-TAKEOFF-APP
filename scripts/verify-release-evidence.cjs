@@ -72,6 +72,47 @@ function validateEvidence(record, manifest) {
       continue
     }
     const entry = matches[0]
+    if (entry.candidateSha256 !== manifest.installer.sha256)
+      errors.push(`${id}: wrong candidate hash`)
+    if (
+      !text(entry.tester) ||
+      !date(entry.date) ||
+      !text(entry.procedure) ||
+      !text(entry.expected) ||
+      !text(entry.actual) ||
+      !list(entry.artifacts).length ||
+      !entry.artifacts.every(text)
+    )
+      errors.push(`${id}: missing tester/date/procedure/expected/actual/artifact provenance`)
+    if (entry.status === 'not-applicable') {
+      const predecessor = record.predecessor
+      const attestation = predecessor?.attestation
+      const hasDeployedInventory = [
+        'version',
+        'installerSha256',
+        'registration',
+        'inventoryArtifact'
+      ].some((field) => Object.hasOwn(predecessor || {}, field))
+      if (
+        id !== 'actual-predecessor-upgrade' ||
+        predecessor?.kind !== 'none-deployed' ||
+        hasDeployedInventory ||
+        attestation?.source !== 'human-release-owner' ||
+        !text(attestation?.releaseOwner) ||
+        attestation.releaseOwner !== record.handoff?.releaseOwner ||
+        entry.tester !== attestation.releaseOwner ||
+        !date(attestation?.date) ||
+        attestation?.noDeployedPredecessor !== true ||
+        !text(attestation?.statement) ||
+        !text(attestation?.artifact) ||
+        !list(entry.artifacts).includes(attestation.artifact)
+      )
+        errors.push(
+          `${id}: not-applicable is limited to first release with explicit human release-owner attestation that no predecessor was deployed`
+        )
+      // No upgrade was performed: do not invent hardware, fixtures or passing measurement checks.
+      continue
+    }
     const machineMatches = machines.filter((machine) => machine?.id === entry.machineId)
     const machine = machineMatches[0]
     if (
@@ -86,18 +127,6 @@ function validateEvidence(record, manifest) {
       !list(machine?.supportedScaling).includes(100)
     )
       errors.push(`${id}: missing non-development Windows x64 hardware provenance`)
-    if (entry.candidateSha256 !== manifest.installer.sha256)
-      errors.push(`${id}: wrong candidate hash`)
-    if (
-      !text(entry.tester) ||
-      !date(entry.date) ||
-      !text(entry.procedure) ||
-      !text(entry.expected) ||
-      !text(entry.actual) ||
-      !list(entry.artifacts).length ||
-      !entry.artifacts.every(text)
-    )
-      errors.push(`${id}: missing tester/date/procedure/expected/actual/artifact provenance`)
     if (!list(entry.fixtureIds).length) errors.push(`${id}: missing fixtures`)
     for (const fixtureId of list(entry.fixtureIds)) {
       const matches = fixtures.filter((fixture) => fixture?.id === fixtureId)
@@ -195,11 +224,14 @@ if (require.main === module) {
       if (!text(review.artifact) || !fs.existsSync(path.resolve(review.artifact)))
         errors.push(`${review.requirement}: missing actual review artifact`)
     for (const entry of list(record.cases).filter((entry) =>
-      ['pass', 'unsupported'].includes(entry.status)
+      ['pass', 'unsupported', 'not-applicable'].includes(entry.status)
     )) {
       const artifacts = [...list(entry.artifacts), entry.disposition?.artifact].filter(text)
-      if (entry.id === 'actual-predecessor-upgrade')
-        artifacts.push(record.predecessor?.inventoryArtifact)
+      if (entry.id === 'actual-predecessor-upgrade') {
+        if (entry.status === 'not-applicable')
+          artifacts.push(record.predecessor?.attestation?.artifact)
+        else artifacts.push(record.predecessor?.inventoryArtifact)
+      }
       for (const artifact of artifacts)
         if (!text(artifact) || !fs.existsSync(path.resolve(artifact)))
           errors.push(`${entry.id}: missing actual artifact ${artifact}`)

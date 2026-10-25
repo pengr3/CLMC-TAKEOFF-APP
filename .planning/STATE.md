@@ -4,8 +4,8 @@ milestone: v1.0
 current_phase: 20
 current_phase_name: Production Readiness
 status: in_progress
-stopped_at: Phase 21-01/02 preparation complete; 21-03-01 awaiting actual Phase 20 acceptance and demonstrated named owners
-last_updated: "2026-10-25T17:27:46.039Z"
+stopped_at: Phase 20 installed JPX scan rendering defect blocks acceptance; 1.1.1 evidence frozen and 1.1.2 fix underway; Phase 21 acceptance remains gated
+last_updated: "2026-10-25T18:39:28Z"
 last_activity: 2026-10-26
 state_head: c8baf56
 progress:
@@ -28,7 +28,7 @@ milestone_name: milestone
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Phase 20 acceptance remains open; Phase 21-01/02 preparation complete, 21-03-01 human checkpoint pending
+**Current Focus:** Resolve the installed JPX scan rendering defect and complete Phase 20 evidence; Phase 21-01/02 preparation is complete, with 21-03-01 acceptance still gated.
 
 ---
 
@@ -37,9 +37,9 @@ milestone_name: milestone
 Phase: 20 (Production Readiness) — VERIFYING
 Plan: 9 of 9 —20-01 through20-08 complete;20-09 tasks01/02 complete,task03 external evidence pending
 
-Next action: Resume20-09-03 from20-CLOSEOUT.md. Exact installed1.1.1 candidate f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e now has2 complete cases PASS (fresh installation, never-saved recovery) and14 pending. Native backup/final-replacement lock failures preserve last-good data and retry successfully; detached backup saves separately; fresh-profile project/library safeguards and public150-page/raster-bearing PDF checks pass scoped observations. Original3191-file profile restored byte-for-byte; app remains installed/closed, library absent, original100%/Show only on2 retained. User identified themselves as release owner; location/signing decisions forthcoming. Remaining predecessor, broader variants, disconnected workflow, approved representative accuracy/performance, full physical/pan/UI matrix and named reviews remain required. Same candidate bytes/source: prior qualified1238/1238 tests, both TypeScript checks/build/inspection/smoke pass;15 existing lint errors remain. Phase20/REL acceptance and Phase21 pilot/distribution remain open.
+Next action: Continue 20-09-03 from [20-CLOSEOUT.md](phases/20-production-readiness/20-CLOSEOUT.md). Exact installed 1.1.1 candidate f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e is frozen in [20-1.1.1-INSTALLED-EVIDENCE.json](phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json): **5 pass, 1 first-release not-applicable, 1 fail, 9 pending**. A genuine high-resolution USDA JPX scanned plan stays blank in the native app while its source renders correctly in Poppler; the 1.1.2 decoder/resource fix is underway, with no replacement-candidate pass claimed. Preserve the frozen candidate and evidence before rebuilding, then bind inspection, smoke and installed retests to the replacement's actual bytes. Francis owns the release/signing decision, selected unsigned internal use and C:\Users\franc\OneDrive\Desktop\CLMC TAKEOFF FOLDER, and attested that this is the first release. Protected handoff, rollback/support contact, REL-01/04/05 review and remaining recovery/offline/multipage/physical-display/UI evidence remain open; REL-02 has a qualified technical first-release review. Phase 20 acceptance and Phase 21 pilot/distribution remain gated.
 
-Last activity: 2026-10-26 - Continued authorized native second-PC testing on LAPTOP-5BAM24NM. Fresh1.1.1 installation from zero registration/executable/profile, exact149 payload matches and native About verified. Never-saved revision6 (26Oct00:55:16Manila) recovered exact embedded PDF/calibration/one count and100/130/30 with source absent, Keep across restart and Save As. Actual backup/primary locks, retry/cancel/detached-copy, library import/unit compatibility/snapshot pricing and publicPDF save/reopen readbacks observed. Restored and hash-verified all3191 original profile files; preserved disposable synthetic profile privately, no deletion. User is release owner; location/signing and remaining evidence reviews pending. See20-CLOSEOUT.md and20-INSTALLED-EVIDENCE.json; task03 not complete.
+Last activity: 2026-10-26 - Authorized native tests on second PC LAPTOP-5BAM24NM closed project-only transfer, failed-save/backup and large-vector cases in addition to fresh installation and never-saved recovery. Dallas 88-page source/geometry readback, 25%/800% registration, page navigation and reopen passed with generated calibration/reference-line and limited memory-window qualifications retained. USDA scan pages 4 and 3 were blank (captures 139–142), a new blocking application defect. Two physical displays are active in Extend, both 1920×1080, D1 125% and D2 100%/main; no actual app transition or pan pass is claimed. At 2026-10-25T18:32:53.9252882Z all 3191 original profile hashes matched after restoration, the disposable profile was preserved, the original library remained absent and CLMC was closed. Frozen 1.1.1 evidence retains prior qualified 1238/1238 tests, both typechecks/build/inspection/smoke and 15 existing lint errors; these are not 1.1.2 results. Task 03 is not complete.
 
 ## Phase 21 preparation work order
 

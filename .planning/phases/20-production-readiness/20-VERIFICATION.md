@@ -9,7 +9,12 @@ verification_mode: focused_parent_amendment_after_manual_findings
 latest_continuation: 2026-10-26
 latest_report: 20-CLOSEOUT.md
 current_candidate: 1.1.1
-current_complete_installed_cases: 2/16
+current_complete_installed_cases: 5/16
+current_first_release_not_applicable_cases: 1
+current_failed_installed_cases: 1
+current_pending_installed_cases: 9
+frozen_candidate_evidence: 20-1.1.1-INSTALLED-EVIDENCE.json
+replacement_fix: 1.1.2 underway; no replacement-candidate pass claimed
 initial_independent_source_head: 68803dd
 automated_status: passed
 behavior_unverified: 4
@@ -25,7 +30,11 @@ human_verification: [{"test":"Local installed UI and complete offline workflow",
 
 # Phase 20: Production Readiness Verification Report
 
-**26 October 2026 continuation:** [20-CLOSEOUT.md](20-CLOSEOUT.md) and [current installed evidence](20-INSTALLED-EVIDENCE.json) supersede the original all-pending candidate totals below. Exact1.1.1 fresh installation and never-saved recovery pass (2/16 complete cases); fourteen remain pending. Native failure/retry/detached-backup, clean-profile library and public-PDF checks add scoped evidence. All3191 original profile files were restored exactly. Historical verification scores, test counts and candidate descriptions below retain their original scope; this continuation is not a new independent full-phase verification or acceptance. Status remains `human_needed`.
+**Current 26 October 2026 continuation:** [20-CLOSEOUT.md](20-CLOSEOUT.md) and the complete [frozen 1.1.1 evidence](20-1.1.1-INSTALLED-EVIDENCE.json) record **5 pass, 1 first-release not-applicable, 1 fail, 9 pending** for candidate `f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e`. Fresh installation, project-only transfer, never-saved recovery, failed-save/backup and large-vector pass. Large-vector retains generated calibration/reference-line, dirty positive-refit reopen and one limited two-minute memory-window qualifications; no manual calibration or sustained leak-soak claim is added. A genuine USDA JPX scanned plan remains blank on native pages 4 and 3 (139–142), although the exact source renders correctly in Poppler. That blocking application defect is under repair for 1.1.2; no new candidate pass is claimed. The evidence gate remains `awaiting-evidence`, exit 1.
+
+[Francis's direct decisions](20-RELEASE-OWNER.md) establish unsigned internal use, first release and `C:\Users\franc\OneDrive\Desktop\CLMC TAKEOFF FOLDER`; read-only handoff protection, rollback/support contact and final human release approval remain open. [REL-02](20-REL02-REVIEW.md) is a qualified technical first-release review, with no deployed upgrade claimed; REL-01/04/05 remain pending. Both physical displays are active in Extend at 1920×1080 (D1 125%, D2 100%/main), but actual app transition and pan are unobserved. The original 3191-file profile was restored with every hash matching at 2026-10-25T18:32:53.9252882Z, the disposable profile was preserved and CLMC was closed. Phase 20 and Phase 21 acceptance remain gated.
+
+**Earlier 26 October continuation (historical):** Fresh installation and never-saved recovery were the first 2/16 complete passes, with fourteen pending and scoped failure/library/public-PDF observations; the original profile was restored at that earlier checkpoint too. The current continuation supersedes those case totals. Historical **46/65** verification scores, test counts, candidate descriptions and unresolved source-audit judgments below retain their original dated scope. This is not a new independent full-phase audit or release acceptance; status remains `human_needed`.
 
 **Phase Goal:** Prepare a reliable installed Windows release for approximately 12 internal PCs with versioned manual upgrades, portable single-file projects, protected user data and recorded installed-app validation.
 

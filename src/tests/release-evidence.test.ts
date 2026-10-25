@@ -1,4 +1,8 @@
 import { createRequire } from 'node:module'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
+import { spawnSync, type SpawnSyncReturns } from 'node:child_process'
 import { describe, expect, it } from 'vitest'
 const require = createRequire(import.meta.url)
 const validate = (() => {
@@ -98,6 +102,49 @@ const completeFixture = {
 function complete(): typeof completeFixture {
   return structuredClone(completeFixture)
 }
+type FirstReleaseRecord = Omit<typeof completeFixture, 'predecessor'> & {
+  predecessor: {
+    kind: string
+    attestation: {
+      source: string
+      releaseOwner: string
+      date: string
+      noDeployedPredecessor: boolean
+      statement: string
+      artifact: string
+    }
+  }
+}
+function firstRelease(): FirstReleaseRecord {
+  const record = complete()
+  const artifact = 'evidence/first-release-attestation.json'
+  const upgrade = record.cases.find((entry) => entry.id === 'actual-predecessor-upgrade')!
+  Object.assign(upgrade, {
+    status: 'not-applicable',
+    tester: record.handoff.releaseOwner,
+    procedure: 'Release owner attested to the deployment history for this candidate',
+    expected: 'An upgrade is applicable only if a predecessor was deployed',
+    actual: 'Release owner confirmed this is the first release; no predecessor was deployed',
+    artifacts: [artifact],
+    fixtureIds: [],
+    checks: []
+  })
+  Reflect.deleteProperty(upgrade, 'machineId')
+  return {
+    ...record,
+    predecessor: {
+      kind: 'none-deployed',
+      attestation: {
+        source: 'human-release-owner',
+        releaseOwner: record.handoff.releaseOwner,
+        date: '2026-10-22',
+        noDeployedPredecessor: true,
+        statement: 'This is the first release. No predecessor has ever been deployed.',
+        artifact
+      }
+    }
+  }
+}
 describe('candidate-bound installed release evidence', () => {
   it('accepts complete required non-development provenance', () => {
     expect(validate(complete(), manifest)).toEqual([])
@@ -157,6 +204,121 @@ describe('candidate-bound installed release evidence', () => {
     const newer = complete()
     newer.predecessor.version = '1.2.0'
     expect(validate(newer, manifest).length).toBeGreaterThan(0)
+  })
+  it('accepts a first-release non-applicable upgrade only with human release-owner attestation', () => {
+    expect(validate(firstRelease(), manifest)).toEqual([])
+  })
+  it('does not turn a first release into a passed upgrade or waive other cases', () => {
+    const passed = firstRelease()
+    passed.cases.find((entry) => entry.id === 'actual-predecessor-upgrade')!.status = 'pass'
+    expect(validate(passed, manifest).length).toBeGreaterThan(0)
+    const unrelated = firstRelease()
+    unrelated.cases[0].status = 'not-applicable'
+    expect(validate(unrelated, manifest).length).toBeGreaterThan(0)
+    const pending = firstRelease()
+    pending.cases[0].status = 'pending'
+    expect(validate(pending, manifest).length).toBeGreaterThan(0)
+  })
+  it('retains candidate and case provenance requirements for a non-applicable upgrade', () => {
+    for (const field of [
+      'candidateSha256',
+      'tester',
+      'date',
+      'procedure',
+      'expected',
+      'actual',
+      'artifacts'
+    ]) {
+      const record = firstRelease()
+      const upgrade = record.cases.find((entry) => entry.id === 'actual-predecessor-upgrade')!
+      Reflect.deleteProperty(upgrade, field)
+      expect(validate(record, manifest).length, field).toBeGreaterThan(0)
+    }
+  })
+  it('rejects incomplete, non-human, mismatched or contradictory first-release attestations', () => {
+    for (const field of [
+      'source',
+      'releaseOwner',
+      'date',
+      'noDeployedPredecessor',
+      'statement',
+      'artifact'
+    ]) {
+      const record = firstRelease()
+      Reflect.deleteProperty(record.predecessor.attestation, field)
+      expect(validate(record, manifest).length, field).toBeGreaterThan(0)
+    }
+    const variants = [
+      { source: 'automated-exercise' },
+      { releaseOwner: 'Someone other than the release owner' },
+      { date: 'pending' },
+      { noDeployedPredecessor: false },
+      { noDeployedPredecessor: 'true' },
+      { statement: 'pending' }
+    ]
+    for (const variant of variants) {
+      const record = firstRelease()
+      Object.assign(record.predecessor.attestation, variant)
+      expect(validate(record, manifest).length, JSON.stringify(variant)).toBeGreaterThan(0)
+    }
+    for (const kind of ['actual-installed', 'generated-exercise']) {
+      const record = firstRelease()
+      record.predecessor.kind = kind
+      expect(validate(record, manifest).length, kind).toBeGreaterThan(0)
+    }
+    for (const field of ['version', 'installerSha256', 'registration', 'inventoryArtifact']) {
+      const record = firstRelease()
+      Object.assign(record.predecessor, { [field]: 'Contradictory deployed inventory' })
+      expect(validate(record, manifest).length, field).toBeGreaterThan(0)
+    }
+    const unlinked = firstRelease()
+    unlinked.cases.find((entry) => entry.id === 'actual-predecessor-upgrade')!.artifacts = [
+      'evidence/unrelated.json'
+    ]
+    expect(validate(unlinked, manifest).length).toBeGreaterThan(0)
+    const otherTester = firstRelease()
+    otherTester.cases.find((entry) => entry.id === 'actual-predecessor-upgrade')!.tester =
+      'Automation'
+    expect(validate(otherTester, manifest).length).toBeGreaterThan(0)
+    const wrongCandidate = firstRelease()
+    wrongCandidate.cases.find(
+      (entry) => entry.id === 'actual-predecessor-upgrade'
+    )!.candidateSha256 = 'e'.repeat(64)
+    expect(validate(wrongCandidate, manifest).length).toBeGreaterThan(0)
+  })
+  it('requires the first-release attestation artifact to exist when invoked as the release gate', () => {
+    const directory = mkdtempSync(path.join(tmpdir(), 'clmc-first-release-evidence-'))
+    try {
+      const record = firstRelease()
+      const actualArtifact = path.join(directory, 'observations.json')
+      writeFileSync(actualArtifact, '{}')
+      record.edgeReviews.forEach((review) => (review.artifact = actualArtifact))
+      record.cases.forEach((entry) => (entry.artifacts = [actualArtifact]))
+      record.predecessor.attestation.artifact = actualArtifact
+      const recordPath = path.join(directory, 'record.json')
+      const manifestPath = path.join(directory, 'manifest.json')
+      writeFileSync(manifestPath, JSON.stringify(manifest))
+      const run = (): SpawnSyncReturns<string> => {
+        writeFileSync(recordPath, JSON.stringify(record))
+        return spawnSync(
+          process.execPath,
+          [path.resolve('scripts/verify-release-evidence.cjs'), recordPath, manifestPath],
+          { encoding: 'utf8', cwd: process.cwd() }
+        )
+      }
+      const accepted = run()
+      expect(accepted.status, accepted.stdout + accepted.stderr).toBe(0)
+      const missingArtifact = path.join(directory, 'missing-attestation.json')
+      record.predecessor.attestation.artifact = missingArtifact
+      record.cases
+        .find((entry) => entry.id === 'actual-predecessor-upgrade')!
+        .artifacts.push(missingArtifact)
+      const rejected = run()
+      expect(rejected.status, rejected.stdout + rejected.stderr).toBe(1)
+      expect(rejected.stdout).toContain('missing actual artifact')
+    } finally {
+      rmSync(directory, { recursive: true, force: true })
+    }
   })
   it('rejects missing, duplicate cases and missing hardware/fixture provenance', () => {
     const record = complete()
