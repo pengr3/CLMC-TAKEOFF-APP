@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { pdfjsLib, PDFDocumentProxy, cloneForPdfWorker } from '../lib/pdf-setup'
 import { useViewerStore } from '../stores/viewerStore'
+import { pdfDecoderOptions } from '../lib/pdf-decoder-options'
 
 interface PdfDocumentActions {
   loadPdf: (bytes: ArrayBuffer | Uint8Array, path: string) => Promise<PDFDocumentProxy>
@@ -17,7 +18,7 @@ export function usePdfDocument(): PdfDocumentActions {
   // Decode without changing or destroying the active document. Recovery commits only
   // after metadata, checksum and PDF loading have all succeeded.
   const stagePdfFromBytes = useCallback(async (bytes: Uint8Array): Promise<PDFDocumentProxy> => {
-    return pdfjsLib.getDocument({ data: cloneForPdfWorker(bytes) }).promise
+    return pdfjsLib.getDocument({ data: cloneForPdfWorker(bytes), ...pdfDecoderOptions() }).promise
   }, [])
   const adoptStagedPdf = useCallback(
     (doc: PDFDocumentProxy, bytes: Uint8Array, name: string): void => {
@@ -57,7 +58,10 @@ export function usePdfDocument(): PdfDocumentActions {
       // any structured-clone (e.g. ipcRenderer.invoke for save) will throw "An
       // object could not be cloned". Pass a throwaway copy so `u8` stays intact
       // for setPdfBytes → save flow.
-      const doc = await pdfjsLib.getDocument({ data: cloneForPdfWorker(u8) }).promise
+      const doc = await pdfjsLib.getDocument({
+        data: cloneForPdfWorker(u8),
+        ...pdfDecoderOptions()
+      }).promise
       const fileName = filePath.split(/[\\/]/).pop() ?? 'Unknown'
       setPdfDocument(doc)
       setPdfBytes(u8) // cache bytes for save (Phase 4.1)

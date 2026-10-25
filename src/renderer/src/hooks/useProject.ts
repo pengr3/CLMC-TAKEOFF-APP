@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { pdfDecoderOptions } from '../lib/pdf-decoder-options'
 import { useViewerStore } from '../stores/viewerStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useMarkupStore } from '../stores/markupStore'
@@ -672,7 +673,8 @@ export function useProject(): ProjectActions {
         // for the full hazard explanation. (Closes UAT Test 3 — 04.1-UAT.md)
         const { pdfjsLib, cloneForPdfWorker } = await import('../lib/pdf-setup')
         const tempDoc = (await pdfjsLib.getDocument({
-          data: cloneForPdfWorker(newBytes)
+          data: cloneForPdfWorker(newBytes),
+          ...pdfDecoderOptions()
         }).promise) as PDFDocumentProxy
 
         // D-09 hard abort: page count mismatch

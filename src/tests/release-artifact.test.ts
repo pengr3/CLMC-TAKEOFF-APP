@@ -14,6 +14,18 @@ const inspector = (() => {
   }
 })()
 const scratch: string[] = []
+const decoderAssets = [
+  'openjpeg.wasm',
+  'openjpeg_nowasm_fallback.js',
+  'jbig2.wasm',
+  'qcms_bg.wasm',
+  'LICENSE_OPENJPEG',
+  'LICENSE_PDFJS_OPENJPEG',
+  'LICENSE_JBIG2',
+  'LICENSE_PDFJS_JBIG2',
+  'LICENSE_QCMS',
+  'LICENSE_PDFJS_QCMS'
+]
 afterEach(async () => {
   await Promise.all(scratch.splice(0).map((p) => rm(p, { recursive: true, force: true })))
 })
@@ -26,7 +38,7 @@ async function archive(change?: (files: Record<string, string>) => void): Promis
       name: 'clmc-takeoff',
       version: '1.1.0',
       main: './out/main/index.js',
-      dependencies: { exceljs: '4.4.0', yauzl: '3.4.0' }
+      dependencies: { exceljs: '4.4.0', yauzl: '3.4.0', 'pdfjs-dist': '5.5.207' }
     }),
     'resources/release-notes.json': JSON.stringify({
       version: '1.1.0',
@@ -37,7 +49,8 @@ async function archive(change?: (files: Record<string, string>) => void): Promis
     'out/main/index.js': 'const APP_ID="com.clmc.takeoff";const USER_DATA="clmc-takeoff";',
     'out/main/cost-library-worker.js': 'worker',
     'out/preload/index.js': 'preload',
-    'out/renderer/index.html': '<html></html>',
+    'out/renderer/index.html':
+      '<meta http-equiv="Content-Security-Policy" content="script-src \'self\' \'wasm-unsafe-eval\'">',
     'out/renderer/pdf.worker.mjs': 'worker',
     'out/renderer/assets/inter-latin.woff2': 'font',
     'node_modules/exceljs/package.json': JSON.stringify({
@@ -55,7 +68,21 @@ async function archive(change?: (files: Record<string, string>) => void): Promis
       license: 'MIT'
     }),
     'node_modules/yauzl/index.js': 'module.exports={}',
-    'node_modules/yauzl/LICENSE': 'MIT'
+    'node_modules/yauzl/LICENSE': 'MIT',
+    'node_modules/pdfjs-dist/package.json': JSON.stringify({
+      name: 'pdfjs-dist',
+      version: '5.5.207',
+      main: 'build/pdf.mjs',
+      license: 'Apache-2.0'
+    }),
+    'node_modules/pdfjs-dist/build/pdf.mjs': 'export const version="5.5.207"'
+  }
+  for (const name of decoderAssets) {
+    const contents = name.endsWith('.wasm')
+      ? '\0asm\u0001\0\0\0'
+      : 'Exact supplied test decoder/license bytes'
+    files[`out/renderer/pdfjs/wasm/${name}`] = contents
+    files[`node_modules/pdfjs-dist/wasm/${name}`] = contents
   }
   change?.(files)
   for (const [name, text] of Object.entries(files)) {
@@ -126,6 +153,40 @@ describe('actual release archive inspection', () => {
     expect((await inspector(await archive(), { version: '1.2.0' })).errors.length).toBeGreaterThan(
       0
     )
+  })
+  it.each(decoderAssets)('rejects missing offline decoder resource %s', async (name) => {
+    const result = await inspector(
+      await archive((files) => {
+        delete files[`out/renderer/pdfjs/wasm/${name}`]
+      }),
+      { version: '1.1.0' }
+    )
+    expect(result.errors.some((error: string) => error.includes(name))).toBe(true)
+  })
+  it('rejects changed copied decoder bytes and missing narrow WASM CSP permission', async () => {
+    const changed = await inspector(
+      await archive((files) => {
+        files['out/renderer/pdfjs/wasm/openjpeg.wasm'] += 'changed'
+      }),
+      { version: '1.1.0' }
+    )
+    expect(changed.errors.some((error: string) => error.includes('openjpeg.wasm'))).toBe(true)
+    const policy = await inspector(
+      await archive((files) => {
+        files['out/renderer/index.html'] =
+          '<meta http-equiv="Content-Security-Policy" content="script-src \'self\'">'
+      }),
+      { version: '1.1.0' }
+    )
+    expect(policy.errors.some((error: string) => error.includes('WASM'))).toBe(true)
+    const broad = await inspector(
+      await archive((files) => {
+        files['out/renderer/index.html'] =
+          "<meta http-equiv=\"Content-Security-Policy\" content=\"script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval'\">"
+      }),
+      { version: '1.1.0' }
+    )
+    expect(broad.errors.some((error: string) => error.includes('unsafe-eval'))).toBe(true)
   })
   it('rejects missing transitive production dependencies and update endpoints', async () => {
     expect(

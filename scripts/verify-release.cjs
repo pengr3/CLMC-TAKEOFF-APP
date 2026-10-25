@@ -53,6 +53,32 @@ function inspectArchive(archive, contract = {}) {
     errors.push('Missing local PDF worker')
   if (!files.some((name) => /^out\/renderer\/assets\/.*\.woff2$/.test(name)))
     errors.push('Missing bundled fonts')
+  for (const name of [
+    'openjpeg.wasm',
+    'openjpeg_nowasm_fallback.js',
+    'jbig2.wasm',
+    'qcms_bg.wasm',
+    'LICENSE_OPENJPEG',
+    'LICENSE_PDFJS_OPENJPEG',
+    'LICENSE_JBIG2',
+    'LICENSE_PDFJS_JBIG2',
+    'LICENSE_QCMS',
+    'LICENSE_PDFJS_QCMS'
+  ]) {
+    const copied = `out/renderer/pdfjs/wasm/${name}`
+    const supplied = `node_modules/pdfjs-dist/wasm/${name}`
+    requireFile(copied)
+    requireFile(supplied)
+    if (has(copied) && has(supplied) && !read(copied).equals(read(supplied)))
+      errors.push(`Copied PDF decoder/license differs from supplied dependency: ${name}`)
+  }
+  if (has('out/renderer/index.html')) {
+    const html = read('out/renderer/index.html').toString('utf8')
+    if (!/script-src[^;>]*'wasm-unsafe-eval'/.test(html))
+      errors.push('Missing narrow WASM compilation permission in renderer CSP')
+    if (html.includes("'unsafe-eval'"))
+      errors.push('Renderer CSP must not enable broad unsafe-eval')
+  }
   let pkg, notes
   try {
     pkg = json('package.json')

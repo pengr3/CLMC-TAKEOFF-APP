@@ -1,6 +1,6 @@
 {
   "name": "clmc-takeoff",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Offline Windows quantity takeoff and estimating for construction plans",
   "main": "./out/main/index.js",
   "author": "CLMC",

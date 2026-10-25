@@ -1,6 +1,7 @@
 {
-  "version": "1.1.1",
+  "version": "1.1.2",
   "changes": [
+    "Scanned PDF plans using JPEG2000 images render with bundled offline decoder resources instead of opening as blank pages.",
     "Opening a project from Estimate waits for a visible canvas before fitting the plan, preventing invalid zoom from blocking project saves and recovery.",
     "Take off counts, lengths, areas, perimeters and walls from PDF floor plans, with embedded plans in saved projects.",
     "Protected project saves retain one last-good adjacent backup after a successful replacement save.",
