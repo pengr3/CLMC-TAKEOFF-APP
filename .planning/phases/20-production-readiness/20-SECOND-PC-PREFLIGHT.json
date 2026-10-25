@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "phaseTask": "20-09-03",
+  "status": "awaiting-original-trial-kit",
+  "observedAt": "2026-10-25T16:30:16+08:00",
+  "tester": "Codex using user-authorized local tools and Windows Computer Use",
+  "sourceCommit": "d8e73fc",
+  "scope": "Second-PC preflight only; no installation or application acceptance test has run in this session.",
+  "machine": {
+    "id": "second-pc-laptop-5bam24nm",
+    "name": "LAPTOP-5BAM24NM",
+    "classification": "non-development",
+    "classificationEvidence": "User confirmed on 2026-10-25 that this is a different PC from the development PC. Existing installed-evidence record identifies the development host as Lenovo-X390-PC1H2FSA.",
+    "windows": "Microsoft Windows 11 Home Single Language",
+    "build": "22631",
+    "architecture": "x64",
+    "ramGiBRounded": 15.8,
+    "model": "ROG Strix G512LV_G512LV",
+    "hardwareMethod": "Read-only Get-CimInstance Win32_OperatingSystem and Win32_ComputerSystem on this session's local host.",
+    "monitorCount": null,
+    "supportedPhysicalScaling": null,
+    "displayStatus": "pending actual display inventory and physical tests"
+  },
+  "control": {
+    "status": "available",
+    "method": "Computer Use skill, @oai/sky initialized through node_repl; sky.list_apps returned local apps and windows.",
+    "clmcAppListed": false,
+    "clmcProcessObserved": false
+  },
+  "installationInventory": {
+    "matchingUninstallRegistrations": 0,
+    "method": "Read-only CLMC/Takeoff DisplayName filter across HKCU and HKLM CurrentVersion/Uninstall plus HKLM WOW6432Node uninstall entries.",
+    "actualPredecessor": "No registered predecessor observed; actual-predecessor-upgrade remains pending.",
+    "existingAppData": "C:\\Users\\franc\\AppData\\Roaming\\clmc-takeoff",
+    "existingAppDataObserved": true,
+    "observedTopLevelEntries": [
+      "blob_storage",
+      "Cache",
+      "Code Cache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache",
+      "GPUCache",
+      "Local Storage",
+      "Network",
+      "Session Storage",
+      "Shared Dictionary",
+      "DIPS",
+      "Local State",
+      "Preferences",
+      "SharedStorage"
+    ],
+    "appDataDisposition": "Preserved without modification. Existing app data means a pristine profile must not be assumed. Back up and inventory before installation."
+  },
+  "candidateRequired": {
+    "version": "1.1.0",
+    "installerFile": "clmc-takeoff-1.1.0-x64-setup.exe",
+    "installerBytes": 136810568,
+    "installerSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+    "archiveSha256": "5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd",
+    "provenance": "20-INSTALLED-EVIDENCE.json; required identity only, not an observed local binary hash.",
+    "availability": "No dist directory in checkout. Read-only recursive search of franc's Downloads, Desktop, Documents and dev folders returned no KIT-MANIFEST.json, release-manifest.json or matching takeoff setup executable. This is not a whole-disk absence claim."
+  },
+  "suppliedTrainingFixturePreflight": {
+    "status": "pass",
+    "scope": "Read-only source fixture integrity and existing export readback; not installed application behavior.",
+    "directory": "docs/offline-guide/examples",
+    "project": "worked-example.clmc",
+    "projectSha256": "c8a466c0886ad40fb792771646b7d64f8dd7af6da26909a665ffdfa291d156cb",
+    "embeddedPdfSha256": "9c0bc7b6f133905fc62b7dff8abec2e78c0beb078f3ddcdddb57c157ed025e10",
+    "embeddedPdfMatchesTrainingPdf": true,
+    "zipCrcCheck": "pass",
+    "formatVersion": 3,
+    "pageCount": 1,
+    "rowCount": 6,
+    "xlsxReadbackRounded": {
+      "cost": 740,
+      "selling": 962,
+      "margin": 222
+    },
+    "csvReadback": {
+      "cost": 740,
+      "selling": 962,
+      "margin": 222
+    },
+    "method": "Node fs/crypto plus JSZip checkCRC32; embedded PDF byte comparison; ExcelJS BOQ worksheet Grand Total (cost) readback and existing CSV inspection. No application aggregator used."
+  },
+  "nextAction": "User supplies original complete dist/trial-kit from development PC. Verify all kit hashes and exact candidate, preserve existing app data, then drive installed-app checks using disposable projects.",
+  "acceptance": "All 16 canonical installed cases retain their existing pending status. Phase 20 remains VERIFYING. No pilot or rollout acceptance.",
+  "continuation": {
+    "date": "2026-10-25T09:17:33.715Z",
+    "status": "installed-and-partially-tested",
+    "kitFilesVerified": 20,
+    "matchedPayloadFiles": 149,
+    "report": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+    "canonicalEvidence": ".planning/phases/20-production-readiness/20-INSTALLED-EVIDENCE.json"
+  }
+}

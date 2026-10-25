@@ -6,6 +6,7 @@ import { usePdfRenderer } from '../hooks/usePdfRenderer'
 import { useViewerStore } from '../stores/viewerStore'
 import { useScaleStore } from '../stores/scaleStore'
 import { useViewportControls } from '../hooks/useViewportControls'
+import { calculateFitViewport } from '../lib/fit-viewport'
 import { isTextInputActive } from '../hooks/useKeyboardShortcuts'
 import { useCalibrationMode } from '../hooks/useCalibrationMode'
 import type { StagePoint } from '../hooks/useCalibrationMode'
@@ -295,18 +296,12 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
   const calibMode = useScaleStore((s) => s.calibMode)
 
   // Calculate fit-to-window scale (must be defined before useViewportControls uses it)
-  const calculateFitScale = useCallback(() => {
-    if (!pageSize) return 1
-    const padding = 20
-    const availableWidth = containerSize.width - padding * 2
-    const availableHeight = containerSize.height - padding * 2
-    const scaleX = availableWidth / pageSize.width
-    const scaleY = availableHeight / pageSize.height
-    return Math.min(scaleX, scaleY)
+  const calculateFit = useCallback(() => {
+    return calculateFitViewport(pageSize, containerSize)
   }, [pageSize, containerSize])
 
   // Pass fit scale to viewport controls so zoom steps include it
-  const currentFitScale = calculateFitScale()
+  const currentFitScale = calculateFit()?.zoom
   const { handleWheel, zoomIn, zoomOut, spaceHeld, isDraggable } = useViewportControls(
     stageRef,
     currentFitScale
@@ -1061,22 +1056,24 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
     const stage = stageRef.current
     if (!stage || !pageSize) return
 
+    // Estimate keeps this canvas mounted but hidden. Wait for ResizeObserver's
+    // visible bounds before consuming the default viewport or persisting a fit.
+    const fit = calculateFit()
+    if (!fit) return
+
     const vp = getViewport(currentPage)
 
     // If this page has never been viewed, fit to window
     if (vp.zoom === 1 && vp.panX === 0 && vp.panY === 0) {
-      const fitScale = calculateFitScale()
-      const centerX = (containerSize.width - pageSize.width * fitScale) / 2
-      const centerY = (containerSize.height - pageSize.height * fitScale) / 2
-      stage.scale({ x: fitScale, y: fitScale })
-      stage.position({ x: centerX, y: centerY })
+      stage.scale({ x: fit.zoom, y: fit.zoom })
+      stage.position({ x: fit.panX, y: fit.panY })
       // Store the fit state
-      setViewport(currentPage, { zoom: fitScale, panX: centerX, panY: centerY })
+      setViewport(currentPage, fit)
     } else {
       stage.scale({ x: vp.zoom, y: vp.zoom })
       stage.position({ x: vp.panX, y: vp.panY })
     }
-  }, [currentPage, pageSize, containerSize, getViewport, setViewport, calculateFitScale])
+  }, [currentPage, pageSize, containerSize, getViewport, setViewport, calculateFit])
 
   // Sync stage transform back to store on drag end
   const handleDragEnd = useCallback(() => {
@@ -1091,13 +1088,12 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
   const fitToWindow = useCallback(() => {
     const stage = stageRef.current
     if (!stage || !pageSize) return
-    const fitScale = calculateFitScale()
-    const centerX = (containerSize.width - pageSize.width * fitScale) / 2
-    const centerY = (containerSize.height - pageSize.height * fitScale) / 2
-    stage.scale({ x: fitScale, y: fitScale })
-    stage.position({ x: centerX, y: centerY })
-    setViewport(currentPage, { zoom: fitScale, panX: centerX, panY: centerY })
-  }, [currentPage, pageSize, containerSize, calculateFitScale, setViewport])
+    const fit = calculateFit()
+    if (!fit) return
+    stage.scale({ x: fit.zoom, y: fit.zoom })
+    stage.position({ x: fit.panX, y: fit.panY })
+    setViewport(currentPage, fit)
+  }, [currentPage, pageSize, calculateFit, setViewport])
 
   // Expose canvas control functions via module-level ref
   useEffect(() => {

@@ -1,0 +1,894 @@
+{
+  "schemaVersion": 1,
+  "status": "blocked-by-observed-candidate-defect-and-remaining-evidence",
+  "candidate": {
+    "version": "1.1.0",
+    "installerSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+    "archiveSha256": "5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd",
+    "installer": "dist/clmc-takeoff-1.1.0-x64-setup.exe",
+    "manifest": "dist/release-manifest.json",
+    "bytes": 136810568,
+    "architecture": "x64"
+  },
+  "handoff": {
+    "status": "pending",
+    "approvedLocation": null,
+    "releaseOwner": null,
+    "signingPolicy": null,
+    "signingOwner": null,
+    "observedSignature": "NotSigned for installer and packaged executable",
+    "publisher": null,
+    "rollbackContact": null,
+    "reason": "Actual protected internal share and named release/signing owner have not been supplied."
+  },
+  "predecessor": {
+    "kind": "unknown",
+    "version": null,
+    "installerSha256": null,
+    "registration": null,
+    "inventoryArtifact": null,
+    "developerInventory": "Plan20-05 read-only HKCU/HKLM/WOW6432Node inventory found zero CLMC uninstall registrations on this development PC; this does not establish other workstation history.",
+    "generatedPredecessorExercise": "not-run; any future generated exercise must remain separate from actual deployed history"
+  },
+  "machines": [
+    {
+      "id": "developer-host",
+      "classification": "development",
+      "name": "Lenovo-X390-PC1H2FSA",
+      "windows": "10.0.26100",
+      "architecture": "x64",
+      "ramGiB": 15.749954223632812,
+      "supportedScaling": [],
+      "monitorCount": null,
+      "scope": "Development PC: actual local per-user installation/manual input observed; renderer device-scale-factor1. No physical display matrix or non-development classification is inferred."
+    },
+    {
+      "id": "second-pc-laptop-5bam24nm",
+      "classification": "non-development",
+      "name": "LAPTOP-5BAM24NM",
+      "windows": "Windows 11 Home Single Language, build 22631",
+      "architecture": "x64",
+      "ramGiB": 15.8,
+      "supportedScaling": [
+        100,
+        125,
+        150,
+        175
+      ],
+      "monitorCount": 2,
+      "scope": "User-confirmed different PC. Two displays initially enumerated; external user input later selected Show only on2, leaving one active display. Actual active-display Windows100/125/150% at1920x1080 observed; dropdown also offered175%, not tested, and did not offer200%. Original active-display100% restored. No actual cross-monitor transition.",
+      "hardwareArtifact": ".planning/tmp/20-second-pc-20261025/recovery-and-displays.json"
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "second-pc-synthetic-grid",
+      "name": "training-grid.pdf",
+      "approvedBy": "User-authorized supplied trial kit (synthetic training scope only)",
+      "kind": "synthetic-training-vector",
+      "sha256": "9c0bc7b6f133905fc62b7dff8abec2e78c0beb078f3ddcdddb57c157ed025e10",
+      "bytes": 1256,
+      "pages": 1,
+      "oracleSource": "Supplied guide: 10 m square, 100 m² area, 40 m perimeter, 30 m² wall at 3 m height, 1 count; independent arithmetic and preserved source fixture checks. Not representative construction-plan approval."
+    }
+  ],
+  "cases": [
+    {
+      "id": "fresh-install",
+      "status": "pass",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, operating the actual second PC with user-authorized Windows Computer Use",
+      "date": "2026-10-25T09:17:33.715Z",
+      "procedure": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": "No CLMC uninstall registration or listed app before installation. Existing Chromium-style CLMC profile preserved in a verified 3170-file, 179124116-byte backup. Exact per-user candidate installer exited 0; 149 installed payload files and ASAR matched manifest, one 1.1.0 registration, one desktop and one Start-menu shortcut. Native launch without dev server and About/local notes 1.1.0 observed.",
+      "checks": [
+        {
+          "metric": "installed payload files match",
+          "expected": 149,
+          "actual": 149,
+          "tolerance": 0
+        },
+        {
+          "metric": "registered installations",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "PE version",
+          "expected": "1.1.0",
+          "actual": "1.1.0",
+          "tolerance": 0
+        },
+        {
+          "metric": "About version",
+          "expected": "1.1.0",
+          "actual": "1.1.0",
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-second-pc-20261025/preinstall-inventory.json",
+        ".planning/tmp/20-second-pc-20261025/installation.json",
+        ".planning/tmp/20-second-pc-20261025/installed-payload.json",
+        ".planning/tmp/20-second-pc-20261025/01-first-launch.txt",
+        ".planning/tmp/20-second-pc-20261025/04-about-loaded.txt",
+        ".planning/tmp/20-second-pc-20261025/04-about-loaded-0.png"
+      ],
+      "reason": null
+    },
+    {
+      "id": "actual-predecessor-upgrade",
+      "status": "pending",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": null,
+      "fixtureIds": [],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "No registered CLMC predecessor on this second PC. No actual deployed predecessor installer/history supplied; generated predecessor exercise not substituted."
+    },
+    {
+      "id": "project-only-transfer",
+      "status": "pending",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, operating the actual second PC with user-authorized Windows Computer Use",
+      "date": "2026-10-25T09:17:33.715Z",
+      "procedure": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": "Isolated folder contained only worked-example.clmc; no library existed or was imported before open. Embedded PDF, six rows, 10/100/100/40/30/1 quantities and 740/962/222 prices observed. Both actual exports passed independent readback. Source fixture geometry/scales/order/visibility survived subsequent saves exactly.",
+      "checks": [],
+      "artifacts": [
+        ".planning/tmp/20-second-pc-20261025/17-transfer-loaded-0.png",
+        ".planning/tmp/20-second-pc-20261025/19-estimate-settled.txt",
+        ".planning/tmp/20-second-pc-20261025/exports/readback.json",
+        ".planning/tmp/20-second-pc-20261025/independent-project-readback.json"
+      ],
+      "reason": "Supplied one-page straight synthetic fixture cannot close required mixed-page-scale, arc and wider portability variants."
+    },
+    {
+      "id": "recovery-saved",
+      "status": "pass",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, operating the actual installed app with user-authorized Windows Computer Use",
+      "date": "2026-10-25T11:54:16.035Z",
+      "procedure": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": "Completed revision-8 capture with unsaved rate101 verified; interruption/restart, Keep for Later, More reopen, dirty recovery and separate Save As passed with 741/963.30/222.30. Later completed saved recovery revision3 (2026-10-25T09:44:18.623Z, rate104) was preserved byte-for-byte before known test-process interruption. Confirmation initially focused Keep Recovery Copy; Enter retained it. After specific user approval, Delete Recovery Copy removed only that capture; original and backup hashes stayed unchanged and the next recovery view had zero candidates.",
+      "checks": [
+        {
+          "metric": "recovered cost",
+          "expected": 741,
+          "actual": 741,
+          "tolerance": 0.001
+        },
+        {
+          "metric": "recovered selling",
+          "expected": 963.3,
+          "actual": 963.3,
+          "tolerance": 0.001
+        },
+        {
+          "metric": "recovered margin",
+          "expected": 222.3,
+          "actual": 222.3,
+          "tolerance": 0.001
+        },
+        {
+          "metric": "approved snapshot removed",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "saved original unchanged by discard",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "backup unchanged by discard",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-second-pc-20261025/saved-recovery-captures.json",
+        ".planning/tmp/20-second-pc-20261025/saved-recovery-interruption.json",
+        ".planning/tmp/20-second-pc-20261025/70-recovery-foreground.txt",
+        ".planning/tmp/20-second-pc-20261025/71-keep-for-later-0.png",
+        ".planning/tmp/20-second-pc-20261025/76-recovered-estimate.txt",
+        ".planning/tmp/20-second-pc-20261025/saved-recovery-preservation.json",
+        ".planning/tmp/20-second-pc-20261025/independent-project-readback.json",
+        ".planning/tmp/20-second-pc-20261025/continued/discard-manifest-exact.json",
+        ".planning/tmp/20-second-pc-20261025/continued/discard-before-interruption.json",
+        ".planning/tmp/20-second-pc-20261025/continued/028-enter-keeps-recovery.json",
+        ".planning/tmp/20-second-pc-20261025/continued/031-approved-recovery-deleted.json",
+        ".planning/tmp/20-second-pc-20261025/continued/032-zero-recovery-after-discard.json",
+        ".planning/tmp/20-second-pc-20261025/continued/discard-preservation.json"
+      ],
+      "reason": null
+    },
+    {
+      "id": "recovery-never-saved",
+      "status": "pass",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, operating the actual second PC with user-authorized Windows Computer Use",
+      "date": "2026-10-25T09:17:33.715Z",
+      "procedure": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": "Fresh disposable PDF calibrated and given a 10 m line plus 1 count, with length material/labor 10/5 and count material 100, 30% markup. Completed revision-9 capture at 2026-10-25T09:02:42.022Z verified. Only known disposable app process interrupted, source PDF renamed to .held. Restart recovered embedded PDF, scale, geometry and rates dirty; 250/325/75 observed. Ctrl+S opened Save As; new never-saved-recovered.clmc passed independent ZIP/PDF/geometry/rate/quantity readback while source remained absent.",
+      "checks": [
+        {
+          "metric": "recovered line m",
+          "expected": 10,
+          "actual": 10,
+          "tolerance": 0.01
+        },
+        {
+          "metric": "recovered count",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "cost",
+          "expected": 250,
+          "actual": 250,
+          "tolerance": 0.001
+        },
+        {
+          "metric": "selling",
+          "expected": 325,
+          "actual": 325,
+          "tolerance": 0.001
+        },
+        {
+          "metric": "margin",
+          "expected": 75,
+          "actual": 75,
+          "tolerance": 0.001
+        },
+        {
+          "metric": "source absent during recovery and Save As",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-second-pc-20261025/never-saved-interruption.json",
+        ".planning/tmp/20-second-pc-20261025/110-never-saved-recovery-offer.txt",
+        ".planning/tmp/20-second-pc-20261025/112-never-saved-recovered-plan-0.png",
+        ".planning/tmp/20-second-pc-20261025/113-never-saved-recovered-prices.txt",
+        ".planning/tmp/20-second-pc-20261025/115-never-saved-save-as-picker-0.png",
+        ".planning/tmp/20-second-pc-20261025/independent-project-readback.json",
+        ".planning/tmp/20-second-pc-20261025/disposable/never-saved-recovered.clmc"
+      ],
+      "reason": null
+    },
+    {
+      "id": "failed-save-backup",
+      "status": "pass",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, operating the actual installed app with user-authorized Windows Computer Use",
+      "date": "2026-10-25T11:54:16.035Z",
+      "procedure": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": "Controlled single replacement preserved exact prior bytes as adjacent backup; locked backup failed without changing original/backup, cancel preserved work, unlock/Retry succeeded, and detached .bak Save As preserved sources. Continuation held the final target open for reads but without rename sharing: actual final-rename EPERM retained original, last-good backup, dirty state, persistent reachable actions and no stage files. Tab/Shift+Tab wrapped between Retry and Close. Unlock/Retry saved rate103 with rate100 in the backup. Actual first-save validation failure from the independently recorded viewport defect created no file and left original unchanged, dirty work open and no temporary files. Closing the error, Fit, and Save As to the same new path succeeded with valid ZIP/PDF, six unchanged quantities/rates and 740/962/222; no first-save backup. This validates protection, not acceptance of the viewport defect or unperformed disk-full/ACL simulations.",
+      "checks": [
+        {
+          "metric": "final replacement preserves original",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "final replacement backup is last good original",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "failed first save creates no file",
+          "expected": false,
+          "actual": false,
+          "tolerance": 0
+        },
+        {
+          "metric": "failed first save preserves original",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "failed first save leaves no stage files",
+          "expected": 0,
+          "actual": 0,
+          "tolerance": 0
+        },
+        {
+          "metric": "repaired separate copy preserves original",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "first-save backup absent",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "copy cost",
+          "expected": 740,
+          "actual": 739.9999999999999,
+          "tolerance": 0.001
+        },
+        {
+          "metric": "copy selling",
+          "expected": 962,
+          "actual": 961.9999999999999,
+          "tolerance": 0.001
+        },
+        {
+          "metric": "copy margin",
+          "expected": 222,
+          "actual": 222,
+          "tolerance": 0.001
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-second-pc-20261025/single-save-backup.json",
+        ".planning/tmp/20-second-pc-20261025/before-backup-lock.json",
+        ".planning/tmp/20-second-pc-20261025/61-locked-save-error-0.png",
+        ".planning/tmp/20-second-pc-20261025/locked-save-preservation.json",
+        ".planning/tmp/20-second-pc-20261025/locked-backup-preservation.json",
+        ".planning/tmp/20-second-pc-20261025/64-save-as-cancelled-0.png",
+        ".planning/tmp/20-second-pc-20261025/retry-result.json",
+        ".planning/tmp/20-second-pc-20261025/126-backup-detached-0.png",
+        ".planning/tmp/20-second-pc-20261025/128-backup-save-copy-picker-0.png",
+        ".planning/tmp/20-second-pc-20261025/detached-backup-preservation.json",
+        ".planning/tmp/20-second-pc-20261025/continued/014-final-replace-error.json",
+        ".planning/tmp/20-second-pc-20261025/continued/015-save-error-tab-wrap.json",
+        ".planning/tmp/20-second-pc-20261025/continued/016-error-shift-tab-wrap.json",
+        ".planning/tmp/20-second-pc-20261025/continued/replace-failure-preservation.json",
+        ".planning/tmp/20-second-pc-20261025/continued/replace-retry-readback.json",
+        ".planning/tmp/20-second-pc-20261025/continued/098-first-save-validation-error.json",
+        ".planning/tmp/20-second-pc-20261025/continued/first-save-failure-preservation.json",
+        ".planning/tmp/20-second-pc-20261025/continued/105-first-save-copy-clean.json",
+        ".planning/tmp/20-second-pc-20261025/continued/first-save-copy-readback.json",
+        ".planning/tmp/20-second-pc-20261025/continued/save-candidate-dependency-tests.json",
+        ".planning/tmp/20-second-pc-20261025/continued/test-runtime-diagnosis.json"
+      ],
+      "reason": null
+    },
+    {
+      "id": "offline-workflow",
+      "status": "pending",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, operating the actual second PC with user-authorized Windows Computer Use",
+      "date": "2026-10-25T09:17:33.715Z",
+      "procedure": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": "Installed project/exports worked locally; six exported rows and 740/962/222 independently verified. Fresh calibration/line/count/pricing and recovery checked. Valid synthetic library import did not reprice snapshots; explicit compatible ea selection applied only when requested, incompatible m row unavailable. Negative-rate import rejected with current library retained.",
+      "checks": [],
+      "artifacts": [
+        ".planning/tmp/20-second-pc-20261025/exports/readback.json",
+        ".planning/tmp/20-second-pc-20261025/50-library-preview-0.png",
+        ".planning/tmp/20-second-pc-20261025/51-library-replaced-0.png",
+        ".planning/tmp/20-second-pc-20261025/55-invalid-import-rejected.txt",
+        ".planning/tmp/20-second-pc-20261025/58-compatible-rate-selected-0.png",
+        ".planning/tmp/20-second-pc-20261025/59-rates-applied-0.png",
+        ".planning/tmp/20-second-pc-20261025/105-never-saved-priced-0.png"
+      ],
+      "reason": "Network was not disconnected. Full fresh five-tool workflow and unit-switch/performance variants not completed; local-file operation is not an offline-acceptance claim."
+    },
+    {
+      "id": "large-vector",
+      "status": "pending",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": null,
+      "fixtureIds": [],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "User confirmed on 2026-10-25 that representative construction-plan test PDFs are unavailable. Synthetic one-page grid is not a substitute."
+    },
+    {
+      "id": "large-scan",
+      "status": "pending",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": null,
+      "fixtureIds": [],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "User confirmed on 2026-10-25 that representative construction-plan test PDFs are unavailable. Synthetic one-page grid is not a substitute."
+    },
+    {
+      "id": "multipage-navigation",
+      "status": "pending",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": null,
+      "fixtureIds": [],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "User confirmed on 2026-10-25 that representative construction-plan test PDFs are unavailable. Synthetic one-page grid is not a substitute."
+    },
+    {
+      "id": "scaling-100",
+      "status": "fail",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, operating the actual installed app with user-authorized Windows Computer Use",
+      "date": "2026-10-25T11:54:16.035Z",
+      "procedure": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": "Physical Windows 100% was selected/read back at 1920x1080. Synthetic six-row geometry and financial values stayed unchanged through the observed checks. Opening a format-3 project from Estimate produced -7% zoom and recovery failure. At100% a first-save attempt also failed with Invalid project metadata: viewport. Fit restored positive zoom and separate save succeeded. This failure is not confined to scaling or legacy format.",
+      "checks": [
+        {
+          "metric": "zoom must be positive",
+          "expected": true,
+          "actual": false,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-second-pc-20261025/continued/088-original100-restored.json",
+        ".planning/tmp/20-second-pc-20261025/continued/093-100-open-probe-settled.json",
+        ".planning/tmp/20-second-pc-20261025/continued/098-first-save-validation-error.json"
+      ],
+      "reason": "Release-blocking hidden-canvas fit defect: opening a project from Estimate stores negative zoom, makes Plan unusable, and blocks recovery/save. Source guard is not in this candidate. Full matrix also remains incomplete."
+    },
+    {
+      "id": "scaling-125",
+      "status": "pending",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, operating the actual installed app with user-authorized Windows Computer Use",
+      "date": "2026-10-25T11:54:16.035Z",
+      "procedure": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": "Actual Windows125% selected/read back at1920x1080; plan/markups aligned, six quantities unchanged, About long-content scroll, Close, Escape and focus return observed.",
+      "checks": [],
+      "artifacts": [
+        ".planning/tmp/20-second-pc-20261025/continued/045-windows125-applied.json",
+        ".planning/tmp/20-second-pc-20261025/continued/046-physical125-plan.json",
+        ".planning/tmp/20-second-pc-20261025/continued/049-125-about-scrolled-actions.json",
+        ".planning/tmp/20-second-pc-20261025/continued/050-125-about-escape.json"
+      ],
+      "reason": "Passing scoped125% checks do not complete pan/zoom/calibration/reopen matrix or prove the known open-from-Estimate defect absent."
+    },
+    {
+      "id": "scaling-150",
+      "status": "fail",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, operating the actual installed app with user-authorized Windows Computer Use",
+      "date": "2026-10-25T11:54:16.035Z",
+      "procedure": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": "Physical Windows 150% was selected/read back at 1920x1080. Synthetic six-row geometry and financial values stayed unchanged through the observed checks. Opening a synthetic legacy project from Estimate produced -7% zoom and recovery failure. At100% a first-save attempt also failed with Invalid project metadata: viewport. Fit restored positive zoom and separate save succeeded. This failure is not confined to scaling or legacy format.",
+      "checks": [
+        {
+          "metric": "zoom must be positive",
+          "expected": true,
+          "actual": false,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-second-pc-20261025/continued/051-windows150-applied.json",
+        ".planning/tmp/20-second-pc-20261025/continued/078-legacy-review-confirmed.json",
+        ".planning/tmp/20-second-pc-20261025/continued/098-first-save-validation-error.json"
+      ],
+      "reason": "Release-blocking hidden-canvas fit defect: opening a project from Estimate stores negative zoom, makes Plan unusable, and blocks recovery/save. Source guard is not in this candidate. Full matrix also remains incomplete."
+    },
+    {
+      "id": "scaling-200",
+      "status": "pending",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, operating the actual installed app with user-authorized Windows Computer Use",
+      "date": "2026-10-25T11:54:16.035Z",
+      "procedure": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": "Active display2 physical scaling dropdown offered100/125/150/175%;200% was not offered in the inspected list. Original100% was restored.",
+      "checks": [],
+      "artifacts": [
+        ".planning/tmp/20-second-pc-20261025/continued/044-supported-physical-scaling.json",
+        ".planning/tmp/20-second-pc-20261025/continued/088-original100-restored.json"
+      ],
+      "reason": "200% unavailable in observed dropdown; no custom setting or named external unsupported disposition was supplied. Pending hardware review, not automatic pass."
+    },
+    {
+      "id": "monitor-transition",
+      "status": "pending",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, operating the actual installed app with user-authorized Windows Computer Use",
+      "date": "2026-10-25T11:54:16.035Z",
+      "procedure": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": "Two displays were initially enumerated. Bounded title-bar drags did not move the app. During external user input, Settings changed to Show only on2 and subsequent enumeration showed one active display. Agent left that topology unchanged and restored only its scaling change to100%.",
+      "checks": [],
+      "artifacts": [
+        ".planning/tmp/20-second-pc-20261025/continued/023-window-move-second.json",
+        ".planning/tmp/20-second-pc-20261025/continued/035-active-display2-original-scaling.json",
+        ".planning/tmp/20-second-pc-20261025/continued/displays-current.json"
+      ],
+      "reason": "Actual differently scaled monitor transition not observed; no unsupported exception or pass inferred from current topology."
+    },
+    {
+      "id": "ui-keyboard-overflow",
+      "status": "fail",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, operating the actual installed app with user-authorized Windows Computer Use",
+      "date": "2026-10-25T11:54:16.035Z",
+      "procedure": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
+      "actual": "Baseline UI subcases retained. Continuation observed final replacement failure Tab/Shift+Tab wrap, safe Keep default/Enter and approved recovery deletion, zero candidates,125% About scroll/Close/Escape,150%2500-row preview/table scroll/commit/search/empty search and parser error retaining library, Escape focus return, legacy export gate/acknowledgement/upgraded-copy save, and future-format rejection preserving active project. Legacy and ordinary format-3 open from Estimate produced -7% and recovery failure; first Save As rejected viewport metadata. Fit restored valid save. Source regression guard passes local tests but candidate unchanged.",
+      "checks": [
+        {
+          "metric": "usable positive fit after project open",
+          "expected": true,
+          "actual": false,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-second-pc-20261025/04-about-loaded-0.png",
+        ".planning/tmp/20-second-pc-20261025/05-about-escape-0.png",
+        ".planning/tmp/20-second-pc-20261025/61-locked-save-error-0.png",
+        ".planning/tmp/20-second-pc-20261025/55-invalid-import-rejected-0.png",
+        ".planning/tmp/20-second-pc-20261025/108-picker-cancelled-count-armed-0.png",
+        ".planning/tmp/20-second-pc-20261025/109-library-escape-count-preserved-0.png",
+        ".planning/tmp/20-second-pc-20261025/continued/028-enter-keeps-recovery.json",
+        ".planning/tmp/20-second-pc-20261025/continued/065-large-preview-table-scroll.json",
+        ".planning/tmp/20-second-pc-20261025/continued/068-large-library-search-last.json",
+        ".planning/tmp/20-second-pc-20261025/continued/071-parser-error-library-kept.json",
+        ".planning/tmp/20-second-pc-20261025/continued/parser-error-library-preservation.json",
+        ".planning/tmp/20-second-pc-20261025/continued/077-legacy-review-ready.json",
+        ".planning/tmp/20-second-pc-20261025/continued/legacy-upgrade-readback.json",
+        ".planning/tmp/20-second-pc-20261025/continued/future-preservation.json",
+        ".planning/tmp/20-second-pc-20261025/continued/093-100-open-probe-settled.json",
+        ".planning/tmp/20-second-pc-20261025/continued/098-first-save-validation-error.json",
+        ".planning/tmp/20-second-pc-20261025/continued/fit-verification.json"
+      ],
+      "reason": "Negative fit after opening from Estimate breaks Plan, recovery and save on this exact candidate. Many-candidate and full keyboard permutations also remain unobserved; passing dialogs cannot close this case."
+    }
+  ],
+  "developerEvidence": [
+    {
+      "id": "scripted-packaged-smoke-previous-20261022",
+      "tester": "Automated packaged-smoke harness",
+      "artifact": ".planning/tmp/20-manual-edges-20261023/previous-candidate/packaged-smoke.json",
+      "status": "pass",
+      "scope": "scripted-packaged-developer-host",
+      "date": "2026-10-22T08:36:01.833Z",
+      "machine": {
+        "classification": "development",
+        "hostname": "Lenovo-X390-PC1H2FSA",
+        "windows": "10.0.26100",
+        "architecture": "x64",
+        "ramBytes": 16911384576
+      },
+      "candidate": {
+        "version": "1.1.0",
+        "installerSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+        "archiveSha256": "cf6bac214a8afbce8b8be6b4f2db2e00ef5afb412793e4e70f45fe1b6273cd45",
+        "executableSha256": "896cc96e73272030f6415ced2c9fa2a219f606c88254a6ce93519a7d0127da30"
+      },
+      "actual": {
+        "electron": "44.9.3",
+        "chrome": "152.0.7977.167",
+        "packaged": true,
+        "sandbox": true,
+        "hidden": true,
+        "localNotes": true,
+        "pdfWorker": true,
+        "renderedPdf": true,
+        "format3SaveReadReopen": true,
+        "reopen": {
+          "differentDocumentObserved": true,
+          "savedPdfAndStateAdopted": true,
+          "rendererSnapshotReadback": true
+        },
+        "importUtilityChild": true,
+        "internalXlsxCsv": true,
+        "externalNetworkRequests": [],
+        "disposableAppData": true
+      },
+      "fixture": {
+        "name": "generated vector PDF",
+        "bytes": 465,
+        "pages": 1,
+        "sha256": "ece3eebb2990c72ea806d6443e97a5e3df7ead06e528d6ed58ac7d987896db3a"
+      },
+      "limitations": [
+        "Dialog destinations scripted through inspector; physical UI and non-development-PC install/upgrade/scaling are pending."
+      ]
+    },
+    {
+      "id": "authorized-installed-manual-previous-20261022",
+      "tester": "Codex via user-authorized Windows Computer Use",
+      "artifact": ".planning/phases/20-production-readiness/20-MANUAL-EVIDENCE.json",
+      "status": "local-core-passed-external-acceptance-pending",
+      "scope": "installed-development-host",
+      "source": "e61ae4a",
+      "candidateSha256": "d3a9a6f00bd75c28ca8b8369259f7202f1e7421f0d49006f41c041925497f180",
+      "date": "2026-10-22T09:29:11.180Z",
+      "report": ".planning/phases/20-production-readiness/20-MANUAL-TEST.md",
+      "actual": {
+        "nativePickerCancel": true,
+        "idleEscapeClosesLibrary": true,
+        "invokerFocusRestored": true,
+        "countPlacementPreserved": true,
+        "quantityAndGeometryUnchanged": true,
+        "ratesAndBasesUnchanged": true,
+        "embeddedPdfUnchanged": true,
+        "estimateCost": 740,
+        "estimateSelling": 962,
+        "estimateMargin": 222,
+        "libraryUnchanged": true,
+        "originalProjectUnchanged": true,
+        "originalBackupUnchanged": true
+      },
+      "limitation": "Core recovery/export walkthrough was observed on preceding3f9f6fd3 candidate. Finald3a9a6f0 build repeated native cancellation/Count containment and project reopen/Estimate/Save As. Each run retains its actual hash."
+    },
+    {
+      "id": "scripted-packaged-smoke",
+      "tester": "Automated packaged-smoke harness",
+      "artifact": "dist/packaged-smoke.json",
+      "status": "pass",
+      "scope": "scripted-packaged-developer-host",
+      "date": "2026-10-23T02:28:26.742Z",
+      "machine": {
+        "classification": "development",
+        "hostname": "Lenovo-X390-PC1H2FSA",
+        "windows": "10.0.26100",
+        "architecture": "x64",
+        "ramBytes": 16911384576
+      },
+      "candidate": {
+        "version": "1.1.0",
+        "installerSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+        "archiveSha256": "5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd",
+        "executableSha256": "c69a57b87eae8b230c1ba4d6418ad53d48583927b46b559ed434b851160b0057"
+      },
+      "actual": {
+        "electron": "44.9.3",
+        "chrome": "152.0.7977.167",
+        "packaged": true,
+        "sandbox": true,
+        "hidden": true,
+        "localNotes": true,
+        "pdfWorker": true,
+        "renderedPdf": true,
+        "format3SaveReadReopen": true,
+        "reopen": {
+          "differentDocumentObserved": true,
+          "savedPdfAndStateAdopted": true,
+          "rendererSnapshotReadback": true
+        },
+        "importUtilityChild": true,
+        "internalXlsxCsv": true,
+        "externalNetworkRequests": [],
+        "disposableAppData": true
+      },
+      "fixture": {
+        "name": "generated vector PDF",
+        "bytes": 465,
+        "pages": 1,
+        "sha256": "ece3eebb2990c72ea806d6443e97a5e3df7ead06e528d6ed58ac7d987896db3a"
+      },
+      "limitations": [
+        "Dialog destinations scripted through inspector; physical UI and non-development-PC install/upgrade/scaling are pending."
+      ]
+    },
+    {
+      "id": "authorized-installed-additional-manual",
+      "tester": "Codex via user-authorized Windows Computer Use",
+      "artifact": ".planning/phases/20-production-readiness/20-MANUAL-EDGES.json",
+      "report": ".planning/phases/20-production-readiness/20-MANUAL-EDGES.md",
+      "status": "local-subcases-passed-external-acceptance-pending",
+      "scope": "installed-development-host",
+      "source": "9a0349f",
+      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "date": "2026-10-23",
+      "payload": {
+        "date": "2026-10-23T02:31:26.364Z",
+        "status": "pass",
+        "comparedFiles": 149,
+        "installerSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+        "archiveSha256": "5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd"
+      },
+      "finalNativeSave": {
+        "file": "corrected-native-checked.clmc",
+        "sha256": "699c15cb052bd898c16fee1eea20adcecc20011f4166ea4e7ac5b3d71684ccdb",
+        "quantity": 1,
+        "cost": 100,
+        "selling": 130,
+        "margin": 30,
+        "geometryScaleRatesPdfPreserved": true,
+        "recoveryRetired": true
+      },
+      "regression": {
+        "full": {
+          "files": 157,
+          "tests": 1229,
+          "passed": 1225,
+          "failed": 4,
+          "durationSeconds": 806.37
+        },
+        "isolatedFourFiles": {
+          "passedFiles": 3,
+          "failedFiles": 1,
+          "passedTests": 37,
+          "failedTests": 1,
+          "durationSeconds": 68.49
+        },
+        "workerDiagnosticRerun": {
+          "files": 1,
+          "tests": 2,
+          "status": "pass",
+          "durationSeconds": 17.85
+        },
+        "interpretation": "Every file has a passing result after isolated reruns. The initial full run was not clean; no test timeouts or expectations were relaxed. Parser failure was intermittent; load attribution is an inference, not established proof."
+      }
+    }
+  ],
+  "edgeReviews": [
+    {
+      "requirement": "REL-01",
+      "status": "pending",
+      "reviewer": null,
+      "date": null,
+      "artifact": null,
+      "disposition": null,
+      "reason": "Flagged unclassified edge assumption remains open for actual evidence and independent review."
+    },
+    {
+      "requirement": "REL-02",
+      "status": "pending",
+      "reviewer": null,
+      "date": null,
+      "artifact": null,
+      "disposition": null,
+      "reason": "Flagged unclassified edge assumption remains open for actual evidence and independent review."
+    },
+    {
+      "requirement": "REL-04",
+      "status": "pending",
+      "reviewer": null,
+      "date": null,
+      "artifact": null,
+      "disposition": null,
+      "reason": "Flagged unclassified edge assumption remains open for actual evidence and independent review."
+    },
+    {
+      "requirement": "REL-05",
+      "status": "pending",
+      "reviewer": null,
+      "date": null,
+      "artifact": null,
+      "disposition": null,
+      "reason": "Flagged unclassified edge assumption remains open for actual evidence and independent review."
+    }
+  ],
+  "scope": "Exact candidate partially tested on actual second PC: four of16 required cases pass, three fail, nine pending. Source-only viewport repair prepared; candidate acceptance, Phase21 pilot/distribution remain open.",
+  "blockedBy": "Observed negative fit on open from Estimate blocks Plan/recovery/save. Rebuild using aligned approved dependencies, inspect new candidate, and rerun installed reproduction plus affected cases. Nine cases remain pending: actual predecessor, broader portability, disconnected workflow, representative vector/scan/multipage,125/200% full physical matrix and monitor transition. Named handoff/signing/dependency/stability decisions and four edge reviews remain open.",
+  "licenseReview": {
+    "status": "pending-release-review",
+    "package": "buffers@0.1.1",
+    "finding": "Installed package.json has no license field and supplied README has no license grant. Exact author/repository/README are preserved in bundled third-party notices; no license is fabricated."
+  },
+  "secondPcEvidence": {
+    "date": "2026-10-25T11:54:16.035Z",
+    "machineId": "second-pc-laptop-5bam24nm",
+    "report": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+    "manifest": "dist/trial-kit/installer/release-manifest.json",
+    "rawDirectory": ".planning/tmp/20-second-pc-20261025/",
+    "installedPayload": ".planning/tmp/20-second-pc-20261025/installed-payload.json",
+    "projectReadback": ".planning/tmp/20-second-pc-20261025/independent-project-readback.json",
+    "exports": ".planning/tmp/20-second-pc-20261025/exports/readback.json",
+    "cleanup": {
+      "date": "2026-10-25T11:53:01.0571626Z",
+      "appClosed": true,
+      "priorLibraryAbsent": true,
+      "syntheticLibraryPreserved": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\.planning\\tmp\\20-second-pc-20261025\\continued\\synthetic-large-library-preserved.json",
+      "syntheticLibrarySha256": "807ac6711b8926d3ec35f38080d0985e68ff0958fc1f03ecbf72dc536349a985",
+      "emptyLibraryRestored": true,
+      "preservedHashMatches": true
+    },
+    "qualifications": [
+      "Initial backup comparison followed multiple rapid saves and did not match the first preserved file. The controlled repeat preserved immediately prior bytes and passed; initial mismatch retained in replacement-backup.json.",
+      "A diagnostic inventory initially checked the wrong recovery-v1/manifests path. Actual completed snapshots were then verified under APPDATA/clmc-takeoff/recovery before either interruption.",
+      "Fresh manual line repeats its calibration span; it does not establish independent representative-plan accuracy.",
+      "Screenshots during animation/occlusion are not authoritative. Unrelated occluded screenshot 69 was removed; settled foreground captures and independent readbacks support conclusions.",
+      "Physical100/125/150% tested after Windows Settings access;100/150 reveal open-from-Estimate defect. At150 pointer-based Verify Scale showed rounded10.01m; this manual endpoint result is not exact independent representative-plan accuracy.",
+      "Initial local save suites failed because workspace yauzl2.10.0 lacks fromBufferPromise.31 targeted save tests pass only with test-only alias to exact candidate yauzl3.4.0. Local Electron35.7.5 differs from declared44.9.3. No dependency reinstall or new installer build was done.",
+      "Final copy readback explicitly allows the intended positive viewport change and floating point noise below1e-7; geometry/scales/rates/visibility remain exact. Initial diagnostic assertions including viewport equality/float exactness were corrected, not application failures."
+    ],
+    "continuation": {
+      "directory": ".planning/tmp/20-second-pc-20261025/continued/",
+      "firstSaveReadback": ".planning/tmp/20-second-pc-20261025/continued/first-save-copy-readback.json",
+      "sourceFix": ".planning/debug/second-pc-hidden-canvas-fit.md",
+      "candidateRebuilt": false,
+      "sourceTests": {
+        "red": 9,
+        "green": 20,
+        "rendererTypecheck": "pass",
+        "mainTypecheck": "pass"
+      },
+      "saveSuite": {
+        "passed": 31,
+        "failed": 0,
+        "scope": "Test-only alias to exact installed candidate yauzl3.4.0; local default dependencies differ and initial failures retained."
+      }
+    }
+  }
+}

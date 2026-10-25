@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "status": "awaiting-non-development-evidence",
+  "status": "awaiting-remaining-candidate-specific-installed-evidence-and-review",
   "candidate": {
-    "version": "1.1.0",
-    "installerSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-    "archiveSha256": "5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd",
-    "installer": "dist/clmc-takeoff-1.1.0-x64-setup.exe",
+    "version": "1.1.1",
+    "installerSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+    "archiveSha256": "b2c338423e5edff1daab0d32bb74ae1a97edbabce1137453cf2ad153921e8c98",
+    "installer": "dist/clmc-takeoff-1.1.1-x64-setup.exe",
     "manifest": "dist/release-manifest.json",
-    "bytes": 136810568,
+    "bytes": 136810484,
     "architecture": "x64"
   },
   "handoff": {
@@ -41,249 +41,377 @@
       "supportedScaling": [],
       "monitorCount": null,
       "scope": "Development PC: actual local per-user installation/manual input observed; renderer device-scale-factor1. No physical display matrix or non-development classification is inferred."
+    },
+    {
+      "id": "second-pc-laptop-5bam24nm",
+      "classification": "non-development",
+      "name": "LAPTOP-5BAM24NM",
+      "windows": "Windows 11 Home Single Language, build 22631",
+      "architecture": "x64",
+      "ramGiB": 15.8,
+      "supportedScaling": [
+        100,
+        125,
+        150,
+        175
+      ],
+      "monitorCount": 2,
+      "scope": "User-confirmed different PC. Two displays initially enumerated; external user input later selected Show only on2, leaving one active display. Actual active-display Windows100/125/150% at1920x1080 observed; dropdown also offered175%, not tested, and did not offer200%. Original active-display100% restored. No actual cross-monitor transition. Continued1.1.1 rebuild and native installed retest locally; original100% restored, topology retained.",
+      "hardwareArtifact": ".planning/tmp/20-second-pc-20261025/recovery-and-displays.json"
     }
   ],
-  "fixtures": [],
+  "fixtures": [
+    {
+      "id": "second-pc-synthetic-grid",
+      "name": "training-grid.pdf",
+      "approvedBy": "User-authorized supplied trial kit (synthetic training scope only)",
+      "kind": "synthetic-training-vector",
+      "sha256": "9c0bc7b6f133905fc62b7dff8abec2e78c0beb078f3ddcdddb57c157ed025e10",
+      "bytes": 1256,
+      "pages": 1,
+      "oracleSource": "Supplied guide: 10 m square, 100 m² area, 40 m perimeter, 30 m² wall at 3 m height, 1 count; independent arithmetic and preserved source fixture checks. Not representative construction-plan approval."
+    }
+  ],
   "cases": [
     {
       "id": "fresh-install",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
+      "actual": "Inspected1.1.1 installer upgraded the synthetic test-installed1.1.0: exit0,149 payload matches, one1.1.1 registration, one shortcut per location,3191 original profile files unchanged before first launch, library absence preserved. Native launch/About/local notes1.1.1 passed.",
       "checks": [],
-      "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "artifacts": [
+        ".planning/tmp/20-rebuild-20261025/installation.json",
+        ".planning/tmp/20-rebuild-20261025/installed-payload.json",
+        ".planning/tmp/20-rebuild-20261025/001-native-launch.json",
+        ".planning/tmp/20-rebuild-20261025/084-about-scroll-actions150.json"
+      ],
+      "reason": "This is an observed test upgrade, not a fresh1.1.1 installation on an unregistered target."
     },
     {
       "id": "actual-predecessor-upgrade",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
+      "actual": "Actual1.1.0 test installation upgraded to1.1.1 with unchanged profile and one registration/shortcut per location. The original workstation inventory had no deployed predecessor.",
       "checks": [],
-      "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "artifacts": [
+        ".planning/tmp/20-rebuild-20261025/preupgrade-inventory.json",
+        ".planning/tmp/20-rebuild-20261025/installation.json"
+      ],
+      "reason": "Synthetic test-installed predecessor cannot substitute for actual deployed predecessor history or named disposition."
     },
     {
       "id": "project-only-transfer",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
+      "actual": "Original synthetic project opened from embedded PDF with no library before or after upgrade. Six quantities10/100/100/40/30/1 and740/962/222 retained; saved copies pass independent ZIP/PDF/geometry/scales/order/visibility/rates arithmetic.",
       "checks": [],
-      "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "artifacts": [
+        ".planning/tmp/20-rebuild-20261025/006-baseline-loaded.json",
+        ".planning/tmp/20-rebuild-20261025/015-positive-fit-after-estimate100.json",
+        ".planning/tmp/20-rebuild-20261025/independent-readback.json",
+        ".planning/tmp/20-rebuild-20261025/fixture-provenance.json"
+      ],
+      "reason": "One-page straight synthetic fixture does not close mixed-scale/arc and wider portable-project variants."
     },
     {
       "id": "recovery-saved",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
+      "actual": "After fixed open at100%, first Save As succeeded without Ctrl+0. Unsaved count107 produced a completed revision2 recovery snapshot at2026-10-25T12:31:50.307Z with positive zoom1.42 and verified PDF. Interrupted only verified test main process; restart offered correct capture/source/time. Recovery returned dirty with six quantities and747/971.10/224.10. Separate recovered107.clmc passed independent readback, saved original unchanged and no original backup created. Recovery reopened at another positive fit; exact viewport restoration is not claimed.",
       "checks": [],
-      "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "artifacts": [
+        ".planning/tmp/20-rebuild-20261025/saved-recovery-exact.json",
+        ".planning/tmp/20-rebuild-20261025/saved-recovery-interruption.json",
+        ".planning/tmp/20-rebuild-20261025/028-recovery-offer111.json",
+        ".planning/tmp/20-rebuild-20261025/030-recovered-plan-positive.json",
+        ".planning/tmp/20-rebuild-20261025/031-recovered-prices107.json",
+        ".planning/tmp/20-rebuild-20261025/035-recovered-copy-saved.json",
+        ".planning/tmp/20-rebuild-20261025/recovery-preservation.json",
+        ".planning/tmp/20-rebuild-20261025/independent-readback.json"
+      ],
+      "reason": "Core repaired capture/restart/restore/separate-save retested. Keep for Later and explicit discard were not repeated against1.1.1; full case remains pending."
     },
     {
       "id": "recovery-never-saved",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "reason": "This full required case has not been rerun against1.1.1. Prior1.1.0 results are historical, not carried as acceptance of new bytes."
     },
     {
       "id": "failed-save-backup",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
+      "actual": "First new Save As after previously failing trigger now succeeds with valid positive viewport and no workaround.150% legacy upgraded copy and later replacement save also succeed; adjacent backup SHA exactly equals immediately preceding project. Independent readback preserves quantities/rates/totals. Full automated suites, including atomic/save protection, pass with actual locked yauzl3.4.0.",
       "checks": [],
-      "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "artifacts": [
+        ".planning/tmp/20-rebuild-20261025/019-fixed-first-save-success.json",
+        ".planning/tmp/20-rebuild-20261025/063-upgraded-copy-saved150.json",
+        ".planning/tmp/20-rebuild-20261025/068-viewport-replacement-save150.json",
+        ".planning/tmp/20-rebuild-20261025/replacement-backup111.json",
+        ".planning/tmp/20-rebuild-20261025/independent-readback.json",
+        ".planning/tmp/20-rebuild-20261025/full-tests-storage-disabled.json"
+      ],
+      "reason": "Actual installed lock/error/cancel/detached-backup and first-failure permutations from1.1.0 were not all repeated for new bytes."
     },
     {
       "id": "offline-workflow",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
+      "actual": "Native installed XLSX/CSV exports at150% passed independent six-row quantities/cost/selling/margin and740/962/222 grand-total checks. Isolated packaged smoke also passed real PDF worker/preload/save/reopen/library child import/internal exports with no observed external requests.",
       "checks": [],
-      "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "artifacts": [
+        ".planning/tmp/20-rebuild-20261025/072-native-xlsx-written.json",
+        ".planning/tmp/20-rebuild-20261025/081-native-csv-written.json",
+        ".planning/tmp/20-rebuild-20261025/retest-111.xlsx",
+        ".planning/tmp/20-rebuild-20261025/retest-111.csv",
+        ".planning/tmp/20-rebuild-20261025/exports-readback.json",
+        ".planning/tmp/20-rebuild-20261025/packaged-smoke.json"
+      ],
+      "reason": "Network remained connected. No full disconnected five-tool/library/unit-switch acceptance. Scripted packaged smoke is separate from native installed evidence."
     },
     {
       "id": "large-vector",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "reason": "User has no approved representative construction-plan PDFs. The synthetic grid does not substitute."
     },
     {
       "id": "large-scan",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "reason": "User has no approved representative construction-plan PDFs. The synthetic grid does not substitute."
     },
     {
       "id": "multipage-navigation",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
       "actual": null,
       "checks": [],
       "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "reason": "User has no approved representative construction-plan PDFs. The synthetic grid does not substitute."
     },
     {
       "id": "scaling-100",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
+      "actual": "Actual Windows100% at1920x1080 observed. Open from Estimate now gives positive142% zoom, aligned synthetic markups and six unchanged quantities. Separate save/readback passes without Fit workaround. At150% reviewed legacy upgrade, zoom, explicit Fit81%, replacement backup and About scroll/Close/Escape were observed.",
       "checks": [],
-      "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "artifacts": [
+        ".planning/tmp/20-rebuild-20261025/027-scale-controls100.json",
+        ".planning/tmp/20-rebuild-20261025/015-positive-fit-after-estimate100.json",
+        ".planning/tmp/20-rebuild-20261025/019-fixed-first-save-success.json",
+        ".planning/tmp/20-rebuild-20261025/independent-readback.json"
+      ],
+      "reason": "Targeted defect regression passes. Full physical calibration/independent landmark/pan/reopen matrix remains incomplete. Wheel attempt did not visibly pan; no pan pass or representative0.1% claim."
     },
     {
       "id": "scaling-125",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
+      "actual": "Actual Windows125% at1920x1080 observed. Open from Estimate now gives positive90% zoom, aligned synthetic markups and six unchanged quantities. Separate save/readback passes without Fit workaround. At150% reviewed legacy upgrade, zoom, explicit Fit81%, replacement backup and About scroll/Close/Escape were observed.",
       "checks": [],
-      "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "artifacts": [
+        ".planning/tmp/20-rebuild-20261025/038-windows125-applied.json",
+        ".planning/tmp/20-rebuild-20261025/042-positive-fit125.json",
+        ".planning/tmp/20-rebuild-20261025/046-saved125.json",
+        ".planning/tmp/20-rebuild-20261025/independent-readback.json"
+      ],
+      "reason": "Targeted defect regression passes. Full physical calibration/independent landmark/pan/reopen matrix remains incomplete. Wheel attempt did not visibly pan; no pan pass or representative0.1% claim."
     },
     {
       "id": "scaling-150",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
+      "actual": "Actual Windows150% at1920x1080 observed. Open from Estimate now gives positive72% zoom, aligned synthetic markups and six unchanged quantities. Separate save/readback passes without Fit workaround. At150% reviewed legacy upgrade, zoom, explicit Fit81%, replacement backup and About scroll/Close/Escape were observed.",
       "checks": [],
-      "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "artifacts": [
+        ".planning/tmp/20-rebuild-20261025/049-windows150-applied.json",
+        ".planning/tmp/20-rebuild-20261025/055-positive-legacy-fit150.json",
+        ".planning/tmp/20-rebuild-20261025/063-upgraded-copy-saved150.json",
+        ".planning/tmp/20-rebuild-20261025/065-zoom150.json",
+        ".planning/tmp/20-rebuild-20261025/067-explicit-fit150.json",
+        ".planning/tmp/20-rebuild-20261025/084-about-scroll-actions150.json",
+        ".planning/tmp/20-rebuild-20261025/independent-readback.json"
+      ],
+      "reason": "Targeted defect regression passes. Full physical calibration/independent landmark/pan/reopen matrix remains incomplete. Wheel attempt did not visibly pan; no pan pass or representative0.1% claim."
     },
     {
       "id": "scaling-200",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
+      "actual": "Dropdown offered100/125/150/175%, without200%; original100% restored.",
       "checks": [],
-      "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "artifacts": [
+        ".planning/tmp/20-rebuild-20261025/037-physical-scaling-list.json",
+        ".planning/tmp/20-rebuild-20261025/088-original100-restored111.json"
+      ],
+      "reason": "No custom scaling or named external unsupported disposition. Pending hardware review."
     },
     {
       "id": "monitor-transition",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
+      "actual": "Existing user topology Show only on2 retained; no cross-monitor move performed.",
       "checks": [],
-      "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "artifacts": [
+        ".planning/tmp/20-rebuild-20261025/024-settings-foreground100.json",
+        ".planning/tmp/20-rebuild-20261025/025-active-display2-selected.json",
+        ".planning/tmp/20-rebuild-20261025/cleanup.json"
+      ],
+      "reason": "Actual differently scaled monitor transition remains unobserved; no unsupported exception inferred."
     },
     {
       "id": "ui-keyboard-overflow",
       "status": "pending",
-      "candidateSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
-      "machineId": null,
-      "fixtureIds": [],
-      "tester": null,
-      "date": null,
-      "procedure": "docs/release-validation.md#required-real-target-pc-matrix",
+      "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
+      "date": "2026-10-25T12:49:43.537Z",
+      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
+      "actual": "Repaired open-from-Estimate/valid save/recovery at100/125/150%.150% legacy export gating and acknowledgement, original-preserving upgrade copy, native XLSX/CSV dialogs, About1.1.1 local fix note/scroll/reachable Close/Escape focus return observed. No recurrence of negative zoom or recovery/save error.",
       "checks": [],
-      "artifacts": [],
-      "reason": "Required non-development/hardware/fixture provenance is unavailable. Passing development-host manual subcases are recorded separately in20-MANUAL-EVIDENCE.json and do not complete this target case."
+      "artifacts": [
+        ".planning/tmp/20-rebuild-20261025/055-positive-legacy-fit150.json",
+        ".planning/tmp/20-rebuild-20261025/056-legacy-export-rate-guard150.json",
+        ".planning/tmp/20-rebuild-20261025/059-legacy-save-copy-guard111.json",
+        ".planning/tmp/20-rebuild-20261025/063-upgraded-copy-saved150.json",
+        ".planning/tmp/20-rebuild-20261025/084-about-scroll-actions150.json",
+        ".planning/tmp/20-rebuild-20261025/085-about-escape-focus-return.json"
+      ],
+      "reason": "Many-candidate/repeated keep/discard, large-library and full keyboard/overflow permutations were not all rerun on1.1.1. The original defect is resolved by exact-candidate scoped evidence, not full UI-case acceptance."
     }
   ],
   "developerEvidence": [
@@ -504,11 +632,109 @@
       "reason": "Flagged unclassified edge assumption remains open for actual evidence and independent review."
     }
   ],
-  "scope": "Current candidate inspected; developer-host packaged and actual installed manual evidence retained separately. No Phase20 acceptance, non-development success, Phase21 pilot or twelve-PC rollout is claimed.",
-  "blockedBy": "No accessible non-development Windows PC, approved representative construction PDFs, actual deployed-predecessor installer/inventory or physical scaling/monitor evidence supplied. Handoff owners/share/signing policy, four edge reviews and three explicit prohibition dispositions remain open.",
+  "scope": "Fixed1.1.1 built, inspected, smoke-tested, installed and targeted regressions retested on the physically distinct user-confirmed second PC. All16 full acceptance cases remain pending their complete new-candidate requirements; scoped passing results recorded explicitly. No known recurrence of the1.1.0 hidden-fit defect in this retest. No Phase21 pilot/distribution acceptance.",
+  "blockedBy": "Remaining exact1.1.1 full installed case coverage and external evidence: fresh install, actual deployed predecessor, wider portability, recovery/save/UI permutations, disconnected workflow, representative vector/scan/multipage, full physical landmark matrix and monitor transition; named release/signing/share/dependency/stability and REL edge reviews.",
   "licenseReview": {
     "status": "pending-release-review",
     "package": "buffers@0.1.1",
     "finding": "Installed package.json has no license field and supplied README has no license grant. Exact author/repository/README are preserved in bundled third-party notices; no license is fabricated."
-  }
+  },
+  "secondPcEvidence": {
+    "date": "2026-10-25T12:49:43.537Z",
+    "machineId": "second-pc-laptop-5bam24nm",
+    "report": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
+    "manifest": "dist/release-manifest.json",
+    "rawDirectory": ".planning/tmp/20-rebuild-20261025/",
+    "installedPayload": ".planning/tmp/20-rebuild-20261025/installed-payload.json",
+    "projectReadback": ".planning/tmp/20-rebuild-20261025/independent-readback.json",
+    "exports": ".planning/tmp/20-rebuild-20261025/exports-readback.json",
+    "cleanup": {
+      "date": "2026-10-25T12:48:16.2099063Z",
+      "appClosed": true,
+      "libraryStillAbsent": true,
+      "originalScalingRestored": 100,
+      "scalingArtifact": "088-original100-restored111.json",
+      "userTopologyRetained": "Show only on2",
+      "unchangedFixtures": true,
+      "changedFixtures": [],
+      "installedArchiveUnchanged": true,
+      "installerSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e"
+    },
+    "rebuild": {
+      "version": "1.1.1",
+      "installerSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "archiveSha256": "b2c338423e5edff1daab0d32bb74ae1a97edbabce1137453cf2ad153921e8c98",
+      "inspection": "pass",
+      "packagedSmoke": "pass",
+      "runtime": "44.9.3",
+      "hostVerification": ".planning/tmp/20-rebuild-20261025/host-verification.json",
+      "fullTests": {
+        "tests": 1238,
+        "passed": 1238,
+        "failed": 0,
+        "files": 158
+      },
+      "sourceGuard": "src/renderer/src/lib/fit-viewport.ts",
+      "regressions": [
+        {
+          "id": "open-from-estimate100",
+          "status": "pass",
+          "zoomPercent": 142
+        },
+        {
+          "id": "open-from-estimate125",
+          "status": "pass",
+          "zoomPercent": 90
+        },
+        {
+          "id": "legacy-from-estimate150",
+          "status": "pass",
+          "zoomPercent": 72
+        },
+        {
+          "id": "first-save-after-open",
+          "status": "pass"
+        },
+        {
+          "id": "periodic-recovery-after-open",
+          "status": "pass"
+        },
+        {
+          "id": "controlled-recovery-and-copy-save",
+          "status": "pass"
+        },
+        {
+          "id": "replacement-backup-exact-prior-hash",
+          "status": "pass"
+        },
+        {
+          "id": "native-xlsx-csv-independent-readback",
+          "status": "pass"
+        }
+      ]
+    },
+    "qualifications": [
+      "This PC built the new candidate locally and remains physically distinct from the original Lenovo development host. Scripted packaged-smoke hardcodes a development classification; that scope is retained and not promoted to native installed evidence.",
+      "Initial full suite had43 Node25 localStorage host failures; CLI-only flag retry also failed. Inherited NODE_OPTIONS=--no-experimental-webstorage yielded1238/1238 without assertion/timeout changes or yauzl alias.",
+      "Initial build and RCEdit override retry hit unused darwin symlink privilege errors. Supported workspace-local platform tool cache then enabled successful full build; no Windows privilege/security setting or tool/source patch.",
+      "Recovery capture held zoom1.42; recovered UI refit positively at93%. Exact viewport restoration is not claimed; geometry/calibration/rates and saved-original preservation were independently checked.",
+      "Settings capture023 was occluded/non-authoritative; subsequent foreground snapshots support physical setting changes and restoration.",
+      "Native dialog accessibility index expired once; reobserved and used visible dropdown. No app failure inferred from tool index expiration.",
+      "Full case statuses reset pending for new candidate; prior4-pass/3-fail/9-pending results remain in20-1.1.0-INSTALLED-EVIDENCE.json."
+    ]
+  },
+  "previousCandidates": [
+    {
+      "version": "1.1.0",
+      "installerSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "archiveSha256": "5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd",
+      "installer": "dist/clmc-takeoff-1.1.0-x64-setup.exe",
+      "manifest": "dist/release-manifest.json",
+      "bytes": 136810568,
+      "architecture": "x64",
+      "evidence": ".planning/phases/20-production-readiness/20-1.1.0-INSTALLED-EVIDENCE.json",
+      "report": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "result": "Four passed, three failed and nine pending on exact1.1.0 candidate. Historical results remain bound to that hash."
+    }
+  ]
 }

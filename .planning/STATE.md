@@ -5,8 +5,8 @@ current_phase: 20
 current_phase_name: Production Readiness
 status: in_progress
 stopped_at: Phase 21-01/02 preparation complete; 21-03-01 awaiting actual Phase 20 acceptance and demonstrated named owners
-last_updated: "2026-10-23T03:17:09Z"
-last_activity: 2026-10-23
+last_updated: "2026-10-25T12:52:00Z"
+last_activity: 2026-10-25
 state_head: c8baf56
 progress:
   total_phases: 25
@@ -37,9 +37,9 @@ milestone_name: milestone
 Phase: 20 (Production Readiness) — VERIFYING
 Plan: 9 of 9 —20-01 through20-08 complete;20-09 tasks01/02 complete,task03 external evidence pending
 
-Next action: Complete deferred actual target-PC/historical-PDF/display and named review gates. Additional local manual checks completed; preview-cancel focus fixed9a0349f and installed retest passed. Current installer fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544;149installed files matched; build/types/inspection/packaged smoke pass. Initial full1225/1229passed; four affected files passed isolated reruns with intermittent parser qualification. See20-MANUAL-EDGES.md/JSON. Broad unobserved edge permutations, stability review and external acceptance remain open;20-09task03/REL-01..05 and Phase21 pilot/distribution pending. Trial kit refreshed; previous candidate/kit retained.
+Next action: Continue remaining full1.1.1 installed case requirements and named reviews. The hidden-canvas defect is resolved in exact installed candidate f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e (ASAR b2c338423e5edff1daab0d32bb74ae1a97edbabce1137453cf2ad153921e8c98). Build/inspection/isolated packaged smoke pass,149 installed payload matches and3191 profile files unchanged by upgrade. Native original triggers at physical100/125/150%, first save, periodic capture/restart/restore/separate recovery save, legacy review/upgraded copy, replacement backup and native XLSX/CSV independent readback pass scoped retests. All1238 tests pass with inherited Node25 storage compatibility flag; both TypeScript checks pass,15 existing lint errors remain. Locked Electron44.9.3/yauzl3.4.0 restored; no test alias. All16 full acceptance cases reset pending for new bytes; prior1.1.0 results remain historical. Representative PDFs, actual deployed predecessor, disconnected full workflow, broader variants/full physical matrix/transition and named reviews remain open. See20-REBUILD-RETEST.md and current20-INSTALLED-EVIDENCE.json. Phase20 acceptance/REL-01..05 and Phase21 pilot/distribution remain unaccepted.
 
-Last activity: 2026-10-23 - Phase 21-01/02 preparation verified and committed; stopped at 21-03-01 actual release/ownership gate. Phase 20 remains VERIFYING; requirement/phase acceptance unchanged.
+Last activity: 2026-10-25 - User authorized rebuild/install/retest. Built monotonic1.1.1 with source guard and updated local notes, repaired host dependency mismatch and platform cache without security changes, installed and drove native regression tests on LAPTOP-5BAM24NM. Saved recovery captured at20:31:50Manila restored rate107 and747/971.10/224.10; native exports preserved740/962/222. All original fixtures/profile preservation checks pass. Restored active display100%, retained user's Show only on2 topology and closed clean CLMC/Settings normally. Library remains absent. Raw evidence/private pre-upgrade profile are ignored in .planning/tmp/20-rebuild-20261025/; exact old1.1.0 kit/results preserved. Phase20 remains VERIFYING pending complete new-candidate matrix and external evidence/reviews.
 
 ## Phase 21 preparation work order
 
