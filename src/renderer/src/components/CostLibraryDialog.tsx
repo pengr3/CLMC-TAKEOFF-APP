@@ -23,6 +23,21 @@ const buttonStyle: React.CSSProperties = {
   cursor: 'pointer',
   fontSize: 12
 }
+const itemCellStyle: React.CSSProperties = {
+  padding: 8,
+  width: 320,
+  maxWidth: 320,
+  overflowWrap: 'anywhere'
+}
+const categoryCellStyle: React.CSSProperties = { ...itemCellStyle, width: 220, maxWidth: 220 }
+const unitCellStyle: React.CSSProperties = { padding: 8, minWidth: 80, whiteSpace: 'nowrap' }
+const moneyCellStyle: React.CSSProperties = {
+  padding: 8,
+  minWidth: 150,
+  whiteSpace: 'nowrap',
+  textAlign: 'right',
+  fontVariantNumeric: 'tabular-nums'
+}
 const money = (value: number): string => `${CURRENCY_SYMBOL}${value.toFixed(2)}`
 
 interface DialogProps {
@@ -373,11 +388,18 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
                 data-testid="cost-library-table-scroll"
                 tabIndex={0}
                 aria-label="Cost library items"
-                style={{ overflow: 'auto', minHeight: 80, maxHeight: 340, flexShrink: 0 }}
+                style={{
+                  overflow: 'auto',
+                  minWidth: 0,
+                  minHeight: 80,
+                  maxHeight: 340,
+                  flexShrink: 0
+                }}
               >
                 <table
                   style={{
                     width: '100%',
+                    minWidth: target && !preview ? 1040 : 920,
                     borderCollapse: 'collapse',
                     textAlign: 'left',
                     fontSize: 12
@@ -392,8 +414,12 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
                         'Material / unit',
                         'Labor / unit',
                         ...(target && !preview ? ['Select'] : [])
-                      ].map((heading) => (
-                        <th key={heading} scope="col" style={{ padding: 8 }}>
+                      ].map((heading, index) => (
+                        <th
+                          key={heading}
+                          scope="col"
+                          style={{ padding: 8, whiteSpace: index >= 2 ? 'nowrap' : undefined }}
+                        >
                           {heading}
                         </th>
                       ))}
@@ -413,32 +439,16 @@ export function CostLibraryDialog({ target, onClose }: DialogProps): React.JSX.E
                             borderBottom: `1px solid ${COLORS.border}`
                           }}
                         >
-                          <td style={{ padding: 8 }}>
+                          <td style={itemCellStyle}>
                             <strong>{item.code}</strong>
                             <div>{item.description}</div>
                           </td>
-                          <td style={{ padding: 8 }}>{item.category}</td>
-                          <td style={{ padding: 8 }}>{item.unit}</td>
-                          <td
-                            style={{
-                              padding: 8,
-                              textAlign: 'right',
-                              fontVariantNumeric: 'tabular-nums'
-                            }}
-                          >
-                            {money(item.material)}
-                          </td>
-                          <td
-                            style={{
-                              padding: 8,
-                              textAlign: 'right',
-                              fontVariantNumeric: 'tabular-nums'
-                            }}
-                          >
-                            {money(item.labor)}
-                          </td>
+                          <td style={categoryCellStyle}>{item.category}</td>
+                          <td style={unitCellStyle}>{item.unit}</td>
+                          <td style={moneyCellStyle}>{money(item.material)}</td>
+                          <td style={moneyCellStyle}>{money(item.labor)}</td>
                           {target && !preview && (
-                            <td style={{ padding: 8 }}>
+                            <td style={{ padding: 8, minWidth: 120, whiteSpace: 'nowrap' }}>
                               <button
                                 type="button"
                                 style={buttonStyle}
