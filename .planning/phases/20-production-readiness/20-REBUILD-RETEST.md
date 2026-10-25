@@ -2,6 +2,8 @@
 
 The hidden-canvas negative-fit defect is **fixed and verified in the installed 1.1.1 candidate** on LAPTOP-5BAM24NM. The original open-from-Estimate triggers now produce positive zoom at physical Windows100/125/150%; first Save As, periodic recovery, restart/restore and separate recovered save succeed. Phase20 remains **VERIFYING**: targeted regression passes do not accept the full release matrix or Phase21 rollout.
 
+**26 October continuation:** [20-CLOSEOUT.md](20-CLOSEOUT.md) records two complete passes (fresh installation and never-saved recovery), native backup/replacement fault/retry/detached-copy checks, clean-profile library safeguards and public-PDF rendering/save/reopen. The canonical record now has **2 pass / 14 pending**, with user identified as release owner. All 3191 original profile files were restored exactly after fresh-profile testing. The all-pending descriptions below record the preceding retest, before this continuation; they are not the current case totals.
+
 The user explicitly authorized rebuilding, installing and driving this PC for retesting. This continues20-09-03 and the existing debug workflow inline; `gsd-sdk` is unavailable on this host. No permission/security setting, real project or other PC was changed.
 
 ## Exact candidate and preservation

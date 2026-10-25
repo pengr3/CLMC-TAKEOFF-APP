@@ -6,6 +6,10 @@ score: 46/65 must-haves verified
 source_head: 9a0349f
 initial_documentation_head: 00f6403
 verification_mode: focused_parent_amendment_after_manual_findings
+latest_continuation: 2026-10-26
+latest_report: 20-CLOSEOUT.md
+current_candidate: 1.1.1
+current_complete_installed_cases: 2/16
 initial_independent_source_head: 68803dd
 automated_status: passed
 behavior_unverified: 4
@@ -20,6 +24,8 @@ human_verification: [{"test":"Local installed UI and complete offline workflow",
 ---
 
 # Phase 20: Production Readiness Verification Report
+
+**26 October 2026 continuation:** [20-CLOSEOUT.md](20-CLOSEOUT.md) and [current installed evidence](20-INSTALLED-EVIDENCE.json) supersede the original all-pending candidate totals below. Exact1.1.1 fresh installation and never-saved recovery pass (2/16 complete cases); fourteen remain pending. Native failure/retry/detached-backup, clean-profile library and public-PDF checks add scoped evidence. All3191 original profile files were restored exactly. Historical verification scores, test counts and candidate descriptions below retain their original scope; this continuation is not a new independent full-phase verification or acceptance. Status remains `human_needed`.
 
 **Phase Goal:** Prepare a reliable installed Windows release for approximately 12 internal PCs with versioned manual upgrades, portable single-file projects, protected user data and recorded installed-app validation.
 

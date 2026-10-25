@@ -13,13 +13,18 @@
   "handoff": {
     "status": "pending",
     "approvedLocation": null,
-    "releaseOwner": null,
+    "releaseOwner": "User (self-identified release owner in this chat on 2026-10-26)",
     "signingPolicy": null,
     "signingOwner": null,
     "observedSignature": "NotSigned for installer and packaged executable",
     "publisher": null,
     "rollbackContact": null,
-    "reason": "Actual protected internal share and named release/signing owner have not been supplied."
+    "reason": "User identified themselves as release owner. Actual protected location, signing policy/owner, rollback contact and review dispositions have not yet been supplied.",
+    "releaseOwnerEvidence": {
+      "date": "2026-10-25T17:26:23.600Z",
+      "statement": "I’m the release owner; I’ll provide the location",
+      "source": "Direct user reply in this chat"
+    }
   },
   "predecessor": {
     "kind": "unknown",
@@ -70,30 +75,122 @@
       "bytes": 1256,
       "pages": 1,
       "oracleSource": "Supplied guide: 10 m square, 100 m² area, 40 m perimeter, 30 m² wall at 3 m height, 1 count; independent arithmetic and preserved source fixture checks. Not representative construction-plan approval."
+    },
+    {
+      "id": "public-portland-site-plan",
+      "name": "portland-site-plan.pdf",
+      "approvedBy": "Agent-selected public exploratory fixture under authorized testing; external representative-plan approval remains pending",
+      "kind": "public-raster-bearing-municipal-sample",
+      "sha256": "0755833be0bbccc65b073de4e35cda1fb6ca403c89e58c37d64333b1d740fb7a",
+      "bytes": 3494493,
+      "pages": 1,
+      "source": "https://www.portland.gov/ppd/documents/sample-site-plan/download",
+      "oracleSource": "Official public sample includes50ft lot width and10x10ft patio; Poppler reference compared visually. No independently approved measurement run."
+    },
+    {
+      "id": "public-worldbank-guidance",
+      "name": "worldbank-sample-house-plans.pdf",
+      "approvedBy": "Agent-selected public exploratory fixture under authorized testing; external representative-plan approval remains pending",
+      "kind": "public-mixed-vector-image-guidance",
+      "sha256": "2ea6a6d4aac062b5f0b9cc3447347e8e6270cf1df9edda42a7ffca4541f3a633",
+      "bytes": 31148266,
+      "pages": 150,
+      "source": "https://documents1.worldbank.org/curated/en/099554312202436138/pdf/IDU1f54bd272126f11472119261126d32b985e49.pdf",
+      "oracleSource": "Independent pypdf inventory150pages, ZIP-embedded byte hash and currentPage2 readback. No mixed-scale/markup/measurement oracle accepted."
     }
   ],
   "cases": [
     {
       "id": "fresh-install",
-      "status": "pending",
+      "status": "pass",
       "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
       "machineId": "second-pc-laptop-5bam24nm",
       "fixtureIds": [
         "second-pc-synthetic-grid"
       ],
       "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
-      "date": "2026-10-25T12:49:43.537Z",
-      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
-      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": "Inspected1.1.1 installer upgraded the synthetic test-installed1.1.0: exit0,149 payload matches, one1.1.1 registration, one shortcut per location,3191 original profile files unchanged before first launch, library absence preserved. Native launch/About/local notes1.1.1 passed.",
-      "checks": [],
-      "artifacts": [
-        ".planning/tmp/20-rebuild-20261025/installation.json",
-        ".planning/tmp/20-rebuild-20261025/installed-payload.json",
-        ".planning/tmp/20-rebuild-20261025/001-native-launch.json",
-        ".planning/tmp/20-rebuild-20261025/084-about-scroll-actions150.json"
+      "date": "2026-10-25T17:05:15.6850996Z",
+      "procedure": ".planning/phases/20-production-readiness/20-CLOSEOUT.md",
+      "expected": "Zero CLMC registration/executable/profile before candidate install; exact payload, one registration and shortcut per location, native launch/About/local notes1.1.1; preserved original profile.",
+      "actual": "Removed only the disposable test installation (exit0), verified all3191 retained profile files, then moved original profile aside without deletion. Recorded zero registration/executable/profile before exact1.1.1 install (exit0).149 payload files match; one1.1.1 registration, one Desktop and one Start-menu shortcut. Fresh native launch was empty with no recovery offer; About/local notes1.1.1 and Escape/focus return observed. After testing, original3191-file profile restored byte-for-byte; disposable synthetic profile preserved separately.",
+      "checks": [
+        {
+          "metric": "pre-install registrations",
+          "expected": 0,
+          "actual": 0,
+          "tolerance": 0
+        },
+        {
+          "metric": "pre-install executable present",
+          "expected": false,
+          "actual": false,
+          "tolerance": 0
+        },
+        {
+          "metric": "pre-install profile present",
+          "expected": false,
+          "actual": false,
+          "tolerance": 0
+        },
+        {
+          "metric": "installer exit",
+          "expected": 0,
+          "actual": 0,
+          "tolerance": 0
+        },
+        {
+          "metric": "payload matches",
+          "expected": 149,
+          "actual": 149,
+          "tolerance": 0
+        },
+        {
+          "metric": "registrations",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "About version",
+          "expected": "1.1.1",
+          "actual": "1.1.1",
+          "tolerance": 0
+        },
+        {
+          "metric": "Desktop shortcuts",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "Start-menu shortcuts",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "restored original profile files",
+          "expected": 3191,
+          "actual": 3191,
+          "tolerance": 0
+        },
+        {
+          "metric": "restored original hashes match",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        }
       ],
-      "reason": "This is an observed test upgrade, not a fresh1.1.1 installation on an unregistered target."
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/fresh-install.json",
+        ".planning/tmp/20-completion-20261026/clean-install-precondition.json",
+        ".planning/tmp/20-completion-20261026/fresh-installed-payload.json",
+        ".planning/tmp/20-completion-20261026/059-fresh-profile-launch.json",
+        ".planning/tmp/20-completion-20261026/061-fresh-about.json",
+        ".planning/tmp/20-completion-20261026/062-fresh-about-escape.json",
+        ".planning/tmp/20-completion-20261026/profile-restoration.json"
+      ],
+      "reason": null
     },
     {
       "id": "actual-predecessor-upgrade",
@@ -124,16 +221,61 @@
         "second-pc-synthetic-grid"
       ],
       "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
-      "date": "2026-10-25T12:49:43.537Z",
-      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
+      "date": "2026-10-25T17:26:23.600Z",
+      "procedure": ".planning/phases/20-production-readiness/20-CLOSEOUT.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": "Original synthetic project opened from embedded PDF with no library before or after upgrade. Six quantities10/100/100/40/30/1 and740/962/222 retained; saved copies pass independent ZIP/PDF/geometry/scales/order/visibility/rates arithmetic.",
-      "checks": [],
+      "actual": "Original synthetic project opened from embedded PDF with no library before or after upgrade. Six quantities10/100/100/40/30/1 and740/962/222 retained; saved copies pass independent ZIP/PDF/geometry/scales/order/visibility/rates arithmetic. Continued fresh profile opened a folder containing only portable.clmc, no PDF/library; six quantities and740/962/222 unchanged. Invalid library rejected; valid two-row import into empty disposable profile did not reprice existing project. Only explicit compatible m row applied to Grid length; incompatible ea row disabled. Separately saved project retains exact PDF/geometry/order/visibility and all other rates; cost10590/selling13767/margin3177 independently verified.",
+      "checks": [
+        {
+          "metric": "portable source SHA256",
+          "expected": "c8a466c0886ad40fb792771646b7d64f8dd7af6da26909a665ffdfa291d156cb",
+          "actual": "c8a466c0886ad40fb792771646b7d64f8dd7af6da26909a665ffdfa291d156cb",
+          "tolerance": 0
+        },
+        {
+          "metric": "embedded PDF unchanged",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "library application other rates unchanged",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "explicit application cost",
+          "expected": 10590,
+          "actual": 10590,
+          "tolerance": 0
+        },
+        {
+          "metric": "explicit application selling",
+          "expected": 13767,
+          "actual": 13767,
+          "tolerance": 0
+        },
+        {
+          "metric": "explicit application margin",
+          "expected": 3177,
+          "actual": 3177,
+          "tolerance": 0
+        }
+      ],
       "artifacts": [
         ".planning/tmp/20-rebuild-20261025/006-baseline-loaded.json",
         ".planning/tmp/20-rebuild-20261025/015-positive-fit-after-estimate100.json",
         ".planning/tmp/20-rebuild-20261025/independent-readback.json",
-        ".planning/tmp/20-rebuild-20261025/fixture-provenance.json"
+        ".planning/tmp/20-rebuild-20261025/fixture-provenance.json",
+        ".planning/tmp/20-completion-20261026/069-portable-grid-ready.json",
+        ".planning/tmp/20-completion-20261026/070-clean-profile-estimate.json",
+        ".planning/tmp/20-completion-20261026/076-invalid-library-error-ready.json",
+        ".planning/tmp/20-completion-20261026/081-valid-library-preview.json",
+        ".planning/tmp/20-completion-20261026/082-library-import-committed.json",
+        ".planning/tmp/20-completion-20261026/085-rate-picker-ready.json",
+        ".planning/tmp/20-completion-20261026/091-library-project-copy-saved.json",
+        ".planning/tmp/20-completion-20261026/library-project-readback.json"
       ],
       "reason": "One-page straight synthetic fixture does not close mixed-scale/arc and wider portable-project variants."
     },
@@ -165,20 +307,101 @@
     },
     {
       "id": "recovery-never-saved",
-      "status": "pending",
+      "status": "pass",
       "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
       "machineId": "second-pc-laptop-5bam24nm",
       "fixtureIds": [
         "second-pc-synthetic-grid"
       ],
       "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
-      "date": "2026-10-25T12:49:43.537Z",
-      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
-      "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
-      "checks": [],
-      "artifacts": [],
-      "reason": "This full required case has not been rerun against1.1.1. Prior1.1.0 results are historical, not carried as acceptance of new bytes."
+      "date": "2026-10-25T17:26:23.600Z",
+      "procedure": ".planning/phases/20-production-readiness/20-CLOSEOUT.md",
+      "expected": "Completed never-saved snapshot revision6 contains embedded PDF/calibration/one count/material100, labor0, markup30%; after interruption and source removal, offer correct capture time, keep across restart, restore dirty, Save As to a separate valid project; cost100/selling130/margin30.",
+      "actual": "Natively loaded/calibrated/marked/priced disposable PDF without a project save. Completed snapshot at2026-10-25T16:55:16.960Z (26Oct00:55:16Manila), revision6, sourcePath/lastSavedAt null, PDF hash verified. Interrupted only verified test main PID22340, renamed disposable source unavailable. Correct never-saved/time offer; Keep for Later survived normal close/restart. Recover restored embedded PDF, exact captured calibration/one count and dirty state with100/130/30. Ctrl+S opened native Save As; separate save completed clean. Independent actual ZIP/PDF/geometry/calibration/order/rate readback passed. That same saved project was later intentionally repriced101/102/103 for fault tests; final readback clearly records103, while initial100 observation is preserved in032.",
+      "checks": [
+        {
+          "metric": "captured revision",
+          "expected": 6,
+          "actual": 6,
+          "tolerance": 0
+        },
+        {
+          "metric": "captured PDF SHA256",
+          "expected": "9c0bc7b6f133905fc62b7dff8abec2e78c0beb078f3ddcdddb57c157ed025e10",
+          "actual": "9c0bc7b6f133905fc62b7dff8abec2e78c0beb078f3ddcdddb57c157ed025e10",
+          "tolerance": 0
+        },
+        {
+          "metric": "source PDF absent during restore",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "captured scale preserved",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "recovered count",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "recovered cost",
+          "expected": 100,
+          "actual": 100,
+          "tolerance": 0
+        },
+        {
+          "metric": "recovered selling",
+          "expected": 130,
+          "actual": 130,
+          "tolerance": 0
+        },
+        {
+          "metric": "recovered margin",
+          "expected": 30,
+          "actual": 30,
+          "tolerance": 0
+        },
+        {
+          "metric": "kept copy offered after restart",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "never-saved save routes to Save As",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "separate recovered save completed",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/never-saved-exact.json",
+        ".planning/tmp/20-completion-20261026/never-saved-embedded.pdf",
+        ".planning/tmp/20-completion-20261026/never-saved-interruption.json",
+        ".planning/tmp/20-completion-20261026/022-never-saved-recovery-offer.json",
+        ".planning/tmp/20-completion-20261026/023-keep-for-later.json",
+        ".planning/tmp/20-completion-20261026/024-kept-copy-offered-again.json",
+        ".planning/tmp/20-completion-20261026/026-recovered-plan-ready.json",
+        ".planning/tmp/20-completion-20261026/027-recovered-count-estimate.json",
+        ".planning/tmp/20-completion-20261026/029-recovered-save-picker-ready.json",
+        ".planning/tmp/20-completion-20261026/032-saved-estimate-settled.json",
+        ".planning/tmp/20-completion-20261026/readback.cjs",
+        ".planning/tmp/20-completion-20261026/readback.json"
+      ],
+      "reason": null,
+      "qualification": "Manual calibration persistence is verified. The selected span differs about0.1786% from the exact grid; this is not a0.1% representative landmark-accuracy pass. No changes after the completed revision6 are claimed recovered."
     },
     {
       "id": "failed-save-backup",
@@ -189,20 +412,81 @@
         "second-pc-synthetic-grid"
       ],
       "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
-      "date": "2026-10-25T12:49:43.537Z",
-      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
+      "date": "2026-10-25T17:26:23.600Z",
+      "procedure": ".planning/phases/20-production-readiness/20-CLOSEOUT.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": "First new Save As after previously failing trigger now succeeds with valid positive viewport and no workaround.150% legacy upgraded copy and later replacement save also succeed; adjacent backup SHA exactly equals immediately preceding project. Independent readback preserves quantities/rates/totals. Full automated suites, including atomic/save protection, pass with actual locked yauzl3.4.0.",
-      "checks": [],
+      "actual": "First new Save As after previously failing trigger now succeeds with valid positive viewport and no workaround.150% legacy upgraded copy and later replacement save also succeed; adjacent backup SHA exactly equals immediately preceding project. Independent readback preserves quantities/rates/totals. Full automated suites, including atomic/save protection, pass with actual locked yauzl3.4.0. Continued1.1.1 native fault tests: locked only disposable backup, observed persistent EPERM/dirty102/132.60/30.60; primary and backup unchanged and temporary files0. Save As cancellation retained error/dirty work. Released lock, Try Again saved102 and backup matched prior101. Locked only primary, observed final replacement EPERM/dirty103/133.90/30.90; original102 unchanged and validated backup held last-good102; temporary files0. Released lock, Try Again saved103. Opened actual .bak detached/dirty, Ctrl+S routed separate Save As; saved backup copy read back exact102 geometry/rates. Neither lock remains.",
+      "checks": [
+        {
+          "metric": "backup failure original unchanged",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "backup failure backup unchanged",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "backup failure staging remnants",
+          "expected": 0,
+          "actual": 0,
+          "tolerance": 0
+        },
+        {
+          "metric": "replacement failure primary unchanged",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "replacement failure backup is last good",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "replacement failure staging remnants",
+          "expected": 0,
+          "actual": 0,
+          "tolerance": 0
+        },
+        {
+          "metric": "unlocked retry succeeds",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "detached backup saves separately",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        }
+      ],
       "artifacts": [
         ".planning/tmp/20-rebuild-20261025/019-fixed-first-save-success.json",
         ".planning/tmp/20-rebuild-20261025/063-upgraded-copy-saved150.json",
         ".planning/tmp/20-rebuild-20261025/068-viewport-replacement-save150.json",
         ".planning/tmp/20-rebuild-20261025/replacement-backup111.json",
         ".planning/tmp/20-rebuild-20261025/independent-readback.json",
-        ".planning/tmp/20-rebuild-20261025/full-tests-storage-disabled.json"
+        ".planning/tmp/20-rebuild-20261025/full-tests-storage-disabled.json",
+        ".planning/tmp/20-completion-20261026/040-backup-failure-persistent.json",
+        ".planning/tmp/20-completion-20261026/043-failure-save-picker.json",
+        ".planning/tmp/20-completion-20261026/044-failure-save-as-cancelled.json",
+        ".planning/tmp/20-completion-20261026/046-retry102-complete.json",
+        ".planning/tmp/20-completion-20261026/049-primary-replacement-failure.json",
+        ".planning/tmp/20-completion-20261026/050-primary-unlocked-retry.json",
+        ".planning/tmp/20-completion-20261026/054-backup-detached-ready.json",
+        ".planning/tmp/20-completion-20261026/056-detached-copy-picker.json",
+        ".planning/tmp/20-completion-20261026/058-detached-copy-saved.json",
+        ".planning/tmp/20-completion-20261026/backup-lock-preservation.json",
+        ".planning/tmp/20-completion-20261026/primary-lock-preservation.json",
+        ".planning/tmp/20-completion-20261026/readback.json"
       ],
-      "reason": "Actual installed lock/error/cancel/detached-backup and first-failure permutations from1.1.0 were not all repeated for new bytes."
+      "reason": "Installed backup/replacement lock, retry, Save As cancellation and detached-backup permutations now observed. Actual installed first-save write failure and complete failure/close/save-copy permutations remain unobserved; automated fault coverage is supplemental."
     },
     {
       "id": "offline-workflow",
@@ -213,10 +497,10 @@
         "second-pc-synthetic-grid"
       ],
       "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
-      "date": "2026-10-25T12:49:43.537Z",
-      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
+      "date": "2026-10-25T17:26:23.600Z",
+      "procedure": ".planning/phases/20-production-readiness/20-CLOSEOUT.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": "Native installed XLSX/CSV exports at150% passed independent six-row quantities/cost/selling/margin and740/962/222 grand-total checks. Isolated packaged smoke also passed real PDF worker/preload/save/reopen/library child import/internal exports with no observed external requests.",
+      "actual": "Native installed XLSX/CSV exports at150% passed independent six-row quantities/cost/selling/margin and740/962/222 grand-total checks. Isolated packaged smoke also passed real PDF worker/preload/save/reopen/library child import/internal exports with no observed external requests. Native clean-profile invalid/valid library import and explicit compatible application with other snapshots unchanged also pass; separate saved readback totals10590/13767/3177.",
       "checks": [],
       "artifacts": [
         ".planning/tmp/20-rebuild-20261025/072-native-xlsx-written.json",
@@ -224,7 +508,8 @@
         ".planning/tmp/20-rebuild-20261025/retest-111.xlsx",
         ".planning/tmp/20-rebuild-20261025/retest-111.csv",
         ".planning/tmp/20-rebuild-20261025/exports-readback.json",
-        ".planning/tmp/20-rebuild-20261025/packaged-smoke.json"
+        ".planning/tmp/20-rebuild-20261025/packaged-smoke.json",
+        ".planning/tmp/20-completion-20261026/library-project-readback.json"
       ],
       "reason": "Network remained connected. No full disconnected five-tool/library/unit-switch acceptance. Scripted packaged smoke is separate from native installed evidence."
     },
@@ -234,16 +519,47 @@
       "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
       "machineId": "second-pc-laptop-5bam24nm",
       "fixtureIds": [
-        "second-pc-synthetic-grid"
+        "public-worldbank-guidance"
       ],
       "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
-      "date": "2026-10-25T12:49:43.537Z",
-      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
+      "date": "2026-10-25T17:26:23.600Z",
+      "procedure": ".planning/phases/20-production-readiness/20-CLOSEOUT.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
-      "checks": [],
-      "artifacts": [],
-      "reason": "User has no approved representative construction-plan PDFs. The synthetic grid does not substitute."
+      "actual": "Opened public World Bank housing guidance PDF31,148,266bytes/150pages. Native pages1→2→3→2 rendered with correct page labels, zoom46/70/75% positive; Save As and reopen returned page2, followed by positive70% refit/replacement save. Independent ZIP CRC/PDF SHA/currentPage2 readback passed. Read-only process snapshot retained (692002816bytes summed working set,612438016 private); this is not a raster-cache budget measurement. No visible failure during this limited sequence.",
+      "checks": [
+        {
+          "metric": "public PDF pages",
+          "expected": 150,
+          "actual": 150,
+          "tolerance": 0
+        },
+        {
+          "metric": "public embedded PDF hash",
+          "expected": "2ea6a6d4aac062b5f0b9cc3447347e8e6270cf1df9edda42a7ffca4541f3a633",
+          "actual": "2ea6a6d4aac062b5f0b9cc3447347e8e6270cf1df9edda42a7ffca4541f3a633",
+          "tolerance": 0
+        },
+        {
+          "metric": "saved current page",
+          "expected": 2,
+          "actual": 2,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/095-worldbank-rendered.json",
+        ".planning/tmp/20-completion-20261026/096-worldbank-page2.json",
+        ".planning/tmp/20-completion-20261026/097-worldbank-page3.json",
+        ".planning/tmp/20-completion-20261026/098-worldbank-return-page2.json",
+        ".planning/tmp/20-completion-20261026/099-worldbank-zoom.json",
+        ".planning/tmp/20-completion-20261026/107-worldbank-saved.json",
+        ".planning/tmp/20-completion-20261026/111-worldbank-reopen-ready.json",
+        ".planning/tmp/20-completion-20261026/113-worldbank-replacement-saved.json",
+        ".planning/tmp/20-completion-20261026/public-project-readback.json",
+        ".planning/tmp/20-completion-20261026/public-plans/process-memory.json",
+        ".planning/tmp/20-completion-20261026/public-plans/provenance.json"
+      ],
+      "reason": "Public guidance is exploratory, not approved representative large-vector construction-plan accuracy evidence. Sustained rapid navigation, mixed-scale/markup association, independent landmark values, extreme zoom/reopen and memory settling remain required."
     },
     {
       "id": "large-scan",
@@ -251,16 +567,48 @@
       "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
       "machineId": "second-pc-laptop-5bam24nm",
       "fixtureIds": [
-        "second-pc-synthetic-grid"
+        "public-portland-site-plan"
       ],
       "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
-      "date": "2026-10-25T12:49:43.537Z",
-      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
+      "date": "2026-10-25T17:26:23.600Z",
+      "procedure": ".planning/phases/20-production-readiness/20-CLOSEOUT.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
-      "checks": [],
-      "artifacts": [],
-      "reason": "User has no approved representative construction-plan PDFs. The synthetic grid does not substitute."
+      "actual": "Public Portland municipal sample3,494,493bytes/1page contains2200x3400 raster plus vector/text. Native initial23%, explicitFit35%, zoom50% rendered readable plan matching Poppler reference; separate Save As completed. Raster-bearing source is not classified as an actual scanned plan without provenance.",
+      "checks": [
+        {
+          "metric": "public sample pages",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "largest embedded image width",
+          "expected": 2200,
+          "actual": 2200,
+          "tolerance": 0
+        },
+        {
+          "metric": "largest embedded image height",
+          "expected": 3400,
+          "actual": 3400,
+          "tolerance": 0
+        },
+        {
+          "metric": "native zoom percent",
+          "expected": 50,
+          "actual": 50,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/117-portland-rendered.json",
+        ".planning/tmp/20-completion-20261026/118-portland-fit.json",
+        ".planning/tmp/20-completion-20261026/119-portland-zoom50.json",
+        ".planning/tmp/20-completion-20261026/124-portland-saved.json",
+        ".planning/tmp/20-completion-20261026/public-plans/provenance.json",
+        ".planning/tmp/20-completion-20261026/public-plans/portland-reference.png"
+      ],
+      "reason": "Approved representative high-resolution scanned construction plan, known measurements through registration/pan/reopen and sustained performance evidence remain unavailable."
     },
     {
       "id": "multipage-navigation",
@@ -268,16 +616,47 @@
       "candidateSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
       "machineId": "second-pc-laptop-5bam24nm",
       "fixtureIds": [
-        "second-pc-synthetic-grid"
+        "public-worldbank-guidance"
       ],
       "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
-      "date": "2026-10-25T12:49:43.537Z",
-      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
+      "date": "2026-10-25T17:26:23.600Z",
+      "procedure": ".planning/phases/20-production-readiness/20-CLOSEOUT.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": null,
-      "checks": [],
-      "artifacts": [],
-      "reason": "User has no approved representative construction-plan PDFs. The synthetic grid does not substitute."
+      "actual": "Opened public World Bank housing guidance PDF31,148,266bytes/150pages. Native pages1→2→3→2 rendered with correct page labels, zoom46/70/75% positive; Save As and reopen returned page2, followed by positive70% refit/replacement save. Independent ZIP CRC/PDF SHA/currentPage2 readback passed. Read-only process snapshot retained (692002816bytes summed working set,612438016 private); this is not a raster-cache budget measurement. No visible failure during this limited sequence.",
+      "checks": [
+        {
+          "metric": "public PDF pages",
+          "expected": 150,
+          "actual": 150,
+          "tolerance": 0
+        },
+        {
+          "metric": "public embedded PDF hash",
+          "expected": "2ea6a6d4aac062b5f0b9cc3447347e8e6270cf1df9edda42a7ffca4541f3a633",
+          "actual": "2ea6a6d4aac062b5f0b9cc3447347e8e6270cf1df9edda42a7ffca4541f3a633",
+          "tolerance": 0
+        },
+        {
+          "metric": "saved current page",
+          "expected": 2,
+          "actual": 2,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/095-worldbank-rendered.json",
+        ".planning/tmp/20-completion-20261026/096-worldbank-page2.json",
+        ".planning/tmp/20-completion-20261026/097-worldbank-page3.json",
+        ".planning/tmp/20-completion-20261026/098-worldbank-return-page2.json",
+        ".planning/tmp/20-completion-20261026/099-worldbank-zoom.json",
+        ".planning/tmp/20-completion-20261026/107-worldbank-saved.json",
+        ".planning/tmp/20-completion-20261026/111-worldbank-reopen-ready.json",
+        ".planning/tmp/20-completion-20261026/113-worldbank-replacement-saved.json",
+        ".planning/tmp/20-completion-20261026/public-project-readback.json",
+        ".planning/tmp/20-completion-20261026/public-plans/process-memory.json",
+        ".planning/tmp/20-completion-20261026/public-plans/provenance.json"
+      ],
+      "reason": "Public guidance is exploratory, not approved representative large-vector construction-plan accuracy evidence. Sustained rapid navigation, mixed-scale/markup association, independent landmark values, extreme zoom/reopen and memory settling remain required."
     },
     {
       "id": "scaling-100",
@@ -398,10 +777,10 @@
         "second-pc-synthetic-grid"
       ],
       "tester": "Codex, driving the exact installed candidate on user-confirmed second PC",
-      "date": "2026-10-25T12:49:43.537Z",
-      "procedure": ".planning/phases/20-production-readiness/20-REBUILD-RETEST.md",
+      "date": "2026-10-25T17:26:23.600Z",
+      "procedure": ".planning/phases/20-production-readiness/20-CLOSEOUT.md",
       "expected": "Execute the named case against approved fixtures and independent expected values in docs/release-validation.md.",
-      "actual": "Repaired open-from-Estimate/valid save/recovery at100/125/150%.150% legacy export gating and acknowledgement, original-preserving upgrade copy, native XLSX/CSV dialogs, About1.1.1 local fix note/scroll/reachable Close/Escape focus return observed. No recurrence of negative zoom or recovery/save error.",
+      "actual": "Repaired open-from-Estimate/valid save/recovery at100/125/150%.150% legacy export gating and acknowledgement, original-preserving upgrade copy, native XLSX/CSV dialogs, About1.1.1 local fix note/scroll/reachable Close/Escape focus return observed. No recurrence of negative zoom or recovery/save error. Continued native tests cover fresh zero-candidate launch, About/Escape/focus return, one-candidate Keep for Later across restart/recover busy state, persistent save error/busy/Save As cancel/retry, detached-backup Save As, empty library/loading/invalid/valid preview/replacement/Escape, incompatible unit disabled and explicit compatible apply.",
       "checks": [],
       "artifacts": [
         ".planning/tmp/20-rebuild-20261025/055-positive-legacy-fit150.json",
@@ -409,9 +788,19 @@
         ".planning/tmp/20-rebuild-20261025/059-legacy-save-copy-guard111.json",
         ".planning/tmp/20-rebuild-20261025/063-upgraded-copy-saved150.json",
         ".planning/tmp/20-rebuild-20261025/084-about-scroll-actions150.json",
-        ".planning/tmp/20-rebuild-20261025/085-about-escape-focus-return.json"
+        ".planning/tmp/20-rebuild-20261025/085-about-escape-focus-return.json",
+        ".planning/tmp/20-completion-20261026/062-fresh-about-escape.json",
+        ".planning/tmp/20-completion-20261026/024-kept-copy-offered-again.json",
+        ".planning/tmp/20-completion-20261026/025-never-saved-recovered.json",
+        ".planning/tmp/20-completion-20261026/041-failure-focus-wrap.json",
+        ".planning/tmp/20-completion-20261026/044-failure-save-as-cancelled.json",
+        ".planning/tmp/20-completion-20261026/072-library-empty-ready.json",
+        ".planning/tmp/20-completion-20261026/076-invalid-library-error-ready.json",
+        ".planning/tmp/20-completion-20261026/081-valid-library-preview.json",
+        ".planning/tmp/20-completion-20261026/083-library-close-after-import.json",
+        ".planning/tmp/20-completion-20261026/library-project-readback.json"
       ],
-      "reason": "Many-candidate/repeated keep/discard, large-library and full keyboard/overflow permutations were not all rerun on1.1.1. The original defect is resolved by exact-candidate scoped evidence, not full UI-case acceptance."
+      "reason": "Remaining1.1.1 many-candidate/discard confirmation, large-library/long-content and full keyboard/overflow permutations are incomplete. Scoped controls pass; full UI case remains pending."
     }
   ],
   "developerEvidence": [
@@ -632,8 +1021,8 @@
       "reason": "Flagged unclassified edge assumption remains open for actual evidence and independent review."
     }
   ],
-  "scope": "Fixed1.1.1 built, inspected, smoke-tested, installed and targeted regressions retested on the physically distinct user-confirmed second PC. All16 full acceptance cases remain pending their complete new-candidate requirements; scoped passing results recorded explicitly. No known recurrence of the1.1.0 hidden-fit defect in this retest. No Phase21 pilot/distribution acceptance.",
-  "blockedBy": "Remaining exact1.1.1 full installed case coverage and external evidence: fresh install, actual deployed predecessor, wider portability, recovery/save/UI permutations, disconnected workflow, representative vector/scan/multipage, full physical landmark matrix and monitor transition; named release/signing/share/dependency/stability and REL edge reviews.",
+  "scope": "Exact1.1.1 candidate continued on user-confirmed second PC: fresh-install and recovery-never-saved full cases pass;14 full cases remain pending with concrete scoped regression/fault/library/public-PDF results. User self-identified release owner; location/signing and actual evidence/reviews remain open. No Phase21 acceptance/distribution.",
+  "blockedBy": "Actual deployed predecessor/disposition; wider mixed-scale/arc transfer; saved-recovery/discard and first-save/UI permutations; network-unavailable full workflow; approved representative vector/scan/multipage accuracy/performance; full physical landmark/pan/reopen matrix,200%/monitor limitation reviews; release location/signing/dependency/stability and REL edge reviews.",
   "licenseReview": {
     "status": "pending-release-review",
     "package": "buffers@0.1.1",
@@ -736,5 +1125,41 @@
       "report": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
       "result": "Four passed, three failed and nine pending on exact1.1.0 candidate. Historical results remain bound to that hash."
     }
-  ]
+  ],
+  "secondPcContinuation": {
+    "date": "2026-10-25T17:26:23.600Z",
+    "machineId": "second-pc-laptop-5bam24nm",
+    "report": ".planning/phases/20-production-readiness/20-CLOSEOUT.md",
+    "rawDirectory": ".planning/tmp/20-completion-20261026/",
+    "profileRestoration": ".planning/tmp/20-completion-20261026/profile-restoration.json",
+    "passedFullCases": [
+      "fresh-install",
+      "recovery-never-saved"
+    ],
+    "pendingFullCases": [
+      "actual-predecessor-upgrade",
+      "project-only-transfer",
+      "recovery-saved",
+      "failed-save-backup",
+      "offline-workflow",
+      "large-vector",
+      "large-scan",
+      "multipage-navigation",
+      "scaling-100",
+      "scaling-125",
+      "scaling-150",
+      "scaling-200",
+      "monitor-transition",
+      "ui-keyboard-overflow"
+    ],
+    "scope": "Native Windows UI, actual installer/OS file locks and independent actual project/PDF readback; same candidate bytes, no production-source changes.",
+    "qualifications": [
+      "Network remained connected; no native disconnected-workflow acceptance.",
+      "Supported Sky drag has no middle-button/held-Space option; no native pan success claimed or unsupported control API used.",
+      "Public fixtures have reproducible official provenance but no external representative-plan/measurement approval.",
+      "Initial full forward-slash path was rejected by Windows native save picker; corrected to Windows backslashes. App save then succeeded; this is not an injected application first-save write failure.",
+      "Library test oracle initially expected a library-item reference; actual format stores detached numeric rate snapshots. Corrected readback expectation to reviewed rates and reran successfully; application code unchanged.",
+      "Restored all3191 original profile files after preserving disposable profile; no new recovery candidate was deliberately discarded."
+    ]
+  }
 }

@@ -1,6 +1,8 @@
-# CLMC Takeoff 1.1.0 compatibility and rollback
+# CLMC Takeoff 1.1.1 compatibility and rollback
 
-This is an internal review candidate for Windows x64. The full offline, per-user NSIS installer is `clmc-takeoff-1.1.0-x64-setup.exe`. Its exact SHA-256 and inventory are in `dist/release-manifest.json`. Core work uses local packaged resources; no update service is configured. Builds are unsigned: actual publisher/signing owner and approval of the internal handoff remain pending. Never identify an unsigned installer as signed.
+This is an internal review candidate for Windows x64. The full offline, per-user NSIS installer is `clmc-takeoff-1.1.1-x64-setup.exe`. Its exact SHA-256 and inventory are in `dist/release-manifest.json`. Core work uses local packaged resources; no update service is configured. Builds are unsigned: actual publisher/signing owner and approval of the internal handoff remain pending. Never identify an unsigned installer as signed.
+
+The [current second-PC continuation](../.planning/phases/20-production-readiness/20-CLOSEOUT.md) records fresh installation and never-saved recovery passes, additional scoped native tests and restoration of all 3191 original profile files. Fourteen complete cases remain pending. The prior 1.1.0 trial kit is historical; use the exact current manifest/candidate for continued testing.
 
 ## Projects and formats
 
@@ -36,7 +38,7 @@ Format 3 includes the PDF, scales, geometry, order, visibility and applied price
 
 ## Internal handoff boundary
 
-The release owner must record an approved read-only installer location, hash manifest, prior installer retention, publisher/signing policy, and a rollback contact. These actual share/publisher/signing-owner/contact fields are **pending**, not invented. Dependency notices preserve installed metadata and supplied license/readme text; upstream `buffers@0.1.1` supplies no license declaration in the installed package and remains an explicit release review item.
+The user identified themselves as release owner on 26 October 2026 and will provide the installer location. The release owner must record an approved read-only installer location, hash manifest, prior installer retention, publisher/signing policy, and a rollback contact. These actual share/publisher/signing-owner/contact fields remain **pending**. Dependency notices preserve installed metadata and supplied license/readme text; upstream `buffers@0.1.1` supplies no license declaration in the installed package and remains an explicit release review item.
 
 Approximately twelve PCs are planned for manual upgrades. Phase 21 owns the complete offline user guide/worked example, named maintainer turnover, real two-user/two-PC pilot acceptance and remaining-ten distribution. This candidate and developer-host smoke do not establish pilot, deployment or non-development-PC acceptance.
 # Review safeguards added during final verification

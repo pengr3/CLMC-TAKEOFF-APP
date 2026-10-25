@@ -9,3 +9,4 @@ out
 # Local second-PC evidence includes a preserved app-data profile; keep it private.
 /.planning/tmp/20-second-pc-20261025/
 /.planning/tmp/20-rebuild-20261025/
+/.planning/tmp/20-completion-20261026/

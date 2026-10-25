@@ -66,6 +66,8 @@ coverage:
 
 # Phase 20 Plan 09: Windows Candidate and Evidence Checkpoint Summary
 
+**Current continuation, 26 October 2026:** Exact1.1.1 candidate `f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e` is installed on user-confirmed second PC LAPTOP-5BAM24NM. Fresh installation and never-saved recovery pass as complete cases; fourteen remain pending with further native fault/library/public-PDF scoped evidence. Original3191-file profile restored byte-for-byte; app remains installed/closed, original scaling/topology retained. User identified themselves as release owner; location/signing and named review decisions remain pending. See [20-CLOSEOUT.md](20-CLOSEOUT.md), [20-REBUILD-RETEST.md](20-REBUILD-RETEST.md) and [current evidence](20-INSTALLED-EVIDENCE.json). **20-09-03 remains open; Phase20/REL acceptance and Phase21 pilot/distribution are not claimed.** The candidate table and initial task history below describe the original1.1.0 checkpoint.
+
 **An actual unsigned 1.1.0 offline Windows installer passes payload inspection and hidden packaged smoke; real installed non-development-PC acceptance remains blocked on external evidence.**
 
 ## Candidate

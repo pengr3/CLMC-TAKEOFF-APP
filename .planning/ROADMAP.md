@@ -755,7 +755,7 @@ Plans:
 4. Define and implement minimal backup/recovery behavior, including interrupted/failed saves and recoverable unsaved work; document compatibility and safe rollback limits.
 5. Installed app works offline through PDF→calibration→markup→Estimate→export; representative large/multi-page PDFs and Windows scaling preserve accurate coordinates. Resolve client-versus-internal export audience before any export scope expansion.
 
-**Plans:**8/9 plans complete;20-09 artifact work complete, actual installed evidence pending
+**Plans:**8/9 plans complete;20-09 artifact work complete, actual installed evidence pending (current1.1.1:2/16 complete cases pass,14 pending; see [26October continuation](phases/20-production-readiness/20-CLOSEOUT.md))
 
 Plans:
 **Wave 1**

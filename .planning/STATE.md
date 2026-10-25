@@ -5,8 +5,8 @@ current_phase: 20
 current_phase_name: Production Readiness
 status: in_progress
 stopped_at: Phase 21-01/02 preparation complete; 21-03-01 awaiting actual Phase 20 acceptance and demonstrated named owners
-last_updated: "2026-10-25T12:52:00Z"
-last_activity: 2026-10-25
+last_updated: "2026-10-25T17:27:46.039Z"
+last_activity: 2026-10-26
 state_head: c8baf56
 progress:
   total_phases: 25
@@ -37,9 +37,9 @@ milestone_name: milestone
 Phase: 20 (Production Readiness) — VERIFYING
 Plan: 9 of 9 —20-01 through20-08 complete;20-09 tasks01/02 complete,task03 external evidence pending
 
-Next action: Continue remaining full1.1.1 installed case requirements and named reviews. The hidden-canvas defect is resolved in exact installed candidate f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e (ASAR b2c338423e5edff1daab0d32bb74ae1a97edbabce1137453cf2ad153921e8c98). Build/inspection/isolated packaged smoke pass,149 installed payload matches and3191 profile files unchanged by upgrade. Native original triggers at physical100/125/150%, first save, periodic capture/restart/restore/separate recovery save, legacy review/upgraded copy, replacement backup and native XLSX/CSV independent readback pass scoped retests. All1238 tests pass with inherited Node25 storage compatibility flag; both TypeScript checks pass,15 existing lint errors remain. Locked Electron44.9.3/yauzl3.4.0 restored; no test alias. All16 full acceptance cases reset pending for new bytes; prior1.1.0 results remain historical. Representative PDFs, actual deployed predecessor, disconnected full workflow, broader variants/full physical matrix/transition and named reviews remain open. See20-REBUILD-RETEST.md and current20-INSTALLED-EVIDENCE.json. Phase20 acceptance/REL-01..05 and Phase21 pilot/distribution remain unaccepted.
+Next action: Resume20-09-03 from20-CLOSEOUT.md. Exact installed1.1.1 candidate f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e now has2 complete cases PASS (fresh installation, never-saved recovery) and14 pending. Native backup/final-replacement lock failures preserve last-good data and retry successfully; detached backup saves separately; fresh-profile project/library safeguards and public150-page/raster-bearing PDF checks pass scoped observations. Original3191-file profile restored byte-for-byte; app remains installed/closed, library absent, original100%/Show only on2 retained. User identified themselves as release owner; location/signing decisions forthcoming. Remaining predecessor, broader variants, disconnected workflow, approved representative accuracy/performance, full physical/pan/UI matrix and named reviews remain required. Same candidate bytes/source: prior qualified1238/1238 tests, both TypeScript checks/build/inspection/smoke pass;15 existing lint errors remain. Phase20/REL acceptance and Phase21 pilot/distribution remain open.
 
-Last activity: 2026-10-25 - User authorized rebuild/install/retest. Built monotonic1.1.1 with source guard and updated local notes, repaired host dependency mismatch and platform cache without security changes, installed and drove native regression tests on LAPTOP-5BAM24NM. Saved recovery captured at20:31:50Manila restored rate107 and747/971.10/224.10; native exports preserved740/962/222. All original fixtures/profile preservation checks pass. Restored active display100%, retained user's Show only on2 topology and closed clean CLMC/Settings normally. Library remains absent. Raw evidence/private pre-upgrade profile are ignored in .planning/tmp/20-rebuild-20261025/; exact old1.1.0 kit/results preserved. Phase20 remains VERIFYING pending complete new-candidate matrix and external evidence/reviews.
+Last activity: 2026-10-26 - Continued authorized native second-PC testing on LAPTOP-5BAM24NM. Fresh1.1.1 installation from zero registration/executable/profile, exact149 payload matches and native About verified. Never-saved revision6 (26Oct00:55:16Manila) recovered exact embedded PDF/calibration/one count and100/130/30 with source absent, Keep across restart and Save As. Actual backup/primary locks, retry/cancel/detached-copy, library import/unit compatibility/snapshot pricing and publicPDF save/reopen readbacks observed. Restored and hash-verified all3191 original profile files; preserved disposable synthetic profile privately, no deletion. User is release owner; location/signing and remaining evidence reviews pending. See20-CLOSEOUT.md and20-INSTALLED-EVIDENCE.json; task03 not complete.
 
 ## Phase 21 preparation work order
 
