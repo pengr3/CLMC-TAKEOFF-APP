@@ -43,13 +43,8 @@ import {
   setArcStickyState
 } from '../lib/markup-arc-ref'
 import { setMarkupReopenHandler, getReopenSnapshot, setReopenSnapshot } from '../lib/markup-reopen-ref'
-import {
-  polylineLength,
-  polygonArea,
-  pixelLengthToReal,
-  pixelAreaToReal,
-  polygonCentroid
-} from '../lib/markup-math'
+import { polygonCentroid } from '../lib/markup-math'
+import { buildMarkupSummary } from '../lib/markup-summary'
 import { findSelfIntersectionArcAware } from '../lib/self-intersection'
 import { BlockedCommitMessage } from './BlockedCommitMessage'
 import { isMarkupTool } from '../types/viewer'
@@ -1872,29 +1867,6 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
   // New scaleStore doesn't store linePoints — reference line is omitted for new API
   // (could be added in a future phase when we want to persist the calibration line)
 
-  // Tooltip summary builder — count shows #sequence; linear/area/perimeter
-  // include the measurement when page is calibrated, name-only otherwise.
-  function buildMarkupSummary(m: Markup): string {
-    if (m.type === 'count') {
-      return `${m.name} — #${m.sequence}`
-    }
-    if (!pageScale || pageScale.pixelsPerMm <= 0) return m.name
-    const unit = pageScale.displayUnit
-    if (m.type === 'linear') {
-      const len = pixelLengthToReal(polylineLength(m.points), pageScale.pixelsPerMm, unit)
-      return `${m.name} — ${len.toFixed(1)} ${unit}`
-    }
-    if (m.type === 'area') {
-      const areaVal = pixelAreaToReal(polygonArea(m.points), pageScale.pixelsPerMm, unit)
-      return `${m.name} — ${areaVal.toFixed(1)} ${unit}²`
-    }
-    // perimeter
-    const closed = [...m.points, m.points[0]]
-    const perim = pixelLengthToReal(polylineLength(closed), pageScale.pixelsPerMm, unit)
-    const areaVal = pixelAreaToReal(polygonArea(m.points), pageScale.pixelsPerMm, unit)
-    return `${m.name} — P:${perim.toFixed(1)} ${unit}  A:${areaVal.toFixed(1)} ${unit}²`
-  }
-
   const hoveredMarkup: Markup | null =
     hoverState !== null
       ? (pageMarkups.find((mm) => mm.id === hoverState.id) ?? null)
@@ -2700,7 +2672,7 @@ function CanvasViewportComponent(props: CanvasViewportProps = {}) {
       {tooltipShown && hoverState && hoveredMarkup && (
         <MarkupTooltip
           screenPos={{ x: hoverState.x, y: hoverState.y }}
-          text={buildMarkupSummary(hoveredMarkup)}
+          text={buildMarkupSummary(hoveredMarkup, pageScale)}
         />
       )}
 

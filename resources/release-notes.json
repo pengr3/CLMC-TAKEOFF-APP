@@ -1,6 +1,7 @@
 {
-  "version": "1.1.4",
+  "version": "1.1.5",
   "changes": [
+    "Hover measurements include curved edges and show wall area consistently with the plan labels and Estimate.",
     "Cost Library keeps units, currency amounts and import errors readable when long item descriptions require scrolling.",
     "Scanned PDF plans using JPEG2000 images render with bundled offline decoder resources instead of opening as blank pages.",
     "Opening a project from Estimate waits for a visible canvas before fitting the plan, preventing invalid zoom from blocking project saves and recovery.",
