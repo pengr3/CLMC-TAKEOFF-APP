@@ -1,0 +1,798 @@
+{
+  "status": "pass",
+  "scope": "scripted-packaged-developer-host",
+  "date": "2026-10-26T00:50:22.009Z",
+  "machine": {
+    "classification": "development",
+    "hostname": "LAPTOP-5BAM24NM",
+    "windows": "10.0.22631",
+    "architecture": "x64",
+    "ramBytes": 16954851328
+  },
+  "candidate": {
+    "version": "1.1.5",
+    "executable": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\dist\\win-unpacked\\clmc-takeoff.exe",
+    "executableSha256": "2fe14419fdd7ca9673318acc0711625df7ee61c2e2c922fb229d5a0d53f4b7a7",
+    "archivePath": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\dist\\win-unpacked\\resources\\app.asar",
+    "archiveSha256": "1eb4ea722cb8383eef13644c4cec75c1086daa200e3fdb6ee6f4794e91a39519",
+    "installerPath": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\dist\\clmc-takeoff-1.1.5-x64-setup.exe",
+    "installerSha256": "6afc7812a98e22e84bb1b24342cc6fbd54b9ed6898b90c8de01aee30f3ea3379",
+    "expectedElectron": "44.9.3",
+    "unpackedFiles": [
+      {
+        "file": "chrome_100_percent.pak",
+        "bytes": 719654,
+        "sha256": "ab7c4b7b6cb8832a31d44b95ec50ce52294f49422a3bdde4e21968eca2930cbe"
+      },
+      {
+        "file": "chrome_200_percent.pak",
+        "bytes": 1269017,
+        "sha256": "30fa4a6e27c9ff2fb0f939f01158477e621a67d86e9ecb84cf11b3947db8eb9d"
+      },
+      {
+        "file": "clmc-takeoff.exe",
+        "bytes": 246906368,
+        "sha256": "2fe14419fdd7ca9673318acc0711625df7ee61c2e2c922fb229d5a0d53f4b7a7"
+      },
+      {
+        "file": "d3dcompiler_47.dll",
+        "bytes": 4741488,
+        "sha256": "a05f99734f7c4822fefc12b367af21fd0976ed6608752fb1e1e80b6ece7ecbbb"
+      },
+      {
+        "file": "dxcompiler.dll",
+        "bytes": 25745408,
+        "sha256": "44ee6e9c25c86cac9b5d776464749f5cb72cc5a0bb14f4ab4d699240ddbab003"
+      },
+      {
+        "file": "dxil.dll",
+        "bytes": 1509760,
+        "sha256": "77e039c905030a641e53658a008b74e90635a5ea9b6b79eabd0f2003bdfca59a"
+      },
+      {
+        "file": "ffmpeg.dll",
+        "bytes": 3113472,
+        "sha256": "1f8549b6788a643ec122cffb3016cce4bf194e07ff81ec327fc8aef6231809d6"
+      },
+      {
+        "file": "icudtl.dat",
+        "bytes": 10875024,
+        "sha256": "da53f0b69843aaa43315f0f210a67e4a874b0be338f3dae08ff57b8afe76ab0d"
+      },
+      {
+        "file": "LICENSE.electron.txt",
+        "bytes": 1096,
+        "sha256": "5154e165bd6c2cc0cfbcd8916498c7abab0497923bafcd5cb07673fe8480087d"
+      },
+      {
+        "file": "LICENSES.chromium.html",
+        "bytes": 20477229,
+        "sha256": "e6e6b1f9cb0f32235412be113de7716333e88121f9159a0ea0ff3be652021af7"
+      },
+      {
+        "file": "locales/af.pak",
+        "bytes": 636155,
+        "sha256": "3017b141bd16e24190d810f0748612f0fd4352ca8553002b9a63a7f77f7154f8"
+      },
+      {
+        "file": "locales/am.pak",
+        "bytes": 1029450,
+        "sha256": "67b938d162bc75db067120bb8366b5bafd9a75fa99a0ca9ad4f46b47d1d37634"
+      },
+      {
+        "file": "locales/ar.pak",
+        "bytes": 1130928,
+        "sha256": "560244ecff0d522b6fbf97693bdde0a318c5bc516615cb15751ee2527a6eb730"
+      },
+      {
+        "file": "locales/bg.pak",
+        "bytes": 1178203,
+        "sha256": "2eb9c74c67e4b13b45a73061fa978738e335bc245da71bab0ea9b205fe91074e"
+      },
+      {
+        "file": "locales/bn.pak",
+        "bytes": 1513545,
+        "sha256": "415621a5c0b1546e6e447d43b76414425a8703cc7681d637ec1f283ad0c787e7"
+      },
+      {
+        "file": "locales/ca.pak",
+        "bytes": 716908,
+        "sha256": "6f28297c1ccb628f534d65dade167ae559f83eace359acf47e48ff890b9409d5"
+      },
+      {
+        "file": "locales/cs.pak",
+        "bytes": 743351,
+        "sha256": "799a789ce531991cb975425730db310f9a8fe74091eee568f3e65fcc7ef0cd57"
+      },
+      {
+        "file": "locales/da.pak",
+        "bytes": 666412,
+        "sha256": "236b73e0bd8cf984609f03612b40d4583525b0293f994ef5bbddecfaa3aa1e7f"
+      },
+      {
+        "file": "locales/de.pak",
+        "bytes": 717898,
+        "sha256": "52b9d92d2d09532a6016ce07a355e7acb385a9ea245436e0db188a76b8b7f622"
+      },
+      {
+        "file": "locales/el.pak",
+        "bytes": 1295538,
+        "sha256": "37d2e1ef69fea9bdb1e0902cbc61a458baa9009fc3761029bd1c1882a7a0c9b2"
+      },
+      {
+        "file": "locales/en-GB.pak",
+        "bytes": 580030,
+        "sha256": "56ea59d5f21fbd25dfc02a6de4504cb134464f388e64509b2ea1657e238aa427"
+      },
+      {
+        "file": "locales/en-US.pak",
+        "bytes": 586582,
+        "sha256": "23b271e8009bfa14783700cd0712b4ecaa5b8f2ea28a4d81ae1d7e05bc0c96b1"
+      },
+      {
+        "file": "locales/es-419.pak",
+        "bytes": 707621,
+        "sha256": "530e5b8edc93f95a64700178c2a3fbb55f4d4eadec8cabba25fd21bc5835c63e"
+      },
+      {
+        "file": "locales/es.pak",
+        "bytes": 703944,
+        "sha256": "f0982c7ebc30101e609225e2011339378c96075e094e082b694a467eca1108cd"
+      },
+      {
+        "file": "locales/et.pak",
+        "bytes": 642216,
+        "sha256": "1e3b4eb21d233e3adaab469310a8c6c61e045379771cbc381c4c000e1716ab28"
+      },
+      {
+        "file": "locales/fa.pak",
+        "bytes": 1063104,
+        "sha256": "0e57a54b3be643b9f5e3c46d40a26d40e00915828b0ab9dfd39991cff1283240"
+      },
+      {
+        "file": "locales/fi.pak",
+        "bytes": 655113,
+        "sha256": "1f3123d7fb5c22a95b5250ea17450b665c3c6cd6a6dfd28bbdde15e1bf684a0e"
+      },
+      {
+        "file": "locales/fil.pak",
+        "bytes": 741385,
+        "sha256": "02e2c70d3d85b0deb677a9ae576ae3cf89e80774532cb3315c14f1e8ce64b310"
+      },
+      {
+        "file": "locales/fr.pak",
+        "bytes": 763461,
+        "sha256": "8bad7fd88072ac66649dd9307da9163962f8ab00313e627bf1c5ca4450a48b4a"
+      },
+      {
+        "file": "locales/gu.pak",
+        "bytes": 1495625,
+        "sha256": "e86e8c240d4b6283abb03c49df9e8899607ef9def6d4933c7a541d63b5835271"
+      },
+      {
+        "file": "locales/he.pak",
+        "bytes": 928748,
+        "sha256": "ddc1f304ab1f4489d19ae2b31e7f8e3ffb47dae439520159e8975422c65e4115"
+      },
+      {
+        "file": "locales/hi.pak",
+        "bytes": 1586602,
+        "sha256": "015b3856dc05e8635a48e749e6970fe43f5d620b8dbd04e5abff586178213f6e"
+      },
+      {
+        "file": "locales/hr.pak",
+        "bytes": 715279,
+        "sha256": "d46c64ae8af3562e37eb80438aa2bee228fafda251d58ba4d0991291f1c72aab"
+      },
+      {
+        "file": "locales/hu.pak",
+        "bytes": 765640,
+        "sha256": "0a46fc8d50f74effd1cfe1979e677df3de6fc47e6b551267303d93d57bd83f50"
+      },
+      {
+        "file": "locales/id.pak",
+        "bytes": 635080,
+        "sha256": "f567569c42a25bb2dfc5c33e13aac558c0e2a1d5d4b969592bbd0841b36438db"
+      },
+      {
+        "file": "locales/it.pak",
+        "bytes": 693987,
+        "sha256": "0a4090fd79acda3b75ea4cbf59c299b7fbb2c8ed69696158c6f3620bf1901955"
+      },
+      {
+        "file": "locales/ja.pak",
+        "bytes": 842014,
+        "sha256": "65a19121dfdd2163072d104cfe71970d132e76847d6ead6a2c103212314e83b0"
+      },
+      {
+        "file": "locales/kn.pak",
+        "bytes": 1720240,
+        "sha256": "af5fed2130102ecc0c878059c88faed9d6db2e8b147fb5ae9e15e3fe69706c8a"
+      },
+      {
+        "file": "locales/ko.pak",
+        "bytes": 718706,
+        "sha256": "56449cc28bc41af4ccbf35b98dd30019839e8cc193f7ecf4ccd8dacc26302303"
+      },
+      {
+        "file": "locales/lt.pak",
+        "bytes": 777281,
+        "sha256": "af969f4407c190dd01a426fa1244cb1ec7cdf2909d1c3ba5b87ff662ba567303"
+      },
+      {
+        "file": "locales/lv.pak",
+        "bytes": 774733,
+        "sha256": "4455ab7c06172c2c80796a99558e41f452cc3b33be76654d70440cf4ac7a2d34"
+      },
+      {
+        "file": "locales/ml.pak",
+        "bytes": 1767850,
+        "sha256": "b5606265910e45098a88e989202a550531f6d00333c6b112ed4c5cbc07b2ff6a"
+      },
+      {
+        "file": "locales/mr.pak",
+        "bytes": 1467313,
+        "sha256": "8465d4077ed5414cbcb7d9bdb00d85e515a1a069703cdc1d4d67c9d6e5623fb0"
+      },
+      {
+        "file": "locales/ms.pak",
+        "bytes": 668356,
+        "sha256": "af7021a00befa586aa067ae3ccb339079e6f13ee0cab1621836f6abb608b6f2a"
+      },
+      {
+        "file": "locales/nb.pak",
+        "bytes": 638121,
+        "sha256": "d97a2b0cbe6adc99add2ed3ce0d15d0bb124b778086c466c126634d60ea72608"
+      },
+      {
+        "file": "locales/nl.pak",
+        "bytes": 664759,
+        "sha256": "b642c8ab5ce11438e9a8fd4639244fa8f1d55cfd70269565490bc55ee907b048"
+      },
+      {
+        "file": "locales/pl.pak",
+        "bytes": 742064,
+        "sha256": "8a0969fc743d3e2f5111387d53c0d79e8c1d9f68256ad6553b87fca2bcaa7e6e"
+      },
+      {
+        "file": "locales/pt-BR.pak",
+        "bytes": 696993,
+        "sha256": "8d893475afae1f579c7199f245aad184650b0224e697e80cfe700b4061f6c16d"
+      },
+      {
+        "file": "locales/pt-PT.pak",
+        "bytes": 701056,
+        "sha256": "bdfa7264dddf70f936f1785737969559a577b51d1952c820a468c611d18b17ca"
+      },
+      {
+        "file": "locales/ro.pak",
+        "bytes": 728144,
+        "sha256": "1e6b5b0dac63a9e951daf523de310f6bd9e5c53e281f37706d41bd35d2a08bb5"
+      },
+      {
+        "file": "locales/ru.pak",
+        "bytes": 1200985,
+        "sha256": "a9e76536472c45b39e7ae2af5f3ae1bc0e50a11646efdb6fb3ca373b5f2e2c70"
+      },
+      {
+        "file": "locales/sk.pak",
+        "bytes": 755529,
+        "sha256": "8eff7365eff78623cd26e40d40540f52b511df96c2824f62531da65f0d3a8087"
+      },
+      {
+        "file": "locales/sl.pak",
+        "bytes": 722714,
+        "sha256": "0e1c50e529821f318e4200e024d863daccd78e15de1a5658fa3fb1ebf6312bd1"
+      },
+      {
+        "file": "locales/sr.pak",
+        "bytes": 1112909,
+        "sha256": "c42a674e3f43aa70cef005931915c8b7ceb34b29566fba3309f8da931dc7861f"
+      },
+      {
+        "file": "locales/sv.pak",
+        "bytes": 646543,
+        "sha256": "7b0399a206bfbebe77d1a4fc598c8a6636a1bd940d3ab56519cf4af0134b6edb"
+      },
+      {
+        "file": "locales/sw.pak",
+        "bytes": 685127,
+        "sha256": "bd41ea707a0d90d683ec8d5d0f0c79f3e925747bc4ea1982562dfb75080199b9"
+      },
+      {
+        "file": "locales/ta.pak",
+        "bytes": 1758067,
+        "sha256": "91fb1460711df108d8d435a378c8be1d1e80b0886c0158d8c6ae92f35812681b"
+      },
+      {
+        "file": "locales/te.pak",
+        "bytes": 1629379,
+        "sha256": "fc8c2706c5dfd36e7af8e380a240e0f697cc5fe969b512092a2185896512c4af"
+      },
+      {
+        "file": "locales/th.pak",
+        "bytes": 1368866,
+        "sha256": "c1f4235c31bc05153230b0e55b7aabc9020d7460d5b0a025c386885e1e4bda3c"
+      },
+      {
+        "file": "locales/tr.pak",
+        "bytes": 697398,
+        "sha256": "3a3bc4efffaf53859a9b2d8488f2ea4862a6a082c2af68a125923cc01f69a79c"
+      },
+      {
+        "file": "locales/uk.pak",
+        "bytes": 1211563,
+        "sha256": "ec5d0b426e289c064e8f2d63636ae2a544ff30fc1e99dde04fe1920971e4d060"
+      },
+      {
+        "file": "locales/ur.pak",
+        "bytes": 1047994,
+        "sha256": "c218e21744df2ff0669a87d497d65d76333073577360d4c662c592de146bf82a"
+      },
+      {
+        "file": "locales/vi.pak",
+        "bytes": 830014,
+        "sha256": "b3171c4c3c1b7803c606eee280456b380d57984745f6719afeb8d95591071c25"
+      },
+      {
+        "file": "locales/zh-CN.pak",
+        "bytes": 592069,
+        "sha256": "66c3984c1345b5aba722005458b9cc0af54496260ad06f2509c7afa011d4981f"
+      },
+      {
+        "file": "locales/zh-TW.pak",
+        "bytes": 583867,
+        "sha256": "45f34b57f5b54ba521561d4f818e650430114a713de36b72603b880db939ad37"
+      },
+      {
+        "file": "resources/app.asar",
+        "bytes": 48245734,
+        "sha256": "1eb4ea722cb8383eef13644c4cec75c1086daa200e3fdb6ee6f4794e91a39519"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/@napi-rs/canvas-win32-x64-msvc/icudtl.dat",
+        "bytes": 10468208,
+        "sha256": "9ae98c06cbb0ea43c5cd6b5725310c008c65e46072421a1118cb88e1de9a8b92"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/@napi-rs/canvas-win32-x64-msvc/package.json",
+        "bytes": 638,
+        "sha256": "71df45e930f5577386cab8950f9ac53baf652a8eb3bc8d1ce6db536466046bf1"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/@napi-rs/canvas-win32-x64-msvc/skia.win32-x64-msvc.node",
+        "bytes": 28348928,
+        "sha256": "2f73f296e1aacec88e4600d97182d8cf13cfbfe8a0e5c27c6e60b7b33918158d"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/.codeclimate.yml",
+        "bytes": 208,
+        "sha256": "3641875e15f3cf7a09a245414d7717f88831d41c1ee0d241be1b33465b89b582"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/.editorconfig",
+        "bytes": 115,
+        "sha256": "45cac0fcacf725939699e02bbe9a4910e4aa955876e2800acca2e069aa776019"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/.eslintrc.js",
+        "bytes": 896,
+        "sha256": "0ddfbda0c594ca371f67baaa166734f5075d34ef56fdd2984f574564843c2a66"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/.jekyll-metadata",
+        "bytes": 24628,
+        "sha256": "e51c201effba98383bc00ca20c945550405b23cf431c1b8a80276cd0a8241565"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/CHANGES.md",
+        "bytes": 12038,
+        "sha256": "dfb792e5a1bf94399d7c11227197158d9851d64520f400ac9848435364fc64f6"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/deps.js",
+        "bytes": 1356,
+        "sha256": "35b1b517365d5935151333ef8b57048261b79573b765e96e5ba69aa0cc05a8bb"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/dist/jszip.js",
+        "bytes": 374191,
+        "sha256": "e2e1be5c22d3f15b0b89e676d3eede94644529996d9898a6b1587c9908a78506"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/dist/jszip.min.js",
+        "bytes": 97630,
+        "sha256": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/graph.svg",
+        "bytes": 45595,
+        "sha256": "4ee632fe1845c8981cf958f30a34b585ccd1d6562d8f1657938a67ca4d25e6af"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/base64.js",
+        "bytes": 3382,
+        "sha256": "5df6b73d9ed6c317c67835f3427d860c16fd93acf503eb471fd897167e747fdb"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/compressedObject.js",
+        "bytes": 2890,
+        "sha256": "b91f823d32f39cda4002bc0954993f20ffea6747d42109253b7d6347b4abb31b"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/compressions.js",
+        "bytes": 350,
+        "sha256": "50e650a7eaf2a54ede299c12dfba30a362c7644e7c00df0d16ab3cf228bb77b0"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/crc32.js",
+        "bytes": 1924,
+        "sha256": "63750f4131b1eabb545a4718c863af860184baf033c76851be282f1c7f5dcba9"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/defaults.js",
+        "bytes": 284,
+        "sha256": "585eeeb04375fe7bd27e846d8941d26fd435efb36a87fba9ff137fd8b97880a6"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/external.js",
+        "bytes": 438,
+        "sha256": "982fed36a600668223d1d0ce8c446f87ccd1f82634df18f206b4a2f4096e31c7"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/flate.js",
+        "bytes": 2365,
+        "sha256": "57f1452680cf7af6a9659de398d847dd1e870ea3a601662c498b073c640eb547"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/generate/index.js",
+        "bytes": 2035,
+        "sha256": "19f13a6ff615464657aa5b8651e669950c633095cea37d3179a51d8c645adb3b"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/generate/ZipFileWorker.js",
+        "bytes": 17954,
+        "sha256": "907d84ea582def3954aade073444f398bef6edf1b931084da4a77bb4dc26c1c8"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/index.js",
+        "bytes": 1540,
+        "sha256": "0fdb844fcdd6fd8ce8ced5e20b37cdabb629b4c155a1d3fb5df29c69eeb4f228"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/license_header.js",
+        "bytes": 388,
+        "sha256": "27873abeec2df3693480a8d1b8fe17dd61bee843d1b39c1c9cfab57ffe93099e"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/load.js",
+        "bytes": 3196,
+        "sha256": "7e3181c7669cfc584f29f3060cdf210021ec5c723c36af039fb5433de52d25da"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/nodejs/NodejsStreamInputAdapter.js",
+        "bytes": 1933,
+        "sha256": "dcf35c72168e825d2e634cfa13a289ba8c7a76da0584a39b785611d0d736ddd9"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/nodejs/NodejsStreamOutputAdapter.js",
+        "bytes": 1075,
+        "sha256": "cc88c3a8e6aa74262bd1ecc452ee8f78c48a16a0b6095d2f9df7500320957799"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/nodejsUtils.js",
+        "bytes": 1886,
+        "sha256": "763d0af1cde619da6d9cfbe1ee82e2e32d86349d8abe32613c7481e8143740e1"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/object.js",
+        "bytes": 12440,
+        "sha256": "51f8d689e02f62837edeb449866238cf03df7d779d260d19a683abee27651273"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/readable-stream-browser.js",
+        "bytes": 441,
+        "sha256": "ed51f0a96964f61d5700b6c681b055dd07e27140f1b719d2fe1c64fd14b506e0"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/reader/ArrayReader.js",
+        "bytes": 1587,
+        "sha256": "bb711509472587e8c88e8e311d5c86bde76528286793afbc6573c1ddd9674814"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/reader/DataReader.js",
+        "bytes": 3709,
+        "sha256": "e8e0b4728ddc6fc3dbe5b449d87b884c4b3be99862bd1edf6a700ecfb3b3b247"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/reader/NodeBufferReader.js",
+        "bytes": 519,
+        "sha256": "1703f32f1cba687ac630690901848ab07a1b6a06b0e8fbe88a8ae6f5a67da84d"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/reader/readerFor.js",
+        "bytes": 904,
+        "sha256": "1eef5a73bba844922812893f9a7e01cfdb54072aae42f7ecf67c41dc925ea9cf"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/reader/StringReader.js",
+        "bytes": 1020,
+        "sha256": "477a2e887eee11a56a50726152327b2a4d75d778f96463933197706e1ce90d59"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/reader/Uint8ArrayReader.js",
+        "bytes": 652,
+        "sha256": "198816389bc1c62b3ca7c5c6f5fdff1b076f83e5bd74b37ee5b504e6d7e155d9"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/signature.js",
+        "bytes": 294,
+        "sha256": "18e10348490604003a2480aea813a6e90eaaac26c050d559c281618b9aaded56"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/stream/ConvertWorker.js",
+        "bytes": 648,
+        "sha256": "ae1dc8573bab7e5be4a4cb9958201e3e763cb2f2392a04d9a8dc440d683042f0"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/stream/Crc32Probe.js",
+        "bytes": 599,
+        "sha256": "8e186e5e0ab42fff35907666a90266420751613c28266e5809b7bfa2d55a3a9a"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/stream/DataLengthProbe.js",
+        "bytes": 829,
+        "sha256": "638e65360b0fbe1f4e0b2628fd3a1782a4df59c477d454007fa52b1a2587b93f"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/stream/DataWorker.js",
+        "bytes": 2748,
+        "sha256": "8203f14e856d33aa9afc272a576f169b29980e8da0ee0f633e6e5f23cfa48a3e"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/stream/GenericWorker.js",
+        "bytes": 8206,
+        "sha256": "ae76cecd1d728ca41dd6ae0665b258f442da64d9b25ff94785dcb80a501b8be1"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/stream/StreamHelper.js",
+        "bytes": 6877,
+        "sha256": "aebc6518b4871d106e799f90139d55620d02e9413ef2a7b0f953a9cea7bda124"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/support.js",
+        "bytes": 1089,
+        "sha256": "7629a6ef610030595e4c2211249f487e44cfbe4b8299105d64b5491d87fd3a51"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/utf8.js",
+        "bytes": 8102,
+        "sha256": "5bdfe3666fe57640bc791b4d6d2fc00853f4d954596260138bf488054fa9df5a"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/utils.js",
+        "bytes": 16552,
+        "sha256": "c77e896a1e47b44939e9dcdc2e05275fd83c1d69ee252089f9a1f44ba8c5cd1d"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/zipEntries.js",
+        "bytes": 11867,
+        "sha256": "0891a1a82e557c64a51893a5ad70dec76f6b5c91170047ab28617286c96c6ec7"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/zipEntry.js",
+        "bytes": 11314,
+        "sha256": "105b8cec00daa3852f92371b3898d6eab52eeb984113ba8958d09bce701e34df"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/lib/zipObject.js",
+        "bytes": 4528,
+        "sha256": "18871af92fac75d015ba7d4d3105c0746839ab089f78670cb86d76bfa53b1ce6"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/LICENSE.markdown",
+        "bytes": 33753,
+        "sha256": "566c953c6090b1218ca6217dd7359d45dde46581968586dc607d59a78af6a9c4"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/CONTRIBUTING.md",
+        "bytes": 1443,
+        "sha256": "56e4e12a6934a2c4d36c7bf893f4d8aefa6c96f9ffcec357dfa6476e36c4f1f5"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/doc/wg-meetings/2015-01-30.md",
+        "bytes": 2280,
+        "sha256": "39bdf2c2d8d23df3239dde5e66449dcfa9bfd0accf840c91c35bb295f2bbae2d"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/duplex-browser.js",
+        "bytes": 53,
+        "sha256": "b492b180e158a495afa7b394de1440e037c5d60524bb2fce839aeb690e6ff968"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/duplex.js",
+        "bytes": 46,
+        "sha256": "16475035143997e924dc3f41af6fd657cf55c5843f415f00b155c20891da8a5b"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/GOVERNANCE.md",
+        "bytes": 5550,
+        "sha256": "7a521e462d1c6f3b599c44637fb337bbf969dda311510a87236ec539a415331d"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/lib/internal/streams/BufferList.js",
+        "bytes": 2009,
+        "sha256": "387991bfee34bbb7938e0c0a3f345c3e5e4c37d5b0cb600e6d432c9995321fa7"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/lib/internal/streams/destroy.js",
+        "bytes": 2175,
+        "sha256": "a59f90daec030125875a6028b32f93e2e2bc9fafd703991dbc36244f5cb21176"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/lib/internal/streams/stream-browser.js",
+        "bytes": 49,
+        "sha256": "72d46a15491627d8fb1489a47d03583cfe5c21902918016ab532b53e615e5a9a"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/lib/internal/streams/stream.js",
+        "bytes": 36,
+        "sha256": "1e7903927df33aadb3659ecce55266c9c851da65ce6c8b723a60a305c1c5422c"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/lib/_stream_duplex.js",
+        "bytes": 4015,
+        "sha256": "fd17d6a92dd9ba004c85f8e364b2771af10d012a83766437447dbae63879fa6b"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/lib/_stream_passthrough.js",
+        "bytes": 1753,
+        "sha256": "bf61450b1ff5f94fea9d46665e931119642034c903e63cc224b4c96472eed4d4"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/lib/_stream_readable.js",
+        "bytes": 31426,
+        "sha256": "216e051224eff89a5d5eec76bef25addac078d9ebd2e88bd0a3d73a0e605091d"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/lib/_stream_transform.js",
+        "bytes": 7742,
+        "sha256": "56220d9dd58b976f1739bfc85948b267d79772ba23672ff402d13b6b3fcf4e40"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/lib/_stream_writable.js",
+        "bytes": 20335,
+        "sha256": "e6359ac652ed97f5f328c586c7a6b8f163782a9ca13da476e609a981c75e0469"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/LICENSE",
+        "bytes": 2337,
+        "sha256": "ec62dc96da0099b87f4511736c87309335527fb7031639493e06c95728dc8c54"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/package.json",
+        "bytes": 961,
+        "sha256": "4fc449dc706ba8988e6e1254be82b7508a23666468adc686709e98cef3096317"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/passthrough.js",
+        "bytes": 51,
+        "sha256": "809dbc03b4c312355ff74eb14b2ccc77267ee71e04f519f437eb4b203407c4b7"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/readable-browser.js",
+        "bytes": 351,
+        "sha256": "ec8e6f4e484d5269bc134752e11770b66b6be3a470217c2a0166e977965f53c6"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/readable.js",
+        "bytes": 771,
+        "sha256": "a1efa3fa06393aff652f3529ea1b1bc32134d49eb794b23272fb0ba13d214550"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/transform.js",
+        "bytes": 49,
+        "sha256": "155f794c5c789568b7bc632cd37f28b9064890e887bfab96a4393100218d4230"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/writable-browser.js",
+        "bytes": 55,
+        "sha256": "427bae9a6a026082e46acb500da48b270234ebc2a1ded1315b49eccfa6311c61"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/node_modules/readable-stream/writable.js",
+        "bytes": 229,
+        "sha256": "74cbbdc5d60e1ee6560d2850515b68c3d6b39d9b2f32346aac1386b031c2a661"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/package.json",
+        "bytes": 1054,
+        "sha256": "dbaa02a0b92bfe7641b7a040e39e688ab5366bfb062a07d8ee257039eed5f1f7"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/README.markdown",
+        "bytes": 678,
+        "sha256": "5eee3659204ed8f04b58d388b2dae55539c5cbcda733e4e945811c9121a68ede"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/sponsors.md",
+        "bytes": 704,
+        "sha256": "05023a2cdb8fbddf99c368ce364e008f99d2b8da90ce5aec67d2ad633665f672"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/tsconfig.json",
+        "bytes": 11000,
+        "sha256": "513defa2eb1fc4aed9407b2b08fb21ab1c9c54b043609fe6c2b344891392606d"
+      },
+      {
+        "file": "resources/app.asar.unpacked/node_modules/jszip/vendor/FileSaver.js",
+        "bytes": 7745,
+        "sha256": "67421e50f3ff4c97f1c3fa3749bf071cc57357c0da97783f4f8fe3affa3a52cf"
+      },
+      {
+        "file": "resources/elevate.exe",
+        "bytes": 107520,
+        "sha256": "9b1fbf0c11c520ae714af8aa9af12cfd48503eedecd7398d8992ee94d1b4dc37"
+      },
+      {
+        "file": "resources.pak",
+        "bytes": 12436085,
+        "sha256": "9611f9a65a37eea7d7f631eba0ed2cc49205f47aaa8a2937694ca2de2d821bd8"
+      },
+      {
+        "file": "snapshot_blob.bin",
+        "bytes": 369024,
+        "sha256": "008b7f8d33b1529d79aa1e72e19d93e143b05e2849d92e8f13c6345698a5bd6a"
+      },
+      {
+        "file": "v8_context_snapshot.bin",
+        "bytes": 742456,
+        "sha256": "9c954486def5b03cf2f92f63743c83c024324e1fee6389b9364b9474907300d6"
+      },
+      {
+        "file": "vk_swiftshader.dll",
+        "bytes": 5520384,
+        "sha256": "cf39bc6f84bef7d721fd9ce934d5e991a5ca4c3cad8c7fcfdf20d3b76c84197d"
+      },
+      {
+        "file": "vk_swiftshader_icd.json",
+        "bytes": 106,
+        "sha256": "32d83ff113fef532a9f97e0d2831f8656628ab1c99e9060f0332b1532839afd9"
+      },
+      {
+        "file": "vulkan-1.dll",
+        "bytes": 939520,
+        "sha256": "065f458a2e5e7ebcbf31a85788622f59c7b4481bc66af55519a85654d77ba21d"
+      }
+    ]
+  },
+  "actual": {
+    "electron": "44.9.3",
+    "chrome": "152.0.7977.167",
+    "packaged": true,
+    "sandbox": true,
+    "hidden": true,
+    "localNotes": true,
+    "pdfWorker": true,
+    "renderedPdf": true,
+    "format3SaveReadReopen": true,
+    "reopen": {
+      "differentDocumentObserved": true,
+      "savedPdfAndStateAdopted": true,
+      "rendererSnapshotReadback": true
+    },
+    "importUtilityChild": true,
+    "internalXlsxCsv": true,
+    "externalNetworkRequests": [],
+    "disposableAppData": true
+  },
+  "fixture": {
+    "name": "generated vector PDF",
+    "bytes": 465,
+    "pages": 1,
+    "sha256": "ece3eebb2990c72ea806d6443e97a5e3df7ead06e528d6ed58ac7d987896db3a"
+  },
+  "limitations": [
+    "Dialog destinations scripted through inspector; physical UI and non-development-PC install/upgrade/scaling are pending."
+  ]
+}

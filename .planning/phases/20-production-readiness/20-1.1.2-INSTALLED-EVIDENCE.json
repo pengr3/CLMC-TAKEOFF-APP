@@ -1,0 +1,2106 @@
+{
+  "schemaVersion": 1,
+  "status": "awaiting-1.1.2-installed-evidence-and-release-review",
+  "candidate": {
+    "version": "1.1.2",
+    "installerSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+    "archiveSha256": "084f96aef0b4e27ad746712efd4fca793554b82c8b0e7642bccda2d93f119416",
+    "installer": "dist/clmc-takeoff-1.1.2-x64-setup.exe",
+    "manifest": "dist/release-manifest.json",
+    "bytes": 137026296,
+    "architecture": "x64"
+  },
+  "handoff": {
+    "status": "protected-unapproved-review-copy-verified-contact-and-release-review-pending",
+    "approvedLocation": "C:\\Users\\franc\\OneDrive\\Desktop\\CLMC TAKEOFF FOLDER",
+    "releaseOwner": "Francis",
+    "signingPolicy": "Remain unsigned for internal use, explicitly selected by Francis on2026-10-26",
+    "signingOwner": "Francis",
+    "observedSignature": "New inspected manifest records unsigned/NotSigned installer and packaged executable; no signing publisher is asserted.",
+    "publisher": null,
+    "rollbackContact": null,
+    "reason": "Francis supplied release/signing owner, unsigned internal policy and location. The exact 17-file 1.1.2 UNAPPROVED review packet is now copied into a new locally protected Releases/1.1.2 subtree. Independent readback verified all 17 file hashes, three protected directory DACLs and 17 inherited file DACLs. Existing root ACL and five existing files' names/size/UTC timestamps/attributes match the retained baseline; their contents were not read or compared. Human dependency/license/advisory/stability acceptance, rollback contact and final release review remain pending.",
+    "releaseOwnerEvidence": {
+      "date": "2026-10-25T17:44:40.628Z",
+      "statement": "Francis, remain unsigned for internal use. This then first release. Second monitor connected and can be used. Installer location provided separately.",
+      "source": "Direct human user replies in this chat",
+      "artifact": ".planning/phases/20-production-readiness/20-RELEASE-OWNER.md"
+    },
+    "scope": "Existing human owner/location/signing-policy facts are retained. Only the new review subtree was created/protected; the existing parent ACL and five project/export files were not targeted. Francis/SYSTEM/Administrators retain full control; Users and the existing sandbox-reader group have read/execute access within the new subtree. Local DACL verification does not establish OneDrive cloud permissions, prevent owner/admin changes or guarantee ancestor path availability. This remains an UNAPPROVED review copy; no human acceptance of the replacement candidate, contact assignment, distribution or Phase 21 approval is inferred.",
+    "reviewCopyLocation": "C:\\Users\\franc\\OneDrive\\Desktop\\CLMC TAKEOFF FOLDER\\Releases\\1.1.2",
+    "reviewCopyStatus": "UNAPPROVED-review-copy-verified",
+    "copyProofArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.2/handoff-copy-20261025T200447962Z-fa4610ff81a94bc89775dd5f3a135307.json",
+    "copyProofSha256": "684f6b3878b220a1086f1fe0ad1658178a51c56d38e15e55b39ca5f7154aee52",
+    "independentReadbackArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.2/handoff-independent-readback.json",
+    "independentReadbackSha256": "6c7d11326d90543e8579072c383c3a089649efe3814db1025817e338f4718c80"
+  },
+  "predecessor": {
+    "kind": "none-deployed",
+    "attestation": {
+      "source": "human-release-owner",
+      "releaseOwner": "Francis",
+      "date": "2026-10-25T17:44:40.628Z",
+      "noDeployedPredecessor": true,
+      "statement": "Francis confirmed this is the first release; no actual predecessor has been deployed.",
+      "artifact": ".planning/phases/20-production-readiness/20-RELEASE-OWNER.md"
+    },
+    "syntheticExercise": "Disposable test-installed1.1.0→1.1.1 transition remains supplemental; no actual deployed-upgrade pass claimed."
+  },
+  "machines": [
+    {
+      "id": "developer-host",
+      "classification": "development",
+      "name": "Lenovo-X390-PC1H2FSA",
+      "windows": "10.0.26100",
+      "architecture": "x64",
+      "ramGiB": 15.749954223632812,
+      "supportedScaling": [],
+      "monitorCount": null,
+      "scope": "Carried prior observed hardware facts only; not a 1.1.2 display, transition, performance or installation pass. Prior scope: Development PC: actual local per-user installation/manual input observed; renderer device-scale-factor1. No physical display matrix or non-development classification is inferred."
+    },
+    {
+      "id": "second-pc-laptop-5bam24nm",
+      "classification": "non-development",
+      "name": "LAPTOP-5BAM24NM",
+      "windows": "Windows 11 Home Single Language, build 22631",
+      "architecture": "x64",
+      "ramGiB": 15.8,
+      "supportedScaling": [
+        100,
+        125,
+        150,
+        175
+      ],
+      "monitorCount": 2,
+      "scope": "Carried prior observed hardware facts only; not a 1.1.2 display, transition, performance or installation pass. Prior scope: User-confirmed second PC. Current26October baseline has two active extended displays, both1920x1080:Display1at125%,Display2at100%and main. Settings captures001-009record this baseline; no DPI setting change or successful actual monitor transition/pan is claimed in this session. Earlier Show-only-on2and100/125/150%observations remain dated history. The PC built1.1.1locally but remains physically distinct from the original development host.",
+      "hardwareArtifact": ".planning/tmp/20-completion-20261026/owner-display/005-display-map-original-extended.json",
+      "hardwareHistory": [
+        {
+          "date": "2026-10-25T12:48:16.2099063Z",
+          "scope": "User-confirmed different PC. Two displays initially enumerated; external user input later selected Show only on2, leaving one active display. Actual active-display Windows100/125/150% at1920x1080 observed; dropdown also offered175%, not tested, and did not offer200%. Original active-display100% restored. No actual cross-monitor transition. Continued1.1.1 rebuild and native installed retest locally; original100% restored, topology retained.",
+          "hardwareArtifact": ".planning/tmp/20-second-pc-20261025/recovery-and-displays.json"
+        }
+      ],
+      "activeMonitorCount": 2,
+      "displayTopology": "Extend",
+      "mainDisplay": 2,
+      "displays": [
+        {
+          "id": 1,
+          "scalingPercent": 125,
+          "resolution": [
+            1920,
+            1080
+          ],
+          "main": false
+        },
+        {
+          "id": 2,
+          "scalingPercent": 100,
+          "resolution": [
+            1920,
+            1080
+          ],
+          "main": true
+        }
+      ],
+      "hardwareArtifacts": [
+        ".planning/tmp/20-completion-20261026/owner-display/003-display1-scale.json",
+        ".planning/tmp/20-completion-20261026/owner-display/004-display1-scale-resolution.json",
+        ".planning/tmp/20-completion-20261026/owner-display/005-display-map-original-extended.json",
+        ".planning/tmp/20-completion-20261026/owner-display/006-display2-selected.json",
+        ".planning/tmp/20-completion-20261026/owner-display/007-display2-original-scale.json",
+        ".planning/tmp/20-completion-20261026/owner-display/008-display2-supported-scale.json",
+        ".planning/tmp/20-completion-20261026/owner-display/009-display2-scale-unchanged.json"
+      ]
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "second-pc-synthetic-grid",
+      "name": "training-grid.pdf",
+      "approvedBy": "User-authorized supplied trial kit (synthetic training scope only)",
+      "kind": "synthetic-training-vector",
+      "sha256": "9c0bc7b6f133905fc62b7dff8abec2e78c0beb078f3ddcdddb57c157ed025e10",
+      "bytes": 1256,
+      "pages": 1,
+      "oracleSource": "Supplied guide: 10 m square, 100 m² area, 40 m perimeter, 30 m² wall at 3 m height, 1 count; independent arithmetic and preserved source fixture checks. Not representative construction-plan approval.",
+      "scope": "Carried source/provenance/oracle facts only; no 1.1.2 rendering, measurement or human as-built approval implied. Prior fixture scope: "
+    },
+    {
+      "id": "public-portland-site-plan",
+      "name": "portland-site-plan.pdf",
+      "approvedBy": "Agent-selected public exploratory fixture under authorized testing; external representative-plan approval remains pending",
+      "kind": "public-raster-bearing-municipal-sample",
+      "sha256": "0755833be0bbccc65b073de4e35cda1fb6ca403c89e58c37d64333b1d740fb7a",
+      "bytes": 3494493,
+      "pages": 1,
+      "source": "https://www.portland.gov/ppd/documents/sample-site-plan/download",
+      "oracleSource": "Official public sample includes50ft lot width and10x10ft patio; Poppler reference compared visually. No independently approved measurement run.",
+      "scope": "Carried source/provenance/oracle facts only; no 1.1.2 rendering, measurement or human as-built approval implied. Prior fixture scope: "
+    },
+    {
+      "id": "public-worldbank-guidance",
+      "name": "worldbank-sample-house-plans.pdf",
+      "approvedBy": "Agent-selected public exploratory fixture under authorized testing; external representative-plan approval remains pending",
+      "kind": "public-mixed-vector-image-guidance",
+      "sha256": "2ea6a6d4aac062b5f0b9cc3447347e8e6270cf1df9edda42a7ffca4541f3a633",
+      "bytes": 31148266,
+      "pages": 150,
+      "source": "https://documents1.worldbank.org/curated/en/099554312202436138/pdf/IDU1f54bd272126f11472119261126d32b985e49.pdf",
+      "oracleSource": "Independent pypdf inventory150pages, ZIP-embedded byte hash and currentPage2 readback. No mixed-scale/markup/measurement oracle accepted.",
+      "scope": "Carried source/provenance/oracle facts only; no 1.1.2 rendering, measurement or human as-built approval implied. Prior fixture scope: "
+    },
+    {
+      "id": "second-pc-two-page-mixed-scale-portability",
+      "name": "portable-source.clmc (embedded portability-reference.pdf)",
+      "approvedBy": "Codex, within Francis-authorized synthetic portability testing; parent reviewed native captures and independent readback on 2026-10-26. No human representative-plan approval asserted.",
+      "kind": "synthetic-self-contained-format-3-two-page-mixed-scale-project",
+      "sha256": "52365d2457089863139c420a54dfacf89ca8e8a37b7cff089a94b770671ba7df",
+      "bytes": 10821,
+      "pages": 2,
+      "sourceArtifact": ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/portable-source.clmc",
+      "embeddedPdfSha256": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+      "oracleSource": ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/oracle.json",
+      "oracleMethod": "Independent authored integer geometry: Euclidean 3-4-5 length, rectangle shoelace area, analytic semicircle arc/Green integral area, fixed-height wall areas and explicit rate money; no application measurement arithmetic imported.",
+      "preparationOnlyArtifacts": [
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/create-fixture.py",
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/source-selfcheck.json",
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/validate-admission.cjs"
+      ],
+      "scope": "Carried source/provenance/oracle facts only; no 1.1.2 rendering, measurement or human as-built approval implied. Prior fixture scope: Synthetic persistence/portability only; not representative construction-plan approval."
+    },
+    {
+      "id": "public-txdot-dallas-renovation-vector",
+      "name": "txdot-dallas-renovation-vector.pdf",
+      "approvedBy": "Codex selected this official public TxDOT fixture within Francis-authorized release testing; no human estimator/as-built approval asserted.",
+      "kind": "public-multipage-vector-construction-plan",
+      "sha256": "8b364368e8153ec69180dbbefca208d2af38453b9079aaacd03e50358f770d6b",
+      "bytes": 14268487,
+      "pages": 88,
+      "source": "https://ftp.txdot.gov/plans/Facilities/2022/10%20October/SLBC%2018-380421390%20Renovation%2C%20Multiple%20Floors%2C%20Dallas%20DHQ/18-21390-plans.pdf",
+      "oracleSource": "Independent source-PDF byte hash and pypdf 88-page inventory; generated blank full-PDF wrapper initially has 0 markups. One arbitrary native Vector QA marker is expected after save. This oracle covers file/state preservation, not construction quantities or as-built accuracy.",
+      "scope": "Carried source/provenance/oracle facts only; no 1.1.2 rendering, measurement or human as-built approval implied. Prior fixture scope: Public construction PDF selected for installed save-failure/persistence testing. Representative-plan accuracy acceptance remains separate."
+    },
+    {
+      "id": "public-txdot-dallas-vector",
+      "name": "txdot-dallas-renovation-vector.pdf",
+      "approvedBy": "Codex selected this disposable official public software-test fixture under Francis's authorized remaining-PC testing. This is not as-built certification or final release-owner/REL-05 approval.",
+      "kind": "large-format-vector-construction-software-test",
+      "sha256": "8b364368e8153ec69180dbbefca208d2af38453b9079aaacd03e50358f770d6b",
+      "bytes": 14268487,
+      "pages": 88,
+      "source": "https://ftp.txdot.gov/plans/Facilities/2022/10%20October/SLBC%2018-380421390%20Renovation%2C%20Multiple%20Floors%2C%20Dallas%20DHQ/18-21390-plans.pdf",
+      "oracleSource": "Independent extraction of actual PDF dimension tick/extension joints, printed28ft9in/26ft9.5in labels and32ft graphic bar. Printed1/8inch=1foot gives9PDFpoints/foot; generated base-scale2 calibration18/304.8px/mm. Actual vector quantities8761.9830179mm and8160.5148109mm differ from printed8763mm/8166.1mm by-0.011605%/-0.068395%, both within0.1%. Endpoints/calibration are generated reference preparation, not native manual placement. Actual source depth exceeds0.1%and is excluded, not adjusted.",
+      "provenance": ".planning/tmp/20-completion-20261026/public-plans/additional/verified-fixtures.json",
+      "oracle": ".planning/tmp/20-completion-20261026/public-plans/additional/native-wrappers/dallas-landmark-oracle.json",
+      "scope": "Carried source/provenance/oracle facts only; no 1.1.2 rendering, measurement or human as-built approval implied. Prior fixture scope: "
+    },
+    {
+      "id": "public-usda-farmhouse-scan",
+      "name": "usda-farmhouse7213-scanned.pdf",
+      "approvedBy": "Codex selected this disposable official public-domain software-test fixture under Francis's authorized remaining-PC testing. No as-built, estimator, final representative-fixture or release-owner acceptance is asserted.",
+      "kind": "genuine-high-resolution-JPX-scanned-construction-software-test",
+      "sha256": "13788ecf41653481d2ee0884d5443c52ddec0281dc05e07283988db3a2bf2d78",
+      "bytes": 23505538,
+      "pages": 4,
+      "source": "https://www.nal.usda.gov/exhibits/ipd/ruralusa/files/original/e4df2761c9078e52c8e3b4fefa562560.pdf",
+      "catalog": "https://www.nal.usda.gov/exhibits/ipd/ruralusa/exhibits/show/housing/item/51",
+      "oracleSource": "Official USDA catalog identifies actual1976farmhouse blueprints and public-domain federal work. Source metadata says Digitized by the Internet Archive. Pages3and4 each embed one6582x5111JPX/JPEG2000image and zero vector path operators; both Poppler reference renders visibly contain the plan. Floor-plan page4 prints41ft3in/23ft11in dimensions, not used for an installed measurement because native1.1.1 rendered blank. No sub0.1%historical-scan accuracy is certified.",
+      "provenance": ".planning/tmp/20-completion-20261026/public-plans/additional/verified-fixtures.json",
+      "referenceRenders": [
+        ".planning/tmp/20-completion-20261026/public-plans/additional/usda-reference-3.png",
+        ".planning/tmp/20-completion-20261026/public-plans/additional/usda-reference-4.png"
+      ],
+      "scope": "Carried source/provenance/oracle facts only; no 1.1.2 rendering, measurement or human as-built approval implied. Prior fixture scope: "
+    }
+  ],
+  "cases": [
+    {
+      "id": "fresh-install",
+      "status": "pass",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex root driving the authorized native installed 1.1.2 app; independent technical child reviewed records/readback and screenshots",
+      "date": "2026-10-25T19:06:19.085Z",
+      "procedure": "docs/release-validation.md",
+      "expected": "On the user-confirmed non-development Windows x64 PC, freshly install the exact full offline candidate from zero registration/executable/active profile; one correct installation/shortcut per location, exact payload, native version/local notes and normal dialog dismissal. Preserve existing user data separately. First release is not a deployed upgrade.",
+      "actual": "Actual disposable uninstall exit0 retained all3191 original file hashes according to the guarded precondition record. The original profile was preserved separately and the active profile/executable/registration were absent before exact1.1.2 installation exit0. All149 installed payload entries match the inspected manifest; installedASAR and installer hashes equal finalC. One1.1.2 registration and one Desktop/StartMenu shortcut. Native001launch uses the installed AppData/Local/Programs fileURL with an empty workspace/version1.1.2; settled004About displays1.1.2 and bundled JPX/local release notes with reachable Close; parent Escape dismisses it and005returns visible focus to More. After the disposable native run, root closed the app normally following233. The guarded restoration proof dated2026-10-25T20:16:41.0357511Z records all3191original files restored with matching hashes, appclosed and restored local library absent; the complete disposable test profile is preserved undercandidate-1.1.2/test-profile, including the saved pending-discard02 state. These are later cleanup facts; the original clean-install preconditions and isolated-session observations remain historical. No deployed upgrade or physical/offline/full-workflow acceptance inferred.",
+      "checks": [
+        {
+          "metric": "exact installed candidate installer SHA256",
+          "expected": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+          "actual": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+          "tolerance": 0
+        },
+        {
+          "metric": "exact installed ASAR SHA256",
+          "expected": "084f96aef0b4e27ad746712efd4fca793554b82c8b0e7642bccda2d93f119416",
+          "actual": "084f96aef0b4e27ad746712efd4fca793554b82c8b0e7642bccda2d93f119416",
+          "tolerance": 0
+        },
+        {
+          "metric": "clean pre-install registrations",
+          "expected": 0,
+          "actual": 0,
+          "tolerance": 0
+        },
+        {
+          "metric": "pre-install executable absent",
+          "expected": false,
+          "actual": false,
+          "tolerance": 0
+        },
+        {
+          "metric": "pre-install active profile absent",
+          "expected": false,
+          "actual": false,
+          "tolerance": 0
+        },
+        {
+          "metric": "candidate installer exit",
+          "expected": 0,
+          "actual": 0,
+          "tolerance": 0
+        },
+        {
+          "metric": "all installed payload hashes and sizes match manifest",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "installed payload files",
+          "expected": 149,
+          "actual": 149,
+          "tolerance": 0
+        },
+        {
+          "metric": "installed registration count",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "registered version",
+          "expected": "1.1.2",
+          "actual": "1.1.2",
+          "tolerance": 0
+        },
+        {
+          "metric": "desktop shortcut count",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "start-menu shortcut count",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "original file hashes verified after disposable uninstall",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "original profile files preserved separately",
+          "expected": 3191,
+          "actual": 3191,
+          "tolerance": 0
+        },
+        {
+          "metric": "native installed empty launch version and source",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "settled native About 1.1.2 local JPX notes",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "About Escape dismissal and More focus return observed",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/fresh-install.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/clean-install-precondition.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/fresh-install.ps1",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/fresh-installed-payload.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/original-profile-inventory.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/fresh-install-independent-review.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/001-fresh-native-launch.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/001-fresh-native-launch-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/004-about-notes-loaded.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/004-about-notes-loaded-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/005-about-close-focus.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/005-about-close-focus-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/profile-restored.json"
+      ],
+      "reason": null,
+      "qualifications": [
+        "Clean precondition follows removal of the disposable test installation; the PC had run test software before.",
+        "First release, not an actual deployed upgrade.",
+        "Original profile was isolated during the native test session and restored after normal UIclose at2026-10-25T20:16:41.0357511Z; all3191hashes/count match, appclosed and restored local library absent. Complete disposable test profile preserved separately; pending-discard02 was not deleted.",
+        "No 1.1.2 physical scaling, monitor transition, representative accuracy, offline workflow or whole-phase acceptance inferred."
+      ],
+      "profileRestoration": {
+        "disposableProfilePreserved": true,
+        "originalProfileRestored": true,
+        "allOriginalHashesMatch": true,
+        "localLibraryAbsent": true,
+        "appClosed": true,
+        "originalFileCount": 3191,
+        "date": "2026-10-25T20:16:41.0357511Z",
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.2/profile-restored.json",
+        "artifactSha256": "2b8972404e8c679df3769fc88f5bcadf214df776bf41664e10f010eef718a1a4",
+        "preservedDisposableProfile": ".planning/tmp/20-completion-20261026/candidate-1.1.2/test-profile",
+        "source": "Guarded root restoration proof in workspace; independent child did not inspect or access the restored original profile."
+      }
+    },
+    {
+      "id": "actual-predecessor-upgrade",
+      "status": "not-applicable",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "tester": "Francis",
+      "date": "2026-10-25T17:44:40.628Z",
+      "procedure": "docs/release-evidence-first-release.md",
+      "expected": "For an owner-attested first release with no deployed predecessor, record no upgrade performed; do not invent an upgrade pass.",
+      "actual": "Francis's existing direct human first-release/no-deployed-predecessor attestation is carried as a deployment-history fact. No 1.1.2 upgrade was performed or passed, and no human approval of 1.1.2 is inferred.",
+      "checks": [],
+      "artifacts": [
+        ".planning/phases/20-production-readiness/20-RELEASE-OWNER.md",
+        "docs/release-evidence-first-release.md"
+      ],
+      "scope": "Candidate-independent human deployment-history fact, rebound to the exact replacement candidate; not performed software-test evidence."
+    },
+    {
+      "id": "project-only-transfer",
+      "status": "pass",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-two-page-mixed-scale-portability"
+      ],
+      "tester": "Codex root driving native final-C 1.1.2; independent technical children reviewed captures, immutable archive and unchanged independent oracle",
+      "date": "2026-10-25T19:21:51.293Z",
+      "procedure": "docs/release-validation.md",
+      "expected": "Open only the populated portable format3 project on the user-confirmed second PC without source PDF/local cost library; retain its exact embedded PDF, two mixed page scales, all14 markups/all5types including arcs/wall heights, ordering/visibility and nine reviewed rate snapshots through separate native Save As/reopen. Known quantities and totals must match the existing independent oracle.",
+      "actual": "Preconditions record only portable112.clmc in the transfer directory, exact unchanged inputSHA d35db947d071e52120797dee192c359c14ee0424bf6de7896ab1e337c480d038, external synthetic PDF preserved unavailable and local library absent. Native049/050render both pages with14 aligned straight/curved markups, page scales1:5/1:10 and all9 ordered rows;051Estimate totals1012.93/1160.73/147.80. Native057completes separate portable-native.clmc Save As clean. Its immutable first-save copySHA096b1574b464763ba173922cc55677b20dcf2d88c461a69142720a78073d2432 has exact ZIPCRC/PDF, all geometry/arcs, mixed scales, wall heights, ordering/visibility and reviewed rates under two independent readbacks. Actual adopted reopen062/063retains both pages and064Estimate exact totals; those frames are DIRTY after positive107%viewport refit, not a clean-reopen claim. OrdinarySave065is followed by clean067. Original profile remains preserved separately, not restored; no physical pan/monitor/offline/representative-plan acceptance inferred.",
+      "checks": [
+        {
+          "metric": "actual transferred input archive SHA256",
+          "expected": "d35db947d071e52120797dee192c359c14ee0424bf6de7896ab1e337c480d038",
+          "actual": "d35db947d071e52120797dee192c359c14ee0424bf6de7896ab1e337c480d038",
+          "tolerance": 0
+        },
+        {
+          "metric": "only one transferred project file",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "source PDF unavailable and local library absent",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "embedded PDF unchanged",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "embedded PDF SHA256",
+          "expected": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+          "actual": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+          "tolerance": 0
+        },
+        {
+          "metric": "immutable native first Save As SHA256",
+          "expected": "096b1574b464763ba173922cc55677b20dcf2d88c461a69142720a78073d2432",
+          "actual": "096b1574b464763ba173922cc55677b20dcf2d88c461a69142720a78073d2432",
+          "tolerance": 0
+        },
+        {
+          "metric": "embedded PDF pages",
+          "expected": 2,
+          "actual": 2,
+          "tolerance": 0
+        },
+        {
+          "metric": "all five markup types and fourteen markups retain exact geometry",
+          "expected": 14,
+          "actual": 14,
+          "tolerance": 0
+        },
+        {
+          "metric": "all source arc midpoints wall heights and mixed scales preserved",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "nine independent quantity and money rows",
+          "expected": 9,
+          "actual": 9,
+          "tolerance": 0
+        },
+        {
+          "metric": "category item order hidden keys rate bases and reviewed snapshots exact",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "first Save As explicit timestamp contract",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "native actual saved-path reopen adopted",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "native reopened cost total",
+          "expected": 1012.93,
+          "actual": 1012.93,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "native reopened selling total",
+          "expected": 1160.73,
+          "actual": 1160.73,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "native reopened margin total",
+          "expected": 147.8,
+          "actual": 147.8,
+          "tolerance": 0.005
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/transfer-precondition.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/portable-native-precondition.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/portable-first-save.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/transfer-only/portable112.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/portable-first-save-copy-proof.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/portable-first-save-audit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/portable-first-save-readback.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/portable-first-save-second-review.json",
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/oracle.json",
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/readback.py",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/049-portable-adopted-page-observation.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/050-portable-page1.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/051-portable-estimate.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/057-portable-first-save-clean.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/060-portable-reopen-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/062-portable-reopened-page1-adopted.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/063-portable-reopened-page2.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/064-portable-reopened-estimate.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/065-portable-save-after-reopen.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/067-portable-ready-for-pan-and-monitor.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/050-portable-page1-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/057-portable-first-save-clean-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/062-portable-reopened-page1-adopted-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/063-portable-reopened-page2-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/064-portable-reopened-estimate-0.jpg"
+      ],
+      "reason": null,
+      "qualifications": [
+        "Synthetic known-geometry portability fixture, not representative/as-built plan approval.",
+        "Input is the preserved earlier native first-save archive, not the byte-different generated source archive; existing fixture identity/oracle is reused without duplication.",
+        "Immutable first Save As, not later mutable file state, anchors independent exact-content readback.",
+        "Actual reopened062–064 states are dirty after positive viewport refit; only057 and later ordinary-save067 are clean observations.",
+        "The source-only/library-absent precondition is parent-recorded; no active profile was inspected or changed by the independent reader.",
+        "Original-profile restoration, actual pan/monitor transition, offline workflow and other cases remain separate pending work."
+      ]
+    },
+    {
+      "id": "recovery-saved",
+      "status": "pending",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-two-page-mixed-scale-portability"
+      ],
+      "tester": "Codex root driving actual final-C 1.1.2 saved recovery; independent technical child audited completed snapshots, immutable saved pair and direct Euclidean/circular money oracle; actual destructive discard remains pending human approval",
+      "date": "2026-10-25T20:01:31.190Z",
+      "procedure": "docs/release-validation.md",
+      "expected": "Modify a disposable saved portable project, await a genuine completed recovery capture and interrupt the identified process. Exercise native Keep/default preservation, recover exact embedded state dirty without altering the saved pair until explicit Save, then verify normal associated Save/backup and automatic retirement. Separately confirm and perform an authorized native Discard on an exact preserved disposable candidate, preserving saved project/backup bytes.",
+      "actual": "Performed partial: native133 commits only Fixture outlet material100to101; completed saved01 revision2 at19:39:44.647Z preserves all14 markups/arcs, two scales, ordering/visibility/rate bases/default17 and exact two-page PDF. After guarded interruption,134 offers exact path/time,135Escape keeps without loading;136-138 reopens kept entry,139 default Keep Recovery Copy focus and140Enter preserve it.141/142 actually recover page2 dirty,143Estimate1017.93/1166.23/148.30. Parent before-explicit-save proves original saved primary05d042.../backupea7ad586... and snapshot unchanged/present after Keep/Restore.144ordinary associated Save uses no filename picker;145clean. Immutable recovered24ba13... preserves exact snapshot state, original saved createdAt, allowed updatedAt/positive fit viewport; backup exactly original05d042... material100. Parent19:46:37 CLI observes selected revision2 retired. A later genuine discard02 revision5 at19:51:24.271Z reuses the same session, with only material101to102 and independent1022.93/1171.73/148.80; exact snapshot/source/backup are preserved. Native155 labels it portable-native.clmc, recovery10/26/2026 3:51:24AM/last save3:45:30AM;156keeps it,181later shows it alongside never-saved. Actual destructive Discard has NOT occurred and awaits direct human action-time approval; this whole required case remains pending.",
+      "checks": [
+        {
+          "metric": "saved01 completed snapshot independently verified checksum",
+          "expected": "44d9f720febe6e32e50a43d48b60f43d089cbba2be600d5270fe08390cf3be22",
+          "actual": "44d9f720febe6e32e50a43d48b60f43d089cbba2be600d5270fe08390cf3be22",
+          "tolerance": 0
+        },
+        {
+          "metric": "saved01 preserved exact embedded PDF SHA256",
+          "expected": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+          "actual": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+          "tolerance": 0
+        },
+        {
+          "metric": "saved01 exact geometry arcs IDs across both pages",
+          "expected": 14,
+          "actual": 14,
+          "tolerance": 0
+        },
+        {
+          "metric": "saved01 page1 scale px/mm",
+          "expected": 0.1,
+          "actual": 0.1,
+          "tolerance": 1e-12
+        },
+        {
+          "metric": "saved01 page2 scale px/mm",
+          "expected": 0.2,
+          "actual": 0.2,
+          "tolerance": 1e-12
+        },
+        {
+          "metric": "saved01 only material rate changed100to101; all reviewed bases/default17/order/hidden keys retained",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "saved01 independent restored cost",
+          "expected": 1017.93,
+          "actual": 1017.93,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "saved01 independent restored selling",
+          "expected": 1166.23,
+          "actual": 1166.23,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "saved01 independent restored margin",
+          "expected": 148.3,
+          "actual": 148.3,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "Keep and actual restore leave original primary backup and selected snapshot unchanged before explicit Save",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "associated normal Save immutable recovered archive SHA256",
+          "expected": "24ba13d030a77a2a6f4c27677590fe248b0ae9a343d75244c736f1479b3656f2",
+          "actual": "24ba13d030a77a2a6f4c27677590fe248b0ae9a343d75244c736f1479b3656f2",
+          "tolerance": 0
+        },
+        {
+          "metric": "normal Save backup exactly equals original saved baseline100 archive",
+          "expected": "05d042d64778b9488358ed472bc6d18e42eeefee3d979d87fcf547cf303a71f1",
+          "actual": "05d042d64778b9488358ed472bc6d18e42eeefee3d979d87fcf547cf303a71f1",
+          "tolerance": 0
+        },
+        {
+          "metric": "saved01 selected completed revision2 retired after explicit Save",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "discard02 genuine completed revision",
+          "expected": 5,
+          "actual": 5,
+          "tolerance": 0
+        },
+        {
+          "metric": "discard02 preserved exact snapshot SHA256",
+          "expected": "51b5b4549a538e088c79d5e86c818d0ea7593d3f6cdd8895f885e2459729762e",
+          "actual": "51b5b4549a538e088c79d5e86c818d0ea7593d3f6cdd8895f885e2459729762e",
+          "tolerance": 0
+        },
+        {
+          "metric": "discard02 unsaved material102 independent cost",
+          "expected": 1022.93,
+          "actual": 1022.93,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "discard02 unsaved material102 independent selling",
+          "expected": 1171.73,
+          "actual": 1171.73,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "discard02 unsaved material102 independent margin",
+          "expected": 148.8,
+          "actual": 148.8,
+          "tolerance": 0.005
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-saved01/independent-snapshot-audit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-saved01/independent-recovered-save-audit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-saved01/snapshot-exact.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-saved01/snapshot-embedded.pdf",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-saved01/source-project.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-saved01/source-project.clmc.bak",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-saved01/interruption.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-saved01/before-explicit-save.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-saved01/after-explicit-save.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-saved01/recovered-explicit-save.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-saved01/recovered-explicit-save.clmc.bak",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-saved01/recovered-explicit-save-copy-proof.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-discard02/independent-discard-precondition-audit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-discard02/snapshot-exact.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-discard02/snapshot-embedded.pdf",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-discard02/source-project.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-discard02/source-project.clmc.bak",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-saved-discard02/interruption.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/133-saved-recovery-price-committed-dirty.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/134-saved-recovery-restart-prompt.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/135-saved-recovery-escape-keeps-for-later.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/136-saved-recovery-more-kept-candidate.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/138-saved-recovery-kept-candidate-reopened.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/139-saved-recovery-discard-confirmation-safe-default.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/140-saved-recovery-enter-keeps-copy.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/141-saved-recovery-recover-request.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/142-saved-recovery-restored-page2-dirty.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/143-saved-recovery-restored-estimate.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/144-saved-recovery-explicit-save-submit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/145-saved-recovery-explicit-save-clean.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/148-discard-fixture-new-price-dirty.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/155-second-recovery-copy-prompt.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/156-second-recovery-copy-kept.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/181-multiple-recovery-prompt.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/133-saved-recovery-price-committed-dirty-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/134-saved-recovery-restart-prompt-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/139-saved-recovery-discard-confirmation-safe-default-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/142-saved-recovery-restored-page2-dirty-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/143-saved-recovery-restored-estimate-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/145-saved-recovery-explicit-save-clean-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/148-discard-fixture-new-price-dirty-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/155-second-recovery-copy-prompt-0.jpg",
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/oracle.json"
+      ],
+      "reason": "Completed native saved recovery/Keep/default preservation/associated explicit Save and immutable state/backup readbacks are recorded, but required actual native destructive discard02 is not performed. Await direct human action-time approval of exact portable-native.clmc candidate captured10/26/2026 3:51:24AM, then independently verify selected deletion and unchanged saved primary/backup. No pass is granted to this partial case.",
+      "qualifications": [
+        "Actual recovery adoption is142, with dirty title and positive fitted63%viewport;141is dispatch only.143dirty Estimate and145clean after explicit Save are separate observations.",
+        "The saved original creation time19:20:48.087Z is preserved on normal same-path Save; transient snapshot capture createdAt is not treated as persisted project creation time.",
+        "Native133accessibility tree has stale totals despite exposing material101; inspected JPEG and independent captured/archive arithmetic supply correct new totals.",
+        "Saved01 retirement at19:46:37 and later same-session discard02revision5 at19:51:24 are distinct chronological facts, not contradictory states.",
+        "139/140exercise safe default Keep only; no deletion approval, actual deletion or destructive-discard success is inferred.",
+        "All source/backup/no-temp/retirement observations are bound to their recorded times; later intentional saves may update mutable files.",
+        "Original3191-file profile remains protected separately; child reader performs no active-profile/UI/canonical updates beyond this parent-authorized evidence edit."
+      ],
+      "pendingDiscard": {
+        "status": "awaiting-direct-human-action-time-approval",
+        "filename": "portable-native.clmc",
+        "sourcePath": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\.planning\\tmp\\20-completion-20261026\\candidate-1.1.2\\native\\portable-native.clmc",
+        "lastRecoveryLocal": "10/26/2026, 3:51:24 AM",
+        "lastProjectSaveLocal": "10/26/2026, 3:45:30 AM",
+        "session": "3db764e1-b2c9-4d9e-b7e0-5210d8fb61f6",
+        "revision": 5,
+        "capturedUtc": "2026-10-25T19:51:24.271Z",
+        "snapshotSha256": "51b5b4549a538e088c79d5e86c818d0ea7593d3f6cdd8895f885e2459729762e"
+      }
+    },
+    {
+      "id": "recovery-never-saved",
+      "status": "pass",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-two-page-mixed-scale-portability"
+      ],
+      "tester": "Codex root driving actual final-C 1.1.2 native never-saved recovery; independent technical child audited snapshot, exact immutable archive, source absence and direct arithmetic; parent accepted narrow required-case scope",
+      "date": "2026-10-25T20:02:55.500Z",
+      "procedure": "docs/release-validation.md",
+      "expected": "Load only a disposable synthetic PDF, calibrate, place and price a Count without saving a project; wait for a genuine completed capture, interrupt the identified main process, remove the disposable external PDF and restart. Select the never-saved candidate, recover exact embedded PDF/state dirty, then ordinary Save must open a new native filename picker and save a complete clean archive.",
+      "actual": "Native164-180 calibrate the known 400-base-pixel/4m reference to0.1px/mm, place exactly one Never-saved recovery pin at700,260 and commit material100/labor0/markup30, without a project save. Genuine completed revision8 at20:00:42.585Z has null sourcePath/lastSavedAt, exact checksum/PDF and one Count. The identified process is interrupted only after preservation; the disposable external source is moved intact after exit and is absent before restart. Native181 shows both genuine saved/never-saved candidates;182 selects saved as a control,183 keyboard-Up selects never-saved,184 dispatches and185 actually adopts the embedded two-page plan dirty with one Count and1:10 scale at positive fitted63%viewport.186 Estimate is100/130/30. OrdinarySave187 opens actual native Save Project picker188;189 supplies distinct never-saved-recovered.clmc;190/191 settle clean. Immutable first save6062bytes SHAa353670a2a878f359e8a491f5211cc874f73a97ce0be6da9cd5ef0e105dd1792 has valid ZIPCRC, exact full two-page PDF and every snapshot geometry/category/order/visibility/rate/scale field. Only first-save timestamps and fitted viewport change. After successful Save, the selected never-saved candidate retires while saved discard02 remains present with exact51b5b454... hash; external PDF remains absent and no first-save backup exists at the recorded check time. No later-than-completed-capture survival, destructive discard, other case or phase acceptance is inferred.",
+      "checks": [
+        {
+          "metric": "genuine completed never-saved snapshot revision",
+          "expected": 8,
+          "actual": 8,
+          "tolerance": 0
+        },
+        {
+          "metric": "completed snapshot sourcePath and lastSavedAt are null",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "independently recomputed snapshot checksum",
+          "expected": "8485a84537b67109690593e9a12e37d9be1e8889912b2139b18964dff514a841",
+          "actual": "8485a84537b67109690593e9a12e37d9be1e8889912b2139b18964dff514a841",
+          "tolerance": 0
+        },
+        {
+          "metric": "external disposable PDF absent before restart and retained as exact preserved bytes",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "embedded PDF actual pages",
+          "expected": 2,
+          "actual": 2,
+          "tolerance": 0
+        },
+        {
+          "metric": "exact embedded PDF SHA256",
+          "expected": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+          "actual": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+          "tolerance": 0
+        },
+        {
+          "metric": "native multiple-candidate keyboard selection and actual embedded dirty adoption",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "saved exact one Count geometry point700,260 and category/order/hidden state",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "native calibration equals independent400px/4000mm",
+          "expected": 0.1,
+          "actual": 0.1,
+          "tolerance": 1e-12
+        },
+        {
+          "metric": "page2 remains uncalibrated and has no markups",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "Count quantity",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "material rate",
+          "expected": 100,
+          "actual": 100,
+          "tolerance": 0
+        },
+        {
+          "metric": "labor rate",
+          "expected": 0,
+          "actual": 0,
+          "tolerance": 0
+        },
+        {
+          "metric": "row markup percent",
+          "expected": 30,
+          "actual": 30,
+          "tolerance": 0
+        },
+        {
+          "metric": "default markup percent",
+          "expected": 30,
+          "actual": 30,
+          "tolerance": 0
+        },
+        {
+          "metric": "independent and native recovered cost",
+          "expected": 100,
+          "actual": 100,
+          "tolerance": 0
+        },
+        {
+          "metric": "independent and native recovered selling",
+          "expected": 130,
+          "actual": 130,
+          "tolerance": 0
+        },
+        {
+          "metric": "independent and native recovered margin",
+          "expected": 30,
+          "actual": 30,
+          "tolerance": 0
+        },
+        {
+          "metric": "ordinary Save opens native new-project filename picker",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "immutable first saved archive SHA256",
+          "expected": "a353670a2a878f359e8a491f5211cc874f73a97ce0be6da9cd5ef0e105dd1792",
+          "actual": "a353670a2a878f359e8a491f5211cc874f73a97ce0be6da9cd5ef0e105dd1792",
+          "tolerance": 0
+        },
+        {
+          "metric": "first saved archive ZIPCRC and exact snapshot state",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "first-save createdAt equals updatedAt at20:02:46.225Z and viewport stays positive",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "matching completed never-saved candidate absent after successful explicit Save",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "other completed saved candidate remains present unchanged",
+          "expected": "51b5b4549a538e088c79d5e86c818d0ea7593d3f6cdd8895f885e2459729762e",
+          "actual": "51b5b4549a538e088c79d5e86c818d0ea7593d3f6cdd8895f885e2459729762e",
+          "tolerance": 0
+        },
+        {
+          "metric": "no first-save backup at recorded post-save check",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-never-saved-never01/independent-never-saved-snapshot-audit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-never-saved-never01/independent-never-saved-save-audit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-never-saved-never01/snapshot-exact.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-never-saved-never01/snapshot-embedded.pdf",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-never-saved-never01/source-external.pdf",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-never-saved-never01/source-external-moved-away.pdf",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-never-saved-never01/source-unavailable-before-restart.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-never-saved-never01/interrupt-preflight.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-never-saved-never01/interruption.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/recovery-never-saved-never01/after-explicit-save.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/never-saved-recovered-initial.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/160-never-saved-source-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/162-never-saved-source-page1-adopted.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/164-never-saved-zoom100.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/168-never-saved-calibration-dialog.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/169-never-saved-calibration-four-metres.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/170-never-saved-calibration-confirmed.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/173-never-saved-count-name.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/175-never-saved-pin-placed.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/176-never-saved-count-finished.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/180-never-saved-rate-committed.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/181-multiple-recovery-prompt.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/182-multiple-recovery-select-saved.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/183-multiple-recovery-keyboard-select-never.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/184-never-saved-recover-dispatch.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/185-never-saved-recovered-plan.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/186-never-saved-recovered-estimate.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/187-never-saved-save-routes-to-save-as.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/188-never-saved-save-as-picker.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/189-never-saved-save-as-exact-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/190-never-saved-submit-save-as.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/191-never-saved-save-complete.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/170-never-saved-calibration-confirmed-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/175-never-saved-pin-placed-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/180-never-saved-rate-committed-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/181-multiple-recovery-prompt-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/183-multiple-recovery-keyboard-select-never-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/185-never-saved-recovered-plan-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/186-never-saved-recovered-estimate-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/191-never-saved-save-complete-0.jpg",
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/oracle.json"
+      ],
+      "reason": null,
+      "qualifications": [
+        "The PDF is the existing synthetic two-page portability reference; this case directly opened its disposable PDF and did not import the populated14-markup project. Existing fixture identity is reused, without representative/as-built approval.",
+        "Only completed revision8 at20:00:42.585Z is covered; no changes after that capture are claimed recovered.",
+        "First save creates a new project with createdAt=updatedAt; it does not preserve the transient recovery capture creation time.",
+        "Restore fits to positive63%viewport, while exact Count geometry and1:10 calibration survive; the old0.1%minimum-zoom failure is not present.",
+        "After-save candidate retirement is a bound parent CLI observation; independent child accesses only workspace evidence and the saved archive, never the active profile.",
+        "Automatic retirement is distinct from destructive Discard. Saved-recovery discard02 still requires exact action-time human approval and actual native action.",
+        "Parent accepted this required-case scope only. Other installed cases, physical displays, original-profile restoration, release approval and whole-phase completion remain separate."
+      ]
+    },
+    {
+      "id": "failed-save-backup",
+      "status": "pass",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "public-txdot-dallas-renovation-vector"
+      ],
+      "tester": "Codex root driving actual final-C1.1.2 native fault/retry/backup tests; independent technical children audited immutable archives, hashes, chronology and native evidence; parent accepted required-case scope",
+      "date": "2026-10-25T19:36:23.768Z",
+      "procedure": "docs/release-validation.md",
+      "expected": "Using only disposable destinations, exercise actual first-save temporary-write and backup/final-replacement failures; visible busy/error, cancel/Close/save-copy/retry behavior preserves live work and original/last-good bytes. Adjacent backup opens detached/dirty and ordinary Save requires a distinct copy. Validate actual complete PDF/archive/state preservation without weakening real-file security.",
+      "actual": "Native072–122 complete the required case on exact final C. The valid absent215-character filename/full256-character target is accepted by the native picker; first-save UUIDtemp open fails ENOENT, reports no project saved, leaves live1Count dirty and creates no primary/backup/temp remnants. Modal SaveAs opens a picker and Cancel retains the failure; Close retains work. SUCCESS uses subsequent toolbar SaveAs to the separate short path, clean with exact full88-pagePDF and1Count/no backup before later replacements. With live3Count dirty, FileShare.Read lock on backup preserves diskprimary2/backup1; native backup-preservation error/busy states and keyboard wrap observed. Unlock+TryAgain succeeds clean primary3/backup2. Live4Count precedes the immutable disk3/2copy, which precedes failingSave109. Lockedprimary replacement leaves primary3unchanged and validly advances backup2to savedprimary3; zero staging remnants at the recorded moment. Unlock+TryAgain succeeds clean primary4/backup3. Actual adjacent.bak is adopted detached/dirty with3Counts; ordinarySave opens nativeSaveAs and writes distinct clean backup-detached-copy, preserving exact marker/category/order/visibility/rates and originalprimary4/backup3 hashes. No modal-SaveAs success, arbitrary in-flight edits, physical scaling, recovery or whole-phase approval is claimed.",
+      "checks": [
+        {
+          "metric": "Native picker accepted a valid absent first-save destination before temporary-open write failure",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/first-save-fault-path.json",
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/081-fault-save-long-path-verified.json",
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/083-fault-first-save-error.json"
+          ]
+        },
+        {
+          "metric": "First-save failure explicitly says no project was saved and retains dirty work",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/083-fault-first-save-error.json",
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/089-fault-close-retains-dirty-markup.json"
+          ]
+        },
+        {
+          "metric": "First-save primaryAbsent",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/first-save-fault-observation.json"
+          ]
+        },
+        {
+          "metric": "First-save backupAbsent",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/first-save-fault-observation.json"
+          ]
+        },
+        {
+          "metric": "First-save actualUuidTemporaryAbsent",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/first-save-fault-observation.json"
+          ]
+        },
+        {
+          "metric": "First-save allPrimaryNamedRemnantsAbsent",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/first-save-fault-observation.json"
+          ]
+        },
+        {
+          "metric": "First-save sourceWrapperHashUnchanged",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/first-save-fault-observation.json"
+          ]
+        },
+        {
+          "metric": "Modal Save As opens picker; Cancel retains failure and dirty work",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/first-save-fault-audit.json"
+          ]
+        },
+        {
+          "metric": "Close retains dirty one-Count work",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/first-save-fault-audit.json"
+          ]
+        },
+        {
+          "metric": "Later toolbar Save As saves a clean separate full-PDF one-Count archive",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/first-save-fault-audit.json",
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/first-save-after-write-failure-initial-readback.json"
+          ]
+        },
+        {
+          "metric": "No backup before first successful write and later replacement",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/first-save-after-write-failure-initial-copy-proof.json"
+          ]
+        },
+        {
+          "metric": "Busy Open/Save/Save As/Replace and modal failure actions have disabled native accessibility states",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/079-fault-save-as-picker-request.json",
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/082-fault-save-submitted.json",
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/086-fault-modal-save-as-keyboard-request.json",
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/106-backup-unlocked-retry-busy.json",
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/112-primary-unlocked-retry-busy.json",
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/119-backup-detached-save-picker-ready.json"
+          ]
+        },
+        {
+          "metric": "Backup-preservation failure keeps original2 and last-good backup1 exact and valid",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/backup-lock-observation.json"
+          ]
+        },
+        {
+          "metric": "Backup failure staging remnants",
+          "expected": 0,
+          "actual": 0,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/backup-lock-copy-proof.json"
+          ]
+        },
+        {
+          "metric": "Try Again after backup unlock succeeds clean with primary3 and backup2",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/backup-retry-observation.json"
+          ]
+        },
+        {
+          "metric": "Final replacement failure keeps primary3 exact and backup validly advanced to last-saved3",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/primary-lock-observation.json"
+          ]
+        },
+        {
+          "metric": "Replacement failure staging remnants",
+          "expected": 0,
+          "actual": 0,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/primary-lock-failed-copy-proof.json"
+          ]
+        },
+        {
+          "metric": "Try Again after primary unlock succeeds clean with primary4 and backup3",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/primary-retry-observation.json"
+          ]
+        },
+        {
+          "metric": "Actual adjacent backup is adopted as detached dirty3-count content",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/backup-detached-observation.json",
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/117-backup-adopted-detached-three.json"
+          ]
+        },
+        {
+          "metric": "Ordinary Save from detached backup opens native Save As and writes separate clean copy",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/backup-detached-observation.json",
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/119-backup-detached-save-picker-ready.json",
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/122-backup-detached-copy-clean.json"
+          ]
+        },
+        {
+          "metric": "Detached copy retains exact original three Count records, categories, order, visibility and rates",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/backup-detached-observation.json"
+          ]
+        },
+        {
+          "metric": "Original primary4 and backup3 remain unchanged through detached open/Save copy",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0,
+          "artifacts": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/backup-detached-copy-proof.json",
+            ".planning/tmp/20-completion-20261026/candidate-1.1.2/backup-detached-observation.json"
+          ]
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/failed-save-backup-review.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/first-save-fault-observation.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/first-save-fault-audit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/backup-lock-observation.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/backup-retry-observation.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/primary-lock-observation.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/primary-retry-observation.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/backup-detached-observation.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/primary-lock-before-copy-proof-chronology.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/first-save-fault-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/081-fault-save-long-path-verified.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/083-fault-first-save-error.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/089-fault-close-retains-dirty-markup.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/first-save-after-write-failure-initial-readback.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/first-save-after-write-failure-initial-copy-proof.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/079-fault-save-as-picker-request.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/082-fault-save-submitted.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/086-fault-modal-save-as-keyboard-request.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/106-backup-unlocked-retry-busy.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/112-primary-unlocked-retry-busy.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/119-backup-detached-save-picker-ready.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/backup-lock-copy-proof.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/primary-lock-failed-copy-proof.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/117-backup-adopted-detached-three.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/122-backup-detached-copy-clean.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/backup-detached-copy-proof.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/first-save-after-write-failure-initial.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/backup-lock-primary-2.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/backup-lock-lastgood-1.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/primary-lock-before-primary-3.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/primary-lock-before-backup-2.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/primary-lock-failed-primary-3.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/primary-lock-failed-backup-3.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/primary-retry-primary-4.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/primary-retry-backup-3.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/backup-detached-initial.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/072-fault-source-dallas-adopted.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/073-fault-count-name-dialog.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/074-fault-count-name-focused.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/075-fault-count-name-entered.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/076-fault-count-placement-ready.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/077-fault-one-pin-committed.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/078-fault-count-placement-exited.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/080-fault-save-as-picker-ready.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/084-fault-dialog-keyboard-backtab.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/085-fault-dialog-save-as-focused.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/087-fault-modal-save-as-picker-ready.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/088-fault-copy-picker-cancel.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/090-fault-safe-copy-picker.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/091-fault-safe-copy-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/092-fault-safe-copy-submit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/093-fault-safe-copy-clean.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/094-backup-count-two-dialog.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/095-backup-count-two-name-focus.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/096-backup-count-two-name.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/097-backup-count-two-placement.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/098-backup-count-two-live.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/099-backup-baseline-two-save-submit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/100-backup-baseline-two-clean.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/101-backup-fault-three-live.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/102-backup-lock-save-busy.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/103-backup-lock-persistent-error.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/104-backup-error-tab-wraps-to-close.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/105-backup-error-backtab-wraps-to-retry.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/107-backup-unlocked-retry-clean-three.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/108-primary-fault-four-live.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/109-primary-lock-save-busy.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/110-primary-lock-replace-error.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/111-primary-error-before-retry.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/113-primary-unlocked-retry-clean-four.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/114-backup-open-picker.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/115-backup-open-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/116-backup-open-request.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/118-backup-detached-save-routes-to-save-as.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/120-backup-detached-copy-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/121-backup-detached-copy-submit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/083-fault-first-save-error-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/103-backup-lock-persistent-error-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/110-primary-lock-replace-error-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/117-backup-adopted-detached-three-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/122-backup-detached-copy-clean-0.jpg"
+      ],
+      "reason": null,
+      "qualifications": [
+        "Modal Save As successful write is not claimed: its picker Cancel route was tested. Success used Close then toolbar Save As; both unlocked Try Again routes succeeded.",
+        "Backup-specific failure preserves previous backup1 unchanged. Final primary-replacement failure first rotates backup2 to the valid previous saved primary3, then fails replacement; it does not preserve backup2 at the active path.",
+        "No-backup and zero-temp checks are timestamp-bound immutable observations; later intended saves may create a valid adjacent backup.",
+        "Copy chronology addendum preserves raw proof and clarifies that live Count4 preceded the3/2disk snapshot, which still preceded failing Save109.",
+        "The source is an uncalibrated public Dallas vector wrapper with arbitrary Count pins; no metric accuracy or human representative/as-built approval is asserted.",
+        "A native clean title is a UI observation, independently corroborated by immutable archive readbacks; no hidden renderer-store instrumentation was used.",
+        "Required failed-save/backup coverage is eligible for parent acceptance. The separate UI-keyboard-overflow case, whole Phase20 gate, recovery tests, physical display coverage and release approval are not closed by this review.",
+        "Original profile remains isolated and not restored in this ongoing session. Parent accepted the required fault-case scope; no other installed case or edge review is accepted."
+      ],
+      "chronologyQualification": {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.2/primary-lock-before-copy-proof-chronology.json",
+        "summary": "The immutable3/2disk snapshots were captured after native108alreadyshowed fourth unsaved Count, and before native109failing Save. No claim of capture before fourth placement is supported. The file hashes, unchanged persisted state and pre-failure preservation proof remain valid."
+      }
+    },
+    {
+      "id": "offline-workflow",
+      "status": "pending",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute offline-workflow against the exact 1.1.2 candidate under the installed validation procedure, using independent oracles and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed against 1.1.2. Prior candidate results exist only in .planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json; no prior pass, failure, screenshot, scalar or profile claim is adopted as a new result."
+    },
+    {
+      "id": "large-vector",
+      "status": "pending",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "public-txdot-dallas-vector"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute large-vector against the exact 1.1.2 candidate under the installed validation procedure, using independent oracles and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed against 1.1.2. Prior candidate results exist only in .planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json; no prior pass, failure, screenshot, scalar or profile claim is adopted as a new result."
+    },
+    {
+      "id": "large-scan",
+      "status": "pending",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "public-usda-farmhouse-scan"
+      ],
+      "tester": "Codex root driving native final-C1.1.2; independent technical children checked immutable archive, source image/registration and settled captures",
+      "date": "2026-10-25T19:16:54.608Z",
+      "procedure": "docs/release-validation.md",
+      "expected": "On the exact installed candidate, render the complete genuine high-resolution scanned construction PDF, retain correct image/markup registration through zoom and native save/reopen, and separately establish calibrated independent accuracy, actual panning/navigation and qualified memory observations before the full case can pass.",
+      "actual": "PERFORMED PARTIAL: native012renders USDA floor-plan page4 and015renders elevations page3 of the unchanged full4-page original; the specific1.1.1JPX blank-render defect is resolved on exact final-C1.1.2. Native022–025place one arbitrary Scan registration pin and show it at Fit69%;033shows800%registration;038separate first SaveAs completes clean. Immutableusda-first-save.clmc SHAef1db9cc03dcc6a8a1be145bfb5a34cf5f7f716cb8b79ba4ed74f7289e1326f3 preserves exact23505538-byte4-page PDF, ZIPCRCs, one page4count, unset calibrations and empty rates. Actual native reopen042renders the full page/pin at Fit69% and is DIRTY after refit;044is a later clean save. Saved-point screen prediction and observed800%pin centers differ by less than1screen pixel per axis; Fit/pre-reopen and actual-reopen pin bounds match. This establishes registration/preservation only, not precise wall-end targeting, calibration or physical measurement accuracy. No SetScale, independent calibrated dimension, actual interactive pan or scan memory/stress window is evidenced; the full large-scan case remains pending.",
+      "checks": [
+        {
+          "metric": "actual native USDA page4 nonblank render observed",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "actual native USDA page3 nonblank render observed",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "embedded original USDA PDF SHA256",
+          "expected": "13788ecf41653481d2ee0884d5443c52ddec0281dc05e07283988db3a2bf2d78",
+          "actual": "13788ecf41653481d2ee0884d5443c52ddec0281dc05e07283988db3a2bf2d78",
+          "tolerance": 0
+        },
+        {
+          "metric": "unchanged complete embedded PDF bytes",
+          "expected": 23505538,
+          "actual": 23505538,
+          "tolerance": 0
+        },
+        {
+          "metric": "complete original PDF page count",
+          "expected": 4,
+          "actual": 4,
+          "tolerance": 0
+        },
+        {
+          "metric": "immutable first native SaveAs archive SHA256",
+          "expected": "ef1db9cc03dcc6a8a1be145bfb5a34cf5f7f716cb8b79ba4ed74f7289e1326f3",
+          "actual": "ef1db9cc03dcc6a8a1be145bfb5a34cf5f7f716cb8b79ba4ed74f7289e1326f3",
+          "tolerance": 0
+        },
+        {
+          "metric": "both archive entry CRCs valid",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "one native page4 registration count retained",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "800percent saved-point registration residual within1screen pixel per axis",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "Fit and actual reopened pin bounds identical",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "all page calibrations remain unset observed scope",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/usda-first-save.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/usda-first-save-readback.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/usda-first-save-readback.md",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/read-usda-first-save.py",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/usda-source-marker-vicinity.png",
+        ".planning/phases/20-production-readiness/20-JPX-RENDER-DEBUG.md",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/012-usda-page4-native-render.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/013-usda-fit-native.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/014-usda-page3-request.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/015-usda-page3-settled.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/016-usda-return-page4.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/017-usda-count-start.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/018-usda-count-form.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/019-usda-marker-name-focus.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/020-usda-marker-name-entered.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/021-usda-marker-placing.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/022-usda-marker-on-wall-end.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/023-usda-marker-committed.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/024-usda-pin-settled.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/025-usda-select-after-pin.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/026-usda-zoom75.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/027-usda-zoom100.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/028-usda-zoom125.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/029-usda-zoom150.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/030-usda-zoom200.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/031-usda-zoom300.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/032-usda-zoom400.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/033-usda-zoom800-registration.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/034-usda-save-as-picker.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/035-usda-save-picker-ready.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/036-usda-save-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/037-usda-save-accepted.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/038-usda-first-save-clean.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/039-usda-reopen-picker-request.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/040-usda-reopen-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/041-usda-reopen-request.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/042-usda-reopened-rendered.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/043-usda-refit-save.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/044-usda-saved-before-transfer.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/012-usda-page4-native-render-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/015-usda-page3-settled-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/025-usda-select-after-pin-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/033-usda-zoom800-registration-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/038-usda-first-save-clean-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/042-usda-reopened-rendered-0.jpg"
+      ],
+      "reason": "Performed partial only: SetScale/calibrated independent dimension accuracy, actual interactive panning and qualified new-candidate scan memory/stress observations remain absent. The JPX blank-render defect is resolved; unresolved acceptance evidence is not a continued blank-render failure. Final representative-fixture/REL05 review remains separate.",
+      "partialStatus": "performed-partial",
+      "defectRegression": {
+        "status": "resolved-for-exact-final-C-1.1.2",
+        "defect": "Previously blank USDA JPEG2000 pages3/4",
+        "candidateInstallerSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+        "candidateArchiveSha256": "084f96aef0b4e27ad746712efd4fca793554b82c8b0e7642bccda2d93f119416",
+        "report": ".planning/phases/20-production-readiness/20-JPX-RENDER-DEBUG.md",
+        "fullLargeScanCasePassed": false
+      },
+      "observedRegistration": {
+        "scope": "Screen registration of the stored arbitrary native pin only; not construction landmark targeting or dimensional accuracy.",
+        "at800PercentResidualScreenPx": [
+          {
+            "x": -0.6478873239466338,
+            "y": 0.7347417840355774
+          },
+          {
+            "x": -0.6478873239466338,
+            "y": 0.7347417840355774
+          }
+        ],
+        "fitAndReopenPixelBounds": [
+          {
+            "capture": "025-usda-select-after-pin-0.jpg",
+            "bounds": [
+              790,
+              532,
+              801,
+              543
+            ]
+          },
+          {
+            "capture": "042-usda-reopened-rendered-0.jpg",
+            "bounds": [
+              790,
+              532,
+              801,
+              543
+            ]
+          }
+        ],
+        "nativeReopenDirtyAfterRefit": true
+      },
+      "qualifications": [
+        "Specific JPX blank-render regression is resolved by actual installed page3/4 rendering; full case is still pending.",
+        "The full original four-page23505538-byte PDF is used; pages3/4 each contain6582x5111JPX scans.",
+        "One native arbitrary count gives registration/persistence evidence; no precise physical landmark targeting or calibrated measurement pass is inferred.",
+        "The actual reopen is dirty after positive Fit69% refit; later044clean save is a separate observation.",
+        "No actual interactive pan, new scan memory/stress/cache measurement or final human representative/as-built approval is established."
+      ]
+    },
+    {
+      "id": "multipage-navigation",
+      "status": "pass",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-two-page-mixed-scale-portability"
+      ],
+      "tester": "Codex root driving actual installed final-C1.1.2 on the user-confirmed second PC; independent child reviewed native page captures, immutable archive, unchanged independent oracle and raw memory sums; root accepted qualified required-case scope",
+      "date": "2026-10-25T20:12:24.285Z",
+      "procedure": "docs/release-validation.md",
+      "expected": "Within the authorized synthetic software scope, repeated native toolbar and keyboard page navigation followed by reopen must preserve correct page/markup association, the two distinct page scales and independent quantities/money. Observe process-memory settling without treating total process bytes as retained raster-cache accounting. Preserve the immutable first-save and after-cycle evidence.",
+      "actual": "Native203/204adopts the separate disposable portable-navigation.clmc copy on page1. Four round trips are observed: actual206page2→207page1→208page2→209page1, then keyboard211page2→212page1→213page2→214page1. Each adopted page retains14project markups and its correct straight/page1 or curved/page2 geometry/pins with1:10/1:5 scales.205still shows oldpage1 and is not counted as adoption or render latency.215ordinarySave is clean; immutable after-cycles archiveSHAcf7478ce81fb577f1c0c042c633211f0759ee3102dedd2cb90513454dadb57f0 preserves exact ZIPCRC/fullPDF, all14geometry/arcs/wallheights/scales/order/visibility/rates and createdAt versus immutable native firstsave. Native216–218picker selects the saved path;219actual reopenedpage1 and220page2 retain correct overlays/scales and221Estimate totals1012.93/1160.73/147.80.219–221are DIRTY after positive107%viewport refit, not clean-reopen evidence. Five sparse same4PID snapshots20:07:20.988–20:11:57.057UTC cover276.068305s: privatebytes412987392→471494656→477196288→442957824→414818304, and working-setbytes497963008→491339776→495063040→478470144→480378880. Two settling samples decline from the observed post-keyboard private allocation to1830912bytes above baseline; no peak/leak/cache certification is inferred.222retains exact visible Estimate totals;223is an immediate save observation and224establishes settled clean after final ordinarySave. Root accepted the required functional case with synthetic fixture/tool cadence/sparse-memory qualifications; human representative-plan/REL05 review remains separate. Original profile remains isolated/not restored.",
+      "checks": [
+        {
+          "metric": "immutable native first-save SHA256 preserved",
+          "expected": "096b1574b464763ba173922cc55677b20dcf2d88c461a69142720a78073d2432",
+          "actual": "096b1574b464763ba173922cc55677b20dcf2d88c461a69142720a78073d2432",
+          "tolerance": 0
+        },
+        {
+          "metric": "immutable after-cycle archive SHA256",
+          "expected": "cf7478ce81fb577f1c0c042c633211f0759ee3102dedd2cb90513454dadb57f0",
+          "actual": "cf7478ce81fb577f1c0c042c633211f0759ee3102dedd2cb90513454dadb57f0",
+          "tolerance": 0
+        },
+        {
+          "metric": "full two-page embedded PDF SHA256",
+          "expected": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+          "actual": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+          "tolerance": 0
+        },
+        {
+          "metric": "archive CRC valid and persistent data exact versus native first-save",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "embedded PDF pages",
+          "expected": 2,
+          "actual": 2,
+          "tolerance": 0
+        },
+        {
+          "metric": "exact markup total across both pages",
+          "expected": 14,
+          "actual": 14,
+          "tolerance": 0
+        },
+        {
+          "metric": "page1 exact markup association",
+          "expected": 7,
+          "actual": 7,
+          "tolerance": 0
+        },
+        {
+          "metric": "page2 exact markup association",
+          "expected": 7,
+          "actual": 7,
+          "tolerance": 0
+        },
+        {
+          "metric": "page1 independent scale pixels per mm",
+          "expected": 0.1,
+          "actual": 0.1,
+          "tolerance": 0
+        },
+        {
+          "metric": "page2 independent scale pixels per mm",
+          "expected": 0.2,
+          "actual": 0.2,
+          "tolerance": 0
+        },
+        {
+          "metric": "source geometry arc midpoints wall heights order hidden keys and reviewed rates exact",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "four native observed round trips with mixed-scale page association",
+          "expected": "1,2,1,2,1,2,1,2,1",
+          "actual": "1,2,1,2,1,2,1,2,1",
+          "tolerance": 0
+        },
+        {
+          "metric": "ordinary Save preserves native first-save creation time",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "actual saved-path reopen adopted and both page scales retained",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "reopened native cost total versus independent oracle",
+          "expected": 1012.93,
+          "actual": 1012.93,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "reopened native selling total versus independent oracle",
+          "expected": 1160.73,
+          "actual": 1160.73,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "reopened native margin total versus independent oracle",
+          "expected": 147.8,
+          "actual": 147.8,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "qualified memory samples retain exact same4PID identity and independent sums",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "private bytes decline across both observed settling snapshots",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "final ordinary Save settled clean",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/portable-first-save.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/portable-navigation-copy-proof.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/portable-navigation-after-cycles.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/portable-navigation-independent-review.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/read-portable-navigation.py",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/sample-native-memory.ps1",
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/readback.py",
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/oracle.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/nav-memory/20261025T200720.9883792Z-nav-before-pid13072.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/nav-memory/20261025T200841.9062869Z-nav-after-cycles-pid13072.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/nav-memory/20261025T200931.1823194Z-nav-after-keyboard-cycles-pid13072.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/nav-memory/20261025T201105.8346922Z-nav-settled-1-pid13072.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/nav-memory/20261025T201157.0566843Z-nav-settled-2-pid13072.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/nav-memory/20261025T200720.9883792Z-nav-before-pid13072-aggregate-correction.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/203-navigation-adopted-state.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/204-navigation-before-no-tooltip.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/205-navigation-cycle1-page2.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/206-navigation-cycle1-page2-rendered.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/207-navigation-cycle1-back-page1.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/208-navigation-cycle2-page2.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/209-navigation-cycle2-back-page1.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/210-navigation-cycle-memory-observation.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/211-navigation-fast-right-1.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/212-navigation-fast-left-1.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/213-navigation-fast-right-2.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/214-navigation-fast-left-2.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/215-navigation-save-after-cycles.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/216-navigation-reopen-picker-request.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/217-navigation-reopen-exact-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/218-navigation-reopen-submit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/219-navigation-reopened-page1.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/220-navigation-reopened-page2.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/221-navigation-reopened-estimate.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/222-navigation-settled-responsive.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/223-navigation-final-save-clean.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/224-navigation-final-save-settled.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/206-navigation-cycle1-page2-rendered-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/207-navigation-cycle1-back-page1-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/211-navigation-fast-right-1-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/212-navigation-fast-left-1-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/219-navigation-reopened-page1-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/220-navigation-reopened-page2-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/221-navigation-reopened-estimate-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/224-navigation-final-save-settled-0.jpg"
+      ],
+      "reason": null,
+      "memoryObservations": {
+        "method": "Five sparse read-only Windows same-executable process snapshots; four identical PIDs, independent raw sums; baseline aggregate-zero correction preserved separately.",
+        "windowSeconds": 276.068305,
+        "samples": [
+          {
+            "stage": "nav-before",
+            "utc": "2026-10-25T20:07:20.9883792Z",
+            "workingSetBytes": 497963008,
+            "privateBytes": 412987392,
+            "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/nav-memory/20261025T200720.9883792Z-nav-before-pid13072.json",
+            "sha256": "cd1a8849a035c992ef982c69f00e7084a9c3883014624bbd9087d88bc3504086"
+          },
+          {
+            "stage": "nav-after-cycles",
+            "utc": "2026-10-25T20:08:41.9062869Z",
+            "workingSetBytes": 491339776,
+            "privateBytes": 471494656,
+            "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/nav-memory/20261025T200841.9062869Z-nav-after-cycles-pid13072.json",
+            "sha256": "8a3c6d41d2c10d3e94241f1ffe2d5d123273fd15d5df1a4a40f0431e5be04a80"
+          },
+          {
+            "stage": "nav-after-keyboard-cycles",
+            "utc": "2026-10-25T20:09:31.1823194Z",
+            "workingSetBytes": 495063040,
+            "privateBytes": 477196288,
+            "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/nav-memory/20261025T200931.1823194Z-nav-after-keyboard-cycles-pid13072.json",
+            "sha256": "bd0fa4343acaaf6207cf316db8a78c1bc65a636223fbf595c976bf2815d27555"
+          },
+          {
+            "stage": "nav-settled-1",
+            "utc": "2026-10-25T20:11:05.8346922Z",
+            "workingSetBytes": 478470144,
+            "privateBytes": 442957824,
+            "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/nav-memory/20261025T201105.8346922Z-nav-settled-1-pid13072.json",
+            "sha256": "51ae10947cea48bde9381bbc78ecc75670ced7470d92e6577e525b068c21878f"
+          },
+          {
+            "stage": "nav-settled-2",
+            "utc": "2026-10-25T20:11:57.0566843Z",
+            "workingSetBytes": 480378880,
+            "privateBytes": 414818304,
+            "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/nav-memory/20261025T201157.0566843Z-nav-settled-2-pid13072.json",
+            "sha256": "bfd3addffada2333a3dd1ae3ca08ca37572133f93a402f827e9040643b7958df"
+          }
+        ],
+        "lastPrivateBytesAboveBaseline": 1830912,
+        "totalProcessMemoryIsNotRetainedRasterCache": true
+      },
+      "qualifications": [
+        "Authorized authored synthetic two-page software fixture only; no human representative/as-built construction-plan approval. Existing fixture identity/oracle reused without duplication; REL05 human fixture/final review remains pending.",
+        "Four observed round trips at recorded native tool-observation cadence. No fixed cadence threshold is specified; no high-frequency concurrent-render cancellation or input-to-render latency claim.205oldframe is preserved and excluded from actual page2 adoption.",
+        "All geometry and mixed calibrations are generated inputs; this case does not claim fresh manual calibration, large-document diversity or cache-eviction pressure.",
+        "Native219–221actual reopen is dirty after positive107%viewport refit.215and224are clean ordinary-Save observations;223filename alone is not a settled-clean result.",
+        "Five sparse same-session process observations over276.068305s show private allocation settling near baseline. They are not an instrumented peak, long leak soak, total-system measure or128MiB retained raster-cache certification; shared working-set pages may be counted repeatedly.",
+        "Original baseline sampler aggregate-zero error is retained unchanged with source-SHA-linked independent correction; later aggregates are independently summed from raw values. The rejected anonymous tooltip HWND observation was a sampler guard qualification, not a product defect.",
+        "Immutable first-save and after-cycle archives anchor exact readback; later mutable navigation file/final Save is not substituted for those immutable records.",
+        "Original3191-file profile is still isolated/not restored. Physical pan/scaling/monitor transition, offline workflow, remaining cases, candidate reviews and human release approval remain separate."
+      ]
+    },
+    {
+      "id": "scaling-100",
+      "status": "pending",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute scaling-100 against the exact 1.1.2 candidate under the installed validation procedure, using independent oracles and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed against 1.1.2. Prior candidate results exist only in .planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json; no prior pass, failure, screenshot, scalar or profile claim is adopted as a new result."
+    },
+    {
+      "id": "scaling-125",
+      "status": "pending",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute scaling-125 against the exact 1.1.2 candidate under the installed validation procedure, using independent oracles and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed against 1.1.2. Prior candidate results exist only in .planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json; no prior pass, failure, screenshot, scalar or profile claim is adopted as a new result."
+    },
+    {
+      "id": "scaling-150",
+      "status": "pending",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute scaling-150 against the exact 1.1.2 candidate under the installed validation procedure, using independent oracles and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed against 1.1.2. Prior candidate results exist only in .planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json; no prior pass, failure, screenshot, scalar or profile claim is adopted as a new result."
+    },
+    {
+      "id": "scaling-200",
+      "status": "pending",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute scaling-200 against the exact 1.1.2 candidate under the installed validation procedure, using independent oracles and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed against 1.1.2. Prior candidate results exist only in .planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json; no prior pass, failure, screenshot, scalar or profile claim is adopted as a new result."
+    },
+    {
+      "id": "monitor-transition",
+      "status": "pending",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute monitor-transition against the exact 1.1.2 candidate under the installed validation procedure, using independent oracles and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed against 1.1.2. Prior candidate results exist only in .planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json; no prior pass, failure, screenshot, scalar or profile claim is adopted as a new result."
+    },
+    {
+      "id": "ui-keyboard-overflow",
+      "status": "fail",
+      "candidateSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-two-page-mixed-scale-portability"
+      ],
+      "tester": "Codex root driving installed1.1.2 on second PC; independent children reviewed native230/232 screenshots, settled233 accessibility, authored250-row input and source diagnosis",
+      "date": "2026-10-25T20:16:07.141Z",
+      "procedure": "docs/release-validation.md;20-UI-SPEC.md UI05",
+      "expected": "At reduced effective window size, the Cost Library must retain accurate full counts and preview/committed display caps while keeping long codes/descriptions/categories, complete units and right-aligned monetary amounts readable. Internal table scrolling must keep Close and preview actions reachable. This performed subset does not replace the remaining UI01–05 keyboard/error/recovery/legacy states.",
+      "actual": "At root-reported Windows100% scaling and a restored nominal1280x720 window (native screenshots1282x721),225/226show the empty library,229shows Checking workbook, and230validates the250-row long CSV with Showing20of250 preview.230screenshot shows Unit and Material/unit/Labor/unit headers and first-row units/rates collapsed into narrow vertical fragments; Close,Cancel Import and Replace Library remain reachable.232screenshot already shows committed250items and Showing100of250 with the same readability failure, while its accessibility state lags in replacing/preview.233settled accessibility independently confirms committed250items and100displaycap. Accurate input/count retention and visible actions are subset positives; the required readable units/amounts criterion fails. No completed keyboard/focus/invalid-import/legacy/recovery/search-path acceptance is claimed. Root requested a production layout fix and replacement candidate; no fix or retest pass is adopted here.",
+      "checks": [
+        {
+          "metric": "exact valid long-CSV fixture SHA256",
+          "expected": "e05f7665765484f5dbb9112e9109f72c98a0a357b285fd66304a2c0ad3b8f096",
+          "actual": "e05f7665765484f5dbb9112e9109f72c98a0a357b285fd66304a2c0ad3b8f096",
+          "tolerance": 0
+        },
+        {
+          "metric": "valid imported CSV full row count",
+          "expected": 250,
+          "actual": 250,
+          "tolerance": 0
+        },
+        {
+          "metric": "native preview correct20of250 display cap",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "settled native committed library correct100of250 display cap",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "preview Close Cancel Import Replace Library visibly reachable",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "Unit and monetary headers and values remain visually readable at reduced window width",
+          "expected": true,
+          "actual": false,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/ui05-readability-independent-review.json",
+        ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/cost-library-250-long.csv",
+        ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/README.md",
+        ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/oracle.json",
+        ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/admission.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/225-library-empty-state.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/226-library-restored-window-layout.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/227-library-valid-import-picker.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/228-library-valid-exact-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/229-library-valid-checking.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/230-library-valid-preview.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/231-library-preview-focus-controls.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/232-library-valid-replace.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/233-library-escape-return.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/230-library-valid-preview-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/native/232-library-valid-replace-0.jpg"
+      ],
+      "reason": "Confirmed nativeUI05 unit/monetary column readability failure in long-content preview and committed-library screenshots230/232 at reduced effective window width. Source diagnosis identifies auto table compression under inherited anywhere-wrapping. Fix/newcandidate native retest required; remaining UI states unperformed.",
+      "additionalInputs": [
+        {
+          "name": "cost-library-250-long.csv",
+          "artifact": ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/cost-library-250-long.csv",
+          "sha256": "e05f7665765484f5dbb9112e9109f72c98a0a357b285fd66304a2c0ad3b8f096",
+          "bytes": 263422,
+          "rows": 250,
+          "kind": "generated-disposable-UI-long-content-valid-CSV",
+          "oracle": ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/oracle.json",
+          "scope": "Authored software fixture; no human representative-plan or financial estimate approval."
+        }
+      ],
+      "qualifications": [
+        "Performed partial UI05 subset only. Native visual failure is sufficient for caseFAIL; unperformed keyboard/focus/invalid import/legacy/recovery/search tests are not promoted to pass.",
+        "Nominal restored1280x720 at operator-reported Windows100%; captured outer-window image1282x721. This does not grant physical scaling100 or other display-case acceptance.",
+        "Native232screenshot shows committed state but accessibility still reflects replacing/preview. Settled233accessibility anchors250committed/100displayed counts only; its filename does not prove Escape/focus return.",
+        "Footer/Close reachability is an observed subset pass, not full focus/scroll/keyboard conformance. No parser corruption or project repricing conclusion follows from this visual failure.",
+        "Existing active two-page project fixture is reused; the exact additional250-rowCSV input has separate case-level provenance without changing other fixture entries.",
+        "Production fix/newcandidate build and retest are outside this frozen1.1.2 result."
+      ]
+    }
+  ],
+  "developerEvidence": [
+    {
+      "id": "source-verification-112",
+      "scope": "Source commit cd9016f:1259/1259 tests160files, bounded4workers, qualifiedNode25flag; actualelectron-viteproductionbuild/typechecks and corrected build/dev resources pass. Raw earlier failed attempts preserved; no native acceptance inferred.",
+      "date": "2026-10-25T19:03:34.5372000Z",
+      "tester": "Codex root; independent technical review by child agents",
+      "candidate": {
+        "archiveSha256": "084f96aef0b4e27ad746712efd4fca793554b82c8b0e7642bccda2d93f119416",
+        "installerSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+        "version": "1.1.2"
+      },
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/full-tests-resolved-layout.log",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/package-attempt-C.log"
+      ],
+      "status": "pass",
+      "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.2/source-verification.json"
+    },
+    {
+      "id": "artifact-inspection-112",
+      "scope": "Exact finalCinstaller/ASAR/PEidentity,149payloadfiles,108productiondependencylocations,10decoder/license byteidentities and narrowCSP inspected. Unsigned per Francis policy; no release approval.",
+      "date": "2026-10-25T19:03:34.5372000Z",
+      "tester": "Codex root running actual installer/archive inspector",
+      "candidate": {
+        "archiveSha256": "084f96aef0b4e27ad746712efd4fca793554b82c8b0e7642bccda2d93f119416",
+        "installerSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+        "version": "1.1.2"
+      },
+      "artifacts": [
+        "dist/release-manifest.json"
+      ],
+      "status": "pass",
+      "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.2/release-inspection-attempt-C.log"
+    },
+    {
+      "id": "packaged-decoder-controls-112",
+      "artifact": ".planning/tmp/20-completion-20261026/owner-display/jpx-debug/packaged-attempt-C/results.json",
+      "date": "2026-10-25T19:03:34.5372000Z",
+      "candidate": {
+        "archiveSha256": "084f96aef0b4e27ad746712efd4fca793554b82c8b0e7642bccda2d93f119416",
+        "installerSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+        "version": "1.1.2"
+      },
+      "status": "pass",
+      "tester": "Independent Codex technical child using isolated hidden Electron renderer",
+      "scope": "Exact finalASARworker/CSP/decoderURLs: USDApages3/4,tinyWASM/JSfallback allrendernonblankknownpixels;no diagnostics,19fileURLs,0HTTP(S)attempts. Standalone renderer only, not productionmain/native/physical tests."
+    },
+    {
+      "id": "scripted-packaged-smoke-112-final-C",
+      "tester": "Automated packaged-smoke harness; independent technical child checked exact final-C identity/result",
+      "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.2/packaged-smoke-final-C.json",
+      "sourceArtifact": "dist/packaged-smoke.json",
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/packaged-smoke-final-C.json",
+        "dist/packaged-smoke.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.2/packaged-smoke.log"
+      ],
+      "status": "pass",
+      "scope": "scripted-packaged-developer-host",
+      "date": "2026-10-25T19:03:17.643Z",
+      "machine": {
+        "classification": "development",
+        "hostname": "LAPTOP-5BAM24NM",
+        "windows": "10.0.22631",
+        "architecture": "x64",
+        "ramBytes": 16954851328
+      },
+      "candidate": {
+        "version": "1.1.2",
+        "installerSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+        "archiveSha256": "084f96aef0b4e27ad746712efd4fca793554b82c8b0e7642bccda2d93f119416",
+        "executableSha256": "eef635f4a4d1c8f2b3e32d3656bc3ac2cabf3584159085b6d26e57ebe61b18ee",
+        "expectedElectron": "44.9.3"
+      },
+      "actual": {
+        "electron": "44.9.3",
+        "chrome": "152.0.7977.167",
+        "packaged": true,
+        "sandbox": true,
+        "hidden": true,
+        "localNotes": true,
+        "pdfWorker": true,
+        "renderedPdf": true,
+        "format3SaveReadReopen": true,
+        "reopen": {
+          "differentDocumentObserved": true,
+          "savedPdfAndStateAdopted": true,
+          "rendererSnapshotReadback": true
+        },
+        "importUtilityChild": true,
+        "internalXlsxCsv": true,
+        "externalNetworkRequests": [],
+        "disposableAppData": true
+      },
+      "fixture": {
+        "name": "generated vector PDF",
+        "bytes": 465,
+        "pages": 1,
+        "sha256": "ece3eebb2990c72ea806d6443e97a5e3df7ead06e528d6ed58ac7d987896db3a"
+      },
+      "limitations": [
+        "Dialog destinations scripted through inspector; physical UI and non-development-PC install/upgrade/scaling are pending.",
+        "This developer-host scripted harness is supplemental only; native fresh installation has its own separate case. It does not establish physical displays, an actual deployed upgrade, public-fixture measurements or Phase20/21 acceptance."
+      ]
+    }
+  ],
+  "edgeReviews": [
+    {
+      "requirement": "REL-01",
+      "status": "pending",
+      "reviewer": null,
+      "date": null,
+      "artifact": null,
+      "disposition": null,
+      "reason": "Replacement candidate requires a new explicit review; the prior 1.1.1 review is historical in .planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json."
+    },
+    {
+      "requirement": "REL-02",
+      "status": "pending",
+      "reviewer": null,
+      "date": null,
+      "artifact": null,
+      "disposition": null,
+      "reason": "Replacement candidate requires a new explicit review; the prior 1.1.1 review is historical in .planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json."
+    },
+    {
+      "requirement": "REL-04",
+      "status": "pending",
+      "reviewer": null,
+      "date": null,
+      "artifact": null,
+      "disposition": null,
+      "reason": "Replacement candidate requires a new explicit review; the prior 1.1.1 review is historical in .planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json."
+    },
+    {
+      "requirement": "REL-05",
+      "status": "pending",
+      "reviewer": null,
+      "date": null,
+      "artifact": null,
+      "disposition": null,
+      "reason": "Replacement candidate requires a new explicit review; the prior 1.1.1 review is historical in .planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json."
+    }
+  ],
+  "scope": "Exact final-C1.1.2 on user-confirmed second PC: fresh-install, project-only-transfer, failed-save-backup, recovery-never-saved and multipage-navigation pass; actual-predecessor-upgrade is first-release not-applicable from the carried human attestation;ui-keyboard-overflow now fails its performed Cost Library readability subset and9other installed cases remain pending. Saved recovery has actual Keep/default preservation/restore/associated Save/backup proof but awaits approved actual destructive discard02. Large-scan has performed partial native JPX rendering/registration/preservation proof, resolving the specific blank-render defect without full-case acceptance. Source/build/inspection/scripted smoke remain separate developer evidence. Original3191-file profile was restored after normal UIclose at2026-10-25T20:16:41.0357511Z with all hashes/count matching, restored local library absent and appclosed; complete disposable test profile remains preserved, including pending-discard02; no release or Phase21acceptance inferred.",
+  "blockedBy": "Confirmed1.1.2UI05long-content table readability failure requires a fixed replacement candidate and candidate-bound retest. Nine other installed cases remain pending: saved recovery actual approved discard, actual offline workflow, large-vector/full high-resolution scan, four physical scaling settings and actual differently scaled monitor transition. Remaining UIkeyboard/overflow states are unperformed within the failed case. All four candidate-specific edge reviews, final protected-handoff/contact and dependency/license/stability decisions plus human release approval remain open. Original3191-file profile is restored, all hashes/count match, restored local library absent and appclosed; disposable test profile with pending-discard02 is preserved. Prior1.1.1 results stay historical.",
+  "licenseReview": {
+    "status": "pending-release-review",
+    "priorFinding": {
+      "status": "pending-release-review",
+      "package": "buffers@0.1.1",
+      "finding": "Installed package.json has no license field and supplied README has no license grant. Exact author/repository/README are preserved in bundled third-party notices; no license is fabricated."
+    },
+    "priorEvidence": ".planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json"
+  },
+  "previousCandidates": [
+    {
+      "version": "1.1.0",
+      "installerSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "archiveSha256": "5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd",
+      "installer": "dist/clmc-takeoff-1.1.0-x64-setup.exe",
+      "manifest": "dist/release-manifest.json",
+      "bytes": 136810568,
+      "architecture": "x64",
+      "evidence": ".planning/phases/20-production-readiness/20-1.1.0-INSTALLED-EVIDENCE.json",
+      "report": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "result": "Four passed, three failed and nine pending on exact1.1.0 candidate. Historical results remain bound to that hash."
+    },
+    {
+      "version": "1.1.1",
+      "installerSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "archiveSha256": "b2c338423e5edff1daab0d32bb74ae1a97edbabce1137453cf2ad153921e8c98",
+      "evidence": ".planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json",
+      "evidenceSha256": "fd9451aa65c10e4c3f6f5ef965f5ded13361db77b3dfe1dfccac6e424c04b85a",
+      "bytes": 107602,
+      "caseCounts": {
+        "pass": 5,
+        "notApplicable": 1,
+        "fail": 1,
+        "pending": 9,
+        "total": 16
+      },
+      "scope": "Full immutable prior-candidate history, including native JPX failure, earlier 1.1.0 records and profile restoration; not current-candidate results."
+    }
+  ],
+  "currentCaseCounts": {
+    "pass": 5,
+    "notApplicable": 1,
+    "fail": 1,
+    "pending": 9,
+    "total": 16
+  },
+  "candidateAdvance": {
+    "date": "2026-10-25T19:03:42.964Z",
+    "script": ".planning/tmp/20-completion-20261026/candidate-1.1.2/advance-evidence.cjs",
+    "fromEvidence": ".planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json",
+    "fromEvidenceSha256": "fd9451aa65c10e4c3f6f5ef965f5ded13361db77b3dfe1dfccac6e424c04b85a",
+    "manifestSha256": "92ab0c7627ab96870b8c3c0e06cc279204f6941dacf1e8587be7787a62049f29",
+    "resetPerformedCases": true,
+    "resetAllEdgeReviews": true,
+    "carriedHumanFirstReleaseFact": true,
+    "copiedPriorDeveloperEvidence": false,
+    "copiedPriorProfileRestoration": false
+  }
+}

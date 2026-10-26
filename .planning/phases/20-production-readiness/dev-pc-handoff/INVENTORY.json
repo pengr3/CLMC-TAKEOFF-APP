@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "preparedAt": "2026-10-26T01:38:55.896Z",
+  "purpose": "Small portable development-PC continuation kit; no app profiles, private construction plans or recovery snapshots.",
+  "candidateVersion": "1.1.5",
+  "sourceCommit": "424a3709dc2e6e1ff91c0d00bbc0c31b16f4c8d7",
+  "installerSha256": "6afc7812a98e22e84bb1b24342cc6fbd54b9ed6898b90c8de01aee30f3ea3379",
+  "archiveSha256": "1eb4ea722cb8383eef13644c4cec75c1086daa200e3fdb6ee6f4794e91a39519",
+  "files": [
+    {
+      "file": "portable115.clmc",
+      "source": ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/transfer-only/portable115.clmc",
+      "bytes": 10267,
+      "sha256": "d35db947d071e52120797dee192c359c14ee0424bf6de7896ab1e337c480d038"
+    },
+    {
+      "file": "synthetic-reference.pdf",
+      "source": ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/save-recovery/synthetic-first-save.pdf",
+      "bytes": 4497,
+      "sha256": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620"
+    },
+    {
+      "file": "oracle.json",
+      "source": ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/oracle.json",
+      "bytes": 4330,
+      "sha256": "45bea5ebb1dea332f1af99afbc8e0894891cf86b69045a200b37daa1f01ba506"
+    },
+    {
+      "file": "source-project.json",
+      "source": ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/source-project.json",
+      "bytes": 10915,
+      "sha256": "32bc48c4b9981e85229070e6ab95fc6e8372d0475681fdec722eb9c56f04b265"
+    },
+    {
+      "file": "candidate-manifest.json",
+      "source": ".planning/tmp/20-completion-20261026/candidate-1.1.5/candidate-manifest.json",
+      "bytes": 401936,
+      "sha256": "2f588ac1cb552da5e59052cbf96722556d4ae5e5427f47176cd32ddfec34f6ad"
+    },
+    {
+      "file": "packaged-smoke.json",
+      "source": ".planning/tmp/20-completion-20261026/candidate-1.1.5/packaged-smoke.json",
+      "bytes": 30400,
+      "sha256": "4871bb8a65b626e8ee5109f7a7d6607ae45157e995f1ded1a3cc922e2cc6e258"
+    },
+    {
+      "file": "license-payload-comparison.json",
+      "source": ".planning/tmp/20-completion-20261026/candidate-1.1.5/license-payload-comparison.json",
+      "bytes": 832312,
+      "sha256": "ad1bd31b202e752412ef9b5c2ef5e4f4f13e52634303a99aacd1002b85521441"
+    },
+    {
+      "file": "final-native-readback.json",
+      "source": ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/portable-final-session115-readback.json",
+      "bytes": 8191,
+      "sha256": "30bbd084bd3bb96acec58bf1b22575dc361bf7694cfabdd5b7d1780e34d23326"
+    },
+    {
+      "file": "profile-restored.json",
+      "source": ".planning/tmp/20-completion-20261026/candidate-1.1.5/profile-restored.json",
+      "bytes": 1019,
+      "sha256": "6b2a7a0ef2d5fdb7efa7fcd9e29730a4c40c4cc966ce30f950e44cf4668a389e"
+    },
+    {
+      "file": "session-wrap-up.json",
+      "source": ".planning/tmp/20-completion-20261026/candidate-1.1.5/session-wrap-up.json",
+      "bytes": 5029,
+      "sha256": "0f62fe2c985a5ad28614adb82bf3838fdd2126a24e54d555ce6fff67dde0d09c"
+    }
+  ],
+  "qualification": "Source paths and machine identity in preserved reports remain historical second-PC observations. Development-PC execution needs fresh provenance. Full ignored raw evidence and the exact installer are not transported by Git."
+}

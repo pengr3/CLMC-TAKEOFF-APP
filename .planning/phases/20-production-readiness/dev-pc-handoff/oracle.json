@@ -1,0 +1,155 @@
+{
+  "scope": "Synthetic persistence and independent known-geometry oracle; no native result or representative-plan approval implied.",
+  "pdfSha256": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+  "sourceSha256": "52365d2457089863139c420a54dfacf89ca8e8a37b7cff089a94b770671ba7df",
+  "coordinateBasis": "pdf-base-scale-2",
+  "pageScalesPxPerMm": {
+    "1": 0.1,
+    "2": 0.2
+  },
+  "markupCount": 14,
+  "rows": {
+    "Straight run|linear": {
+      "quantity": 7,
+      "formula": "sqrt(3^2+4^2) + 2 = 7 m",
+      "basis": "m",
+      "cost": 105,
+      "selling": 126.0,
+      "margin": 21.0,
+      "display": {
+        "quantity": "7.00",
+        "cost": "105.00",
+        "selling": "126.00",
+        "margin": "21.00"
+      }
+    },
+    "Arc run|linear": {
+      "quantity": 3.141592653589793,
+      "formula": "pi * radius(1 m)",
+      "basis": "m",
+      "cost": 94.24777960769379,
+      "selling": 117.80972450961724,
+      "margin": 23.561944901923454,
+      "display": {
+        "quantity": "3.14",
+        "cost": "94.25",
+        "selling": "117.81",
+        "margin": "23.56"
+      }
+    },
+    "Straight wall|wall": {
+      "quantity": 10,
+      "formula": "length(4 m) * height(2.5 m)",
+      "basis": "m²",
+      "cost": 50,
+      "selling": 65.0,
+      "margin": 15.0,
+      "display": {
+        "quantity": "10.00",
+        "cost": "50.00",
+        "selling": "65.00",
+        "margin": "15.00"
+      }
+    },
+    "Arc wall|wall": {
+      "quantity": 9.42477796076938,
+      "formula": "semicircle length(pi m) * height(3 m)",
+      "basis": "m²",
+      "cost": 56.548667764616276,
+      "selling": 62.20353454107791,
+      "margin": 5.654866776461631,
+      "display": {
+        "quantity": "9.42",
+        "cost": "56.55",
+        "selling": "62.20",
+        "margin": "5.65"
+      }
+    },
+    "Rectangle floor|area": {
+      "quantity": 12,
+      "formula": "shoelace rectangle 4 m * 3 m",
+      "basis": "m²",
+      "cost": 36,
+      "selling": 46.800000000000004,
+      "margin": 10.800000000000004,
+      "display": {
+        "quantity": "12.00",
+        "cost": "36.00",
+        "selling": "46.80",
+        "margin": "10.80"
+      }
+    },
+    "Curved floor|area": {
+      "quantity": 3.5707963267948966,
+      "formula": "rectangle 2 m * 1 m + semicircle pi*(1 m)^2/2",
+      "basis": "m²",
+      "cost": 17.853981633974485,
+      "selling": 21.42477796076938,
+      "margin": 3.570796326794895,
+      "display": {
+        "quantity": "3.57",
+        "cost": "17.85",
+        "selling": "21.42",
+        "margin": "3.57"
+      }
+    },
+    "Hidden outline|perimeter": {
+      "quantity": 14,
+      "formula": "2*(4 m + 3 m); visibility does not remove estimate quantity",
+      "basis": "m",
+      "cost": 14,
+      "selling": 14.0,
+      "margin": 0.0,
+      "display": {
+        "quantity": "14.00",
+        "cost": "14.00",
+        "selling": "14.00",
+        "margin": "0.00"
+      }
+    },
+    "Curved outline|perimeter": {
+      "quantity": 7.141592653589793,
+      "formula": "2 m + 1 m + 1 m + pi*radius(1 m)",
+      "basis": "m",
+      "cost": 14.283185307179586,
+      "selling": 19.99645943005142,
+      "margin": 5.713274122871834,
+      "display": {
+        "quantity": "7.14",
+        "cost": "14.28",
+        "selling": "20.00",
+        "margin": "5.71"
+      }
+    },
+    "Fixture outlet|count": {
+      "quantity": 5,
+      "formula": "3 pins on sheet 1 + 2 pins on sheet 2",
+      "basis": "ea",
+      "cost": 625,
+      "selling": 687.5,
+      "margin": 62.5,
+      "display": {
+        "quantity": "5.00",
+        "cost": "625.00",
+        "selling": "687.50",
+        "margin": "62.50"
+      }
+    }
+  },
+  "totals": {
+    "cost": 1012.9336143134641,
+    "selling": 1160.734496441516,
+    "margin": 147.80088212805182
+  },
+  "totalsDisplay": {
+    "cost": "1,012.93",
+    "selling": "1,160.73",
+    "margin": "147.80"
+  },
+  "moneyFormulas": {
+    "cost": "quantity*(material+labor)",
+    "selling": "cost*(1+markup/100)",
+    "margin": "selling-cost"
+  },
+  "independence": "Known constants and formulas computed here with Python math; no application measurement, aggregator, or money code imported."
+}

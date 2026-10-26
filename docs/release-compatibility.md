@@ -1,8 +1,16 @@
-# CLMC Takeoff 1.1.1 compatibility and rollback
+# CLMC Takeoff 1.1.5 compatibility and rollback
 
-This is an internal review candidate for Windows x64. The full offline, per-user NSIS installer is `clmc-takeoff-1.1.1-x64-setup.exe`. Its exact SHA-256 and inventory are in `dist/release-manifest.json`. Core work uses local packaged resources; no update service is configured. [Francis is the release/signing owner](../.planning/phases/20-production-readiness/20-RELEASE-OWNER.md) and selected **unsigned internal use**. The actual installer and executable remain unsigned; no certificate or signing publisher is asserted. Protected handoff and final release acceptance remain pending.
+Exact 1.1.5 has **2 complete cases passed, 12 pending, 0 failed, one first-release case not applicable and one reviewed hardware limitation (200%)**. Phase 20 remains VERIFYING; 20-09-03 and all four REL reviews remain open. Phase 21 and distribution remain gated.
 
-The [26 October second-PC continuation](../.planning/phases/20-production-readiness/20-CLOSEOUT.md) and complete [frozen 1.1.1 evidence](../.planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json) record **5 pass, 1 first-release not-applicable, 1 fail and 9 pending** cases. Fresh installation, project-only transfer, never-saved recovery, failed-save/backup and large-vector pass with their recorded qualifications. A genuine USDA JPX scanned plan stays blank on native pages 4 and 3 despite a valid, readable source; this blocks acceptance. A 1.1.2 fix is underway, with no replacement-candidate pass claimed. Both physical displays are active in Extend (1920×1080 each; D1 125%, D2 100%/main), but no actual app transition or pan pass is claimed. All 3191 original profile hashes matched after restoration at 2026-10-25T18:32:53.9252882Z; the disposable profile was preserved and CLMC was closed. Francis confirmed no predecessor has been deployed; the [first-release disposition](release-evidence-first-release.md) records that fact without claiming an upgrade pass. The prior 1.1.0 kit and frozen 1.1.1 results retain their own hashes; a replacement requires its exact new manifest and evidence.
+Installer SHA-256: 6afc7812a98e22e84bb1b24342cc6fbd54b9ed6898b90c8de01aee30f3ea3379. ASAR SHA-256: 1eb4ea722cb8383eef13644c4cec75c1086daa200e3fdb6ee6f4794e91a39519.
+
+Installed curved-outline, curved-line and wall tooltip calculations pass their targeted regressions. Physical 150% calculation and save/readback subsets also pass. Complete display, recovery, offline, public-plan and keyboard/overflow cases still require their remaining checks.
+
+The PC session is safely closed. All 3191 original profile files and hashes are restored; the complete disposable profile is preserved separately. CLMC is closed. D1 remains at 125% and D2 is restored to 100%. No further hands-on action is requested from Francis for this session.
+
+The 18-file UNAPPROVED review packet is copied and independently hash-verified in Francis's specified Releases/1.1.5 folder. Its new directories have the same local protection as 1.1.4. Cloud sharing permissions and final release approval remain unverified.
+
+Francis's owner/contact/unsigned-internal/first-release/public-plan decisions and accepted dependency position persist. The exact dependency byte comparison supports the recorded license position. Advisory, stability and final release acceptance remain pending. See [current retest](../.planning/phases/20-production-readiness/20-1.1.5-RETEST.md).
 
 ## Projects and formats
 
@@ -38,7 +46,7 @@ Format 3 includes the PDF, scales, geometry, order, visibility and applied price
 
 ## Internal handoff boundary
 
-Francis selected `C:\Users\franc\OneDrive\Desktop\CLMC TAKEOFF FOLDER` as the installer location on 26 October 2026 and chose unsigned internal use. The [owner record](../.planning/phases/20-production-readiness/20-RELEASE-OWNER.md) preserves those direct decisions. The handoff still requires an approved read-only release location with its hash manifest and a rollback/support contact; selecting the parent folder does not establish protection. Existing projects/exports and their permissions must be preserved. Read-only release protection, contact and final review dispositions remain **pending**. [REL-02's technical first-release review](../.planning/phases/20-production-readiness/20-REL02-REVIEW.md) is complete; it is not human release approval and does not accept REL-01/04/05. There is no deployed prior installer to retain for this first release; future upgrades require the actual prior installer and pre-upgrade projects described above. Dependency notices preserve installed metadata and supplied license/readme text; upstream `buffers@0.1.1` supplies no license declaration in the installed package and remains an explicit release review item.
+Francis selected the internal release parent folder and is support/rollback contact. The 1.1.5 review copy is verified and remains UNAPPROVED. Existing14/13/12review packets remain historical UNAPPROVED copies. Finalreleaseapproval, cloud sharing permissions and distribution remainopen; priorlicenseacceptance is supported by exactunchanged15dependency/notices/decoderbytes.
 
 Approximately twelve PCs are planned for manual upgrades. Phase 21 owns the complete offline user guide/worked example, named maintainer turnover, real two-user/two-PC pilot acceptance and remaining-ten distribution. This candidate and developer-host smoke do not establish pilot, deployment or non-development-PC acceptance.
 # Review safeguards added during final verification

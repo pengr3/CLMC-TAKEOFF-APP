@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-26T01:30:52.7751175Z",
+  "candidateVersion": "1.1.5",
+  "installerSha256": "6afc7812a98e22e84bb1b24342cc6fbd54b9ed6898b90c8de01aee30f3ea3379",
+  "archiveSha256": "1eb4ea722cb8383eef13644c4cec75c1086daa200e3fdb6ee6f4794e91a39519",
+  "manifestSha256": "2f588ac1cb552da5e59052cbf96722556d4ae5e5427f47176cd32ddfec34f6ad",
+  "frozen114EvidenceSha256": "337b7aa23865b207233a73b5258b6f7e823cb7feafd92c301fd0b544efad89f7",
+  "helperSha256": "55b6e20641c6f516b9259891989ac657df9b52ac57b3cf01bb8f26a04aad60a0",
+  "originalProfileRestored": true,
+  "allOriginalHashesMatch": true,
+  "originalFileCount": 3191,
+  "restoredTo": "C:\\Users\\franc\\AppData\\Roaming\\clmc-takeoff",
+  "disposableProfilePreserved": true,
+  "disposableProfile": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\.planning\\tmp\\20-completion-20261026\\candidate-1.1.5\\test-profile",
+  "disposableFileCount": 61,
+  "appClosed": true,
+  "scope": "Actual15cleanup; no deletion or native/phase/releaseacceptance inferred."
+}

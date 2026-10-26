@@ -1,32 +1,83 @@
 {
   "version": "1.0",
-  "timestamp": "2026-07-19T15:47:16.000Z",
-  "context": "spike",
-  "phase": null,
-  "phase_name": "Spike session — markup gaps (GAP-003): feel-test of 006 cutouts + 008 live-readout demos (blocker cleared)",
-  "phase_dir": ".planning/spikes",
-  "status": "paused",
+  "timestamp": "2026-10-26T01:38:55.899Z",
+  "context": "execute-phase",
+  "phase": 20,
+  "phase_name": "Production Readiness — second-PC wrap-up and development-PC continuation",
+  "phase_dir": ".planning/phases/20-production-readiness",
+  "status": "in_progress",
+  "branch": "codex/phase20-second-pc-test",
+  "source_commit": "424a3709dc2e6e1ff91c0d00bbc0c31b16f4c8d7",
+  "candidate_version": "1.1.5",
+  "handoff_document": ".planning/phases/20-production-readiness/20-DEV-PC-HANDOFF.md",
   "completed_tasks": [
-    {"id": 1, "name": "Resume + reconcile STATE (prior session, 2026-07-17)", "status": "done", "commit": "d6de9fb"},
-    {"id": 2, "name": "spike-006 cutouts demo — 3-pt (rim) + 2-pt (diameter) + center-radius circle-input sub-modes, verbatim solveCircle port, live preview, inside-⌀ readout", "status": "done", "commit": "fccabdc"},
-    {"id": 3, "name": "spike-008 live-readout demo — PlanSwift type-it-exact editable pill; passive readout preserved byte-for-byte; inverse-math round-trips <1e-9", "status": "done", "commit": "ff1784c"},
-    {"id": 4, "name": "CLEARED the feel-test blocker — served .planning/spikes over a local static HTTP server (127.0.0.1:8899) and opened BOTH 006 + 008 index.html in the in-app Browser; both healthy (zero console errors)", "status": "done", "commit": "this-pause-commit"}
+    {
+      "id": 1,
+      "name": "Repair PDF decoder, Cost Library columns/error visibility and curved/wall hover quantities",
+      "status": "done",
+      "commits": [
+        "cd9016f",
+        "dce3824",
+        "d3bb480",
+        "424a370"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Verify final source tests/build/inspection/smoke and scoped native regressions",
+      "status": "done",
+      "qualification": "1268 tests; two complete installed cases, twelve incomplete; no full release acceptance"
+    },
+    {
+      "id": 3,
+      "name": "Save/close second-PC session and restore original profile/displays",
+      "status": "done",
+      "artifact": ".planning/phases/20-production-readiness/dev-pc-handoff/session-wrap-up.json"
+    }
   ],
   "remaining_tasks": [
-    {"id": 5, "name": "Human feel-test VERDICT — 006: which circle-input method wins (3-pt rim / 2-pt diameter / center-radius)? 008: does type-it-exact feel PlanSwift-natural AND does the passive readout stay unchanged when type-it is OFF?", "status": "in_progress", "progress": "both demos served + open in the Browser pane; awaiting the user's subjective verdict (they got as far as viewing before pausing)"},
-    {"id": 6, "name": "Plan the build — /gsd-plan-phase for area cutouts (MM-01, highest value, math proven exact) OR /gsd-review-backlog for the wider build tail", "status": "not_started"}
+    {
+      "id": 4,
+      "name": "On the development PC, verify recovery, failed-save/backup and offline workflow against the actual installed 1.1.5 candidate",
+      "status": "not_started"
+    },
+    {
+      "id": 5,
+      "name": "Reconcile remaining original native matrix and REL reviews without expanding scope; retain second-PC versus development-PC provenance",
+      "status": "not_started"
+    },
+    {
+      "id": 6,
+      "name": "Obtain final release acceptance after required checks or explicit owner dispositions",
+      "status": "not_started"
+    }
   ],
   "blockers": [
-    {"description": "RESOLVED this session: the in-app Browser rewrites file:// URLs to https://file and refuses to load local files, which (together with the prior session's Browser MCP timeouts) had blocked the feel-test.", "type": "technical", "workaround": "Serve .planning/spikes/ over a local static HTTP server and navigate to http://127.0.0.1:8899/006-area-cutouts/index.html (and /008-live-readout/index.html). The screenshot action still times out on these canvas-heavy pages, but the pages are healthy — verify with read_console_messages (onlyErrors) or get_page_text instead of a full raster."}
+    {
+      "description": "Twelve acceptance cases and four REL reviews remain incomplete; final release approval is pending",
+      "type": "evidence"
+    }
   ],
   "human_actions_pending": [
-    {"action": "Feel-test the two demos in the Browser pane and report the verdict (006 circle-input winner; 008 type-it-exact feel + passive-path unchanged)", "context": "Feel is the ONLY unverified half — all math/perf/logic already proven headlessly. The demos are now viewable (blocker cleared).", "blocking": false},
-    {"action": "Decide the next step once feel is confirmed: /gsd-plan-phase (cutouts) or /gsd-review-backlog", "context": "Both prototype improvements are built + committed; the build is the natural next move.", "blocking": false}
+    {
+      "action": "Later fetch this branch on the development PC and obtain/verify the exact installer companion",
+      "blocking": false,
+      "context": "Source/docs/portable inputs are in Git; exact installer is outside Git in the specified OneDrive Releases/1.1.5 folder. Remote sync arrival has not been observed."
+    }
   ],
   "decisions": [
-    {"decision": "Served the offline spike demos to the in-app Browser via a tiny throwaway node static server (scratchpad/spike-server.cjs on 127.0.0.1:8899) rather than file://", "rationale": "The in-app Browser silently rewrites file:// → https://file and denies local-file loads. A local HTTP origin is the minimal, offline-safe way to make self-contained index.html demos reachable. This is the concrete fix for the feel-test blocker that stalled the prior two sessions.", "phase": "spike"}
+    {
+      "decision": "Freeze 1.1.5 for this wrap-up; prioritize the three remaining critical areas on the development PC",
+      "rationale": "Francis needs to leave and explicitly wants changes available on the development PC. Avoid repeated broad resets/rebuilds.",
+      "phase": 20
+    },
+    {
+      "decision": "Preserve source and evidence on the working branch; do not merge master or distribute an approved release",
+      "rationale": "Cross-PC continuation only; formal Phase 20 acceptance remains open.",
+      "phase": 20
+    }
   ],
-  "uncommitted_files": [".planning/STATE.md (session-continuity note added)", ".planning/HANDOFF.json (this file, rewritten)", ".planning/spikes/.continue-here.md (updated)"],
-  "next_action": "Ask the user for their feel-test verdict on the 006 + 008 demos. If the in-app Browser is empty on resume, restart the local server (node over .planning/spikes on 127.0.0.1:8899 — see scratchpad/spike-server.cjs pattern in the continue-here Infrastructure State) and re-navigate to /006-area-cutouts/index.html + /008-live-readout/index.html. Once feel is confirmed and the user wants to build: /gsd-plan-phase for area cutouts (MM-01) — AreaMarkup gains holes?:Array<{points;arcs?}> additive (no formatVersion bump, same strategy as arcs?), Konva even-odd render, a BLOCK-vs-CLIP outside-hole validation policy, and a {cx,cy,r} circle-hole subtype (πr²) with 3-pt/2-pt input. Snapping caveat: markup-to-markup only, NOT raster-edge.",
-  "context_notes": "Milestone v1.0 (extended) is feature-complete (22/22 phases). This session RESUMED the paused markup-gaps spike and did one thing of substance: it cleared the feel-test blocker that had killed the prior two pause sessions (in-app Browser was down / won't load file://). Fix = serve the demos over a local HTTP origin. Both 006 + 008 are now open and error-free in the Browser pane. No new prototype code this session — the two improvements (006 circle-input, 008 type-it-exact) were already built + committed. The user then paused with 'then push to origin' — so this pause commit is being PUSHED to origin/claude/sync-status-check-768f9c (the branch's own upstream; NOT merged to master, per the cross-machine workflow). The user is decisive, design-first, and cares about CAD-style input feel + PlanSwift parity. Everything provable is proven; the sole gap remains the subjective feel-test, which is now unblocked and just needs the user to click around."
+  "uncommitted_files": [],
+  "next_action": "Read .planning/phases/20-production-readiness/20-DEV-PC-HANDOFF.md after fetching codex/phase20-second-pc-test. Preserve existing development-PC work. Use the exact installed 1.1.5 artifact and disposable test data for recovery, failed-save/backup and offline tests; record new machine identity. Do not run second-PC absolute-path profile/firewall helpers unchanged.",
+  "context_notes": "Second-PC LAPTOP-5BAM24NM session is closed, all 3191 original profile files/hashes restored, disposable profile preserved, D1 125% and D2 100%. Francis owns release/signing/support/rollback, chose unsigned internal first release and public plans only. Dependency/license position accepted; actual 1.1.5 dependency/notice/decoder bytes are unchanged. Historical spike handoff archived at .planning/handoffs/2026-07-19-spike.json. Phase 21 distribution remains gated."
 }

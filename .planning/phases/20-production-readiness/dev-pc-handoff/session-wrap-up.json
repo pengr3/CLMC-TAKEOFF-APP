@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-26T01:31:12.515Z",
+  "candidateVersion": "1.1.5",
+  "candidate": {
+    "version": "1.1.5",
+    "installerSha256": "6afc7812a98e22e84bb1b24342cc6fbd54b9ed6898b90c8de01aee30f3ea3379",
+    "archiveSha256": "1eb4ea722cb8383eef13644c4cec75c1086daa200e3fdb6ee6f4794e91a39519",
+    "installer": "dist/clmc-takeoff-1.1.5-x64-setup.exe",
+    "manifest": "dist/release-manifest.json",
+    "manifestSha256": "2f588ac1cb552da5e59052cbf96722556d4ae5e5427f47176cd32ddfec34f6ad",
+    "bytes": 137026620,
+    "architecture": "x64",
+    "sourceCommit": "424a3709dc2e6e1ff91c0d00bbc0c31b16f4c8d7"
+  },
+  "reason": "Francis requested wrapping up the second-PC session and challenged repeated scope expansion. No additional tests or rebuilds started after that request.",
+  "status": "PC-session-closed-phase-acceptance-open",
+  "originalProfile": {
+    "restored": true,
+    "files": 3191,
+    "allHashesMatch": true,
+    "receipt": ".planning/tmp/20-completion-20261026/candidate-1.1.5/profile-restored.json",
+    "receiptSha256": "6b2a7a0ef2d5fdb7efa7fcd9e29730a4c40c4cc966ce30f950e44cf4668a389e"
+  },
+  "disposableProfile": {
+    "preserved": true,
+    "files": 61,
+    "path": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\.planning\\tmp\\20-completion-20261026\\candidate-1.1.5\\test-profile"
+  },
+  "display": {
+    "D1ScalePercent": 125,
+    "D1ChangedDuringThisSession": false,
+    "D2ScalePercent": 100,
+    "D2Restored": true,
+    "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/087-settings-wrap-up-display2-restored100.json"
+  },
+  "appClosed": true,
+  "finalArchive": {
+    "exactReadback": true,
+    "sha256": "1385d4fa27bf924fae3617479a10352c1db5939b2fa0e7de2ae73ebe5392a8d3",
+    "pdfExact": true,
+    "persistentDataExact": true
+  },
+  "monitorSubset": "081/082 show the actual maximized D1 window at logical 1536×816, origin 1920,-810, after Francis replied ready. The later save/close frames are again on the main display; no claim about exact move order or witnessed pan is made. Full monitor/calibration/reopen workflow remains incomplete.",
+  "scopeDecision": {
+    "candidateFrozen": "1.1.5",
+    "furtherRebuildsStarted": false,
+    "additionalTestsStartedAfterWrapRequest": false,
+    "explanation": "The changes through 1.1.5 addressed real decoder, library-column, import-error and hover defects. Broad resetting/repeating of acceptance checks after each candidate extended the session excessively. Remaining original acceptance requirements are retained explicitly; they are not converted into passes or new test scope."
+  },
+  "counts": {
+    "pass": 2,
+    "notApplicable": 1,
+    "unsupported": 1,
+    "fail": 0,
+    "pending": 12,
+    "total": 16
+  },
+  "remainingCases": [
+    "recovery-saved",
+    "recovery-never-saved",
+    "failed-save-backup",
+    "offline-workflow",
+    "large-vector",
+    "large-scan",
+    "multipage-navigation",
+    "scaling-100",
+    "scaling-125",
+    "scaling-150",
+    "monitor-transition",
+    "ui-keyboard-overflow"
+  ],
+  "remainingReviews": [
+    "REL-01",
+    "REL-02",
+    "REL-04",
+    "REL-05"
+  ],
+  "artifacts": [
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/profile-session.ps1",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/profile-restored.json",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/disposable-profile-inventory.json",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/portable-final-session115.clmc",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/portable-final-session115-readback.json",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/081-other-monitor-current-observation-0.jpg",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/081-other-monitor-current-observation.json",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/082-wrap-up-before-save-0.jpg",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/082-wrap-up-before-save.json",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/083-wrap-up-save-0.jpg",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/083-wrap-up-save.json",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/084-wrap-up-saved-clean-0.jpg",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/084-wrap-up-saved-clean.json",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/085-settings-wrap-up-current-settings-0.jpg",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/085-settings-wrap-up-current-settings.json",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/086-settings-wrap-up-scale-options-0.jpg",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/086-settings-wrap-up-scale-options.json",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/087-settings-wrap-up-display2-restored100-0.jpg",
+    ".planning/tmp/20-completion-20261026/candidate-1.1.5/native/087-settings-wrap-up-display2-restored100.json"
+  ]
+}

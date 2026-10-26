@@ -4,10 +4,10 @@ milestone: v1.0
 current_phase: 20
 current_phase_name: Production Readiness
 status: in_progress
-stopped_at: Phase 20 installed JPX scan rendering defect blocks acceptance; 1.1.1 evidence frozen and 1.1.2 fix underway; Phase 21 acceptance remains gated
-last_updated: "2026-10-25T18:39:28Z"
+stopped_at: "PC session wrapped safely; original profile and displays restored. Candidate frozen at 1.1.5; two complete passes, twelve pending; Phase 21 gated."
+last_updated: "2026-10-26T01:38:55.900Z"
 last_activity: 2026-10-26
-state_head: c8baf56
+state_head: 424a370
 progress:
   total_phases: 25
   completed_phases: 23
@@ -28,18 +28,21 @@ milestone_name: milestone
 
 **What This Is:** Windows desktop takeoff application. Users load PDF floor plans, set scale, place count/linear/area/perimeter markups, and export a BOQ/BOM to Excel or CSV.
 
-**Current Focus:** Resolve the installed JPX scan rendering defect and complete Phase 20 evidence; Phase 21-01/02 preparation is complete, with 21-03-01 acceptance still gated.
+**Current Focus:** Continue the bounded remaining recovery, failed-save/backup and offline checks on the development PC using candidate 1.1.5. Read [the development-PC handoff](phases/20-production-readiness/20-DEV-PC-HANDOFF.md). The second-PC session is closed; complete phase acceptance remains open.
 
 ---
 
 ## Current Position
 
-Phase: 20 (Production Readiness) — VERIFYING
-Plan: 9 of 9 —20-01 through20-08 complete;20-09 tasks01/02 complete,task03 external evidence pending
+Exact 1.1.5 has **2 complete cases passed, 12 pending, 0 failed, one first-release case not applicable and one reviewed hardware limitation (200%)**. Phase 20 remains VERIFYING; 20-09-03 and all four REL reviews remain open. Phase 21 and distribution remain gated.
 
-Next action: Continue 20-09-03 from [20-CLOSEOUT.md](phases/20-production-readiness/20-CLOSEOUT.md). Exact installed 1.1.1 candidate f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e is frozen in [20-1.1.1-INSTALLED-EVIDENCE.json](phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json): **5 pass, 1 first-release not-applicable, 1 fail, 9 pending**. A genuine high-resolution USDA JPX scanned plan stays blank in the native app while its source renders correctly in Poppler; the 1.1.2 decoder/resource fix is underway, with no replacement-candidate pass claimed. Preserve the frozen candidate and evidence before rebuilding, then bind inspection, smoke and installed retests to the replacement's actual bytes. Francis owns the release/signing decision, selected unsigned internal use and C:\Users\franc\OneDrive\Desktop\CLMC TAKEOFF FOLDER, and attested that this is the first release. Protected handoff, rollback/support contact, REL-01/04/05 review and remaining recovery/offline/multipage/physical-display/UI evidence remain open; REL-02 has a qualified technical first-release review. Phase 20 acceptance and Phase 21 pilot/distribution remain gated.
+Installed curved-outline, curved-line and wall tooltip calculations pass their targeted regressions. Physical 150% calculation and save/readback subsets also pass. Complete display, recovery, offline, public-plan and keyboard/overflow cases still require their remaining checks.
 
-Last activity: 2026-10-26 - Authorized native tests on second PC LAPTOP-5BAM24NM closed project-only transfer, failed-save/backup and large-vector cases in addition to fresh installation and never-saved recovery. Dallas 88-page source/geometry readback, 25%/800% registration, page navigation and reopen passed with generated calibration/reference-line and limited memory-window qualifications retained. USDA scan pages 4 and 3 were blank (captures 139–142), a new blocking application defect. Two physical displays are active in Extend, both 1920×1080, D1 125% and D2 100%/main; no actual app transition or pan pass is claimed. At 2026-10-25T18:32:53.9252882Z all 3191 original profile hashes matched after restoration, the disposable profile was preserved, the original library remained absent and CLMC was closed. Frozen 1.1.1 evidence retains prior qualified 1238/1238 tests, both typechecks/build/inspection/smoke and 15 existing lint errors; these are not 1.1.2 results. Task 03 is not complete.
+The PC session is safely closed. All 3191 original profile files and hashes are restored; the complete disposable profile is preserved separately. CLMC is closed. D1 remains at 125% and D2 is restored to 100%. No further hands-on action is requested from Francis for this session.
+
+The 18-file UNAPPROVED review packet is copied and independently hash-verified in Francis's specified Releases/1.1.5 folder. Its new directories have the same local protection as 1.1.4. Cloud sharing permissions and final release approval remain unverified.
+
+See [current retest](phases/20-production-readiness/20-1.1.5-RETEST.md) and [canonical evidence](phases/20-production-readiness/20-INSTALLED-EVIDENCE.json).
 
 ## Phase 21 preparation work order
 

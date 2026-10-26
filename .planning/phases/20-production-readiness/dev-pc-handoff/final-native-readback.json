@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26T01:28:12.956051Z",
+  "candidateVersion": "1.1.5",
+  "candidateInstallerSha256": "6afc7812a98e22e84bb1b24342cc6fbd54b9ed6898b90c8de01aee30f3ea3379",
+  "candidateArchiveSha256": "1eb4ea722cb8383eef13644c4cec75c1086daa200e3fdb6ee6f4794e91a39519",
+  "manifest": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\dist\\release-manifest.json",
+  "manifestSha256": "2f588ac1cb552da5e59052cbf96722556d4ae5e5427f47176cd32ddfec34f6ad",
+  "inputInventory": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\.planning\\tmp\\20-completion-20261026\\candidate-1.1.5\\input-inventory.json",
+  "inputInventorySha256": "88bf78c13bc71271ba7cf98b7800a7ea43aff53a4e616596b1a20cd6353cd68a",
+  "inputInventoryQualification": "Prepared1.1.5source inventory only; its pre-build candidateInstallerSha256 may be null. Actual manifest identity is independently pinned; no prepared input is a native pass.",
+  "source": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\.planning\\tmp\\20-completion-20261026\\candidate-1.1.5\\native\\transfer-only\\portable115.clmc",
+  "sourceSha256": "d35db947d071e52120797dee192c359c14ee0424bf6de7896ab1e337c480d038",
+  "sourceBytes": 10267,
+  "nativeArchive": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\.planning\\tmp\\20-completion-20261026\\candidate-1.1.5\\native\\portable-final-session115.clmc",
+  "nativeArchiveSha256": "1385d4fa27bf924fae3617479a10352c1db5939b2fa0e7de2ae73ebe5392a8d3",
+  "nativeArchiveBytes": 10269,
+  "zipCrc": true,
+  "fullEmbeddedPdfExact": true,
+  "pdfSha256": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+  "pdfBytes": 4497,
+  "pdfPages": 2,
+  "exactPersistentDataVersusTransferredInput": true,
+  "exactAuthoredGeometryScalesOrderingVisibilityRates": true,
+  "markups": 14,
+  "markupsPerPage": [
+    7,
+    7
+  ],
+  "markupTypes": [
+    "area",
+    "count",
+    "linear",
+    "perimeter",
+    "wall"
+  ],
+  "trueArcSegments": 4,
+  "scalePixelsPerMm": [
+    0.1,
+    0.2
+  ],
+  "currentPage": 2,
+  "viewports": [
+    {
+      "page": 1,
+      "source": {
+        "zoom": 0.6333333333333333,
+        "panX": 20,
+        "panY": 46.666666666666686
+      },
+      "saved": {
+        "zoom": 1.065,
+        "panX": 131,
+        "panY": 20
+      }
+    },
+    {
+      "page": 2,
+      "source": {
+        "zoom": 1.065,
+        "panX": 131,
+        "panY": 20
+      },
+      "saved": {
+        "zoom": 0.795,
+        "panX": 119.66115702479328,
+        "panY": 38.79338842975204
+      }
+    }
+  ],
+  "timestampContract": {
+    "mode": "ordinary-save",
+    "sourceCreatedAt": "2026-10-25T17:49:24.100Z",
+    "sourceUpdatedAt": "2026-10-25T17:49:24.100Z",
+    "actualCreatedAt": "2026-10-26T01:08:15.523Z",
+    "actualUpdatedAt": "2026-10-26T01:26:37.052Z",
+    "createdAtEqualsUpdatedAt": false,
+    "priorNativeSave": {
+      "file": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\.planning\\tmp\\20-completion-20261026\\candidate-1.1.5\\native\\portable-first-save115.clmc",
+      "sha256": "a742403f9d0fd7a978a412803ea2d5c8fdcec688bde74ad10ae7cd1642eaa524",
+      "createdAt": "2026-10-26T01:08:15.523Z",
+      "updatedAt": "2026-10-26T01:08:15.523Z"
+    }
+  },
+  "allowedNativeDifferences": [
+    "currentPage",
+    "per-page positive finite viewport",
+    "updatedAt"
+  ],
+  "rows": {
+    "Straight run|linear": {
+      "quantity": 7.0,
+      "cost": 105.0,
+      "selling": 126.0,
+      "margin": 21.0,
+      "basis": "m",
+      "display": {
+        "quantity": "7.00",
+        "cost": "105.00",
+        "selling": "126.00",
+        "margin": "21.00"
+      }
+    },
+    "Rectangle floor|area": {
+      "quantity": 12.0,
+      "cost": 36.0,
+      "selling": 46.800000000000004,
+      "margin": 10.800000000000004,
+      "basis": "m²",
+      "display": {
+        "quantity": "12.00",
+        "cost": "36.00",
+        "selling": "46.80",
+        "margin": "10.80"
+      }
+    },
+    "Hidden outline|perimeter": {
+      "quantity": 14.0,
+      "cost": 14.0,
+      "selling": 14.0,
+      "margin": 0.0,
+      "basis": "m",
+      "display": {
+        "quantity": "14.00",
+        "cost": "14.00",
+        "selling": "14.00",
+        "margin": "0.00"
+      }
+    },
+    "Straight wall|wall": {
+      "quantity": 10.0,
+      "cost": 50.0,
+      "selling": 65.0,
+      "margin": 15.0,
+      "basis": "m²",
+      "display": {
+        "quantity": "10.00",
+        "cost": "50.00",
+        "selling": "65.00",
+        "margin": "15.00"
+      }
+    },
+    "Fixture outlet|count": {
+      "quantity": 5,
+      "cost": 625,
+      "selling": 687.5,
+      "margin": 62.5,
+      "basis": "ea",
+      "display": {
+        "quantity": "5.00",
+        "cost": "625.00",
+        "selling": "687.50",
+        "margin": "62.50"
+      }
+    },
+    "Arc run|linear": {
+      "quantity": 3.141592653589793,
+      "cost": 94.24777960769379,
+      "selling": 117.80972450961724,
+      "margin": 23.561944901923454,
+      "basis": "m",
+      "display": {
+        "quantity": "3.14",
+        "cost": "94.25",
+        "selling": "117.81",
+        "margin": "23.56"
+      }
+    },
+    "Arc wall|wall": {
+      "quantity": 9.42477796076938,
+      "cost": 56.548667764616276,
+      "selling": 62.20353454107791,
+      "margin": 5.654866776461631,
+      "basis": "m²",
+      "display": {
+        "quantity": "9.42",
+        "cost": "56.55",
+        "selling": "62.20",
+        "margin": "5.65"
+      }
+    },
+    "Curved floor|area": {
+      "quantity": 3.570796326794896,
+      "cost": 17.85398163397448,
+      "selling": 21.424777960769376,
+      "margin": 3.570796326794895,
+      "basis": "m²",
+      "display": {
+        "quantity": "3.57",
+        "cost": "17.85",
+        "selling": "21.42",
+        "margin": "3.57"
+      }
+    },
+    "Curved outline|perimeter": {
+      "quantity": 7.141592653589794,
+      "cost": 14.283185307179588,
+      "selling": 19.996459430051424,
+      "margin": 5.713274122871836,
+      "basis": "m",
+      "display": {
+        "quantity": "7.14",
+        "cost": "14.28",
+        "selling": "20.00",
+        "margin": "5.71"
+      }
+    }
+  },
+  "totals": {
+    "cost": 1012.9336143134641,
+    "selling": 1160.734496441516,
+    "margin": 147.80088212805182
+  },
+  "totalsDisplay": {
+    "cost": "1012.93",
+    "selling": "1160.73",
+    "margin": "147.80"
+  },
+  "independentReferences": [
+    {
+      "file": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\.planning\\tmp\\20-completion-20261026\\owner-display\\portable-fixture\\oracle.json",
+      "sha256": "45bea5ebb1dea332f1af99afbc8e0894891cf86b69045a200b37daa1f01ba506"
+    },
+    {
+      "file": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\.planning\\tmp\\20-completion-20261026\\owner-display\\portable-fixture\\source-project.json",
+      "sha256": "32bc48c4b9981e85229070e6ab95fc6e8372d0475681fdec722eb9c56f04b265"
+    },
+    {
+      "file": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\.planning\\tmp\\20-completion-20261026\\owner-display\\portable-fixture\\readback.py",
+      "sha256": "b23e6d66c7610730a84114b4d5694fc2517ffd03a8a46d84f62bfd6bdb00e52d"
+    }
+  ],
+  "qualifications": [
+    "Exact archive readback and independent Euclidean/analytic-circle/Green-integral arithmetic only; no application measurement code imported.",
+    "Two authored synthetic pages and generated input scales are preparation, not fresh native calibration or human representative/as-built plan approval.",
+    "Positive viewport refit, current page and authorized save timestamps may differ. A saved archive cannot establish native dirty/clean UI or fit timing; actual adopted reopen must be observed separately.",
+    "No inference of source-PDF/local-library absence, offline operation, keyboard/scaling/monitor/memory or completed required-case/release acceptance.",
+    "The transferred input is the earlier native first-save archive d35db947…, not the byte-different generated source archive or a new1.1.5result.",
+    "New-save creation time must not predate the pinned1.1.5manifest. This rejects older candidate saves, but archive readback still cannot itself establish which native UI operation created it."
+  ],
+  "scope": "Read-only workspace archive/oracle verification; only this new JSON report is written. No profile/UI/process/source/canonical mutation."
+}

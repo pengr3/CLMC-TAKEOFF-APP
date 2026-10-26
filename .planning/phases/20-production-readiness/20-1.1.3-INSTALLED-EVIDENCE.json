@@ -1,0 +1,3000 @@
+{
+  "schemaVersion": 1,
+  "status": "awaiting-1.1.3-ui05-fix-replacement-and-remaining-evidence",
+  "candidate": {
+    "version": "1.1.3",
+    "installerSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+    "archiveSha256": "fd37e754436c4e9263e69cfe24cf442c1b9ae80b7f2463c2b3bbb09edf8655e4",
+    "installer": ".planning/tmp/20-completion-20261026/candidate-1.1.3/frozen-final/clmc-takeoff-1.1.3-x64-setup.exe",
+    "manifest": ".planning/tmp/20-completion-20261026/candidate-1.1.3/frozen-final/release-manifest.json",
+    "bytes": 137026578,
+    "architecture": "x64"
+  },
+  "handoff": {
+    "approvedLocation": "C:\\Users\\franc\\OneDrive\\Desktop\\CLMC TAKEOFF FOLDER",
+    "releaseOwner": "Francis",
+    "signingPolicy": "Remain unsigned for internal use, explicitly selected by Francis on2026-10-26",
+    "signingOwner": "Francis",
+    "publisher": null,
+    "rollbackContact": null,
+    "releaseOwnerEvidence": {
+      "date": "2026-10-25T17:44:40.628Z",
+      "statement": "Francis, remain unsigned for internal use. This then first release. Second monitor connected and can be used. Installer location provided separately.",
+      "source": "Direct human user replies in this chat",
+      "artifact": ".planning/phases/20-production-readiness/20-RELEASE-OWNER.md"
+    },
+    "status": "owner-policy-recorded-1.1.3-protected-unapproved-review-copy-verified-acceptance-pending",
+    "observedSignature": "Actual inspected 1.1.3 manifest records unsigned/NotSigned installer and executable, consistent with the existing internal-use policy; no signing publisher is asserted.",
+    "reason": "The exact 17-file 1.1.3 UNAPPROVED packet was copied to Francis’s supplied destination with a protected version subtree. Independent readback verifies all 17 new hashes/bytes/local ACLs, two new protected directories, existing Releases/old 1.1.2 directories, all 17 old 1.1.2 files/ACLs, and unchanged root ACL/five existing file metadata. Contact and human licensing/advisory/stability/release decisions remain pending. Supplied owner/unsigned/first-release/location facts are separate approvals.",
+    "scope": "Local Windows DACL and exact review-copy byte verification only. No existing project/export contents read or hashed, no root ACL or old-packet mutation, no OneDrive/cloud-sharing permission claim and no approval to distribute.",
+    "reviewCopyLocation": "C:\\Users\\franc\\OneDrive\\Desktop\\CLMC TAKEOFF FOLDER\\Releases\\1.1.3",
+    "reviewCopyStatus": "UNAPPROVED-review-copy-verified",
+    "previousReviewCopies": [
+      {
+        "version": "1.1.2",
+        "candidateInstallerSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+        "candidateArchiveSha256": "084f96aef0b4e27ad746712efd4fca793554b82c8b0e7642bccda2d93f119416",
+        "reviewCopyLocation": "C:\\Users\\franc\\OneDrive\\Desktop\\CLMC TAKEOFF FOLDER\\Releases\\1.1.2",
+        "reviewCopyStatus": "UNAPPROVED-review-copy-verified",
+        "copyProofArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.2/handoff-copy-20261025T200447962Z-fa4610ff81a94bc89775dd5f3a135307.json",
+        "copyProofSha256": "684f6b3878b220a1086f1fe0ad1658178a51c56d38e15e55b39ca5f7154aee52",
+        "independentReadbackArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.2/handoff-independent-readback.json",
+        "independentReadbackSha256": "6c7d11326d90543e8579072c383c3a089649efe3814db1025817e338f4718c80",
+        "scope": "Verified historical UNAPPROVED review copy; does not identify or approve 1.1.3."
+      }
+    ],
+    "copyProofArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/handoff-copy-20261025T204539048Z-07ceafe05df640969805a3029c3d485c.json",
+    "copyProofSha256": "1cb6c19d26829e10893580b7fba4feff46f516fc18ce7a1736928e7bc640a65f",
+    "independentReadbackArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/handoff-independent-readback.json",
+    "independentReadbackSha256": "3c6a3ee3f9a043664c525428115e4349c9022feadfac7c167c5206b5e453b441",
+    "reviewPacketInventoryArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/release-review-inventory.json",
+    "reviewPacketInventorySha256": "0284e3e9b4f51cb9628b50a13096f1d17bbb8a6745db22280e885e24c35b5dd0",
+    "reviewSupplementArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/release-review/release-notices-supplement.md",
+    "reviewSupplementSha256": "e1c738ce08e2a93ca3b0aba25669d0dfe736a9828cf74a1d2b5e7bbd83dfd2ee",
+    "reviewCopyFilesVerified": 17,
+    "newProtectedDirectoriesVerified": 2
+  },
+  "predecessor": {
+    "kind": "none-deployed",
+    "attestation": {
+      "source": "human-release-owner",
+      "releaseOwner": "Francis",
+      "date": "2026-10-25T17:44:40.628Z",
+      "noDeployedPredecessor": true,
+      "statement": "Francis confirmed this is the first release; no actual predecessor has been deployed.",
+      "artifact": ".planning/phases/20-production-readiness/20-RELEASE-OWNER.md"
+    },
+    "syntheticExercise": "Disposable test-installed1.1.0→1.1.1 transition remains supplemental; no actual deployed-upgrade pass claimed."
+  },
+  "machines": [
+    {
+      "id": "developer-host",
+      "classification": "development",
+      "name": "Lenovo-X390-PC1H2FSA",
+      "windows": "10.0.26100",
+      "architecture": "x64",
+      "ramGiB": 15.749954223632812,
+      "supportedScaling": [],
+      "monitorCount": null,
+      "scope": "Carried observed hardware/history facts only; no 1.1.3 installation, physical scaling, monitor transition or performance pass. Previous scope: Carried prior observed hardware facts only; not a 1.1.2 display, transition, performance or installation pass. Prior scope: Development PC: actual local per-user installation/manual input observed; renderer device-scale-factor1. No physical display matrix or non-development classification is inferred."
+    },
+    {
+      "id": "second-pc-laptop-5bam24nm",
+      "classification": "non-development",
+      "name": "LAPTOP-5BAM24NM",
+      "windows": "Windows 11 Home Single Language, build 22631",
+      "architecture": "x64",
+      "ramGiB": 15.8,
+      "supportedScaling": [
+        100,
+        125,
+        150,
+        175
+      ],
+      "monitorCount": 2,
+      "scope": "User-confirmed physical second PC. Actual 1.1.3 fresh installation, synthetic project-only transfer and partial UI-05 native testing occurred here as separately recorded. Existing two-extended-display 1920×1080 hardware/scaling facts are carried history only; no 1.1.3 physical scaling, monitor-transition or performance acceptance.",
+      "hardwareArtifact": ".planning/tmp/20-completion-20261026/owner-display/005-display-map-original-extended.json",
+      "hardwareHistory": [
+        {
+          "date": "2026-10-25T12:48:16.2099063Z",
+          "scope": "User-confirmed different PC. Two displays initially enumerated; external user input later selected Show only on2, leaving one active display. Actual active-display Windows100/125/150% at1920x1080 observed; dropdown also offered175%, not tested, and did not offer200%. Original active-display100% restored. No actual cross-monitor transition. Continued1.1.1 rebuild and native installed retest locally; original100% restored, topology retained.",
+          "hardwareArtifact": ".planning/tmp/20-second-pc-20261025/recovery-and-displays.json"
+        }
+      ],
+      "activeMonitorCount": 2,
+      "displayTopology": "Extend",
+      "mainDisplay": 2,
+      "displays": [
+        {
+          "id": 1,
+          "scalingPercent": 125,
+          "resolution": [
+            1920,
+            1080
+          ],
+          "main": false
+        },
+        {
+          "id": 2,
+          "scalingPercent": 100,
+          "resolution": [
+            1920,
+            1080
+          ],
+          "main": true
+        }
+      ],
+      "hardwareArtifacts": [
+        ".planning/tmp/20-completion-20261026/owner-display/003-display1-scale.json",
+        ".planning/tmp/20-completion-20261026/owner-display/004-display1-scale-resolution.json",
+        ".planning/tmp/20-completion-20261026/owner-display/005-display-map-original-extended.json",
+        ".planning/tmp/20-completion-20261026/owner-display/006-display2-selected.json",
+        ".planning/tmp/20-completion-20261026/owner-display/007-display2-original-scale.json",
+        ".planning/tmp/20-completion-20261026/owner-display/008-display2-supported-scale.json",
+        ".planning/tmp/20-completion-20261026/owner-display/009-display2-scale-unchanged.json"
+      ]
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "second-pc-synthetic-grid",
+      "name": "training-grid.pdf",
+      "approvedBy": "User-authorized supplied trial kit (synthetic training scope only)",
+      "kind": "synthetic-training-vector",
+      "sha256": "9c0bc7b6f133905fc62b7dff8abec2e78c0beb078f3ddcdddb57c157ed025e10",
+      "bytes": 1256,
+      "pages": 1,
+      "oracleSource": "Supplied guide: 10 m square, 100 m² area, 40 m perimeter, 30 m² wall at 3 m height, 1 count; independent arithmetic and preserved source fixture checks. Not representative construction-plan approval.",
+      "scope": "Carried source/provenance/oracle facts only; no 1.1.3 native rendering, measurement or human representative/as-built approval. Previous scope: Carried source/provenance/oracle facts only; no 1.1.2 rendering, measurement or human as-built approval implied. Prior fixture scope: "
+    },
+    {
+      "id": "public-portland-site-plan",
+      "name": "portland-site-plan.pdf",
+      "approvedBy": "Agent-selected public exploratory fixture under authorized testing; external representative-plan approval remains pending",
+      "kind": "public-raster-bearing-municipal-sample",
+      "sha256": "0755833be0bbccc65b073de4e35cda1fb6ca403c89e58c37d64333b1d740fb7a",
+      "bytes": 3494493,
+      "pages": 1,
+      "source": "https://www.portland.gov/ppd/documents/sample-site-plan/download",
+      "oracleSource": "Official public sample includes50ft lot width and10x10ft patio; Poppler reference compared visually. No independently approved measurement run.",
+      "scope": "Carried source/provenance/oracle facts only; no 1.1.3 native rendering, measurement or human representative/as-built approval. Previous scope: Carried source/provenance/oracle facts only; no 1.1.2 rendering, measurement or human as-built approval implied. Prior fixture scope: "
+    },
+    {
+      "id": "public-worldbank-guidance",
+      "name": "worldbank-sample-house-plans.pdf",
+      "approvedBy": "Agent-selected public exploratory fixture under authorized testing; external representative-plan approval remains pending",
+      "kind": "public-mixed-vector-image-guidance",
+      "sha256": "2ea6a6d4aac062b5f0b9cc3447347e8e6270cf1df9edda42a7ffca4541f3a633",
+      "bytes": 31148266,
+      "pages": 150,
+      "source": "https://documents1.worldbank.org/curated/en/099554312202436138/pdf/IDU1f54bd272126f11472119261126d32b985e49.pdf",
+      "oracleSource": "Independent pypdf inventory150pages, ZIP-embedded byte hash and currentPage2 readback. No mixed-scale/markup/measurement oracle accepted.",
+      "scope": "Carried source/provenance/oracle facts only; no 1.1.3 native rendering, measurement or human representative/as-built approval. Previous scope: Carried source/provenance/oracle facts only; no 1.1.2 rendering, measurement or human as-built approval implied. Prior fixture scope: "
+    },
+    {
+      "id": "second-pc-two-page-mixed-scale-portability",
+      "name": "portable-source.clmc (embedded portability-reference.pdf)",
+      "approvedBy": "Codex, within Francis-authorized synthetic portability testing; parent reviewed native captures and independent readback on 2026-10-26. No human representative-plan approval asserted.",
+      "kind": "synthetic-self-contained-format-3-two-page-mixed-scale-project",
+      "sha256": "52365d2457089863139c420a54dfacf89ca8e8a37b7cff089a94b770671ba7df",
+      "bytes": 10821,
+      "pages": 2,
+      "sourceArtifact": ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/portable-source.clmc",
+      "embeddedPdfSha256": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+      "oracleSource": ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/oracle.json",
+      "oracleMethod": "Independent authored integer geometry: Euclidean 3-4-5 length, rectangle shoelace area, analytic semicircle arc/Green integral area, fixed-height wall areas and explicit rate money; no application measurement arithmetic imported.",
+      "preparationOnlyArtifacts": [
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/create-fixture.py",
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/source-selfcheck.json",
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/validate-admission.cjs"
+      ],
+      "scope": "Authored synthetic source/oracle provenance. Actual 1.1.3 project-only-transfer native evidence and exact transferred/first-save/post-reopen identities are separately recorded in that accepted proposed case; this source archive hash is not the transferred archive hash. No physical-display or human representative/as-built construction-plan acceptance."
+    },
+    {
+      "id": "public-txdot-dallas-renovation-vector",
+      "name": "txdot-dallas-renovation-vector.pdf",
+      "approvedBy": "Codex selected this official public TxDOT fixture within Francis-authorized release testing; no human estimator/as-built approval asserted.",
+      "kind": "public-multipage-vector-construction-plan",
+      "sha256": "8b364368e8153ec69180dbbefca208d2af38453b9079aaacd03e50358f770d6b",
+      "bytes": 14268487,
+      "pages": 88,
+      "source": "https://ftp.txdot.gov/plans/Facilities/2022/10%20October/SLBC%2018-380421390%20Renovation%2C%20Multiple%20Floors%2C%20Dallas%20DHQ/18-21390-plans.pdf",
+      "oracleSource": "Independent source-PDF byte hash and pypdf 88-page inventory; generated blank full-PDF wrapper initially has 0 markups. One arbitrary native Vector QA marker is expected after save. This oracle covers file/state preservation, not construction quantities or as-built accuracy.",
+      "scope": "Carried source/provenance/oracle facts only; no 1.1.3 native rendering, measurement or human representative/as-built approval. Previous scope: Carried source/provenance/oracle facts only; no 1.1.2 rendering, measurement or human as-built approval implied. Prior fixture scope: Public construction PDF selected for installed save-failure/persistence testing. Representative-plan accuracy acceptance remains separate."
+    },
+    {
+      "id": "public-txdot-dallas-vector",
+      "name": "txdot-dallas-renovation-vector.pdf",
+      "approvedBy": "Codex selected this disposable official public software-test fixture under Francis's authorized remaining-PC testing. This is not as-built certification or final release-owner/REL-05 approval.",
+      "kind": "large-format-vector-construction-software-test",
+      "sha256": "8b364368e8153ec69180dbbefca208d2af38453b9079aaacd03e50358f770d6b",
+      "bytes": 14268487,
+      "pages": 88,
+      "source": "https://ftp.txdot.gov/plans/Facilities/2022/10%20October/SLBC%2018-380421390%20Renovation%2C%20Multiple%20Floors%2C%20Dallas%20DHQ/18-21390-plans.pdf",
+      "oracleSource": "Independent extraction of actual PDF dimension tick/extension joints, printed28ft9in/26ft9.5in labels and32ft graphic bar. Printed1/8inch=1foot gives9PDFpoints/foot; generated base-scale2 calibration18/304.8px/mm. Actual vector quantities8761.9830179mm and8160.5148109mm differ from printed8763mm/8166.1mm by-0.011605%/-0.068395%, both within0.1%. Endpoints/calibration are generated reference preparation, not native manual placement. Actual source depth exceeds0.1%and is excluded, not adjusted.",
+      "provenance": ".planning/tmp/20-completion-20261026/public-plans/additional/verified-fixtures.json",
+      "oracle": ".planning/tmp/20-completion-20261026/public-plans/additional/native-wrappers/dallas-landmark-oracle.json",
+      "scope": "Carried source/provenance/oracle facts only; no 1.1.3 native rendering, measurement or human representative/as-built approval. Previous scope: Carried source/provenance/oracle facts only; no 1.1.2 rendering, measurement or human as-built approval implied. Prior fixture scope: "
+    },
+    {
+      "id": "public-usda-farmhouse-scan",
+      "name": "usda-farmhouse7213-scanned.pdf",
+      "approvedBy": "Codex selected this disposable official public-domain software-test fixture under Francis's authorized remaining-PC testing. No as-built, estimator, final representative-fixture or release-owner acceptance is asserted.",
+      "kind": "genuine-high-resolution-JPX-scanned-construction-software-test",
+      "sha256": "13788ecf41653481d2ee0884d5443c52ddec0281dc05e07283988db3a2bf2d78",
+      "bytes": 23505538,
+      "pages": 4,
+      "source": "https://www.nal.usda.gov/exhibits/ipd/ruralusa/files/original/e4df2761c9078e52c8e3b4fefa562560.pdf",
+      "catalog": "https://www.nal.usda.gov/exhibits/ipd/ruralusa/exhibits/show/housing/item/51",
+      "oracleSource": "Official USDA catalog identifies actual1976farmhouse blueprints and public-domain federal work. Source metadata says Digitized by the Internet Archive. Pages3and4 each embed one6582x5111JPX/JPEG2000image and zero vector path operators; both Poppler reference renders visibly contain the plan. Floor-plan page4 prints41ft3in/23ft11in dimensions, not used for an installed measurement because native1.1.1 rendered blank. No sub0.1%historical-scan accuracy is certified.",
+      "provenance": ".planning/tmp/20-completion-20261026/public-plans/additional/verified-fixtures.json",
+      "referenceRenders": [
+        ".planning/tmp/20-completion-20261026/public-plans/additional/usda-reference-3.png",
+        ".planning/tmp/20-completion-20261026/public-plans/additional/usda-reference-4.png"
+      ],
+      "scope": "Carried source/provenance/oracle facts only; no 1.1.3 native rendering, measurement or human representative/as-built approval. Previous scope: Carried source/provenance/oracle facts only; no 1.1.2 rendering, measurement or human as-built approval implied. Prior fixture scope: "
+    }
+  ],
+  "cases": [
+    {
+      "id": "fresh-install",
+      "status": "pass",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": "Codex root driving the authorized native installed 1.1.3 app; independent child reviewed retained actual records and screenshots",
+      "date": "2026-10-25T20:48:43.261Z",
+      "procedure": "docs/release-validation.md",
+      "expected": "On the user-confirmed non-development Windows x64 PC, freshly install the exact full offline candidate from zero registration/executable/active profile; verify one correct registration and shortcut per location, exact payload, empty native launch, About version/local notes and normal Escape dismissal/focus return. Preserve original data separately. First release has no deployed predecessor.",
+      "actual": "The guarded clean-install precondition records exact prior disposable 1.1.2 uninstall exit 0, no active executable/profile/registration, and all 3191 original files preserved with matching hashes. The exact 1.1.3 installer exits 0; all 149 installed payload files match the inspected manifest, including ASAR fd37e754…; one 1.1.3 HKCU registration and one Desktop/Start Menu shortcut target the exact installed executable. Native 001 launch is empty and uses the installed AppData/Local/Programs file URL; 002 opens More; settled 004 About displays 1.1.3 and the actual bundled local notes with reachable Close. Parent Escape dismisses the dialog; 005 visibly returns the focus outline to More. The original profile remains ISOLATED and not restored. These results contain no current profile-restoration claim, deployed-upgrade pass or full UI/offline/display acceptance.",
+      "checks": [
+        {
+          "metric": "exact installed candidate installer SHA256",
+          "expected": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+          "actual": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+          "tolerance": 0
+        },
+        {
+          "metric": "exact installed ASAR SHA256",
+          "expected": "fd37e754436c4e9263e69cfe24cf442c1b9ae80b7f2463c2b3bbb09edf8655e4",
+          "actual": "fd37e754436c4e9263e69cfe24cf442c1b9ae80b7f2463c2b3bbb09edf8655e4",
+          "tolerance": 0
+        },
+        {
+          "metric": "clean pre-install registrations",
+          "expected": 0,
+          "actual": 0,
+          "tolerance": 0
+        },
+        {
+          "metric": "pre-install executable present",
+          "expected": false,
+          "actual": false,
+          "tolerance": 0
+        },
+        {
+          "metric": "pre-install active profile present",
+          "expected": false,
+          "actual": false,
+          "tolerance": 0
+        },
+        {
+          "metric": "candidate installer exit",
+          "expected": 0,
+          "actual": 0,
+          "tolerance": 0
+        },
+        {
+          "metric": "all149installed payload hashes and sizes match manifest",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "installed payload files",
+          "expected": 149,
+          "actual": 149,
+          "tolerance": 0
+        },
+        {
+          "metric": "installed registration count",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "registered version",
+          "expected": "1.1.3",
+          "actual": "1.1.3",
+          "tolerance": 0
+        },
+        {
+          "metric": "desktop shortcut count",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "start-menu shortcut count",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "original hashes verified at disposable-uninstall/isolation precondition",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "original profile files preserved separately",
+          "expected": 3191,
+          "actual": 3191,
+          "tolerance": 0
+        },
+        {
+          "metric": "native installed empty launch version and source",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "settled native About1.1.3 local release notes",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "About Escape dismissal and visible More focus return",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/fresh-install.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/fresh-install-preflight.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/clean-install-precondition.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/fresh-installed-payload.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/profile-isolated.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/original-profile-inventory.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/001-fresh-empty-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/001-fresh-empty.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/002-fresh-more-menu-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/002-fresh-more-menu.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/003-fresh-about-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/003-fresh-about.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/004-fresh-about-settled-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/004-fresh-about-settled.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/005-about-escape-focus-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/005-about-escape-focus.json"
+      ],
+      "reason": null,
+      "qualifications": [
+        "The clean precondition follows removal of the exact disposable test installation; the PC had run test software before.",
+        "All 3191 original hashes/count matched the guarded isolation/precondition records. No independent access to the active or preserved original profile was performed by this proposal preparation.",
+        "The original 1.1.3-session profile is currently preserved outside APPDATA and remains un-restored. Historical 1.1.2 restoration is not a 1.1.3 result.",
+        "Parent operated Escape; native 005 visibly shows the More focus outline. Accessibility focused_element reports the OS window and is not independently treated as DOM-focus proof.",
+        "No deployed upgrade, physical scaling, monitor transition, representative accuracy, app-network-unavailable workflow or whole-phase acceptance inferred."
+      ]
+    },
+    {
+      "id": "actual-predecessor-upgrade",
+      "status": "not-applicable",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "tester": "Francis",
+      "date": "2026-10-25T17:44:40.628Z",
+      "procedure": "docs/release-evidence-first-release.md",
+      "expected": "Owner-attested first release has no deployed predecessor; no actual upgrade should be invented.",
+      "actual": "The existing direct human first-release/no-deployed-predecessor fact is retained. No 1.1.3 deployed upgrade was performed or passed, and no human acceptance of 1.1.3 is inferred.",
+      "checks": [],
+      "artifacts": [
+        ".planning/phases/20-production-readiness/20-RELEASE-OWNER.md",
+        "docs/release-evidence-first-release.md"
+      ],
+      "scope": "Candidate-independent human deployment-history fact only."
+    },
+    {
+      "id": "project-only-transfer",
+      "status": "pass",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-two-page-mixed-scale-portability"
+      ],
+      "tester": "Codex root driving installed1.1.3; independent child reviewed native captures, exact immutable first/post-reopen saves, unchanged independent oracle and precondition records",
+      "date": "2026-10-25T20:51:44.882Z",
+      "procedure": "docs/release-validation.md",
+      "expected": "Transfer only the self-contained project to the second PC without its known standalone PDF/local library, preserve both mixed-scale pages,14marks/all5types/arcs/wallheights/order/visibility/rate snapshots through native separate Save As and actual reopen, and retain independently known quantities and money.",
+      "actual": "Root precondition records exact1.1.3identity, absent disposable library and only portable113.clmc inputd35db947… in transfer folder. Native013/015actually render page2/page1 with14marks and1:5/1:10;016Estimate retains nine ordered rows and1012.93/1160.73/147.80. Native020Save As reaches separate portable-native113.clmc;021establishes settled clean. Immutable first-save10266bytesSHAf575618eaa3c05d1a1d00645658729598938aa8ae74fc2e290833a2a51bb37d5 has exact ZIPCRC/fullPDF/all persistent content against transferred input and authored oracle; firstSaveAstimestamps20:50:27.466Z equal. Native022–024picker opens that actual saved path;025adoptedpage1 and026page2 retain exact overlays/pins/mixed scales, and027Estimate all nine rows and independent totals.025–027are dirty after positive68%refit. OrdinarySave028→029settled clean; immutable post-reopen10237bytesSHAe03be603cf67de2fe9c17b9f10fc1a7efceda1c62175dcf46daf890035fa80ca retains all exact content, preserves createdAt20:50:27.466Z and advances updatedAt20:51:38.945Z. No unrelated physical/offline/representative-plan acceptance inferred.",
+      "checks": [
+        {
+          "metric": "exact sole transferred input archive SHA256",
+          "expected": "d35db947d071e52120797dee192c359c14ee0424bf6de7896ab1e337c480d038",
+          "actual": "d35db947d071e52120797dee192c359c14ee0424bf6de7896ab1e337c480d038",
+          "tolerance": 0
+        },
+        {
+          "metric": "one transferred project without separate source PDF or library files",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "root-recorded disposable local library absent before import",
+          "expected": false,
+          "actual": false,
+          "tolerance": 0
+        },
+        {
+          "metric": "known standalone source PDF absent and exact unavailable copy preserved",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "first native Save As immutable archive SHA256",
+          "expected": "f575618eaa3c05d1a1d00645658729598938aa8ae74fc2e290833a2a51bb37d5",
+          "actual": "f575618eaa3c05d1a1d00645658729598938aa8ae74fc2e290833a2a51bb37d5",
+          "tolerance": 0
+        },
+        {
+          "metric": "post-reopen ordinary Save immutable archive SHA256",
+          "expected": "e03be603cf67de2fe9c17b9f10fc1a7efceda1c62175dcf46daf890035fa80ca",
+          "actual": "e03be603cf67de2fe9c17b9f10fc1a7efceda1c62175dcf46daf890035fa80ca",
+          "tolerance": 0
+        },
+        {
+          "metric": "unchanged complete embedded PDF SHA256",
+          "expected": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+          "actual": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+          "tolerance": 0
+        },
+        {
+          "metric": "ZIP CRC and exact persistent data across first and ordinary saves",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "two embedded pages",
+          "expected": 2,
+          "actual": 2,
+          "tolerance": 0
+        },
+        {
+          "metric": "all five markup types preserved",
+          "expected": 5,
+          "actual": 5,
+          "tolerance": 0
+        },
+        {
+          "metric": "all fourteen markups preserved",
+          "expected": 14,
+          "actual": 14,
+          "tolerance": 0
+        },
+        {
+          "metric": "four true arc segments preserved",
+          "expected": 4,
+          "actual": 4,
+          "tolerance": 0
+        },
+        {
+          "metric": "page1 scale pixels per mm",
+          "expected": 0.1,
+          "actual": 0.1,
+          "tolerance": 0
+        },
+        {
+          "metric": "page2 scale pixels per mm",
+          "expected": 0.2,
+          "actual": 0.2,
+          "tolerance": 0
+        },
+        {
+          "metric": "geometry wall heights category/item order hidden keys rates and bases exact",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "first Save As establishes equal canonical new-destination timestamps",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "ordinary Save preserves first native save creation time",
+          "expected": "2026-10-25T20:50:27.466Z",
+          "actual": "2026-10-25T20:50:27.466Z",
+          "tolerance": 0
+        },
+        {
+          "metric": "native reopened nine-row ordering retained",
+          "expected": "Curved outline,Hidden outline,Curved floor,Rectangle floor,Arc wall,Straight wall,Arc run,Straight run,Fixture outlet",
+          "actual": "Curved outline,Hidden outline,Curved floor,Rectangle floor,Arc wall,Straight wall,Arc run,Straight run,Fixture outlet",
+          "tolerance": 0
+        },
+        {
+          "metric": "native reopened cost versus independent oracle",
+          "expected": 1012.93,
+          "actual": 1012.93,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "native reopened selling versus independent oracle",
+          "expected": 1160.73,
+          "actual": 1160.73,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "native reopened margin versus independent oracle",
+          "expected": 147.8,
+          "actual": 147.8,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "settled first Save As and final ordinary Save clean",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-case-proposal.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-precondition.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/input-inventory.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/transfer-only/portable113.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-first-save113.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-post-reopen113.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-first-save113-copy-proof.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-post-reopen113-copy-proof.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-first-save113-readback.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-post-reopen113-readback.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/read-portable-native.py",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/prepare-portable-case-proposal.py",
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/oracle.json",
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/source-project.json",
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/readback.py",
+        ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/portability-reference.pdf.unavailable",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/013-portable-adopted-page2.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/015-portable-page1-settled.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/016-portable-estimate-request.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/020-portable-save-submit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/021-portable-first-save-clean.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/022-portable-reopen-picker.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/023-portable-reopen-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/024-portable-reopen-submit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/025-portable-reopened-page1-settled.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/026-portable-reopened-page2-request.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/027-portable-reopened-estimate.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/028-portable-reopened-save.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/029-portable-reopened-save-clean.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/013-portable-adopted-page2-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/015-portable-page1-settled-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/016-portable-estimate-request-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/020-portable-save-submit-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/021-portable-first-save-clean-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/025-portable-reopened-page1-settled-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/026-portable-reopened-page2-request-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/027-portable-reopened-estimate-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/029-portable-reopened-save-clean-0.jpg"
+      ],
+      "qualifications": [
+        "Authored two-page synthetic portability fixture only; not human representative/as-built construction-plan approval, native manual calibration, physical scaling/monitor or offline acceptance.",
+        "Precondition local-library absence is a root-recorded actual installed-session fact at20:49:01.7520693Z; independent reader did not inspect the active profile. Subsequent library regression does not change this historical precondition.",
+        "Transfer directory contains only the project; the known original standalone portability-reference.pdf is absent with exact .pdf.unavailable preserved. No global claim that no identical PDF bytes exist anywhere on this PC is made.",
+        "Native020immediate save observation contains transient Saving accessibility state while screenshot/document title already reflects completion;021settled state establishes the first clean Save As.",
+        "Actual adopted reopen025–027 is DIRTY after positive68%viewport refit, not clean reopen. OrdinarySave028 followed by029settled clean is separate evidence; immutable first and post-reopen archives are preserved.",
+        "Inputd35db947… is a previously native-saved known fixture reused unchanged; it is not the generated source archive or a borrowed1.1.3native result.",
+        "Independent scalar oracle uses unchanged Euclidean/analytic-circle/Green-integral functions; no application measurement/cost code imported. Persisted whole-project exactness is checked against the actual transferred archive.",
+        "This proposal is not a canonical write, human release approval, or acceptance of unrelated tests. Root owns final case adoption and current profile state."
+      ],
+      "reason": null
+    },
+    {
+      "id": "recovery-saved",
+      "status": "pending",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-two-page-mixed-scale-portability"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute recovery-saved against the exact installed 1.1.3 candidate with independent expected values and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed on 1.1.3. All prior passes/failures/unsupported outcomes and partial native results remain only in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json; none is rebound as a new result."
+    },
+    {
+      "id": "recovery-never-saved",
+      "status": "pending",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-two-page-mixed-scale-portability"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute recovery-never-saved against the exact installed 1.1.3 candidate with independent expected values and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed on 1.1.3. All prior passes/failures/unsupported outcomes and partial native results remain only in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json; none is rebound as a new result."
+    },
+    {
+      "id": "failed-save-backup",
+      "status": "pending",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "public-txdot-dallas-renovation-vector"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute failed-save-backup against the exact installed 1.1.3 candidate with independent expected values and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed on 1.1.3. All prior passes/failures/unsupported outcomes and partial native results remain only in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json; none is rebound as a new result."
+    },
+    {
+      "id": "offline-workflow",
+      "status": "pending",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute offline-workflow against the exact installed 1.1.3 candidate with independent expected values and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed on 1.1.3. All prior passes/failures/unsupported outcomes and partial native results remain only in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json; none is rebound as a new result."
+    },
+    {
+      "id": "large-vector",
+      "status": "pending",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "public-txdot-dallas-vector"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute large-vector against the exact installed 1.1.3 candidate with independent expected values and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed on 1.1.3. All prior passes/failures/unsupported outcomes and partial native results remain only in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json; none is rebound as a new result."
+    },
+    {
+      "id": "large-scan",
+      "status": "pending",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "public-usda-farmhouse-scan"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute large-scan against the exact installed 1.1.3 candidate with independent expected values and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed on 1.1.3. All prior passes/failures/unsupported outcomes and partial native results remain only in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json; none is rebound as a new result."
+    },
+    {
+      "id": "multipage-navigation",
+      "status": "pending",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-two-page-mixed-scale-portability"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute multipage-navigation against the exact installed 1.1.3 candidate with independent expected values and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed on 1.1.3. All prior passes/failures/unsupported outcomes and partial native results remain only in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json; none is rebound as a new result."
+    },
+    {
+      "id": "scaling-100",
+      "status": "pending",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute scaling-100 against the exact installed 1.1.3 candidate with independent expected values and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed on 1.1.3. All prior passes/failures/unsupported outcomes and partial native results remain only in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json; none is rebound as a new result."
+    },
+    {
+      "id": "scaling-125",
+      "status": "pending",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute scaling-125 against the exact installed 1.1.3 candidate with independent expected values and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed on 1.1.3. All prior passes/failures/unsupported outcomes and partial native results remain only in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json; none is rebound as a new result."
+    },
+    {
+      "id": "scaling-150",
+      "status": "pending",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute scaling-150 against the exact installed 1.1.3 candidate with independent expected values and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed on 1.1.3. All prior passes/failures/unsupported outcomes and partial native results remain only in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json; none is rebound as a new result."
+    },
+    {
+      "id": "scaling-200",
+      "status": "pending",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute scaling-200 against the exact installed 1.1.3 candidate with independent expected values and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed on 1.1.3. All prior passes/failures/unsupported outcomes and partial native results remain only in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json; none is rebound as a new result."
+    },
+    {
+      "id": "monitor-transition",
+      "status": "pending",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-synthetic-grid"
+      ],
+      "tester": null,
+      "date": null,
+      "procedure": "docs/release-validation.md",
+      "expected": "Execute monitor-transition against the exact installed 1.1.3 candidate with independent expected values and actual candidate-bound provenance.",
+      "actual": null,
+      "checks": [],
+      "artifacts": [],
+      "reason": "Not yet performed on 1.1.3. All prior passes/failures/unsupported outcomes and partial native results remain only in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json; none is rebound as a new result."
+    },
+    {
+      "id": "ui-keyboard-overflow",
+      "status": "fail",
+      "candidateSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+      "machineId": "second-pc-laptop-5bam24nm",
+      "fixtureIds": [
+        "second-pc-two-page-mixed-scale-portability"
+      ],
+      "tester": "Codex root driving actual installed1.1.3; independent child reviewed preserved native screenshots, accessibility, unchanged long-CSV oracle and actual component flex structure",
+      "date": "2026-10-25T21:12:49.796Z",
+      "procedure": "docs/release-validation.md",
+      "expected": "UI-05 must keep row-specific invalid-import errors visible and reachable with retained committed long-library content at reduced effective window size. Preserve readable units/amounts and independent scrolling with visible Close/preview actions. Remaining UI-01–05 failure/recovery/legacy/keyboard states require their own actual evidence.",
+      "actual": "At nominal 1280×720, native outer-window captures are 1282×721. Valid 250-row import preview 037–039 and committed 051–053 now retain readable Unit/Material/Labor headers and one-line monetary values through horizontal/vertical table scrolling. Last-row search 059–062 shows one of one, ft² and 123457039.12 / 9876605.71, with long end markers reachable by scrolling. This is a scoped improvement over frozen 1.1.2. Invalid row 251 is rejected after 066 Checking; 069/070 show the generic “Fix the listed rows…Nothing was replaced” message and retained 250-item library, but the required detailed Row 251 / Material Unit Rate message is invisible despite present accessibility content. At 1920×1032, maximized 071 makes that exact error visible. Restoring 1282×721 in 072 hides it again. The packaged 1.1.3 source allows the scrollable Import errors ul to flex-shrink to zero while the 340px table is nonshrinking; source diagnosis is separate from native observation. UI-05 therefore FAILS. Counts, readability and visible-action subset positives do not accept the full case. No replacement candidate has been built or accepted by this proposal. Later native 073–076 retries the valid CSV after rejection: the settled 250-item preview returns and the prior Row 251/import-error list is absent from AX. Escape in 077 cancels the preview and visibly returns focus to the Cost Library trigger. Native 078–079 opens the Curved floor rate picker and shows the incompatible ea row disabled with “Needs m²”; 080 searches OVR-0003-, and 081 selects its compatible m² rate. The long selected-code summary wraps, displays 123456792.12 material plus 9876543.96 labor per m², and leaves Apply Rates reachable. Native 082 visibly focuses Apply Rates; parent Tab then Shift+Tab produce the Close / Apply focus outlines in 083 / 084. Parent Escape in 085 closes without applying and visibly returns focus to the Curved floor library trigger. The root preservation record after 085 reports the library, native project and backup hashes unchanged from their exact pre-invalid baselines. These are qualified subset positives and do not resolve the smaller-window row-error visibility failure. The later legacy batch 087–107 opens the unchanged generated format-2 project containing 40 long-name rate rows. Settled 093 AX establishes that Confirm Rate Units is disabled with acknowledgement unchecked. Scroll endpoint 095 visibly exposes END-LEGACY-ROW-40, complete 123456829.12 material / 9876553.21 labor, proposed m² and reachable footer controls. Parent Tab in 096 focuses acknowledgement; Shift+Tab in 097 wraps to Cancel while disabled Confirm is skipped. Escape 098 retains the unresolved warning and visible Review Rates focus. Parent Return reopens with Cancel initially focused in 099. Checked acknowledgement 100 enables Confirm; 101 screenshot removes the warning/dialog although its AX lags. Upgraded-copy decision 102 wraps the entire original path and exposes both choices. Actual native Save Project 104/105 chooses the separate legacy-reviewed-upgraded113.clmc path; 107 is settled with a clean new name and no review warning. Independent ZIP/CRC readback retains the exact embedded PDF, all 40 full markup records/IDs, both scales, ordering/visibility, and all original material/labor/markup fields; only all 40 appropriate basis/review fields are added. New format/minimum-reader are 3/3, the fitted viewport is finite and positive, and new-destination Save As timestamps are equal. Both original format-2 copies remain SHA8653174b…. The authored fixture’s full-money oracle is excluded because its eight stored wallHeight=2.5mm values were incorrectly interpreted there as 2.5m; the actual source and native copy both imply 0.01m² walls. This is exact persistence and qualified long-dialog evidence, not an independent full-money or complete UI pass.",
+      "checks": [
+        {
+          "metric": "exact valid long-CSV fixture SHA256",
+          "expected": "e05f7665765484f5dbb9112e9109f72c98a0a357b285fd66304a2c0ad3b8f096",
+          "actual": "e05f7665765484f5dbb9112e9109f72c98a0a357b285fd66304a2c0ad3b8f096",
+          "tolerance": 0
+        },
+        {
+          "metric": "valid CSV and committed library full row count",
+          "expected": 250,
+          "actual": 250,
+          "tolerance": 0
+        },
+        {
+          "metric": "native preview correct20of250 display cap",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "native committed correct100of250 display cap",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "preview Unit and monetary headers/values visually readable through table scrolling",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "committed Unit and monetary headers/values visually readable through table scrolling",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "last-row query returns one matching item",
+          "expected": 1,
+          "actual": 1,
+          "tolerance": 0
+        },
+        {
+          "metric": "native last-row unit",
+          "expected": "ft²",
+          "actual": "ft²",
+          "tolerance": 0
+        },
+        {
+          "metric": "native last-row material rate",
+          "expected": 123457039.12,
+          "actual": 123457039.12,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "native last-row labor rate",
+          "expected": 9876605.71,
+          "actual": 9876605.71,
+          "tolerance": 0.005
+        },
+        {
+          "metric": "specific row251error remains visually reachable at1282x721",
+          "expected": true,
+          "actual": false,
+          "tolerance": 0
+        },
+        {
+          "metric": "same specific row251error visible at1920x1032maximized control",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "restored1282x721control reproduces invisible specific row251error",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "valid retry returns250preview and clears prior error AX list",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "preview Escape returns visible Cost Library trigger focus",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "picker incompatible ea row disabled for required m²",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "picker compatible selected material rate",
+          "expected": 123456792.12,
+          "actual": 123456792.12,
+          "tolerance": 0
+        },
+        {
+          "metric": "picker compatible selected labor rate",
+          "expected": 9876543.96,
+          "actual": 9876543.96,
+          "tolerance": 0
+        },
+        {
+          "metric": "picker long selected summary and Apply remain reachable",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "picker observed forward and reverse Tab wrapping",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "picker Escape without Apply returns visible target trigger focus",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "root recorded library SHA unchanged through native085",
+          "expected": "8a1d3d89f2eea096aa6aac8e3d896670a04b70f8e71d7f82ed0df7e68c3c5086",
+          "actual": "8a1d3d89f2eea096aa6aac8e3d896670a04b70f8e71d7f82ed0df7e68c3c5086",
+          "tolerance": 0
+        },
+        {
+          "metric": "root recorded project SHA unchanged through native085",
+          "expected": "e03be603cf67de2fe9c17b9f10fc1a7efceda1c62175dcf46daf890035fa80ca",
+          "actual": "e03be603cf67de2fe9c17b9f10fc1a7efceda1c62175dcf46daf890035fa80ca",
+          "tolerance": 0
+        },
+        {
+          "metric": "root recorded backup SHA unchanged through native085",
+          "expected": "f575618eaa3c05d1a1d00645658729598938aa8ae74fc2e290833a2a51bb37d5",
+          "actual": "f575618eaa3c05d1a1d00645658729598938aa8ae74fc2e290833a2a51bb37d5",
+          "tolerance": 0
+        },
+        {
+          "metric": "legacy source format2 archive remains unchanged SHA256",
+          "expected": "8653174b2ae0037e3f05f645e40ee9116c4c525b83b6ec9d15a90dc0ae141262",
+          "actual": "8653174b2ae0037e3f05f645e40ee9116c4c525b83b6ec9d15a90dc0ae141262",
+          "tolerance": 0
+        },
+        {
+          "metric": "legacy separate native upgraded archive SHA256",
+          "expected": "39465e0616ad5172d1c92327fbda6e39c8be5cf062a612747f61410e4a9e0d85",
+          "actual": "39465e0616ad5172d1c92327fbda6e39c8be5cf062a612747f61410e4a9e0d85",
+          "tolerance": 0
+        },
+        {
+          "metric": "legacy upgraded ZIP CRC and complete embedded PDF exact",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "legacy full markup records IDs and original rate keys exact",
+          "expected": 40,
+          "actual": 40,
+          "tolerance": 0
+        },
+        {
+          "metric": "legacy original material labor markup fields exact",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "legacy appropriate rate bases and reviewed flags saved",
+          "expected": 40,
+          "actual": 40,
+          "tolerance": 0
+        },
+        {
+          "metric": "legacy format and minimum reader both3",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "legacy all saved viewports finite with positive zoom",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "legacy category order item order scales and visibility exact",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "legacy Confirm disabled until explicit acknowledgement",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "legacy final row40 full material rate",
+          "expected": 123456829.12,
+          "actual": 123456829.12,
+          "tolerance": 0
+        },
+        {
+          "metric": "legacy final row40 full labor rate",
+          "expected": 9876553.21,
+          "actual": 9876553.21,
+          "tolerance": 0
+        },
+        {
+          "metric": "legacy Save As establishes equal new-destination timestamps",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        },
+        {
+          "metric": "legacy upgraded settled new title clean and warning absent",
+          "expected": true,
+          "actual": true,
+          "tolerance": 0
+        }
+      ],
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/input-inventory.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/library250-firstcommit113-proof.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/library250-firstcommit113.json",
+        ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/cost-library-250-long.csv",
+        ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/oracle.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/030-library-empty-open-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/030-library-empty-open.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/031-library-empty-settled-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/031-library-empty-settled.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/032-library-empty-import-picker-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/032-library-empty-import-picker-1.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/032-library-empty-import-picker.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/033-library-import-cancelled-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/033-library-import-cancelled.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/034-library-valid-picker-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/034-library-valid-picker-1.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/034-library-valid-picker.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/035-library-valid-path-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/035-library-valid-path-1.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/035-library-valid-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/036-library-valid-checking-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/036-library-valid-checking.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/037-library-valid-preview-left-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/037-library-valid-preview-left.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/038-library-preview-scroll-right-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/038-library-preview-scroll-right.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/039-library-preview-vertical-scroll-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/039-library-preview-vertical-scroll.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/040-library-preview-reverse-wrap-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/040-library-preview-reverse-wrap.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/041-library-preview-forward-wrap-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/041-library-preview-forward-wrap.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/042-library-preview-back-to-last-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/042-library-preview-back-to-last.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/043-library-preview-cancel-focus-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/043-library-preview-cancel-focus.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/044-library-preview-enter-cancel-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/044-library-preview-enter-cancel.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/045-library-reimport-picker-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/045-library-reimport-picker-1.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/045-library-reimport-picker.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/046-library-reimport-path-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/046-library-reimport-path-1.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/046-library-reimport-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/047-library-reimport-checking-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/047-library-reimport-checking.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/048-library-reimport-preview-settled-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/048-library-reimport-preview-settled.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/049-library-replace-keyboard-focus-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/049-library-replace-keyboard-focus.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/050-library-explicit-replace-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/050-library-explicit-replace.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/051-library-committed250-left-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/051-library-committed250-left.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/052-library-committed250-right-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/052-library-committed250-right.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/053-library-search-focus-readable-rates-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/053-library-search-focus-readable-rates.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/054-library-zero-results-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/054-library-zero-results.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/055-library-search-save-shortcut-contained-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/055-library-search-save-shortcut-contained.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/056-library-zero-settled-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/056-library-zero-settled.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/057-library-zero-message-visible-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/057-library-zero-message-visible.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/058-library-zero-scrollbar-left-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/058-library-zero-scrollbar-left.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/059-library-one-result-search-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/059-library-one-result-search.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/060-library-last-row-rates-right-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/060-library-last-row-rates-right.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/061-library-last-row-end-markers-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/061-library-last-row-end-markers.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/062-library-last-description-end-left-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/062-library-last-description-end-left.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/063-library-search-clear-many-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/063-library-search-clear-many.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/064-library-invalid-picker-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/064-library-invalid-picker-1.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/064-library-invalid-picker.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/065-library-invalid-path-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/065-library-invalid-path-1.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/065-library-invalid-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/066-library-invalid-checking-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/066-library-invalid-checking.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/067-library-invalid-rejected-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/067-library-invalid-rejected.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/068-library-invalid-error-reachable-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/068-library-invalid-error-reachable.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/069-library-invalid-settled-after-scroll-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/069-library-invalid-settled-after-scroll.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/070-library-invalid-before-maximize-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/070-library-invalid-before-maximize.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/071-library-invalid-maximized-control-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/071-library-invalid-maximized-control.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/072-library-invalid-restored-control-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/072-library-invalid-restored-control.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/073-library-retry-after-invalid-picker-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/073-library-retry-after-invalid-picker-1.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/073-library-retry-after-invalid-picker.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/074-library-retry-valid-path-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/074-library-retry-valid-path-1.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/074-library-retry-valid-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/075-library-retry-valid-checking-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/075-library-retry-valid-checking.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/076-library-valid-retry-preview-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/076-library-valid-retry-preview.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/077-library-preview-escape-focus-return-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/077-library-preview-escape-focus-return.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/078-library-picker-curved-floor-open-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/078-library-picker-curved-floor-open.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/079-library-picker-right-select-column-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/079-library-picker-right-select-column.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/080-library-picker-compatible-search-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/080-library-picker-compatible-search.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/081-library-picker-compatible-selected-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/081-library-picker-compatible-selected.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/082-library-picker-apply-keyboard-focus-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/082-library-picker-apply-keyboard-focus.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/083-library-picker-forward-wrap-close-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/083-library-picker-forward-wrap-close.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/084-library-picker-reverse-wrap-apply-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/084-library-picker-reverse-wrap-apply.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/085-library-picker-escape-without-apply-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/085-library-picker-escape-without-apply.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/library-invalid-retry-picker-preservation.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/086-library-final-unchanged-estimate-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/086-library-final-unchanged-estimate.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/087-legacy-open-picker-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/087-legacy-open-picker-1.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/087-legacy-open-picker-2.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/087-legacy-open-picker-3.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/087-legacy-open-picker.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/088-legacy-open-path-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/088-legacy-open-path-1.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/088-legacy-open-path-2.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/088-legacy-open-path-3.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/088-legacy-open-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/089-legacy-open-submit-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/089-legacy-open-submit.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/090-legacy-adopted-long-content-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/090-legacy-adopted-long-content.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/091-legacy-review-reobserve-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/091-legacy-review-reobserve.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/092-legacy-review-open-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/092-legacy-review-open.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/093-legacy-review-settled-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/093-legacy-review-settled.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/094-legacy-review-last-long-row-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/094-legacy-review-last-long-row.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/095-legacy-review-scroll-end-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/095-legacy-review-scroll-end.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/096-legacy-review-tab-checkbox-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/096-legacy-review-tab-checkbox.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/097-legacy-review-reverse-wrap-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/097-legacy-review-reverse-wrap.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/098-legacy-review-escape-retains-warning-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/098-legacy-review-escape-retains-warning.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/099-legacy-review-reopen-keyboard-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/099-legacy-review-reopen-keyboard.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/100-legacy-review-checked-enables-confirm-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/100-legacy-review-checked-enables-confirm.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/101-legacy-review-confirmed-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/101-legacy-review-confirmed.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/102-legacy-upgraded-saveas-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/102-legacy-upgraded-saveas.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/103-legacy-upgrade-save-picker-start-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/103-legacy-upgrade-save-picker-start.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/104-legacy-upgrade-save-picker-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/104-legacy-upgrade-save-picker-1.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/104-legacy-upgrade-save-picker.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/105-legacy-upgrade-distinct-path-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/105-legacy-upgrade-distinct-path-1.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/105-legacy-upgrade-distinct-path.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/106-legacy-upgrade-save-completed-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/106-legacy-upgrade-save-completed.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/107-legacy-upgrade-saved-settled-0.jpg",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/107-legacy-upgrade-saved-settled.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/legacy-reviewed-upgraded113-readback.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/legacy-reviewed-upgraded113.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/inputs/legacy-format2-long-rates.clmc",
+        ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/legacy-format2-long-rates.clmc",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/read-legacy-upgrade.cjs",
+        ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/README.md"
+      ],
+      "reason": "Confirmed native 1.1.3 UI-05 partial/overflow failure: the specific Row 251 invalid-import message is visually collapsed at 1282×721 and returns only in the maximized 1920×1032 control. Requires a fix, inspected replacement bytes and candidate-bound native retest.",
+      "qualifications": [
+        "Performed partial UI-05 subset only; its confirmed required-error-visibility failure is sufficient for case FAIL. Other UI-01–05 states remain unaccepted by this case.",
+        "The later root preservation record proves unchanged library/project/backup bytes through invalid rejection, valid retry escaped without commit, compatible selection and Escape without Apply. This independent review hashes the retained record and immutable baseline copies; it does not reread the active profile or mutable native project. This does not test applying rates or certify parser behavior beyond the observed rejection/retry.",
+        "The reduced outer-window raster is 1282×721; the maximized control is 1920×1032. Parent-reported Windows 100% is contextual history, not an accepted physical-scaling-100 case.",
+        "Accessibility contains the row-specific error in reduced 069/070/072 and maximized 071. AX presence is explicitly not visual visibility evidence.",
+        "Native 037–039, 051–053 and 059–062 prove scoped unit/rate/long-text readability improvements, not a complete UI-05 or keyboard/focus pass.",
+        "A source CSS fix and future replacement candidate are separate work. No future 1.1.4 build, identity, installer, native pass or release approval is claimed.",
+        "Parent performed Tab, Shift+Tab and Escape. Screenshots 077 and 082–085 visibly show the relevant trigger/action focus outlines; AX focused_element still reports the document rather than a DOM target. This qualifies those exact paths, not every modal keyboard/focus state.",
+        "Legacy batch 087–107 bulk-acknowledges all 40 rows. No partial-acknowledgement, failed-load, reopened saved-copy, all-row rendered-total or independent full-money acceptance is claimed. The generated fixture is not deployed history or an approved construction estimate.",
+        "Existing legacy README/oracle full totals 44800008542.88 / 58240011105.74 / 13440002562.86 are explicitly excluded: source wallHeight is 2.5 in the millimetre field, yielding 0.01m², while that oracle assumed 10m². Neither source nor oracle bytes are corrected or altered in this native evidence.",
+        "Native 101 screenshot and AX are transiently inconsistent: screenshot shows review completed, AX still retains the previous dialog. Settled 107 plus the saved 40 reviewed flags establish completion. Screenshot focus outlines qualify the specific parent-operated paths; no DOM focus instrumentation was used."
+      ],
+      "subsetObservations": [
+        {
+          "id": "UI-05-retry-after-invalid",
+          "status": "observed-scoped-positive",
+          "evidence": [
+            "073–076"
+          ],
+          "observed": "Valid retry reaches a 250-item preview and clears prior specific Row 251/import-error AX content; no replacement was committed."
+        },
+        {
+          "id": "UI-05-preview-Escape-focus",
+          "status": "observed-scoped-positive",
+          "evidence": [
+            "077"
+          ],
+          "observed": "Parent Escape dismisses preview; Cost Library trigger visibly has the focus outline."
+        },
+        {
+          "id": "UI-05-picker-unit-guard-and-summary",
+          "status": "observed-scoped-positive",
+          "evidence": [
+            "078–082"
+          ],
+          "observed": "Requires m² disables incompatible ea row; compatible OVR-0003 selection wraps the full code/rate summary and leaves Apply Rates visible and focusable. Applying was deliberately not performed."
+        },
+        {
+          "id": "UI-05-picker-Tab-reverse-Escape",
+          "status": "observed-scoped-positive",
+          "evidence": [
+            "082–085"
+          ],
+          "observed": "Apply focus, forward wrap to Close, reverse wrap to Apply, then parent Escape returns the Curved floor trigger outline; no rates applied."
+        },
+        {
+          "id": "UI-05-preservation-through-invalid-retry-selection",
+          "status": "root-recorded-exact-byte-positive",
+          "evidence": [
+            ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/library-invalid-retry-picker-preservation.json"
+          ],
+          "observed": "Library 8a1d3d89…, project e03be603… and backup f575618e… unchanged; independent reader verified the retained exact baseline copies and root proof only."
+        },
+        {
+          "id": "UI-04-long-review-gated-confirm",
+          "status": "observed-scoped-positive",
+          "evidence": [
+            "093–100"
+          ],
+          "observed": "Unchecked Confirm disabled; last row/numerical rates and controls reachable; checkbox/Cancel keyboard paths, Escape retention/focus and Return reopen observed; checked acknowledgement enables Confirm."
+        },
+        {
+          "id": "UI-04-reviewed-original-preserving-upgraded-copy",
+          "status": "observed-scoped-positive",
+          "evidence": [
+            "100–107",
+            ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/legacy-reviewed-upgraded113-readback.json"
+          ],
+          "observed": "Bulk40 acknowledgement, warning removal and distinct actual native Save Project result; exact40records/rates/PDF/scales/order retained, newformat3/minreader3 and reviewed rate bases persist, original format2 unchanged. Authored full totals excluded due to source fixture wall-height units inconsistency."
+        }
+      ],
+      "additionalInputs": [
+        {
+          "id": "legacy-format2-long40",
+          "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/inputs/legacy-format2-long-rates.clmc",
+          "sourceArtifact": ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/legacy-format2-long-rates.clmc",
+          "sha256": "8653174b2ae0037e3f05f645e40ee9116c4c525b83b6ec9d15a90dc0ae141262",
+          "bytes": 70833,
+          "formatVersion": 2,
+          "pages": 2,
+          "markups": 40,
+          "kind": "generated-disposable-legacy-UI-persistence-fixture",
+          "scope": "Long-dialog/persistence only. Existing full-money oracle is inconsistent with stored wall-height millimetres and excluded; no deployed history, representative-plan or financial acceptance."
+        }
+      ]
+    }
+  ],
+  "developerEvidence": [
+    {
+      "id": "source-verification-113",
+      "status": "pass",
+      "date": "2026-10-25T20:35:53.123088+00:00",
+      "tester": "Codex root; independent technical child reviewed exact source/logs",
+      "candidate": {
+        "version": "1.1.3",
+        "installerSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+        "archiveSha256": "fd37e754436c4e9263e69cfe24cf442c1b9ae80b7f2463c2b3bbb09edf8655e4"
+      },
+      "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/source-validation.json",
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/source-validation.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/source-validation-notes.md",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/full-tests-project-node.log"
+      ],
+      "scope": "Committed dce382493014f79fed5a2631774bb5b0b06d2e23:1259/1259tests160files using projectNode25.3.0,NODE_OPTIONS--no-experimental-webstorage,maxWorkers4. Earlier wrongNode24failedattempts retained/qualified. ActualcomponentChromium controls are source-only and do not grant nativeUIacceptance."
+    },
+    {
+      "id": "production-build-113",
+      "status": "pass",
+      "date": "2026-10-25T20:39:51.321Z",
+      "tester": "Codex root executed verified-cache build; independent child reviewed logs/runtime helper identity",
+      "candidate": {
+        "version": "1.1.3",
+        "installerSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+        "archiveSha256": "fd37e754436c4e9263e69cfe24cf442c1b9ae80b7f2463c2b3bbb09edf8655e4"
+      },
+      "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/build-win-verified-cache.log",
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/build-win-verified-cache.log",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/build-environment-attempts.md",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/build-win.log",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/build-win-host.log"
+      ],
+      "scope": "Actual final verified-workspace-cache build exit0; bothTypeScript/Vite/build/package stages complete. Prior filesystem and macOS-symlink extraction failures remain retained environmental attempts, not successful builds. No security-policy/privilege/signing change inferred."
+    },
+    {
+      "id": "artifact-inspection-113",
+      "status": "pass",
+      "date": "2026-10-25T20:39:51.321Z",
+      "tester": "Codex root actual installer/archive inspector; independent child reviewed exact archive/payload facts",
+      "candidate": {
+        "version": "1.1.3",
+        "installerSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+        "archiveSha256": "fd37e754436c4e9263e69cfe24cf442c1b9ae80b7f2463c2b3bbb09edf8655e4"
+      },
+      "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/release-inspection.log",
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/frozen-final/release-manifest.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/release-inspection.log",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/REL01-technical-facts.json"
+      ],
+      "scope": "Actual exact installer/ASARidentity,1.1.3embeddedpackage/notes,149payloadentries,4516ASARfiles,108productionlocations,10localdecoder/licenseassets and narrowwasm-unsafe-eval/no broadunsafe-evalCSP verified. Installer/exeNotSigned perFrancisinternalpolicy; technicalfacts are not humanlicense/security/release approval."
+    },
+    {
+      "id": "scripted-packaged-smoke-113",
+      "status": "pass",
+      "scope": "scripted-packaged-developer-host; hidden sandboxed renderer/scripted destinations, not targetPCphysical/UI/offlineacceptance",
+      "date": "2026-10-25T20:40:17.035Z",
+      "machine": {
+        "classification": "development",
+        "hostname": "LAPTOP-5BAM24NM",
+        "windows": "10.0.22631",
+        "architecture": "x64",
+        "ramBytes": 16954851328
+      },
+      "candidate": {
+        "version": "1.1.3",
+        "executable": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\dist\\win-unpacked\\clmc-takeoff.exe",
+        "executableSha256": "d296bf6d64f1832ba91153a964467c705b1b87cb43fd799ee762c95b962da796",
+        "archivePath": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\dist\\win-unpacked\\resources\\app.asar",
+        "archiveSha256": "fd37e754436c4e9263e69cfe24cf442c1b9ae80b7f2463c2b3bbb09edf8655e4",
+        "installerPath": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\dist\\clmc-takeoff-1.1.3-x64-setup.exe",
+        "installerSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+        "expectedElectron": "44.9.3"
+      },
+      "actual": {
+        "electron": "44.9.3",
+        "chrome": "152.0.7977.167",
+        "packaged": true,
+        "sandbox": true,
+        "hidden": true,
+        "localNotes": true,
+        "pdfWorker": true,
+        "renderedPdf": true,
+        "format3SaveReadReopen": true,
+        "reopen": {
+          "differentDocumentObserved": true,
+          "savedPdfAndStateAdopted": true,
+          "rendererSnapshotReadback": true
+        },
+        "importUtilityChild": true,
+        "internalXlsxCsv": true,
+        "externalNetworkRequests": [],
+        "disposableAppData": true
+      },
+      "fixture": {
+        "name": "generated vector PDF",
+        "bytes": 465,
+        "pages": 1,
+        "sha256": "ece3eebb2990c72ea806d6443e97a5e3df7ead06e528d6ed58ac7d987896db3a"
+      },
+      "limitations": [
+        "Dialog destinations scripted through inspector; physical UI and non-development-PC install/upgrade/scaling are pending.",
+        "This developer-host scripted harness cannot accept physical displays, native keyboard, actual deployed upgrade, appnetworkunavailable workflow or whole-phase tests."
+      ],
+      "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/frozen-final/packaged-smoke.json",
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/frozen-final/packaged-smoke.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/packaged-smoke.log"
+      ],
+      "tester": "Packaged smoke harness; root and independent child reviewed exact1.1.3identity"
+    },
+    {
+      "id": "license-payload-byte-comparison-113",
+      "status": "pass",
+      "date": "2026-10-25T20:41:44.064Z",
+      "tester": "Independent technical child read-only actual1.1.3ASAR/frozen112Ccomparison",
+      "candidate": {
+        "version": "1.1.3",
+        "installerSha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e",
+        "archiveSha256": "fd37e754436c4e9263e69cfe24cf442c1b9ae80b7f2463c2b3bbb09edf8655e4"
+      },
+      "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/license-payload-comparison.json",
+      "artifacts": [
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/license-payload-comparison.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/release-review-inventory.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/packet-independent-readback.json",
+        ".planning/tmp/20-completion-20261026/candidate-1.1.3/REL01-technical-review.md"
+      ],
+      "scope": "Exact payload/notices/decoderlicensebytecomparison and17-fileUNAPPROVEDcompanion only. Missingbuffersfullgrant and datedadvisoryreview remain human decisions; no licensefabrication, freshaudit or release acceptance."
+    }
+  ],
+  "edgeReviews": [
+    {
+      "requirement": "REL-01",
+      "status": "pending",
+      "reviewer": null,
+      "date": null,
+      "artifact": null,
+      "disposition": null,
+      "reason": "New candidate requires an explicit review; prior reviews and facts remain historical in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json."
+    },
+    {
+      "requirement": "REL-02",
+      "status": "pending",
+      "reviewer": null,
+      "date": null,
+      "artifact": null,
+      "disposition": null,
+      "reason": "New candidate requires an explicit review; prior reviews and facts remain historical in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json."
+    },
+    {
+      "requirement": "REL-04",
+      "status": "pending",
+      "reviewer": null,
+      "date": null,
+      "artifact": null,
+      "disposition": null,
+      "reason": "New candidate requires an explicit review; prior reviews and facts remain historical in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json."
+    },
+    {
+      "requirement": "REL-05",
+      "status": "pending",
+      "reviewer": null,
+      "date": null,
+      "artifact": null,
+      "disposition": null,
+      "reason": "New candidate requires an explicit review; prior reviews and facts remain historical in .planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json."
+    }
+  ],
+  "scope": "Actual 1.1.3 candidate: 2 pass (fresh-install, project-only-transfer), 1 human first-release N/A, 1 native UI-05 error-visibility FAIL, 12 pending cases; all four candidate-specific edge reviews pending. Source 1259 tests/build/inspection/smoke/byte comparison and the protected 17-file UNAPPROVED review copy are separate bounded technical evidence. The original 3191-file profile remains isolated and not restored. No human licensing/advisory/stability/release, representative-plan, complete physical/offline, Phase 20 or Phase 21 acceptance implied.",
+  "blockedBy": "The specific Row 251 invalid-import error visually collapses at 1282×721 while AX contains it; maximized control 071 is visible and restored 072 repeats the failure. A source fix/replacement candidate and actual native retest are required. Twelve other installed cases and all four candidate-specific edge reviews remain pending. Human contact/licensing/advisory/stability/release decisions remain pending. Actual 1.1.3 original-profile restoration has NOT occurred; a future transition/restoration must preserve and record all 3191 files.",
+  "licenseReview": {
+    "status": "pending-human-license-and-advisory-acceptance-1.1.3",
+    "priorFinding": {
+      "status": "pending-release-review",
+      "priorFinding": {
+        "status": "pending-release-review",
+        "package": "buffers@0.1.1",
+        "finding": "Installed package.json has no license field and supplied README has no license grant. Exact author/repository/README are preserved in bundled third-party notices; no license is fabricated."
+      },
+      "priorEvidence": ".planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json"
+    },
+    "priorEvidence": ".planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json",
+    "scope": "Exact 1.1.3 comparison and 17-file companion/protected UNAPPROVED copy exist: 108 production locations, 122 notice entries, 114 license/header files, 3 buffers files and 10 decoder/fallback/license assets match frozen 1.1.2 C. Three old external-unpacked files use preserved ASAR header integrity and the pinned inspected manifest, not retained old external bytes. buffers 0.1.1 published metadata remains license:null. The historical author MIT/X11 declaration has no full grant/copyright year; neither is fabricated. The dated 22 October advisory review is historical, not a fresh 26 October audit or a zero-vulnerability claim. Only a direct named human disposition can close licensing/advisory/stability/release approval.",
+    "actualCandidateComparisonArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/license-payload-comparison.json",
+    "actualCandidateComparisonSha256": "08a69d108ebf0ef1a201088c2f29959324c019a1c794155648bc9b38fefbd29f",
+    "actualSupplementArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/release-review/release-notices-supplement.md",
+    "actualSupplementSha256": "e1c738ce08e2a93ca3b0aba25669d0dfe736a9828cf74a1d2b5e7bbd83dfd2ee",
+    "technicalReviewArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/REL01-technical-review.md",
+    "technicalFactsArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/REL01-technical-facts.json",
+    "humanLicenseAcceptance": "pending",
+    "humanAdvisoryAcceptance": "pending",
+    "humanStabilityAndReleaseApproval": "pending"
+  },
+  "previousCandidates": [
+    {
+      "version": "1.1.0",
+      "installerSha256": "fe8d848b1d76641dad7908b96e7987a3d8c643c8b627f8f10701523aa3359544",
+      "archiveSha256": "5fd667ca5dfc02df8aa4addbd6866a0eb603c0c9fa2dfe748a47c7122861fabd",
+      "installer": "dist/clmc-takeoff-1.1.0-x64-setup.exe",
+      "manifest": "dist/release-manifest.json",
+      "bytes": 136810568,
+      "architecture": "x64",
+      "evidence": ".planning/phases/20-production-readiness/20-1.1.0-INSTALLED-EVIDENCE.json",
+      "report": ".planning/phases/20-production-readiness/20-SECOND-PC-TEST.md",
+      "result": "Four passed, three failed and nine pending on exact1.1.0 candidate. Historical results remain bound to that hash."
+    },
+    {
+      "version": "1.1.1",
+      "installerSha256": "f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e",
+      "archiveSha256": "b2c338423e5edff1daab0d32bb74ae1a97edbabce1137453cf2ad153921e8c98",
+      "evidence": ".planning/phases/20-production-readiness/20-1.1.1-INSTALLED-EVIDENCE.json",
+      "evidenceSha256": "fd9451aa65c10e4c3f6f5ef965f5ded13361db77b3dfe1dfccac6e424c04b85a",
+      "bytes": 107602,
+      "caseCounts": {
+        "pass": 5,
+        "notApplicable": 1,
+        "fail": 1,
+        "pending": 9,
+        "total": 16
+      },
+      "scope": "Full immutable prior-candidate history, including native JPX failure, earlier 1.1.0 records and profile restoration; not current-candidate results."
+    },
+    {
+      "version": "1.1.2",
+      "installerSha256": "b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6",
+      "archiveSha256": "084f96aef0b4e27ad746712efd4fca793554b82c8b0e7642bccda2d93f119416",
+      "evidence": ".planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json",
+      "evidenceSha256": "acf5e6dbf871befe09cf0edb07026c9a9d3f1092d5029f9a41289ee56f27c6d4",
+      "bytes": 133037,
+      "caseCounts": {
+        "pass": 5,
+        "notApplicable": 1,
+        "fail": 1,
+        "pending": 9,
+        "total": 16
+      },
+      "archive": ".planning/tmp/20-completion-20261026/candidate-1.1.2/frozen-final-C/app.asar",
+      "archiveSha256Proof": "084f96aef0b4e27ad746712efd4fca793554b82c8b0e7642bccda2d93f119416",
+      "manifest": ".planning/tmp/20-completion-20261026/candidate-1.1.2/frozen-final-C/release-manifest.json",
+      "manifestSha256": "92ab0c7627ab96870b8c3c0e06cc279204f6941dacf1e8587be7787a62049f29",
+      "scope": "Immutable full prior candidate record, including five passes, one failure, nine pending cases, human N/A, partial checks and completed original-profile restoration; not 1.1.3 outcomes."
+    }
+  ],
+  "currentCaseCounts": {
+    "pass": 2,
+    "notApplicable": 1,
+    "fail": 1,
+    "pending": 12,
+    "total": 16
+  },
+  "profileSession": {
+    "status": "original-profile-isolated-1.1.3-native-app-closed-awaiting-transition-or-restoration",
+    "candidateProfileIsolationPerformed": true,
+    "candidateProfileRestorationPerformed": false,
+    "originalFileCount": 3191,
+    "allOriginalHashesMatchAtIsolation": true,
+    "isolationArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/profile-isolated.json",
+    "isolationSha256": "63f926cf93c5664b13c4d5977916ef96d7cbc12ebe6517b88d762e79a4326f80",
+    "isolationDate": "2026-10-25T20:45:44.1149798Z",
+    "originalInventoryArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/original-profile-inventory.json",
+    "originalInventorySha256": "aa6677576f76d68427b40125746e18b018fb17f6ea728b520cf200907584b978",
+    "preserved": "C:\\Users\\franc\\dev\\CLMC-TAKEOFF-APP\\.planning\\tmp\\20-completion-20261026\\candidate-1.1.3\\original-profile",
+    "scope": "The original 3191-file profile is preserved under candidate-1.1.3/original-profile and remains ISOLATED / NOT RESTORED. Guarded isolation and the clean-install precondition verified every original hash/count; this proposal does not reread the preserved or active profile. Fresh installation and scoped native tests have now occurred in the disposable active profile. A later actual guarded restoration or explicitly reviewed inherited-isolation transition must be recorded separately. Historical 1.1.2 restoration does not satisfy this 1.1.3 session. Root reports a normal native app close after capture107, followed by empty app inventory and Get-Process showing none. This closure is separate from restoration: all3191original files remain isolated under1.1.3/original-profile.",
+    "freshInstallArtifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/fresh-install.json",
+    "freshInstallSha256": "d4e1166490315c65751bb7caf5df0440347668b2843110d866c209f85e15c860",
+    "appClosedAfterNativeReportedByRoot": true,
+    "appClosureEvidence": "Direct parent task: normal close after native107; sky app list[] and Get-Process none. No exact closure timestamp or new independent active-profile query asserted."
+  },
+  "candidateAdvance": {
+    "date": "2026-10-25T20:40:58.967Z",
+    "script": ".planning/tmp/20-completion-20261026/candidate-1.1.3/advance-evidence.cjs",
+    "fromEvidence": ".planning/phases/20-production-readiness/20-1.1.2-INSTALLED-EVIDENCE.json",
+    "fromEvidenceSha256": "acf5e6dbf871befe09cf0edb07026c9a9d3f1092d5029f9a41289ee56f27c6d4",
+    "preservedOldArchive": ".planning/tmp/20-completion-20261026/candidate-1.1.2/frozen-final-C/app.asar",
+    "preservedOldArchiveSha256": "084f96aef0b4e27ad746712efd4fca793554b82c8b0e7642bccda2d93f119416",
+    "manifestSha256": "3835b0558cf338979af98b6b21daac9a679f1d1ed7365de27198480505d6d7c8",
+    "smokeSha256": "ea8b26212de60a9b9469020d688f239529c5a300cd09378d3e1359271168a0f9",
+    "resetPerformedCases": true,
+    "resetAllEdgeReviews": true,
+    "carriedHumanFirstReleaseFact": true,
+    "copiedPriorDeveloperEvidence": false,
+    "copiedPriorProfileRestorationAsNewResult": false,
+    "newProfileSessionStarted": false
+  },
+  "proposalMetadata": {
+    "status": "ROOT-ADOPTED-AND-FROZEN-1.1.3",
+    "date": "2026-10-25T21:04:52.362Z",
+    "canonicalArtifact": ".planning/phases/20-production-readiness/20-INSTALLED-EVIDENCE.json",
+    "canonicalBaseSha256": "3e3232be7ee947680fd54fd72b61bdc0a563a460d1adb746113771aebd305cc9",
+    "preparedBy": "Independent Codex child /root/license_provenance under explicit parent preparation-only authorization",
+    "evidenceCutoff": "Native107at2026-10-25T21:12:49.796Z, independent legacy ZIP readback and root-reported normal close afterwards. No candidate14 result is included.",
+    "changedCaseIds": [
+      "fresh-install",
+      "project-only-transfer",
+      "ui-keyboard-overflow"
+    ],
+    "edgeReviewStatusesUnchanged": true,
+    "currentCandidateOnly": true,
+    "noCanonicalWrite": true,
+    "noProfileOrUiAction": true,
+    "noDestinationWrite": true,
+    "scope": "Complete proposed canonical record only. Root must review before adopting or freezing. Preparation has no apply mode and never writes canonical. It hashes actual evidence files and creates only ignored draft artifacts; this readability/fixture-scope refinement changes no statuses, checks, source artifacts, approval or canonical content.",
+    "artifactHashes": [
+      {
+        "artifact": ".planning/phases/20-production-readiness/20-RELEASE-OWNER.md",
+        "bytes": 2016,
+        "sha256": "5f05b9fe538680eabd8fe2e78ebd0050213927e482b69ee1cbc125f6c9df27ee"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/REL01-technical-facts.json",
+        "bytes": 8599,
+        "sha256": "957d8b67ee041325ffc348c739fd193e650ee0eb9c93086531f3fef7924425f3"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/REL01-technical-review.md",
+        "bytes": 8782,
+        "sha256": "701868bcc4713ccfb7bc174f89e8621353bc905246428fa645251761bd13e97a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/build-environment-attempts.md",
+        "bytes": 4424,
+        "sha256": "9499cde747db437554b5ed4ce1a66b4e36c91dc8f660f9a81fce56101fc3e397"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/build-win-host.log",
+        "bytes": 13456,
+        "sha256": "cbc091369bc5e5c8e1e14c947150f4d9bcc2624336db33d3c128fbd82a77c111"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/build-win-verified-cache.log",
+        "bytes": 6764,
+        "sha256": "11d226fc355d7dcdbd7c861a3fd36d90e1a5d7bee6e8b149de735a3a09e697cd"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/build-win.log",
+        "bytes": 1802,
+        "sha256": "7df1f4c6d654e620af353db2ca9542f17bd529e0e1016d09e3c616b542b30000"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/clean-install-precondition.json",
+        "bytes": 220,
+        "sha256": "5ff3ec052902b155401baeb5163438e9887dfda4c2240fe48d5bb3785402e0c2"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/fresh-install-preflight.json",
+        "bytes": 1960,
+        "sha256": "308a6cff1db954587e3fffa90b90596c9abb0549b3defafaf756e8a19a6a6161"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/fresh-install.json",
+        "bytes": 2321,
+        "sha256": "d4e1166490315c65751bb7caf5df0440347668b2843110d866c209f85e15c860"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/fresh-installed-payload.json",
+        "bytes": 26364,
+        "sha256": "ef72b56dd4ac8e69e0c63ef5ec1489136d0941ea771a87c36b3be4340f4fc2b5"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/frozen-final/clmc-takeoff-1.1.3-x64-setup.exe",
+        "bytes": 137026578,
+        "sha256": "a205fca1e79fee92f15bef309188f231a1c677a17add370c2e88c769666ac93e"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/frozen-final/inventory.json",
+        "bytes": 53885,
+        "sha256": "49ced86b978c567a91d60b07f0a1c5c4aa91e910176b7e49ba164c7989b9e6cb"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/frozen-final/packaged-smoke.json",
+        "bytes": 30400,
+        "sha256": "ea8b26212de60a9b9469020d688f239529c5a300cd09378d3e1359271168a0f9"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/frozen-final/release-manifest.json",
+        "bytes": 401936,
+        "sha256": "3835b0558cf338979af98b6b21daac9a679f1d1ed7365de27198480505d6d7c8"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/full-tests-project-node.log",
+        "bytes": 247,
+        "sha256": "a8b9b9fba80e84cc2d8c215f1187d7e46913a84c80d9014893fb75d73b9bf90b"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/handoff-copy-20261025T204539048Z-07ceafe05df640969805a3029c3d485c.json",
+        "bytes": 45729,
+        "sha256": "1cb6c19d26829e10893580b7fba4feff46f516fc18ce7a1736928e7bc640a65f"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/handoff-independent-readback.json",
+        "bytes": 79495,
+        "sha256": "3c6a3ee3f9a043664c525428115e4349c9022feadfac7c167c5206b5e453b441"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/input-inventory.json",
+        "bytes": 34050,
+        "sha256": "e4328e5efd577187b932e4729b4b804fa885508acdb9430259c74cdd187862cd"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/license-payload-comparison.json",
+        "bytes": 41678,
+        "sha256": "08a69d108ebf0ef1a201088c2f29959324c019a1c794155648bc9b38fefbd29f"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/001-fresh-empty-0.jpg",
+        "bytes": 66581,
+        "sha256": "6f343668551b49194a1f5857e4624f16640a3a5c3a63e1d344c1706ac37e2b1b"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/001-fresh-empty.json",
+        "bytes": 8366,
+        "sha256": "e53f47b04d4d577e5c1f8673f276887a8073f95e888ac2966a2dab9d3b02ffe5"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/002-fresh-more-menu-0.jpg",
+        "bytes": 67856,
+        "sha256": "615a83e41412db1425fdaac72fdbea9440428e647113881aa551e35ec5931d53"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/002-fresh-more-menu.json",
+        "bytes": 8659,
+        "sha256": "c76bab85e60cc7779c818bc7c986597c45f59ab10b6c488fd000031b3f624214"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/003-fresh-about-0.jpg",
+        "bytes": 106007,
+        "sha256": "4880b6f4969409d34e597a5483269685383f9a56b3afc303f07837d812f5963a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/003-fresh-about.json",
+        "bytes": 5095,
+        "sha256": "29783e8eedb0eff17424c4216077ad75458781505c5e9416ed43efcd3736d646"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/004-fresh-about-settled-0.jpg",
+        "bytes": 156933,
+        "sha256": "85f8bf1ad8659564923f90e260dcc4c62a0120f40963a311bebe105142465a3b"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/004-fresh-about-settled.json",
+        "bytes": 8616,
+        "sha256": "dc48acbe8de51033667fdb857f60d22a0bb6322bd963f0281714a23d1355ec9a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/005-about-escape-focus-0.jpg",
+        "bytes": 67274,
+        "sha256": "773bc42d95023a628edf0366c0d01f9410829f79b62179ebbc74562f3ae6eab4"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/005-about-escape-focus.json",
+        "bytes": 8591,
+        "sha256": "86f5c93445eface1674cade4ef9a87ea26af47d2b9ebfbe79494ed43fb82e6ee"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/013-portable-adopted-page2-0.jpg",
+        "bytes": 110332,
+        "sha256": "286655b592228a4570e140823cfeb97df346d4c329a9c195574130189a1146fb"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/013-portable-adopted-page2.json",
+        "bytes": 12116,
+        "sha256": "7670a45db841e98961d055b4f34e905925bb2e6d75a1fe181432e1334ba05d02"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/015-portable-page1-settled-0.jpg",
+        "bytes": 104370,
+        "sha256": "b8bb04684c0b0c963ee43ef373b4796552a9149246fee398649c861ae2d3df7f"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/015-portable-page1-settled.json",
+        "bytes": 12119,
+        "sha256": "10611ff73e2b33721e83734a12408c3aa3b8964be43134598b035cabb793bdfb"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/016-portable-estimate-request-0.jpg",
+        "bytes": 105344,
+        "sha256": "69657d43f27a7ad29d40a11ad5c4dfe76fe1a45c513dc582a8ea1e97807a3279"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/016-portable-estimate-request.json",
+        "bytes": 14055,
+        "sha256": "ced6344be7e5bf6ff0de1ee916ed0b0d390012e81515e65f7385b0ea040d0cc5"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/020-portable-save-submit-0.jpg",
+        "bytes": 105299,
+        "sha256": "2ecc524e848e6d3af46a3aa29fdde4aa27f6db670f534965ca2d9eeebec2a549"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/020-portable-save-submit.json",
+        "bytes": 19326,
+        "sha256": "26959ac345b0097bfba6ce73afdfc10fe16ba4d9c6cac9b9b158f189d34dde9d"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/021-portable-first-save-clean-0.jpg",
+        "bytes": 105299,
+        "sha256": "2ecc524e848e6d3af46a3aa29fdde4aa27f6db670f534965ca2d9eeebec2a549"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/021-portable-first-save-clean.json",
+        "bytes": 19225,
+        "sha256": "1a95d3dd2ec7dcef7168f05c814d4ae3c93ffb5365ddef79544bcb47045828d1"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/022-portable-reopen-picker.json",
+        "bytes": 30765,
+        "sha256": "1763d1adcc275ac37ba97c75e0611c2f1bf1ed719bf9d3dee050f539d89b704d"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/023-portable-reopen-path.json",
+        "bytes": 42262,
+        "sha256": "0fb20c63637aac06dab1f9f08cb29f38554964a037ccba3831a8ce22be3bf1ed"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/024-portable-reopen-submit.json",
+        "bytes": 19225,
+        "sha256": "5fa2d277e3e0345ca679ab7be25ad3707106f7f27c763069bb300bd53b380ee8"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/025-portable-reopened-page1-settled-0.jpg",
+        "bytes": 104771,
+        "sha256": "9e31e252a8a47baed0f0558c57e5eca6ab381db4be7a0df27f7f67133f205e52"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/025-portable-reopened-page1-settled.json",
+        "bytes": 12168,
+        "sha256": "73258ab3882068dfc150b11956381bea916374773da17f13a9cd4f0204511df9"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/026-portable-reopened-page2-request-0.jpg",
+        "bytes": 107939,
+        "sha256": "d0574f87a40c988bd19a7c84fb9a2f74e67e6efa043fa9028dc713a31c06eb14"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/026-portable-reopened-page2-request.json",
+        "bytes": 12166,
+        "sha256": "d9789a5921ca260fb941dd753b1a956e1c13df0a94fc278eacc5c9e14ea2f428"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/027-portable-reopened-estimate-0.jpg",
+        "bytes": 105695,
+        "sha256": "39f46b3932cf895bb1c1cf1c92cdf3d3652438c6d822aca569941979d9867ec3"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/027-portable-reopened-estimate.json",
+        "bytes": 14087,
+        "sha256": "a056e3e1a5a683a7a043284e9ee7b84ebb9fb505cb1d98f16d383551263238bb"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/028-portable-reopened-save.json",
+        "bytes": 19361,
+        "sha256": "5370ec40017af64b64c1c804ececa8bc796e7a675c233460ffd869c0d2275243"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/029-portable-reopened-save-clean-0.jpg",
+        "bytes": 105967,
+        "sha256": "13d9604307518546ac08f29d114ce7cc05a23491b2bf772e272d2e63a0edd59a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/029-portable-reopened-save-clean.json",
+        "bytes": 19222,
+        "sha256": "ec5b4ed3f7418d808d4a10729e4a23b3299f76f9ed8d96044bd605db2f9e73b4"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/030-library-empty-open-0.jpg",
+        "bytes": 105502,
+        "sha256": "8cf327efbcaca1a58edd0686d53d6789b74cd42aaffe744dd6358255dc2d9e68"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/030-library-empty-open.json",
+        "bytes": 19610,
+        "sha256": "994ffdaf7a81da53cde56eb425346046f0527fa47c00f2b543c53ca61b5a6b3d"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/031-library-empty-settled-0.jpg",
+        "bytes": 74704,
+        "sha256": "61d2ba2859d786a062d3fa8704d0d9c3a729a2edd8a85229379e9a31f903fb9e"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/031-library-empty-settled.json",
+        "bytes": 20310,
+        "sha256": "557f8e99b9e1ece2e44a0e523583015d0a0feef90e91ce8fb29debaf9c45158d"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/032-library-empty-import-picker-0.jpg",
+        "bytes": 101730,
+        "sha256": "66ba2860d23f712b505699be477104728b8335ebf83af1c25690525f53ac617d"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/032-library-empty-import-picker-1.jpg",
+        "bytes": 69499,
+        "sha256": "128da520300a3f48e1b309c9cd0916571db26e2e710ae14ac38892a0a43289a5"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/032-library-empty-import-picker.json",
+        "bytes": 31307,
+        "sha256": "63cb794c9a06061a59ab5fd8db05d444f41fb91ddef8e0ba1d0504ec5486d041"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/033-library-import-cancelled-0.jpg",
+        "bytes": 76164,
+        "sha256": "a48b29ecea38b7c482d6adfb2da15db6b016c2a112e61f38a07fba6a49e391cd"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/033-library-import-cancelled.json",
+        "bytes": 20574,
+        "sha256": "a5afd5641c2dde83afe03236841cf2dabaad9fd9e7cf8f3333067f985bfb9d72"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/034-library-valid-picker-0.jpg",
+        "bytes": 101706,
+        "sha256": "9beed8d6d54825494ca7935954b97b2dca344be8e72064cbc2ea5470a948c46e"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/034-library-valid-picker-1.jpg",
+        "bytes": 69313,
+        "sha256": "d028bd0f32729f71efcca8061658519e41b4c45625f5b0ce1275a5c8f25f8d4d"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/034-library-valid-picker.json",
+        "bytes": 31341,
+        "sha256": "ba6311ba3bd147dac911472b73040bde64b72886b36a2c3bdb7696279cf92f35"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/035-library-valid-path-0.jpg",
+        "bytes": 106648,
+        "sha256": "60d14597d9d7c8d01a7b784cf8ba7052f8ea4ab71cda2a6ccff34042b029022c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/035-library-valid-path-1.jpg",
+        "bytes": 74332,
+        "sha256": "c53114f288646ae3b985e1dfa210a258d639acbe67b49e564007569f82dc7850"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/035-library-valid-path.json",
+        "bytes": 42501,
+        "sha256": "7177f1507b8965fe035904d460ba3b69a36e1331d56f2ccf054ca03a7c2924dd"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/036-library-valid-checking-0.jpg",
+        "bytes": 75061,
+        "sha256": "d6e0b770b71cfbd3b01c0844299f00b4ee7b4e51862b62cfab7eb34f9ddcabc8"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/036-library-valid-checking.json",
+        "bytes": 20301,
+        "sha256": "e774325565f06de7be6227cf72f5d9ee59e9e84cf41e53606f38877f18dfa256"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/037-library-valid-preview-left-0.jpg",
+        "bytes": 132614,
+        "sha256": "1370a3a46bf88048b595c8a73ebb3d998051d05eb49ee88355ebc7265013d8ab"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/037-library-valid-preview-left.json",
+        "bytes": 82997,
+        "sha256": "cb5692b9eea2e54989a309518002f6df8d28f30fc5fc0559ebd64701622e98d5"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/038-library-preview-scroll-right-0.jpg",
+        "bytes": 122753,
+        "sha256": "608187388f573972de6f23dbf4f2a27cfd85573fa43b615bceebe2a784e1b687"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/038-library-preview-scroll-right.json",
+        "bytes": 82997,
+        "sha256": "0ac0aa5e72ee31506abcb81dc186cf4c2711704b0544fce9b844bb47f7303a6c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/039-library-preview-vertical-scroll-0.jpg",
+        "bytes": 116503,
+        "sha256": "e116b420ddd4b81fb44cb4444b7449030ba8d1af4031471cbc18f1621c23ab3e"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/039-library-preview-vertical-scroll.json",
+        "bytes": 82997,
+        "sha256": "52067da36256eeb566b8b9894ff58854699aaec53f9d2a0a145fd66e87adbf47"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/040-library-preview-reverse-wrap-0.jpg",
+        "bytes": 117416,
+        "sha256": "985bcef33655aa2b07a0bdbb70f837f6b6cb104a2f5ed22985482fa117d15a50"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/040-library-preview-reverse-wrap.json",
+        "bytes": 82997,
+        "sha256": "84cac87074c12546b5b946ecd76ae40f5c8273ab95421733076d9b8dcf556705"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/041-library-preview-forward-wrap-0.jpg",
+        "bytes": 117246,
+        "sha256": "991cad16e4f138b140419f3a7549e8540ace3fb8568e6a4be5b7c9cb177eaa15"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/041-library-preview-forward-wrap.json",
+        "bytes": 82997,
+        "sha256": "2bbac6d047607bf7b923a42842fde4e9d89f01497466d158f17c837dbb35fd51"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/042-library-preview-back-to-last-0.jpg",
+        "bytes": 117416,
+        "sha256": "985bcef33655aa2b07a0bdbb70f837f6b6cb104a2f5ed22985482fa117d15a50"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/042-library-preview-back-to-last.json",
+        "bytes": 82997,
+        "sha256": "4595659cbc3f871a2c8d27ebea85d6630b5b697d986e45d08cbfdfeb98c5ec6c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/043-library-preview-cancel-focus-0.jpg",
+        "bytes": 117451,
+        "sha256": "13ce61e5eaa3b84c1e79434ba8dd7b9a67bcd28b475d2b5a76575dadfb666491"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/043-library-preview-cancel-focus.json",
+        "bytes": 82997,
+        "sha256": "63604a636850a136cd1f4396ca9aed66c8149b9167d9395c2396822b6ab4080d"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/044-library-preview-enter-cancel-0.jpg",
+        "bytes": 79306,
+        "sha256": "44170daea0011a2f1f5318c05b896cb7f28ea065a20eef5ca433064d338fea9a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/044-library-preview-enter-cancel.json",
+        "bytes": 20311,
+        "sha256": "d653c41d10e235b364ca84c92d4f92ab9756798a420190a1099995a76d059d88"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/045-library-reimport-picker-0.jpg",
+        "bytes": 101869,
+        "sha256": "196af87634b1b94fb84461e5c0c8ad867dcca8607654210b598cac1e76cf7ceb"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/045-library-reimport-picker-1.jpg",
+        "bytes": 69571,
+        "sha256": "91b6584c335308289955ca15282c95e206358425b15d297c03d924975bc8a056"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/045-library-reimport-picker.json",
+        "bytes": 31295,
+        "sha256": "32139c391e306e0319c5cb751ec14814441cb3da8949193a290f69b60413cf20"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/046-library-reimport-path-0.jpg",
+        "bytes": 106811,
+        "sha256": "33cf35aedab0f3af000521dc84b8742adc4a4a9f44b7e77397d2aa4d8b5710bf"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/046-library-reimport-path-1.jpg",
+        "bytes": 74594,
+        "sha256": "1281e1f3cf0d192316c619411f7f175a9a8bef5f060b6f19f261ce77a1fb8109"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/046-library-reimport-path.json",
+        "bytes": 42501,
+        "sha256": "9795866e77a80ed78e8561e72e38ec02cd2278605003294b81ff01bf1efe9227"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/047-library-reimport-checking-0.jpg",
+        "bytes": 74927,
+        "sha256": "c9a83761703ac737d2d39250e324d6eb3debcb14f1640bf28ee605913e0ce26a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/047-library-reimport-checking.json",
+        "bytes": 20301,
+        "sha256": "99df4242cb661c5b7ac8091cc9725210ec1ab2c2a28928e75f9f61a7efee922f"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/048-library-reimport-preview-settled-0.jpg",
+        "bytes": 132574,
+        "sha256": "bbcf89f4038d39851a27f3397908139be437ff39538e7f05ebce10d2e8d64547"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/048-library-reimport-preview-settled.json",
+        "bytes": 82997,
+        "sha256": "7bb9e0cc7cd3af801917e68271970e08aeef4fc396c300652afbf689a4c55596"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/049-library-replace-keyboard-focus-0.jpg",
+        "bytes": 133070,
+        "sha256": "26ad7dd53e4aead55e9d29e9689e367328864db5d1d3ca0c3669716d73d9993d"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/049-library-replace-keyboard-focus.json",
+        "bytes": 82997,
+        "sha256": "f967e17573c7fc333400c26d76f376f31adc658bd7ca0e8c781e4353e8fc66c7"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/050-library-explicit-replace-0.jpg",
+        "bytes": 135470,
+        "sha256": "7f20c1dd98109d31907d65df6e1e2fa485ae69a7d7efe0932cf820a28effc601"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/050-library-explicit-replace.json",
+        "bytes": 83129,
+        "sha256": "ec4c3cbd81767e0644b4a1665b2a45488c1636a26cab4cf9b3ca099a14cf6765"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/051-library-committed250-left-0.jpg",
+        "bytes": 135470,
+        "sha256": "7f20c1dd98109d31907d65df6e1e2fa485ae69a7d7efe0932cf820a28effc601"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/051-library-committed250-left.json",
+        "bytes": 187892,
+        "sha256": "07d12ee6ee4a3e355887b468eb5854846c9dc854043036e3851ec7df7c55d59c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/052-library-committed250-right-0.jpg",
+        "bytes": 128114,
+        "sha256": "9676fe32ca96073f1321e15a4e4f2d3025ec556ae6a2725ee4b392db30381a61"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/052-library-committed250-right.json",
+        "bytes": 187892,
+        "sha256": "5f55f40707eedc4ef51bca57a84addb0e0da8f6394fca2c7d6c6c3dea233354e"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/053-library-search-focus-readable-rates-0.jpg",
+        "bytes": 124867,
+        "sha256": "cf81e452aa67847dcce3047640c1ec4f3e5a9faa753d5c0497c22e49893a1994"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/053-library-search-focus-readable-rates.json",
+        "bytes": 147043,
+        "sha256": "69bd262412e746e58f9342a95f34ffaa8a25814d1b51ad81b1192cfe2591453c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/054-library-zero-results-0.jpg",
+        "bytes": 88170,
+        "sha256": "23587e9ff229619950c2685b1b6e91fe7b1a32ad9d53463afd2f109e73188d3a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/054-library-zero-results.json",
+        "bytes": 15976,
+        "sha256": "e950fbcbd84e3136793779855a06e96547fa3660dcc442cf4e716c814eac59b6"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/055-library-search-save-shortcut-contained-0.jpg",
+        "bytes": 88275,
+        "sha256": "367886673462861d2ab415e0996882f0987c993a9c5c5574c2045681f890ff24"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/055-library-search-save-shortcut-contained.json",
+        "bytes": 15976,
+        "sha256": "40ad66162999db910c87d388b34d877f4399d9a9f43927e27d30ecdeeeabe328"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/056-library-zero-settled-0.jpg",
+        "bytes": 88170,
+        "sha256": "23587e9ff229619950c2685b1b6e91fe7b1a32ad9d53463afd2f109e73188d3a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/056-library-zero-settled.json",
+        "bytes": 15976,
+        "sha256": "1d0fe2c7a6b4f925722198ea2ffa05b0cc11e56584cf9bf740311d6f38a04bf9"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/057-library-zero-message-visible-0.jpg",
+        "bytes": 88198,
+        "sha256": "552d1fef9e73c144ce8be25bff13e994c456c1a127f850c80fce606f2cbc023d"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/057-library-zero-message-visible.json",
+        "bytes": 15976,
+        "sha256": "57d88d570ac35d10c6385018a9734d23f8b8752e52f6405cbe15289a6f90faf7"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/058-library-zero-scrollbar-left-0.jpg",
+        "bytes": 85210,
+        "sha256": "7acb5facc5f032004e1d24a345f995579927394105be4b01391e9e428d6af8c9"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/058-library-zero-scrollbar-left.json",
+        "bytes": 15976,
+        "sha256": "0b5deff2df6621d1159646d015006f7d415a1b609e48632307f294a3b434301c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/059-library-one-result-search-0.jpg",
+        "bytes": 130921,
+        "sha256": "6c41012420ecee21393f959fef0ac16dac1e2b9a7dc0d6c9e51bb2234fe00053"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/059-library-one-result-search.json",
+        "bytes": 17175,
+        "sha256": "7552bd8891a602ad2d61cdae3261aa13b461eec1847d6af7423e3c2b7dbc4e86"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/060-library-last-row-rates-right-0.jpg",
+        "bytes": 119471,
+        "sha256": "45519cf8a8996e4dc85af940822d5f651e2f8bce91682ad16927ff86696b50ae"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/060-library-last-row-rates-right.json",
+        "bytes": 17175,
+        "sha256": "a583b96f23606de20db83a8e57fda1076fe3ede68b83c1a65f15f8eee05e9839"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/061-library-last-row-end-markers-0.jpg",
+        "bytes": 120210,
+        "sha256": "af5a31c65c7487d32aba127cf4777300f7f3e871a103f5ee068cb94cfea71323"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/061-library-last-row-end-markers.json",
+        "bytes": 17175,
+        "sha256": "4ec950f449bce800e8cb815bd58eaed21f5676ecf5c78ba95fd98452639dd9c1"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/062-library-last-description-end-left-0.jpg",
+        "bytes": 127505,
+        "sha256": "d9a8c250657309aada523f322d539ff64bc79f67b074cf845e6261367bd289c6"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/062-library-last-description-end-left.json",
+        "bytes": 17175,
+        "sha256": "bd5daa39cee0160ae1921869cb6cd631b36e9724130612512e62fed9856ad816"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/063-library-search-clear-many-0.jpg",
+        "bytes": 132849,
+        "sha256": "ef836b60e65f7f259730f5ab3895048b41e53cf0acccdd8a87b51dad634f2a0a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/063-library-search-clear-many.json",
+        "bytes": 147043,
+        "sha256": "4a592e1fad53035868f93326fb0d46b575cce775b03e4cf500b46f80c75d5e0a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/064-library-invalid-picker-0.jpg",
+        "bytes": 110958,
+        "sha256": "4c93a961588d2d080195e519fc7e8abf038f3945d2234d8042ddae1138e0452d"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/064-library-invalid-picker-1.jpg",
+        "bytes": 69506,
+        "sha256": "cfe93a5af3f3a78345a778b223c17aca18f9d4e3450f0494703ad8ca568927f2"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/064-library-invalid-picker.json",
+        "bytes": 158042,
+        "sha256": "3b3348afcb91cfb8cb01e659d20beb7a99d2fae64248054bbc5ef0af7159c8f4"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/065-library-invalid-path-0.jpg",
+        "bytes": 115974,
+        "sha256": "3553196e99e8788d32865ebf3266ac10e9d549d1cbcf72892a141a217323d6d3"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/065-library-invalid-path-1.jpg",
+        "bytes": 74508,
+        "sha256": "0140d418a4294a0e7c4106322ecb6b8b2aba6ceaccbe042f64983356d9ddd29a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/065-library-invalid-path.json",
+        "bytes": 169174,
+        "sha256": "3072628dc0f3e7905d7572ba629c76647985d994d8306a88faae7874285db5d6"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/066-library-invalid-checking-0.jpg",
+        "bytes": 132084,
+        "sha256": "b5b32a1f21731552853637dc6f0fad786bdca857d7ee0775f7d9c65abd6e05aa"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/066-library-invalid-checking.json",
+        "bytes": 147057,
+        "sha256": "06b5590168a4b5118eca0afb540ba89ea7f45527c93add7acb83c44d9f8ee4e3"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/067-library-invalid-rejected-0.jpg",
+        "bytes": 132084,
+        "sha256": "b5b32a1f21731552853637dc6f0fad786bdca857d7ee0775f7d9c65abd6e05aa"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/067-library-invalid-rejected.json",
+        "bytes": 147274,
+        "sha256": "e5270ca4e09b4052d567d837b199796159ac0f57179f9b4765009cab6e7b1060"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/068-library-invalid-error-reachable-0.jpg",
+        "bytes": 131883,
+        "sha256": "16228c98ed3b0ce9919528f0c4407c6687345e7f1d25a3b12a8038cac73d7f63"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/068-library-invalid-error-reachable.json",
+        "bytes": 147274,
+        "sha256": "f98727b9e1d06f2d05de1a3137e5b30b94eb6951c7272af9d6d32cf8b245acd0"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/069-library-invalid-settled-after-scroll-0.jpg",
+        "bytes": 132007,
+        "sha256": "d00a9029b2aa3a2d917f25cd9d44ee9efa1b71c781982f0acd0fdbd3851b98bc"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/069-library-invalid-settled-after-scroll.json",
+        "bytes": 147274,
+        "sha256": "e2aee89ae6c9cd2bd285fcc8146854731d5815974fec27bece6fd420f7612a72"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/070-library-invalid-before-maximize-0.jpg",
+        "bytes": 132007,
+        "sha256": "d00a9029b2aa3a2d917f25cd9d44ee9efa1b71c781982f0acd0fdbd3851b98bc"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/070-library-invalid-before-maximize.json",
+        "bytes": 147274,
+        "sha256": "22ea63ea228073ab0e51ae201338d6d5577c08746cdfeff1b392ab2f01da4d98"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/071-library-invalid-maximized-control-0.jpg",
+        "bytes": 169563,
+        "sha256": "614716f1051356e014c3e52dbd904e4b2cccab91c26afe07f74b444af4db63ab"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/071-library-invalid-maximized-control.json",
+        "bytes": 147271,
+        "sha256": "62f357ac76ede51bbfffa39d1b83418c1de9c41e8304dd156597154337a18b57"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/072-library-invalid-restored-control-0.jpg",
+        "bytes": 131793,
+        "sha256": "b190f510f10905baf352ee9de8f57fcfa75ddd78d21ece9d7f01dcad76e71b3a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/072-library-invalid-restored-control.json",
+        "bytes": 147275,
+        "sha256": "81140871f099972807de09001e730ba218a627a0b89d24af01919d77d37bb847"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/073-library-retry-after-invalid-picker-0.jpg",
+        "bytes": 110980,
+        "sha256": "3692e1d38c3b14227a4b496ddc1e5d49eec1c1579d2cc84afa510b0f862bd62c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/073-library-retry-after-invalid-picker-1.jpg",
+        "bytes": 69402,
+        "sha256": "e4ada9a0ab64d0f831ab71a894f081edb179b4219ebb6caf562ea4f856e3e06c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/073-library-retry-after-invalid-picker.json",
+        "bytes": 158068,
+        "sha256": "680968ac42872450939c574d4b27b5753487c3e08d3224ad3c989a5ac49db7dd"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/074-library-retry-valid-path-0.jpg",
+        "bytes": 115923,
+        "sha256": "2ca2877c722c1b11788f08ec5cbf680ddd2fbdc168033fbda7fa39cb95865fe3"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/074-library-retry-valid-path-1.jpg",
+        "bytes": 74471,
+        "sha256": "fc59efd384bb6a6ba3d073f3a87e359f79ca0927ad6007854d003fc7c97daa77"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/074-library-retry-valid-path.json",
+        "bytes": 169155,
+        "sha256": "232f0a32d293f3cf77942123db4002ee9be4a13202459015f70e82c8ce177443"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/075-library-retry-valid-checking-0.jpg",
+        "bytes": 134398,
+        "sha256": "fc845a36f347cfd0840377b2d588d98f0a566d34427c19bfc3ba0f86e90af9cc"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/075-library-retry-valid-checking.json",
+        "bytes": 147058,
+        "sha256": "a6772fd5742f67bd0b7af4dfbf2e41a0cb91d857d604dc848fc817aa57ff8b45"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/076-library-valid-retry-preview-0.jpg",
+        "bytes": 134398,
+        "sha256": "fc845a36f347cfd0840377b2d588d98f0a566d34427c19bfc3ba0f86e90af9cc"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/076-library-valid-retry-preview.json",
+        "bytes": 42508,
+        "sha256": "78656b5e89265b47392a3f8a987ef580182ec29cd442cf4867622123de039d9f"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/077-library-preview-escape-focus-return-0.jpg",
+        "bytes": 106380,
+        "sha256": "0db15637435cf4a2e6934468d87679c813902578162a3772060b24a512feca14"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/077-library-preview-escape-focus-return.json",
+        "bytes": 14046,
+        "sha256": "d88d4b7e9f0987809351a1df231ba56172cee09d0313ee0f25824aea965059e5"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/078-library-picker-curved-floor-open-0.jpg",
+        "bytes": 134583,
+        "sha256": "3d6d7c7a74228aab96ba7d78fdfc36ed137d9cb7d7e354a502077f031593723e"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/078-library-picker-curved-floor-open.json",
+        "bytes": 15327,
+        "sha256": "a393547e449424f7d0425c8d966e8eb2326bda7af6e3dddd29d96beb675ceb41"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/079-library-picker-right-select-column-0.jpg",
+        "bytes": 113267,
+        "sha256": "5d0eca5219664bac20d7062485401b62a214d5d0a96cd7c6bb323bcdbcb4b81f"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/079-library-picker-right-select-column.json",
+        "bytes": 200824,
+        "sha256": "a797273bc6331353e34cf2f640b60e6ffa36f1ab7de192a3d42fefdfa6f71740"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/080-library-picker-compatible-search-0.jpg",
+        "bytes": 117554,
+        "sha256": "e6b3e64f64bd59828e6c48112a3e3b3986e7068effac1eb363b42c85c19f9357"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/080-library-picker-compatible-search.json",
+        "bytes": 18274,
+        "sha256": "25ccab507f7ab39240feac1043d1f1d96ae85275de9314e82a9805d5145c5281"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/081-library-picker-compatible-selected-0.jpg",
+        "bytes": 111722,
+        "sha256": "7a4d6c71a80356f08d86ce5a8f99181db93057f1d642b793215e4f8bcd13def9"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/081-library-picker-compatible-selected.json",
+        "bytes": 18455,
+        "sha256": "1d68b0510e30568c924e346f0db7c7d3a736cdf23620e8890024799e07cb7bf3"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/082-library-picker-apply-keyboard-focus-0.jpg",
+        "bytes": 111973,
+        "sha256": "67a8524f112667f0bbf037c28425929680550458e068233c6c66af64d7e2676c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/082-library-picker-apply-keyboard-focus.json",
+        "bytes": 18455,
+        "sha256": "cbb7a64e334a1f6e01b586fe7beca780795f1c9e2eb1880fcb52765406106935"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/083-library-picker-forward-wrap-close-0.jpg",
+        "bytes": 112221,
+        "sha256": "5948ff2dae92044827c7ac482482e46a7b5f30bd018d05b57b8bda8cd9b27b17"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/083-library-picker-forward-wrap-close.json",
+        "bytes": 18455,
+        "sha256": "58da89cf2b1dd6ae1578f9b8bf941909dfd3e8a4a6d0eb9c685705f33ce5fc46"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/084-library-picker-reverse-wrap-apply-0.jpg",
+        "bytes": 111973,
+        "sha256": "67a8524f112667f0bbf037c28425929680550458e068233c6c66af64d7e2676c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/084-library-picker-reverse-wrap-apply.json",
+        "bytes": 18455,
+        "sha256": "337bce8f813754f969a336e6eb70eeb5d725d2312c64d56488f985847a557944"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/085-library-picker-escape-without-apply-0.jpg",
+        "bytes": 105903,
+        "sha256": "1f746d2e54c511bb26dccd619c7142fb5cbab8db77a870624a6142d062ee1f7f"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/085-library-picker-escape-without-apply.json",
+        "bytes": 14046,
+        "sha256": "f417151a9be3f305bdeb14a862686557447ba2dc1edaa4c985c2e4556e93e616"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/086-library-final-unchanged-estimate-0.jpg",
+        "bytes": 105903,
+        "sha256": "1f746d2e54c511bb26dccd619c7142fb5cbab8db77a870624a6142d062ee1f7f"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/086-library-final-unchanged-estimate.json",
+        "bytes": 14046,
+        "sha256": "c06ed9a371a83ed2e0889d7bf40ece59fb9f0071fdb3cde7b5ce0203fd5bb78a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/087-legacy-open-picker-0.jpg",
+        "bytes": 123055,
+        "sha256": "4f5decbeb65a52224596afdbe431cc0a63d0ac2aa55ab399cb7839ce4f5d57ae"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/087-legacy-open-picker-1.jpg",
+        "bytes": 72235,
+        "sha256": "32b2bb5f0c27095567bd16ef376b48064fc8db0d0f077ee2d21a863378b14865"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/087-legacy-open-picker-2.jpg",
+        "bytes": 2181,
+        "sha256": "3a5ddb655fb129b3d64919f2699caa4f5267330e1fbbe8bedd3af091c448e16f"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/087-legacy-open-picker-3.jpg",
+        "bytes": 1944,
+        "sha256": "68115b9caf7584d6a0dae221289bea2750f8364552b48852248cf3e94cd562a1"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/087-legacy-open-picker.json",
+        "bytes": 25696,
+        "sha256": "ea3794f1f420e12762cb2c67b36010f13a07fbce4b86fb167b6beb482ee8e97d"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/088-legacy-open-path-0.jpg",
+        "bytes": 128297,
+        "sha256": "ec11ffa54711f795b63535a82a25e36a222d3949a4dfc661642f8646159bacac"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/088-legacy-open-path-1.jpg",
+        "bytes": 77391,
+        "sha256": "d953cc5843b221a71f3cf7614723611be7cb3495cc45fa3863924fdc7d9a5635"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/088-legacy-open-path-2.jpg",
+        "bytes": 2181,
+        "sha256": "3a5ddb655fb129b3d64919f2699caa4f5267330e1fbbe8bedd3af091c448e16f"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/088-legacy-open-path-3.jpg",
+        "bytes": 1944,
+        "sha256": "68115b9caf7584d6a0dae221289bea2750f8364552b48852248cf3e94cd562a1"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/088-legacy-open-path.json",
+        "bytes": 37314,
+        "sha256": "5c5e6f30ed347d7c9073a0e21a13abf60f421fb0cb2c635a38b6f2f0b8ee88ca"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/089-legacy-open-submit-0.jpg",
+        "bytes": 105071,
+        "sha256": "ae31175666620acfef273faeadcd217702df8bec31367aa4ac8f51c0af6b2bbc"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/089-legacy-open-submit.json",
+        "bytes": 14046,
+        "sha256": "4a1aac1cf42d8141df93f16af89b185c103889704b7c198a37c3ad502587b5e4"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/090-legacy-adopted-long-content-0.jpg",
+        "bytes": 117563,
+        "sha256": "19fee925db14a5c5bbcc7ea7be59d1dbfc37d467c13672704abc2e1883c72835"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/090-legacy-adopted-long-content.json",
+        "bytes": 84057,
+        "sha256": "3220d50b40239b1a067cdfae3b2a727483be5e9fc922d31964eac77c6b07e870"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/091-legacy-review-reobserve-0.jpg",
+        "bytes": 117563,
+        "sha256": "19fee925db14a5c5bbcc7ea7be59d1dbfc37d467c13672704abc2e1883c72835"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/091-legacy-review-reobserve.json",
+        "bytes": 84057,
+        "sha256": "a20f0e2fe7dfc612ee8ea74bff7860f67706ec955312c432b79012c0d5eabf47"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/092-legacy-review-open-0.jpg",
+        "bytes": 103426,
+        "sha256": "ac693196464a068891905f7ad9d2ad4b1f226d34ff178737a3dbb2b9fce45fcc"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/092-legacy-review-open.json",
+        "bytes": 84057,
+        "sha256": "fd2f281c1d2d6b81a5132588aea50871ddbde4b3a0660d5d06ef1135ef5e436f"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/093-legacy-review-settled-0.jpg",
+        "bytes": 103585,
+        "sha256": "50decb080cf6847771f7bb1e95194bd138d6161528a656b539a1dbb1d5c57df8"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/093-legacy-review-settled.json",
+        "bytes": 55433,
+        "sha256": "6fe547f138822001206def721f16439603b919f37de338a471ca34a5d2f71f2c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/094-legacy-review-last-long-row-0.jpg",
+        "bytes": 95541,
+        "sha256": "0a9256da2c412f7e82462b40fbfcc8ee1447e546e076b342e0c47332c50c4ab5"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/094-legacy-review-last-long-row.json",
+        "bytes": 55433,
+        "sha256": "9bc4e57f2066a38cdd4904244fdd95a75689eb9fe1cbff9af2d52f6b98a1405d"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/095-legacy-review-scroll-end-0.jpg",
+        "bytes": 95012,
+        "sha256": "3d8743494b790b9abb8919e45f975f2ead160b7500e48ca092307ab73f93e535"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/095-legacy-review-scroll-end.json",
+        "bytes": 55433,
+        "sha256": "5d1a7f8a88c7c0a076713185c382d8203587a655de85eca6851b3b92737a3dd3"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/096-legacy-review-tab-checkbox-0.jpg",
+        "bytes": 95400,
+        "sha256": "1bbca4bf88c9abac165ce39a24a3b85eeb5edff0d22665f72c671842e2f12f8c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/096-legacy-review-tab-checkbox.json",
+        "bytes": 55433,
+        "sha256": "e0f64f994108468535b8e145c84f31eea21dcf5e2eca9e1351b35ddf0f9ed6ff"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/097-legacy-review-reverse-wrap-0.jpg",
+        "bytes": 95604,
+        "sha256": "d431b08ab4bd46698931386c50f2742aec4d5c38daca253577ddc68d0f9118a1"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/097-legacy-review-reverse-wrap.json",
+        "bytes": 55433,
+        "sha256": "c59ec5b146af365056a403b351cdf7ff9e9cfeda6b67b14f0d42866eeeeefac2"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/098-legacy-review-escape-retains-warning-0.jpg",
+        "bytes": 118874,
+        "sha256": "1b3d103c1494b67608f14c36182c3c944e30aec075be00380139c36b24690a9e"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/098-legacy-review-escape-retains-warning.json",
+        "bytes": 84107,
+        "sha256": "22986f5028426d61d6805ba4c85d416685ca25e914618c415a38efb4bf7c3f24"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/099-legacy-review-reopen-keyboard-0.jpg",
+        "bytes": 104106,
+        "sha256": "a1555a5d1c98f5a8ffd1b3b335d4378ebba65dd3c82bf4790266c3ec461238f3"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/099-legacy-review-reopen-keyboard.json",
+        "bytes": 72951,
+        "sha256": "fc8720a35a236f13c7672be5986871a079fbff333bd3cd18b69e6ed0e08ef6e6"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/100-legacy-review-checked-enables-confirm-0.jpg",
+        "bytes": 103391,
+        "sha256": "8e99a96437157fa22940144ef833724fae7a6bf894fb77d86e28ee4745085357"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/100-legacy-review-checked-enables-confirm.json",
+        "bytes": 55422,
+        "sha256": "408831fe5bb31eab7bb9111cad921b5d39c03fdcd7afb517f4487231818c7a22"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/101-legacy-review-confirmed-0.jpg",
+        "bytes": 112031,
+        "sha256": "247f5fa221ed6236f60acf617c1974cfa95a7ee2ef70cdb75ab3829fbaf707c7"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/101-legacy-review-confirmed.json",
+        "bytes": 66574,
+        "sha256": "1607749802429db97f0dcf7c658da6dd105a2a2f409a47660ed43bcc05a659f8"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/102-legacy-upgraded-saveas-0.jpg",
+        "bytes": 102560,
+        "sha256": "6b0ccfd53372a115318ff67579f66e8725603560e31341a89c0fa01cd83cd78d"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/102-legacy-upgraded-saveas.json",
+        "bytes": 2750,
+        "sha256": "c7ca76e16b6b1805c1bf24a8220a88aa8b5132a358501aea0985452c85d7177c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/103-legacy-upgrade-save-picker-start-0.jpg",
+        "bytes": 101056,
+        "sha256": "e7125606946ddd86436e8049d18aa0e931549970ed6b2c606a2a55c22c67709a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/103-legacy-upgrade-save-picker-start.json",
+        "bytes": 2732,
+        "sha256": "b87e0bd713a9b90cc9fa76d13f0d8ef593f119ecd21ff740b8b6f7390473d0f6"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/104-legacy-upgrade-save-picker-0.jpg",
+        "bytes": 97986,
+        "sha256": "fe0a355495df81928d26d7c0e70d12f86569bc748c3c7f2cbe980c81bb649ea4"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/104-legacy-upgrade-save-picker-1.jpg",
+        "bytes": 56854,
+        "sha256": "8f5c78eee6ee558bf72e05dd45bf8c08e0e05ff5d52e533b5d1940184a24c556"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/104-legacy-upgrade-save-picker.json",
+        "bytes": 17527,
+        "sha256": "5a85c4896b3dc507c1d81a00f0f9f676c0b6ea30edc42efec5df5df2de5e26aa"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/105-legacy-upgrade-distinct-path-0.jpg",
+        "bytes": 103302,
+        "sha256": "c6515a398d1652e782bc9446e6a388af661dd182a22cca2179dbc4788cf6380c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/105-legacy-upgrade-distinct-path-1.jpg",
+        "bytes": 61934,
+        "sha256": "66bfa1db80dcda431ce7afac3fbcd09de0ca2cd3fe555c86685a674223205980"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/105-legacy-upgrade-distinct-path.json",
+        "bytes": 17959,
+        "sha256": "0554099170f0866af77d69a6ea9e61b8abc5903d747ee9ddaeb56f999d092e21"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/106-legacy-upgrade-save-completed-0.jpg",
+        "bytes": 101072,
+        "sha256": "9367f3f70c44692e89196f2788c8fd841198257512523d32cf63250117544315"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/106-legacy-upgrade-save-completed.json",
+        "bytes": 2745,
+        "sha256": "1f6545dfc60a51f787490ee4a9b4d8045ef658db96b0ac76096810d252a7b160"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/107-legacy-upgrade-saved-settled-0.jpg",
+        "bytes": 112442,
+        "sha256": "1ca15fcd2b80b218514f5ea173c219eb2c3b061c9b61a9680f3733a5070efa4a"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/107-legacy-upgrade-saved-settled.json",
+        "bytes": 83765,
+        "sha256": "4337693733bcace6dd1b3e89f9eaa1afce31035a89afdc6204cd333061a3289f"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/inputs/legacy-format2-long-rates.clmc",
+        "bytes": 70833,
+        "sha256": "8653174b2ae0037e3f05f645e40ee9116c4c525b83b6ec9d15a90dc0ae141262"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/legacy-reviewed-upgraded113-readback.json",
+        "bytes": 17432,
+        "sha256": "d228f976d9f49476c280100a4674bae0ddcf8828e7d669483f3a868821fb5ded"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/legacy-reviewed-upgraded113.clmc",
+        "bytes": 58890,
+        "sha256": "39465e0616ad5172d1c92327fbda6e39c8be5cf062a612747f61410e4a9e0d85"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/library-invalid-retry-picker-preservation.json",
+        "bytes": 730,
+        "sha256": "78ab71a5739d624469819185ee36a8689026f7b5595cd5ee4b2d09b8df62269c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/library250-firstcommit113-proof.json",
+        "bytes": 693,
+        "sha256": "a49ca97856c6cc03aaf2040e9828afa1850ccb6a3f7e5f2a35c08058a003484b"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/library250-firstcommit113.json",
+        "bytes": 279714,
+        "sha256": "8a1d3d89f2eea096aa6aac8e3d896670a04b70f8e71d7f82ed0df7e68c3c5086"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-case-proposal.json",
+        "bytes": 22279,
+        "sha256": "4c2b61293427c7f547553207e424a7091336d4b497ecc6bde6cd37ae7532efc6"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-first-save113-copy-proof.json",
+        "bytes": 1174,
+        "sha256": "a3e6d7117032524745568903a217dc0b8a47af7a0c61832980ddb1276f09b117"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-first-save113-readback.json",
+        "bytes": 7258,
+        "sha256": "eb497c91cbeb678d548bd63dee43db1cca670ce1f4e8e57011894db5caa0bee2"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-first-save113.clmc",
+        "bytes": 10266,
+        "sha256": "f575618eaa3c05d1a1d00645658729598938aa8ae74fc2e290833a2a51bb37d5"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-post-reopen113-copy-proof.json",
+        "bytes": 1136,
+        "sha256": "fd6f0c2955207c0e78bd85e7738d41d95337f456c47d0edaf1b0b11ced2a2c22"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-post-reopen113-readback.json",
+        "bytes": 7514,
+        "sha256": "cecb5ab8df5c8568d0e48843a309a6f158785d7e9325496887ff1b33c644452b"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-post-reopen113.clmc",
+        "bytes": 10237,
+        "sha256": "e03be603cf67de2fe9c17b9f10fc1a7efceda1c62175dcf46daf890035fa80ca"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/portable-precondition.json",
+        "bytes": 1620,
+        "sha256": "30df984e66a7fa7036c98aad8f1dd270d8e73eb8b78f9b7c43ba718b50268bc1"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/native/transfer-only/portable113.clmc",
+        "bytes": 10267,
+        "sha256": "d35db947d071e52120797dee192c359c14ee0424bf6de7896ab1e337c480d038"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/original-profile-inventory.json",
+        "bytes": 547921,
+        "sha256": "aa6677576f76d68427b40125746e18b018fb17f6ea728b520cf200907584b978"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/packaged-smoke.log",
+        "bytes": 31198,
+        "sha256": "0eea5e0d61bedf6cfcf8373999300f930be2571ec594da70bc694c95c923c047"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/packet-independent-readback.json",
+        "bytes": 4362,
+        "sha256": "ca753ffb1b5d33e06181d15f83238fb7a176375ff8d997543f85d45962765a64"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/prepare-portable-case-proposal.py",
+        "bytes": 13337,
+        "sha256": "406f3c6762eac976e1415aa65b840e5f4d058c37f247841df9c1d77d56a4a105"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/profile-isolated.json",
+        "bytes": 952,
+        "sha256": "63f926cf93c5664b13c4d5977916ef96d7cbc12ebe6517b88d762e79a4326f80"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/read-legacy-upgrade.cjs",
+        "bytes": 10010,
+        "sha256": "e870a43729184b27bf32f306c988171cd2018a1b0ef72596ee9c5105ee66e235"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/read-portable-native.py",
+        "bytes": 12363,
+        "sha256": "f660a65a0d685d0b68141864c1f38621ae17a3248f612b990cb768dd93271cba"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/release-inspection.log",
+        "bytes": 283,
+        "sha256": "86f20d61fdf4e97fd7690238af4ffb5a4a78b4d6151d010445c39d3e80916aa1"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/release-review-inventory.json",
+        "bytes": 3918,
+        "sha256": "0284e3e9b4f51cb9628b50a13096f1d17bbb8a6745db22280e885e24c35b5dd0"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/release-review/release-notices-supplement.md",
+        "bytes": 4293,
+        "sha256": "e1c738ce08e2a93ca3b0aba25669d0dfe736a9828cf74a1d2b5e7bbd83dfd2ee"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/source-validation-notes.md",
+        "bytes": 2239,
+        "sha256": "f711770b2792791c2cb1eb59683e33146656e0b653bd8a23aa2b99df453a0c2b"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/source-validation.json",
+        "bytes": 14315,
+        "sha256": "283112e47fe727fb3d7e0d476845db60d5d4588c054cecfc8e098fa86c3fb17c"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/oracle.json",
+        "bytes": 4330,
+        "sha256": "45bea5ebb1dea332f1af99afbc8e0894891cf86b69045a200b37daa1f01ba506"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/portability-reference.pdf.unavailable",
+        "bytes": 4497,
+        "sha256": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/readback.py",
+        "bytes": 7197,
+        "sha256": "b23e6d66c7610730a84114b4d5694fc2517ffd03a8a46d84f62bfd6bdb00e52d"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/owner-display/portable-fixture/source-project.json",
+        "bytes": 10915,
+        "sha256": "32bc48c4b9981e85229070e6ab95fc6e8372d0475681fdec722eb9c56f04b265"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/README.md",
+        "bytes": 3670,
+        "sha256": "0135dfef0ce46110aace274fa5de7904b041ff8b654827f331ee76d10d7f9563"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/cost-library-250-long.csv",
+        "bytes": 263422,
+        "sha256": "e05f7665765484f5dbb9112e9109f72c98a0a357b285fd66304a2c0ad3b8f096"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/legacy-format2-long-rates.clmc",
+        "bytes": 70833,
+        "sha256": "8653174b2ae0037e3f05f645e40ee9116c4c525b83b6ec9d15a90dc0ae141262"
+      },
+      {
+        "artifact": ".planning/tmp/20-completion-20261026/owner-display/ui-overflow/oracle.json",
+        "bytes": 39382,
+        "sha256": "407d7095d542a910b7a4ba35d3f4bd38004b80dcc52c094a00ed6ff7110304b8"
+      },
+      {
+        "artifact": "docs/release-evidence-first-release.md",
+        "bytes": 2204,
+        "sha256": "72b10c1cd741df7587594ea228f61d2b6c2f7a1736b4ae0f9287c8c42fc373f5"
+      }
+    ],
+    "expectedAcceptanceGate": {
+      "status": "awaiting-evidence",
+      "errors": [
+        "REL-01: unclassified edge assumption still requires explicit review",
+        "REL-02: unclassified edge assumption still requires explicit review",
+        "REL-04: unclassified edge assumption still requires explicit review",
+        "REL-05: unclassified edge assumption still requires explicit review",
+        "recovery-saved: missing tester/date/procedure/expected/actual/artifact provenance",
+        "recovery-saved: status pending is not accepted",
+        "recovery-saved: missing independent expected/actual checks",
+        "recovery-never-saved: missing tester/date/procedure/expected/actual/artifact provenance",
+        "recovery-never-saved: status pending is not accepted",
+        "recovery-never-saved: missing independent expected/actual checks",
+        "failed-save-backup: missing tester/date/procedure/expected/actual/artifact provenance",
+        "failed-save-backup: status pending is not accepted",
+        "failed-save-backup: missing independent expected/actual checks",
+        "offline-workflow: missing tester/date/procedure/expected/actual/artifact provenance",
+        "offline-workflow: status pending is not accepted",
+        "offline-workflow: missing independent expected/actual checks",
+        "large-vector: missing tester/date/procedure/expected/actual/artifact provenance",
+        "large-vector: status pending is not accepted",
+        "large-vector: missing independent expected/actual checks",
+        "large-scan: missing tester/date/procedure/expected/actual/artifact provenance",
+        "large-scan: status pending is not accepted",
+        "large-scan: missing independent expected/actual checks",
+        "multipage-navigation: missing tester/date/procedure/expected/actual/artifact provenance",
+        "multipage-navigation: status pending is not accepted",
+        "multipage-navigation: missing independent expected/actual checks",
+        "scaling-100: missing tester/date/procedure/expected/actual/artifact provenance",
+        "scaling-100: status pending is not accepted",
+        "scaling-100: missing independent expected/actual checks",
+        "scaling-125: missing tester/date/procedure/expected/actual/artifact provenance",
+        "scaling-125: status pending is not accepted",
+        "scaling-125: missing independent expected/actual checks",
+        "scaling-150: missing tester/date/procedure/expected/actual/artifact provenance",
+        "scaling-150: status pending is not accepted",
+        "scaling-150: missing independent expected/actual checks",
+        "scaling-200: missing tester/date/procedure/expected/actual/artifact provenance",
+        "scaling-200: status pending is not accepted",
+        "scaling-200: missing independent expected/actual checks",
+        "scaling-200: pass cannot claim unsupported physical scaling",
+        "monitor-transition: missing tester/date/procedure/expected/actual/artifact provenance",
+        "monitor-transition: status pending is not accepted",
+        "monitor-transition: missing independent expected/actual checks",
+        "ui-keyboard-overflow: status fail is not accepted",
+        "ui-keyboard-overflow: independent check failed or invalid specific row251error remains visually reachable at1282x721"
+      ],
+      "qualification": "Deliberatefailure:12pendingcases,4pendingreviewsandactualUI05failure; no validator exception added."
+    },
+    "readabilityRefinedFromDraftSha256": "d2906599672c7b0475d952c40eacb88b37726bf316428415f2a5cd9045ef3add",
+    "priorReviewedProposalSha256": "9460ed924eea66924c02886834526341515f8443e78b2da7ae62c2e8010692bc",
+    "refinement": "Adds only qualified086–107legacy/UI subset and independent exact persistence, explicitly excludes inconsistent authored legacy full totals, records root-reported appclose with original still isolated, and replaces mutable dist13manifest/smoke/installer references with exact preserved13frozen artifacts. Cases/counts and all four review statuses do not change.",
+    "immutableCandidateFreeze": {
+      "artifact": ".planning/tmp/20-completion-20261026/candidate-1.1.3/frozen-final/inventory.json",
+      "sha256": "49ced86b978c567a91d60b07f0a1c5c4aa91e910176b7e49ba164c7989b9e6cb",
+      "files": 153,
+      "runtimePayloadFiles": 149
+    },
+    "rootAdoption": {
+      "date": "2026-10-25T21:18:16.354Z",
+      "tester": "Codex root",
+      "proposalSha256": "aecafef0abe99c607154a0d3c4bed0f760f716e814d6a7eee94cc3543434b624",
+      "priorCanonicalSha256": "3e3232be7ee947680fd54fd72b61bdc0a563a460d1adb746113771aebd305cc9",
+      "scope": "Root reviewed actual native observations through107, independent readbacks, preserved candidate identity and the isolated original-profile state. Accepts only the recorded two passes, first-release N/A and UI failure; twelve cases and four reviews remain pending. No release approval or original-profile restoration."
+    }
+  }
+}

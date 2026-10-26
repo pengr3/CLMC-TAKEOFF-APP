@@ -1,0 +1,464 @@
+{
+  "formatVersion": 3,
+  "minimumReaderVersion": 3,
+  "preservedSource": null,
+  "createdAt": "2026-10-26T00:00:00.000Z",
+  "updatedAt": "2026-10-26T00:00:00.000Z",
+  "pdf": {
+    "originalFilename": "portability-reference.pdf",
+    "sha256": "4cfd945d78c9305fd3a12ec5fd572186c837e00517f0545fcdd8500e822f1620",
+    "totalPages": 2
+  },
+  "globalUnit": "m",
+  "categories": {
+    "cat-structure": {
+      "id": "cat-structure",
+      "name": "01 Structure",
+      "color": "#0078d4",
+      "paletteIndex": 0
+    },
+    "cat-finish": {
+      "id": "cat-finish",
+      "name": "02 Finishes",
+      "color": "#d13438",
+      "paletteIndex": 1
+    },
+    "cat-services": {
+      "id": "cat-services",
+      "name": "03 Services",
+      "color": "#107c10",
+      "paletteIndex": 2
+    }
+  },
+  "categoryOrder": [
+    "cat-finish",
+    "cat-structure",
+    "cat-services"
+  ],
+  "categoryItemOrder": {
+    "cat-finish": [
+      "Curved outline|perimeter",
+      "Hidden outline|perimeter",
+      "Curved floor|area",
+      "Rectangle floor|area"
+    ],
+    "cat-structure": [
+      "Arc wall|wall",
+      "Straight wall|wall",
+      "Arc run|linear",
+      "Straight run|linear"
+    ],
+    "cat-services": [
+      "Fixture outlet|count"
+    ]
+  },
+  "currentPage": 1,
+  "pages": [
+    {
+      "pageIndex": 1,
+      "coordinateBasis": "pdf-base-scale-2",
+      "dimensions": {
+        "width": 600,
+        "height": 400
+      },
+      "scale": {
+        "pixelsPerMm": 0.1,
+        "displayUnit": "m"
+      },
+      "viewport": {
+        "zoom": 0.75,
+        "panX": 20,
+        "panY": 20
+      },
+      "markups": [
+        {
+          "id": "d393f37d-e091-5277-8f4e-ec455f4e234b",
+          "type": "linear",
+          "page": 1,
+          "name": "Straight run",
+          "categoryId": "cat-structure",
+          "color": "#0078d4",
+          "createdAt": 1792972800000,
+          "points": [
+            {
+              "x": 100,
+              "y": 180
+            },
+            {
+              "x": 400,
+              "y": 580
+            }
+          ]
+        },
+        {
+          "id": "4a4df36d-ce50-52bf-bd4d-f2e72dd06420",
+          "type": "area",
+          "page": 1,
+          "name": "Rectangle floor",
+          "categoryId": "cat-finish",
+          "color": "#d13438",
+          "createdAt": 1792972800000,
+          "points": [
+            {
+              "x": 600,
+              "y": 200
+            },
+            {
+              "x": 1000,
+              "y": 200
+            },
+            {
+              "x": 1000,
+              "y": 500
+            },
+            {
+              "x": 600,
+              "y": 500
+            }
+          ]
+        },
+        {
+          "id": "ed5411a7-be87-5407-a0eb-8a25000a352e",
+          "type": "perimeter",
+          "page": 1,
+          "name": "Hidden outline",
+          "categoryId": "cat-finish",
+          "color": "#d13438",
+          "createdAt": 1792972800000,
+          "points": [
+            {
+              "x": 600,
+              "y": 200
+            },
+            {
+              "x": 1000,
+              "y": 200
+            },
+            {
+              "x": 1000,
+              "y": 500
+            },
+            {
+              "x": 600,
+              "y": 500
+            }
+          ]
+        },
+        {
+          "id": "edb2bba8-a76e-53f0-a2d0-8539e72a81ef",
+          "type": "wall",
+          "page": 1,
+          "name": "Straight wall",
+          "categoryId": "cat-structure",
+          "color": "#0078d4",
+          "createdAt": 1792972800000,
+          "points": [
+            {
+              "x": 600,
+              "y": 620
+            },
+            {
+              "x": 1000,
+              "y": 620
+            }
+          ],
+          "wallHeight": 2500
+        },
+        {
+          "id": "1ab20665-31f6-5d74-99a0-9850ac53c43e",
+          "type": "count",
+          "page": 1,
+          "name": "Fixture outlet",
+          "categoryId": "cat-services",
+          "color": "#107c10",
+          "createdAt": 1792972800000,
+          "point": {
+            "x": 700,
+            "y": 260
+          },
+          "sequence": 1
+        },
+        {
+          "id": "425ea2e0-585c-57e1-a654-32acd1eb551e",
+          "type": "count",
+          "page": 1,
+          "name": "Fixture outlet",
+          "categoryId": "cat-services",
+          "color": "#107c10",
+          "createdAt": 1792972800000,
+          "point": {
+            "x": 900,
+            "y": 260
+          },
+          "sequence": 2
+        },
+        {
+          "id": "0f3bdc4f-12cd-5099-ad8a-664710d9e112",
+          "type": "count",
+          "page": 1,
+          "name": "Fixture outlet",
+          "categoryId": "cat-services",
+          "color": "#107c10",
+          "createdAt": 1792972800000,
+          "point": {
+            "x": 700,
+            "y": 440
+          },
+          "sequence": 3
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "coordinateBasis": "pdf-base-scale-2",
+      "dimensions": {
+        "width": 600,
+        "height": 400
+      },
+      "scale": {
+        "pixelsPerMm": 0.2,
+        "displayUnit": "m"
+      },
+      "viewport": {
+        "zoom": 0.75,
+        "panX": 20,
+        "panY": 20
+      },
+      "markups": [
+        {
+          "id": "aadd12e1-c972-56af-b587-fd453b354a85",
+          "type": "linear",
+          "page": 2,
+          "name": "Straight run",
+          "categoryId": "cat-structure",
+          "color": "#0078d4",
+          "createdAt": 1792972800000,
+          "points": [
+            {
+              "x": 100,
+              "y": 670
+            },
+            {
+              "x": 500,
+              "y": 670
+            }
+          ]
+        },
+        {
+          "id": "d87c710f-a0bd-5719-aca2-b066ca1f6101",
+          "type": "linear",
+          "page": 2,
+          "name": "Arc run",
+          "categoryId": "cat-structure",
+          "color": "#0078d4",
+          "createdAt": 1792972800000,
+          "points": [
+            {
+              "x": 100,
+              "y": 400
+            },
+            {
+              "x": 500,
+              "y": 400
+            }
+          ],
+          "arcs": {
+            "0": {
+              "midX": 300,
+              "midY": 200
+            }
+          }
+        },
+        {
+          "id": "b29ea714-b0da-5ecb-b878-f48e8f842c8a",
+          "type": "wall",
+          "page": 2,
+          "name": "Arc wall",
+          "categoryId": "cat-structure",
+          "color": "#0078d4",
+          "createdAt": 1792972800000,
+          "points": [
+            {
+              "x": 100,
+              "y": 400
+            },
+            {
+              "x": 500,
+              "y": 400
+            }
+          ],
+          "wallHeight": 3000,
+          "arcs": {
+            "0": {
+              "midX": 300,
+              "midY": 200
+            }
+          }
+        },
+        {
+          "id": "af3e8754-61fe-54a4-b627-ab6828bb73bd",
+          "type": "area",
+          "page": 2,
+          "name": "Curved floor",
+          "categoryId": "cat-finish",
+          "color": "#d13438",
+          "createdAt": 1792972800000,
+          "points": [
+            {
+              "x": 650,
+              "y": 400
+            },
+            {
+              "x": 1050,
+              "y": 400
+            },
+            {
+              "x": 1050,
+              "y": 600
+            },
+            {
+              "x": 650,
+              "y": 600
+            }
+          ],
+          "arcs": {
+            "0": {
+              "midX": 850,
+              "midY": 200
+            }
+          }
+        },
+        {
+          "id": "ef2f8010-86ba-5824-bfc0-83f2cf935b31",
+          "type": "perimeter",
+          "page": 2,
+          "name": "Curved outline",
+          "categoryId": "cat-finish",
+          "color": "#d13438",
+          "createdAt": 1792972800000,
+          "points": [
+            {
+              "x": 650,
+              "y": 400
+            },
+            {
+              "x": 1050,
+              "y": 400
+            },
+            {
+              "x": 1050,
+              "y": 600
+            },
+            {
+              "x": 650,
+              "y": 600
+            }
+          ],
+          "arcs": {
+            "0": {
+              "midX": 850,
+              "midY": 200
+            }
+          }
+        },
+        {
+          "id": "6dec3861-ac9e-53aa-b17f-6ddc9d995b3e",
+          "type": "count",
+          "page": 2,
+          "name": "Fixture outlet",
+          "categoryId": "cat-services",
+          "color": "#107c10",
+          "createdAt": 1792972800000,
+          "point": {
+            "x": 160,
+            "y": 560
+          },
+          "sequence": 4
+        },
+        {
+          "id": "4e6cdd39-e9d1-5406-beb0-e2309edcc8ef",
+          "type": "count",
+          "page": 2,
+          "name": "Fixture outlet",
+          "categoryId": "cat-services",
+          "color": "#107c10",
+          "createdAt": 1792972800000,
+          "point": {
+            "x": 440,
+            "y": 560
+          },
+          "sequence": 5
+        }
+      ]
+    }
+  ],
+  "hiddenItemNames": [
+    "Hidden outline|cat-finish"
+  ],
+  "rates": {
+    "Straight run|linear": {
+      "material": 10,
+      "labor": 5,
+      "markup": 20,
+      "basis": "m",
+      "review": "reviewed"
+    },
+    "Arc run|linear": {
+      "material": 20,
+      "labor": 10,
+      "markup": 25,
+      "basis": "m",
+      "review": "reviewed"
+    },
+    "Straight wall|wall": {
+      "material": 4,
+      "labor": 1,
+      "markup": 30,
+      "basis": "m²",
+      "review": "reviewed"
+    },
+    "Arc wall|wall": {
+      "material": 4,
+      "labor": 2,
+      "markup": 10,
+      "basis": "m²",
+      "review": "reviewed"
+    },
+    "Rectangle floor|area": {
+      "material": 2,
+      "labor": 1,
+      "markup": 30,
+      "basis": "m²",
+      "review": "reviewed"
+    },
+    "Curved floor|area": {
+      "material": 3,
+      "labor": 2,
+      "markup": 20,
+      "basis": "m²",
+      "review": "reviewed"
+    },
+    "Hidden outline|perimeter": {
+      "material": 1,
+      "labor": 0,
+      "markup": 0,
+      "basis": "m",
+      "review": "reviewed"
+    },
+    "Curved outline|perimeter": {
+      "material": 1,
+      "labor": 1,
+      "markup": 40,
+      "basis": "m",
+      "review": "reviewed"
+    },
+    "Fixture outlet|count": {
+      "material": 100,
+      "labor": 25,
+      "markup": 10,
+      "basis": "ea",
+      "review": "reviewed"
+    }
+  },
+  "defaultMarkupPct": 17
+}

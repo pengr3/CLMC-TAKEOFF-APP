@@ -3,7 +3,7 @@ phase: 20-production-readiness
 plan: "09"
 subsystem: windows-release
 tags: [nsis, asar, offline, release-evidence, compatibility, electron]
-status: halted
+status: in_progress
 requires:
   - phase: 20-03
     provides: Bounded durable recovery
@@ -66,7 +66,42 @@ coverage:
 
 # Phase 20 Plan 09: Windows Candidate and Evidence Checkpoint Summary
 
-**Current continuation, 26 October 2026:** Exact 1.1.1 candidate `f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e` has a complete [frozen evidence record](20-1.1.1-INSTALLED-EVIDENCE.json): **5 pass, 1 first-release not-applicable, 1 fail, 9 pending**. Fresh installation, project-only transfer, never-saved recovery, failed-save/backup and large-vector pass with their recorded qualifications. A genuine USDA JPX scan stays blank on native pages 4 and 3 despite a valid, readable source; a 1.1.2 fix is underway and has no accepted candidate results. [Francis](20-RELEASE-OWNER.md) owns release/signing, selected unsigned internal use and `C:\Users\franc\OneDrive\Desktop\CLMC TAKEOFF FOLDER`, and confirmed the first release. [REL-02](20-REL02-REVIEW.md) is technically reviewed for that scope; protected handoff, rollback/support contact, REL-01/04/05 and remaining cases stay open. Two displays are active in Extend (both 1920×1080; D1 125%, D2 100%/main), without a successful actual app transition or pan test. All 3191 original profile hashes matched after restoration at 18:32:53.925 UTC on 25 October; the disposable profile is preserved and CLMC is closed. See [20-CLOSEOUT.md](20-CLOSEOUT.md). **20-09-03 remains open; Phase 20 acceptance and Phase 21 pilot/distribution are not claimed.**
+<!-- current-1.1.5-start -->
+
+## Current candidate — 1.1.5
+
+Exact 1.1.5 has **2 complete cases passed, 12 pending, 0 failed, one first-release case not applicable and one reviewed hardware limitation (200%)**. Phase 20 remains VERIFYING; 20-09-03 and all four REL reviews remain open. Phase 21 and distribution remain gated.
+
+Installed curved-outline, curved-line and wall tooltip calculations pass their targeted regressions. Physical 150% calculation and save/readback subsets also pass. Complete display, recovery, offline, public-plan and keyboard/overflow cases still require their remaining checks.
+
+The PC session is safely closed. All 3191 original profile files and hashes are restored; the complete disposable profile is preserved separately. CLMC is closed. D1 remains at 125% and D2 is restored to 100%. No further hands-on action is requested from Francis for this session.
+
+The 18-file UNAPPROVED review packet is copied and independently hash-verified in Francis's specified Releases/1.1.5 folder. Its new directories have the same local protection as 1.1.4. Cloud sharing permissions and final release approval remain unverified.
+
+See [current retest](20-1.1.5-RETEST.md) and [canonical evidence](20-INSTALLED-EVIDENCE.json). Earlier sections retain dated historical candidate results.
+<!-- current-1.1.5-end -->
+
+<!-- current-1.1.4-start -->
+
+## Historical 1.1.4 continuation
+
+The exact installed **1.1.4** candidate has **6 pass, 1 first-release not applicable, 1 reviewed unsupported, 1 fail and 7 pending**. Phase 20 remains **VERIFYING**, task **20-09-03** is open, and Phase 21 pilot/distribution remains gated. See [the current retest record](20-1.1.4-RETEST.md) and [canonical case evidence](20-INSTALLED-EVIDENCE.json).
+
+At 2026-10-26T00:35:54.1992593Z, the reviewed restore helper returned all **3191 original profile files with matching hashes**, preserved the complete 1.1.4 disposable profile separately, and verified CLMC closed. The original isolation was inherited from 1.1.3; this is the actual 1.1.4 restoration, not a rewritten old restoration.
+
+The original implementation summary below retains its initial 1.1.0 provenance and historical decisions. Current candidate and human decisions are in the retest record.
+
+<!-- current-1.1.4-end -->
+
+**Current continuation, 26 October 2026, frozen final-C 1.1.2:** Source `cd9016f` passed qualified **1259/1259 tests, 160 files** using the Node storage flag/four workers, both typechecks/build, final package inspection and exact packaged smoke. Installer SHA-256 `b2d27d0e75d18d1f66df839a0552faf90b17cb14275d78330ac3766f0baadec6`; ASAR `084f96aef0b4e27ad746712efd4fca793554b82c8b0e7642bccda2d93f119416`. Actual fresh installation on LAPTOP-5BAM24NM passes, including all149 payload matches and settled native About1.1.2/JPX notes. [Current evidence](20-INSTALLED-EVIDENCE.json): **5 pass, 1 first-release not-applicable, 1 fail, 9 pending**; all four edge reviews require the new candidate. All3191original files/hashes were restored at **20:16:41.0357511Z**, with appclosed and restored library absent; the complete disposable profile, including pending-discard02, is preserved separately. Historical physical-display facts and scripted smoke do not pass the new native matrix. [Francis's policy/location facts](20-RELEASE-OWNER.md) are retained, with the protected17-file **UNAPPROVED** review copy verified under`Releases/1.1.2`; contact and final human approval remain open. See [20-CLOSEOUT.md](20-CLOSEOUT.md). **20-09-03 and Phase 20/21 acceptance remain open.**
+
+Frozen 1.1.2 has five accepted cases: fresh installation, project-only transfer, failed-save/backup handling, never-saved recovery and multipage navigation. Never-saved recovery restored completed revision 8 with the external PDF absent, retained one Count, scale 1:10 and **100 / 130 / 30**, and saved a separate native copy with independent exact readback. Multipage navigation retained all 14 markups, both scales and **1012.93 / 1160.73 / 147.80** across four recorded toolbar/keyboard round trips and reopen; five sparse process-memory samples over 276.068 seconds settled near baseline, without peak, leak or cache certification. The **UI05 failure** is visible unit/rate columns breaking into vertical fragments at a restored nominal 1280×720 window on Windows 100% scaling (captures 230/232; settled 233 confirms 250 items and the 100-row display cap). The 20-of-250 preview and reachable footer are subset positives; keyboard and invalid-import states are not accepted. **1.1.3 fix/build work is underway; no new artifact or pass is accepted yet.** See [frozen 1.1.2 evidence](20-1.1.2-INSTALLED-EVIDENCE.json) and [current closeout](20-CLOSEOUT.md).
+
+Native project-only transfer now passes: both pages, all 14 markups and nine ordered Estimate rows retain exact PDF/geometry/mixed scales/rates, with independent totals **1012.93 / 1160.73 / 147.80**. Separate Save As is clean; the actual reopened state is dirty after positive viewport refit, and a later ordinary Save returns clean. This is synthetic portability evidence, not physical-display or representative-plan approval.
+
+Native failed-save/backup now passes actual first-save failure, Cancel/Close retention, backup/replacement preservation, unlocked retries and detached-backup Save to a separate copy. The modal Save As route was cancelled; successful first copy used Close then toolbar Save As. The specific JPX blank-render defect is resolved by installed scan rendering/registration, while the complete large-scan case remains pending.
+
+**Frozen 1.1.1 continuation, 26 October 2026 (historical):** Exact 1.1.1 candidate `f136edee86aeec196848a5773af4f090e7f452c6aed26f56bdbaf5ed3c1c0f8e` has a complete [frozen evidence record](20-1.1.1-INSTALLED-EVIDENCE.json): **5 pass, 1 first-release not-applicable, 1 fail, 9 pending**. Fresh installation, project-only transfer, never-saved recovery, failed-save/backup and large-vector pass with their recorded qualifications. A genuine USDA JPX scan stays blank on native pages 4 and 3 despite a valid, readable source; at this historical checkpoint a 1.1.2 fix was underway with no accepted replacement results yet. [Francis](20-RELEASE-OWNER.md) owns release/signing, selected unsigned internal use and `C:\Users\franc\OneDrive\Desktop\CLMC TAKEOFF FOLDER`, and confirmed the first release. [REL-02](20-REL02-REVIEW.md) was technically reviewed for that candidate; protected handoff, rollback/support contact, REL-01/04/05 and remaining cases stayed open. Two displays were active in Extend (both1920×1080; D1 125%, D2 100%/main), without a successful actual app transition or pan test. All3191 original profile hashes matched after restoration at18:32:53.925UTC on25October; the disposable profile was preserved and CLMC was then closed. This restoration and case total are historical, not the current1.1.2 session state.
 
 **Earlier 26 October continuation (historical):** Exact 1.1.1 had 2 complete passes (fresh installation and never-saved recovery) and 14 pending, with additional scoped fault/library/public-PDF observations. At that checkpoint the original 3191-file profile had been restored, the original 100%/Show only on 2 topology was retained, and owner location/signing decisions were forthcoming. Later results above supersede that case total and hardware/owner baseline. The candidate table and initial task history below describe the original 1.1.0 checkpoint.
 

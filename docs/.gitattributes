@@ -1,0 +1,2 @@
+# This companion's recorded SHA-256 must survive cross-PC checkouts.
+release-notices-supplement.md -text

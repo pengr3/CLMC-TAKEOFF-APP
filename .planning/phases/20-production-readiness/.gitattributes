@@ -1,0 +1,7 @@
+# Preserve hashes in frozen evidence and the portable handoff across Git clients.
+20-*-EVIDENCE.json -text
+20-1.1.4-RELEASE-DECISIONS.md -text
+dev-pc-handoff/** -text
+dev-pc-handoff/*.json whitespace=cr-at-eol
+dev-pc-handoff/*.pdf binary
+dev-pc-handoff/*.clmc binary
